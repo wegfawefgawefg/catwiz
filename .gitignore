@@ -1,0 +1,4 @@
+.venv/
+data/extracted/
+mockup/out/
+__pycache__/
