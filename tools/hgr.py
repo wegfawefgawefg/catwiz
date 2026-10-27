@@ -99,6 +99,39 @@ class Canvas:
                 if ch != ".":
                     self.set(x + dx, y + dy, colours.get(ch, ch))
 
+    def grey(self, x0, y0, x1, y1, mask=None):
+        # grey as a white/black dither in pixel pairs; only where mask(x, y) is true
+        for y in range(max(0, y0), min(H, y1)):
+            for x in range(max(0, x0), min(W, x1)):
+                if mask is None or mask(x, y):
+                    self.px[y][x] = "W" if ((x // 2) + y) % 2 == 0 else "K"
+
+    def outline(self, colour="K", inside=None, t=1):
+        # a t-pixel border in colour around every pixel inside(c) is true for, on pixels
+        # where it is false: the sticker look
+        src = [row[:] for row in self.px]
+        for y in range(H):
+            for x in range(W):
+                if inside(src[y][x], x, y):
+                    continue
+                for dy in range(-t, t + 1):
+                    for dx in range(-t, t + 1):
+                        yy, xx = y + dy, x + dx
+                        if 0 <= yy < H and 0 <= xx < W and inside(src[yy][xx], xx, yy):
+                            self.px[y][x] = colour
+                            break
+                    else:
+                        continue
+                    break
+
+    def poly_rot(self, cx, cy, w, h, deg, c):
+        import math
+        a = math.radians(deg)
+        pts = []
+        for px, py in ((-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)):
+            pts.append((cx + px * math.cos(a) - py * math.sin(a), cy + px * math.sin(a) + py * math.cos(a)))
+        self.poly(pts, c)
+
 
 def load_font():
     text = open(FONT_CPP).read()
