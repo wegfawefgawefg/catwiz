@@ -99,7 +99,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ```sh
 TISPLE=~/Coding/LangDev/tisple/build/tisple
 $TISPLE build                        # build/catwiz.dsk; $TISPLE build --disk x.dsk --asm > x.asm
-$TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --screenshot shots/x.png
+$TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "1000f:RETURN" --screenshot shots/x.png
 ```
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
