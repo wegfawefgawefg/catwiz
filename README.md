@@ -49,7 +49,8 @@ on the PATH. The art is drawn in plain Python 3 (`tools/art/`) and exported to
 
 ## Running
 
-In Tisple's emulator:
+`scripts/run.sh` builds the disk and plays it in a window with the music and clicks. By hand, in
+Tisple's emulator:
 
 ```sh
 tisple machine --disk build/catwiz.dsk --window                       # speaker sound
