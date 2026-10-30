@@ -2,3 +2,7 @@
 data/extracted/
 mockup/out/
 __pycache__/
+build/
+shots/**/*.bin
+shots/scratch*
+shots/t_*

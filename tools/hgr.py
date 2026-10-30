@@ -13,7 +13,7 @@ import re
 import subprocess
 
 W, H = 280, 192
-TISPLE = os.path.expanduser("~/Coding/LangDev/tisple/build/tisple")
+TISPLE = os.environ.get("TISPLE", os.path.expanduser("~/Coding/LangDev/tisple/build/tisple"))
 FONT_CPP = os.path.expanduser("~/Coding/LangDev/tisple/src/machine/font.cpp")
 PALETTE_1 = {"B", "O"}
 COLOURED = {"V", "G", "B", "O"}
@@ -163,7 +163,9 @@ def row_address(y):
     return 0x2000 + (y & 7) * 0x400 + ((y >> 3) & 7) * 0x80 + (y >> 6) * 0x28
 
 
-def to_hgr(canvas):
+def to_hgr(canvas, default_high=False):
+    # default_high: the palette of bytes with no colour in them, so white runs line up with
+    # orange and blue neighbours (bit 7 shifts a byte's dots half a pixel)
     page = bytearray(0x2000)
     for y in range(H):
         base = row_address(y) - 0x2000
@@ -171,6 +173,8 @@ def to_hgr(canvas):
             cells = canvas.px[y][col * 7:col * 7 + 7]
             coloured = [c for c in cells if c in COLOURED]
             high = sum(c in PALETTE_1 for c in coloured) * 2 > len(coloured)
+            if not coloured:
+                high = default_high
             byte = 0x80 if high else 0
             for bit, c in enumerate(cells):
                 x = col * 7 + bit
@@ -185,8 +189,8 @@ def to_hgr(canvas):
 STUB = bytes([0xAD, 0x50, 0xC0, 0xAD, 0x52, 0xC0, 0xAD, 0x54, 0xC0, 0xAD, 0x57, 0xC0, 0x4C, 0x0C, 0x1F])
 
 
-def render(canvas, out_png, look="color"):
-    page = to_hgr(canvas)
+def render(canvas, out_png, look="color", default_high=False):
+    page = to_hgr(canvas, default_high)
     blob = STUB + bytes(0x100 - len(STUB)) + page
     bin_path = out_png[:-4] + ".bin"
     open(bin_path, "wb").write(blob)
