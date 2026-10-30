@@ -66,7 +66,8 @@ TITLE_Y = 30
 
 def title_letters():
     # where each lit pixel of the big letters is: a set of (x, y). The letters bob on a wave
-    # (a forward lean was tried: its 1-px steps break up into notches on NTSC)
+    # (a forward lean was tried: its 1-px steps break up into notches on NTSC), and the I
+    # wears a hat
     lit = set()
     step = 6 * TITLE_SX + 2
     width = len(TITLE) * step - 2 - TITLE_SX
@@ -83,7 +84,23 @@ def title_letters():
                     y = ly + gy * TITLE_SY + py
                     for px in range(TITLE_SX):
                         lit.add((lx + gx * TITLE_SX + px, y))
+        if ch == "I":
+            lit |= little_hat(lx + 10, ly - 6)
     return lit
+
+
+def little_hat(x, y):
+    # a small crooked witch hat perched on the I, brim at y: lit like the letters, so it glows
+    c = Canvas(".")
+    ang = math.radians(-18)
+
+    def turn(pts):
+        ca, sa = math.cos(ang), math.sin(ang)
+        return [(x + px * ca - py * sa, y + px * sa + py * ca) for px, py in pts]
+
+    c.poly(turn([(-13, 0), (13, 0), (13, 3), (-13, 3)]), "W")       # brim
+    c.poly(turn([(-7, 0), (7, 0), (1, -17), (-1, -17)]), "W")       # cone
+    return {(px, py) for py in range(192) for px in range(280) if c.px[py][px] != "."}
 
 
 def glow_distance(lit, reach):
