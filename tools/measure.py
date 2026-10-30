@@ -35,12 +35,7 @@ def build(changes):
         text = open(screen).read().replace("(const WAIT_FOR_BLANK bool true)", "(const WAIT_FOR_BLANK bool false)")
         open(screen, "w").write(text)
     disk = os.path.join(BUILD, "measure.dsk")
-    # the functions kept as calls, as tools/build.sh builds them
-    flags = []
-    for line in open(os.path.join(src, "noinline.txt")):
-        if line.strip() and not line.startswith("#"):
-            flags += ["--no-inline", line.strip()]
-    listing = subprocess.run([TISPLE, "build", "main.tsp", "--origin", "0x8000", "--disk", disk, "--asm"] + flags,
+    listing = subprocess.run([TISPLE, "build", "main.tsp", "--origin", "0x8000", "--disk", disk, "--asm"],
                              cwd=src, capture_output=True, text=True, check=True).stdout
     # the counter is state.ticks; its address from an access to it in the listing
     m = re.search(r"INC \$([0-9A-F]{2,4})  ; state\.ticks\s", listing)
