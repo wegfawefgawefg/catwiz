@@ -16,8 +16,10 @@
 #                      zone's sprite and adds the zone's rims (light.py)
 #   icons.bin          the twelve card pictures, 14 x 15 pixels each (two 7-pixel steps), in
 #                      icons.ICONS order: picture rows then mask rows
-#   font40.bin         95 glyphs ' ' to '~', 8 rows of (aux byte, main byte); then the same
-#                      in inverse
+#   font40.bin         95 glyphs ' ' to '~', 8 rows of (aux byte, main byte) each; inverse
+#                      is each byte XOR $7F
+#   font35.bin         95 glyphs, 8 rows of one byte: bits 0-2 the glyph's three colour
+#                      pixels (white), for 35 columns of 4 pixels (fonts.py says why)
 # x0 is the sprite's left edge on the 7-pixel grid (4 bytes a step), so it lands on whole
 # bytes with its colours; the game may draw it at any other multiple of 7.
 
@@ -115,3 +117,27 @@ def write(root, rel, data):
 
 def report_line(name, raw, note=""):
     return "%-34s %7d raw %7d packed  %s" % (name, len(raw), dhgr.packed(raw), note)
+
+
+def material_decode(data, zone):
+    # what the game's loader does with a materials/ file: the frame in the zone's colours,
+    # then the zone's rims (light.rims); for the check that one stored set serves all zones
+    from canvas import Canvas
+    import light
+    k = ("day", "dusk", "night").index(zone)
+    x0, y0, w, h, bits, n = data[:6]
+    looks = [data[6 + i * 3:9 + i * 3] for i in range(n)]
+    body = data[6 + n * 3:]
+    c = Canvas()
+    acc = got = pos = 0
+    clear = (1 << bits) - 1
+    for i in range(w * h):
+        while got < bits:
+            acc = (acc << 8) | body[pos]
+            pos += 1
+            got += 8
+        got -= bits
+        v = (acc >> got) & clear
+        if v != clear:
+            c.px[y0 + i // w][x0 + i % w] = looks[v][k]
+    return light.rims(c, zone)

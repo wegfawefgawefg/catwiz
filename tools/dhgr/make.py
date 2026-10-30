@@ -102,16 +102,30 @@ def icon_sheet():
 
 
 def font_sheet():
-    lines = {}
+    # the 40-column font (dots) and the 35-column one (whole colour pixels), both looks
     chars = [chr(i) for i in range(32, 127)]
-    rows = ["".join(chars[i:i + 40]) for i in range(0, len(chars), 40)]
-    text = rows + ["", "The cat casts GOLD WAND: 3 damage.", "Puffcap hits you for 4. Fluff +3.",
-                   "TUNA heals 2. Hiss: -1 to its next hit.", "1-5 pick  R re-roll (2)  E end turn"]
+    say = ["The cat casts GOLD WAND: 3 damage.", "Puffcap hits you for 4. Fluff +3.",
+           "TUNA heals 2. Hiss: -1 to its hit.", "1-5 pick  R re-roll (2)  E end"]
+    lines = {}
+    text = ["".join(chars[i:i + 40]) for i in range(0, len(chars), 40)] + [""] + say
     for r, s in enumerate(text):
-        fonts.text40(lines, 2 + r, s, ((0, 3),) if r == 5 else ())
+        fonts.text40(lines, 2 + r, s, ((4, 8),) if r == 4 else ())
     px = [[0] * dhgr.W for _ in range(dhgr.H)]
-    p = emu.show(px, SHOTS, "font40", lines=lines)
+    c = Canvas(dhgr.BLACK)
+    text = ["".join(chars[i:i + 35]) for i in range(0, len(chars), 35)] + [""] + say
+    for r, s in enumerate(text):
+        fonts.text35(c, 13 + r, s, dhgr.WHITE, ((4, 8),) if r == 4 else ())
+    for y in range(104, dhgr.H):
+        px[y] = c.px[y][:]
+    p = emu.show(px, SHOTS, "fonts", lines={y: v for y, v in lines.items() if y < 104})
     print(p["ntsc"])
+    # one fight with the 35-column text in place of the 40
+    P = palettes.DAY
+    c, lines = screen.build(forest.picture(P), "day", ["puffcap", "sporelet"], day_shadow(P), text=[])
+    for r, (s, inv) in enumerate(screen.TEXT):
+        fonts.text35(c, 20 + r, s[:35], dhgr.WHITE, inv)
+    p = emu.show(c.px, SHOTS, "fight1_clearing_35col")
+    print(p["color"])
 
 
 def lighting():

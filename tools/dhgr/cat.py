@@ -72,13 +72,12 @@ def cat(x, feet, frame="idle"):
 
 
 def tail(c, x, feet, swish):
-    # a fat curl out behind the robe, its white tip turned in; swish lifts it
+    # a fat curl out behind the robe; swish lifts it
     s = swish * 3
     pts = [(x - 6, feet - 4), (x - 10, feet - 5 - s), (x - 13, feet - 9 - s), (x - 14, feet - 15 - s),
            (x - 13, feet - 20 - s), (x - 10.5, feet - 23 - s)]
     for (ax, ay), (bx, by) in zip(pts, pts[1:]):
         c.line(ax, ay, bx, by, "fur", 2, 4)
-    c.ellipse(x - 9.5, feet - 23.5 - s, 1.4, 2.4, "tip")
 
 
 def body(c, x, feet, lean, arm, star_size):

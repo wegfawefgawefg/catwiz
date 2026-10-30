@@ -23,13 +23,13 @@ DAY = {
     # everyone
     "ink": BLACK, "eye": BLACK, "shine": WHITE, "mouth": PINK, "blush": PINK,
     # the cat
-    "fur": BLACK, "sheen": DBLUE, "tip": WHITE, "robe": DBLUE, "robe_hi": MBLUE, "robe_star": YELLOW, "trim": PURPLE, "paw": WHITE,
+    "fur": BLACK, "sheen": DBLUE, "tip": WHITE, "robe": DBLUE, "robe_hi": MBLUE, "robe_star": YELLOW, "trim": MAGENTA, "paw": WHITE,
     "face": WHITE, "face_sh": LBLUE, "nose": PINK, "ear_in": PINK, "hat": BLACK, "band": MAGENTA,
     "band_hi": PINK, "star": YELLOW, "star_hi": WHITE, "wand": ORANGE,
     # puffcap
     "puff": PINK, "puff_sh": MAGENTA, "puff_hi": WHITE, "puff_spot": WHITE,
     # sporelet
-    "spore": ORANGE, "spore_sh": BROWN, "spore_hi": YELLOW, "spore_spot": WHITE,
+    "spore": ORANGE, "spore_sh": MAGENTA, "spore_hi": YELLOW, "spore_spot": WHITE,
     # both mushrooms' stems
     "stem": WHITE, "stem_sh": LBLUE, "gill": PINK,
     # nightflap
