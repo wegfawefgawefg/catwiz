@@ -148,7 +148,7 @@ KINDS = [
      {"bark": "angry", "happy": "idle", "ko": "stunned"}),
     ("CAP_SMALL", lambda c, mood, flap: actors.cap(c, 193, GROUND - 2, 0.85, mood), 9,
      {"bark": "angry", "happy": "idle", "ko": "stunned"}),
-    ("BAT", lambda c, mood, flap: actors.bat(c, 232, 70, mood, flap), 11,
+    ("BAT", lambda c, mood, flap: actors.bat(c, 232, 66, mood, flap), 11,
      {"idle": "angry", "bark": "angry", "happy": "angry", "ko": "hurt"}),
 ]
 FLAPS = {"BAT"}

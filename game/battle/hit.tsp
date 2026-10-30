@@ -95,12 +95,19 @@
         (do
             (set first art.BIG_PLUS)
             (set second (+ art.DIGIT_0 n))))
+    ; enemies: above the intent over the head, low enough to rise without leaving the screen.
+    ; The dog: beside her face, clear of the tall hat, so the number never has to be drawn
+    ; over her
     (let col u8 (- (place.middle who) 1))
     (if (!= second state.NOTHING)
         (set col (- col 1)))
     (let top u8 (place.top who))
-    (set top (if (> top 24)
-        (- top 18)
-        6))
+    (set top (if (> top 54)
+        (- top 34)
+        20))
+    (if (= who state.DOG)
+        (do
+            (set col (+ (at state.actors who home) (at art.KIND_COLS (at state.actors who figure))))
+            (set top 44)))
     (set (at state.floaters slot)
         (make state.Floater :sprite first :second second :col col :top top :time FLOAT_FRAMES)))

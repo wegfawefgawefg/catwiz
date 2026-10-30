@@ -32,7 +32,8 @@
         (return (+ (+ home (at art.KIND_COLS (at state.actors who figure))) 2)))
     (- home 2))
 
-; the row a thrown bolt starts at: two thirds of the way down who, below the dog's tall hat
+; the row a thrown bolt starts at: a little above who's middle, so it clears the heads of
+; whoever stands in front
 (fn hand_y ((who u8)) u8
     (let rows u8 (- GROUND (top who)))
-    (+ (top who) (- rows (/ rows 3))))
+    (- (+ (top who) (>> rows 1)) 6))

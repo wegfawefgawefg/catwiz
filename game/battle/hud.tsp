@@ -53,7 +53,8 @@
 (fn pill ((who u8)) void
     (let x u16 (place.centre_x who))
     (clean_pixels (- x AREA_HALF) PILL_TOP (+ x AREA_HALF) AREA_BOTTOM)
-    (if (not (at state.actors who alive))
+    ; a beaten enemy's pill goes; the dog's stays, at 0
+    (if (and (not (at state.actors who alive)) (!= who state.DOG))
         (return))
     (let hp u8 (at state.actors who hp))
     (let left u16 (label x PILL_TOP (+ 12 (pen.number_width hp))))
@@ -138,13 +139,15 @@
 
 ; ---- the end
 
+; in the sky, above everyone's heads: the actors are drawn over the backdrop, so the banner
+; goes where none of them reach
 (fn banner ((line1 (ptr u8)) (line2 (ptr u8))) void
-    (pen.capsule 30 56 250 90)
+    (pen.capsule 30 10 250 42)
     (let w1 u16 (pen.text_width line1))
-    (pen.text (- 140 (>> w1 1)) 62 line1)
+    (pen.text (- 140 (>> w1 1)) 15 line1)
     (let w2 u16 (pen.text_width line2))
-    (pen.text (- 140 (>> w2 1)) 78 line2)
-    (scene.mark_pixels 30 56 250 90))
+    (pen.text (- 140 (>> w2 1)) 30 line2)
+    (scene.mark_pixels 30 10 250 42))
 
 ; whatever changed since the last frame
 (fn refresh () void

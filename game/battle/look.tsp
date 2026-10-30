@@ -99,8 +99,8 @@
         (return (& (>> beat 5) 1)))
     (if (!= (at art.KIND_FLAP (at state.actors i figure)) art.NONE)
         (do
-            ; flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels
-            (let drift u8 (& (>> beat 3) 3))
+            ; flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels, flapping on the same beat
+            (let drift u8 (& (>> beat 4) 3))
             (return (if (= drift 3)
                 1
                 drift))))
@@ -115,8 +115,12 @@
             (hide i)
             (return)))
     (let col u8 (at state.actors i col))
+    ; knocked back 2 columns, unless that would leave the screen
     (if (> (at state.actors i knock) 0)
-        (set col (as u8 (- (as i8 col) (* (place.facing i) 2)))))
+        (do
+            (let knocked u8 (as u8 (- (as i8 col) (* (place.facing i) 2))))
+            (if (and (< knocked 250) (<= (+ knocked (at art.KIND_COLS figure)) 40))
+                (set col knocked))))
     (let top u8 (- (- (place.top i) (at state.actors i lift)) (bob i)))
     ; dying: blink, then puff away
     (if (and (> dying 0) (<= dying BLINK_UNTIL))
@@ -134,7 +138,7 @@
             (return)))
     (let body u8 (at art.KIND_BODY figure))
     (let flap u8 (at art.KIND_FLAP figure))
-    (if (and (!= flap art.NONE) (= (& (>> (+ state.idle (* i 5)) 3) 1) 1))
+    (if (and (!= flap art.NONE) (= (& (>> (+ state.idle (* i 11)) 4) 1) 1))
         (set body flap))
     (let mood_row u8 (+ (* figure art.MOOD_COUNT) (as u8 (at state.actors i mood))))
     (set (at state.looks i)
@@ -160,7 +164,7 @@
         (do
             (let t u8 state.target)
             (let top u8 (- (place.top t) 30))
-            (if (= (& (>> state.frame 3) 1) 1)
+            (if (= (& (>> state.idle 4) 1) 1)
                 (set top (+ top 2)))
             (show state.LOOK_MARKER art.MARKER (- (place.middle t) 2) top)))
     (for i u8 0 state.FLOATERS
