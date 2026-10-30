@@ -4,7 +4,7 @@
 (import state)
 (import battle/hit)
 (import content/statuses st)
-(import sound/sfx)
+(import sound/sound)
 
 (enum Effect (zap ; a magic bolt: damage
         bite      ; teeth: damage
@@ -21,19 +21,19 @@
 (fn apply ((effect Effect) (by u8) (target u8) (amount u8)) void
     (match effect
         (Effect.zap
-            (sfx.zap)
+            (sound.cue sound.Cue.zap)
             (hit.strike by target amount))
         (Effect.bite (hit.strike by target amount))
         (Effect.guard
-            (sfx.ping)
+            (sound.cue sound.Cue.ping)
             (hit.add_stacks target (as u8 st.Status.shield) amount))
         (Effect.mend
-            (sfx.chime)
+            (sound.cue sound.Cue.chime)
             (hit.heal target amount))
         (Effect.ember
-            (sfx.hiss)
+            (sound.cue sound.Cue.hiss)
             (hit.add_stacks target (as u8 st.Status.burn) amount))
         (Effect.boo
-            (sfx.wobble)
+            (sound.cue sound.Cue.wobble)
             (hit.add_stacks target (as u8 st.Status.spook) amount))
-        (Effect.fizzle (sfx.puff))))
+        (Effect.fizzle (sound.cue sound.Cue.puff))))

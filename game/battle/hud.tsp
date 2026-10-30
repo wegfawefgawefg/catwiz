@@ -36,7 +36,10 @@
     (for r u8 0 rows
         (let y u8 (+ top r))
         (let offset u16 (+ (- (at hgr.ROW y) 0x2000) (as u16 col)))
-        (auxmem.read (screen.row_at screen.BACKDROP y col) (+ picture offset) (as u16 cols)))
+        ; interrupts off while the mover has main memory switched out (screen.load_page)
+        (sei)
+        (auxmem.read (screen.row_at screen.BACKDROP y col) (+ picture offset) (as u16 cols))
+        (cli))
     (scene.mark col top cols rows))
 
 (fn clean_pixels ((x0 u16) (y0 u8) (x1 u16) (y1 u8)) void

@@ -7,15 +7,22 @@
 (import title/title)
 (import title/machine)
 (import battle/battle)
+(import sound/sound)
+(import mockingboard mb)
 
 (fn wants_key () bool
     (match state.screen
         (state.Screen.title true)
         (state.Screen.battle (battle.wants_key))))
 
+; the program's one interrupt handler: the Mockingboard's tick, which plays the music
+(fn irq () void :interrupt
+    (mb.service))
+
 (fn main () void
     (if (not (machine.has_aux))
         (machine.refuse))
+    (sound.setup)
     (screen.setup)
     (title.enter)
     (while true
@@ -32,6 +39,8 @@
             (match next
                 (state.Screen.title (title.enter))
                 (state.Screen.battle (battle.enter))))
+        ; an effect waiting for the card's effect voice
+        (sound.step)
         ; draw frame, then show it at the next vertical blank
         (match state.screen
             (state.Screen.title (title.draw))

@@ -16,7 +16,7 @@
 (import battle/hud)
 (import battle/act)
 (import battle/turn)
-(import sound/sfx)
+(import sound/sound)
 
 (const BANNER_AFTER u8 56) ; frames from the last blow to the banner: the poof has finished
 
@@ -44,6 +44,7 @@
     (set state.hud_rerolls true)
     (set state.hud_top 255)
     (scene.mark_all)
+    (sound.song sound.Song.battle)
     (turn.start_round))
 
 (fn set_dog () void
@@ -140,9 +141,9 @@
             (if won
                 (hud.banner "THE WOODS GO QUIET" "PRESS RETURN")
                 (hud.banner "WITCHDOG IS BONKED" "PRESS RETURN"))
-            (if won
-                (sfx.win)
-                (sfx.lose))))
+            (sound.song (if won
+                sound.Song.won
+                sound.Song.lost))))
     (if (and (> state.timer BANNER_AFTER) (= key a2.KEY_RETURN))
         (return state.Screen.title))
     state.Screen.battle)

@@ -9,7 +9,7 @@
 (import art/title_2)
 (import art/title_3)
 (import draw/screen)
-(import sound/music)
+(import sound/sound)
 
 (const GLOW_STEPS u8 6)  ; faint, mid, bright, full, bright, mid
 (const GLOW_FRAMES u8 6) ; frames on each step, on top of the copy's own
@@ -30,14 +30,16 @@
     (set state.glow 3)
     (set state.glow_time 0)
     (set state.glow_loaded false)
-    (music.jingle))
+    (sound.song sound.Song.title))
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen
     ; the time to the key press seeds the dice
     (set random.seed (+ random.seed 1))
     (if (= key a2.KEY_RETURN)
-        (return state.Screen.battle))
+        (do
+            (sound.cue sound.Cue.confirm)
+            (return state.Screen.battle)))
     (set state.glow_time (+ state.glow_time 1))
     (if (< state.glow_time GLOW_FRAMES)
         (return state.Screen.title))

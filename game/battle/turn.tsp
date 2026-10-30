@@ -12,7 +12,7 @@
 (import battle/act)
 (import battle/hit)
 (import battle/look)
-(import sound/sfx)
+(import sound/sound)
 
 (const ROLL_FRAMES u8 16)
 (const ROLL_EVERY u8 3)
@@ -32,6 +32,7 @@
     (set state.rerolls 2)
     (set state.hud_rerolls true)
     (set state.barked false)
+    (sound.cue sound.Cue.turn_on)
     (for d u8 0 state.HAND
         (set (at state.played d) false))
     (start_roll))
@@ -52,7 +53,7 @@
                         (set (at state.hand d)
                             (+ (* d dice.FACES_PER_DIE) (random.below dice.FACES_PER_DIE)))
                         (set state.hud_dice (| state.hud_dice (<< 1 d))))))
-            (sfx.rattle)))
+            (sound.cue sound.Cue.rattle)))
     (if (>= t ROLL_FRAMES)
         (start_player)))
 
@@ -75,6 +76,14 @@
                 (set state.target t)
                 (return)))))
 
+; a target picked by key: a blip when it moves
+(fn pick_target ((step u8)) void
+    (let was u8 state.target)
+    (next_target step)
+    (sound.cue (if (= state.target was)
+        sound.Cue.nope
+        sound.Cue.blip)))
+
 (fn player_key ((key u8)) void
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
         (do
@@ -84,16 +93,20 @@
         (0x52 (reroll))   ; R
         (0x42 (bark))     ; B
         (0x45 (end_turn)) ; E
-        (_))
-    (match key
-        (a2.KEY_LEFT (next_target 255))
-        (a2.KEY_RIGHT (next_target 1))
-        (a2.KEY_RETURN (end_turn))
-        (_)))
+        (_
+            (match key
+                (0 (return))
+                (a2.KEY_LEFT (pick_target 255))
+                (a2.KEY_RIGHT (pick_target 1))
+                (a2.KEY_RETURN (end_turn))
+                (_ (sound.cue sound.Cue.nope))))))
 
 (fn play_die ((d u8)) void
     (if (at state.played d)
-        (return))
+        (do
+            (sound.cue sound.Cue.nope)
+            (return)))
+    (sound.cue sound.Cue.tok)
     (let face u8 (at state.hand d))
     (set (at state.played d) true)
     (set state.hud_dice (| state.hud_dice (<< 1 d)))
@@ -104,20 +117,26 @@
 
 (fn bark () void
     (if state.barked
-        (return))
+        (do
+            (sound.cue sound.Cue.nope)
+            (return)))
     (set state.barked true)
-    (sfx.bark)
+    (sound.cue sound.Cue.bark)
     (act.begin state.Source.bark 0 state.DOG state.target))
 
 (fn reroll () void
     (if (= state.rerolls 0)
-        (return))
+        (do
+            (sound.cue sound.Cue.nope)
+            (return)))
     (let any bool false)
     (for d u8 0 state.HAND
         (if (not (at state.played d))
             (set any true)))
     (if (not any)
-        (return))
+        (do
+            (sound.cue sound.Cue.nope)
+            (return)))
     (set state.rerolls (- state.rerolls 1))
     (set state.hud_rerolls true)
     (start_roll))
@@ -150,6 +169,7 @@
 
 ; the dog's statuses tick, then the enemies' turn begins: their shields from last turn go
 (fn end_turn () void
+    (sound.cue sound.Cue.turn_off)
     (let burn u8 (st.turn_end state.DOG))
     (if (> burn 0)
         (hit.lose state.DOG burn))
@@ -181,6 +201,7 @@
     (let target u8 (if (= (at en.moves move aim) state.Aim.foe)
         state.DOG
         i))
+    (sound.cue sound.Cue.growl)
     (act.begin state.Source.move move i target))
 
 ; the enemies' statuses tick and each picks its next move; then the dog's turn

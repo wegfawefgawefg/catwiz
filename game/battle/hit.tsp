@@ -6,7 +6,7 @@
 (import art/sprites art)
 (import content/statuses st)
 (import battle/place)
-(import sound/sfx)
+(import sound/sound)
 
 (const FLASH_FRAMES u8 3)
 (const HITSTOP_FRAMES u8 3)
@@ -24,7 +24,7 @@
     (set state.hud_pills (| state.hud_pills (<< 1 target)))
     (if (= damage 0)
         (do
-            (sfx.ping)
+            (sound.cue sound.Cue.ping)
             (set (at state.actors target flash) 1)
             (float_number target 0 false)
             (return)))
@@ -46,8 +46,8 @@
     (set state.hitstop HITSTOP_FRAMES)
     (float_number who n false)
     (if (= who state.DOG)
-        (sfx.yelp)
-        (sfx.hit))
+        (sound.cue sound.Cue.yelp)
+        (sound.cue sound.Cue.thump))
     (if (= (- hp n) 0)
         (die who)))
 
@@ -58,7 +58,7 @@
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
     (set state.hud_intents (| state.hud_intents (<< 1 who)))
-    (sfx.squeak))
+    (sound.cue sound.Cue.squeak))
 
 (fn heal ((who u8) (n u8)) void
     (let hp u8 (at state.actors who hp))
