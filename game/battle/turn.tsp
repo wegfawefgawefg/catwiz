@@ -84,6 +84,14 @@
         sound.Cue.nope
         sound.Cue.blip)))
 
+; a target picked by name (Z, X, C: the enemies left to right, for taps on them): a blip
+(fn choose_target ((t u8)) void
+    (if (and (and (< t state.ACTORS) (at state.actors t alive)) (!= t state.target))
+        (do
+            (set state.target t)
+            (sound.cue sound.Cue.blip))
+        (sound.cue sound.Cue.nope)))
+
 (fn player_key ((key u8)) void
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
         (do
@@ -93,6 +101,9 @@
         (0x52 (reroll))   ; R
         (0x42 (bark))     ; B
         (0x45 (end_turn)) ; E
+        (0x5A (choose_target 1)) ; Z
+        (0x58 (choose_target 2)) ; X
+        (0x43 (choose_target 3)) ; C
         (_
             (match key
                 (0 (return))
