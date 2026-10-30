@@ -14,8 +14,9 @@
 (const ROWS u8 4)
 (const SPACE u8 0xA0)
 
-(let text2_row2 (array u8 40) :address 0x0B50 :reserve)
-(let text2_row3 (array u8 40) :address 0x0BD0 :reserve)
+; all of page $0B: a disk segment loads whole pages, so code or data beside the two rows would
+; share a page with the next segment and be overwritten when it loads (Tisple, 2026-10-30)
+(let text2_rows (array u8 256) :address 0x0B00 :reserve)
 
 ; text rows 20 to 23 on each page
 (const PAGE1_ROW (array u16 4) (make (array u16 4) 0x0650 0x06D0 0x0750 0x07D0))

@@ -1,6 +1,6 @@
 ; the hud, drawn into the backdrop page and marked for copying onto both pages: hit points (and
 ; ward pips) and a status row under each actor, enemy intents over their heads, and the dice
-; tray in a black band at the foot of the picture, with the re-rolls and the meow beside it.
+; tray in a black band at the foot of the picture, with the re-rolls beside it.
 ; Each part is redrawn whole when its flag in state says it changed: first the clean backdrop
 ; from aux memory over its area. The words are at the bottom, in text (battle/words, log).
 
@@ -30,9 +30,8 @@
 (const DIGIT_TOP u8 150)
 (const TRAY_FIRST_COL u8 4)
 (const TRAY_STEP u8 6)
-(const SIDE_X u16 238) ; the re-rolls and the meow, right of the dice
+(const SIDE_X u16 258) ; the middle of the re-rolls, right of the dice
 (const REROLL_Y u8 131)
-(const MEOW_Y u8 147)
 
 ; what the backdrop shows now, not game state: how far down and how far either side of its
 ; middle each actor's hud reaches, so a redraw cleans only that
@@ -176,18 +175,13 @@
     (let face u8 (at state.hand d))
     (slot d (at faces.FACES face icon) (at faces.FACES face caption) (= state.selected d)))
 
-; R and a diamond for each re-roll left; under it M while the meow is unused, with a bar when
-; it is picked
+; R and the re-rolls left
 (fn side () void
-    (blit.fill screen.BACKDROP 33 BAND_TOP 7 BAND_ROWS 0)
-    (pen.glyph SIDE_X REROLL_Y 'R')
-    (for r u8 0 state.rerolls
-        (pen.glyph (+ (+ SIDE_X 14) (* (as u16 r) 12)) REROLL_Y '$'))
-    (if (not state.meowed)
-        (pen.glyph SIDE_X MEOW_Y 'M'))
-    (if (= state.selected state.HAND)
-        (blit.fill screen.BACKDROP 34 (+ MEOW_Y 9) 1 2 0x7F))
-    (scene.mark 33 BAND_TOP 7 BAND_ROWS))
+    (start_glyphs)
+    (put 'R')
+    (put_number state.rerolls)
+    (draw_glyphs SIDE_X REROLL_Y)
+    (scene.mark 33 REROLL_Y 7 CAPSULE_ROWS))
 
 ; whatever changed since the last frame
 (fn refresh () void

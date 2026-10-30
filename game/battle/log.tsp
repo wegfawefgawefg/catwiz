@@ -51,11 +51,11 @@
     (text.add_n s n)
     (push))
 
-; who starts an action: "CATWIZ: WAND 2."
-(fn uses ((w u8) (action_name (ptr u8))) void
+; who starts an action: "CATWIZ: WAND 2.", "PUFFCAP: HEADBUTT FOR 2." (s with n for its #)
+(fn uses ((w u8) (s (ptr u8)) (n u8)) void
     (text.start)
     (text.add (name w))
     (text.add ": ")
-    (text.add action_name)
+    (text.add_n s n)
     (text.char '.')
     (push))

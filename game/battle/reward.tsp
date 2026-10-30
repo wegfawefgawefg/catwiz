@@ -84,13 +84,11 @@
 (fn describe ((n u8)) void
     (text.clear)
     (text.start)
-    (set text.inverse true)
     (match state.pick
         (state.Pick.offer
             (if (= n OFFER_UPGRADE)
                 (do
                     (text.add "UPGRADE ONE FACE")
-                    (set text.inverse false)
                     (text.show 0)
                     (text.start)
                     (text.add "PICK A DIE, THEN ONE OF ITS FACES.")
@@ -104,7 +102,6 @@
             (let face ac.Action
                 (at faces.FACES (at state.dice (+ (* state.upgrade_die state.DIE_FACES) n))))
             (text.add face.name)
-            (set text.inverse false)
             (if (= face.upgrade state.NOTHING)
                 (do
                     (text.add ": NO UPGRADE")
@@ -122,11 +119,8 @@
             (text.add "YOUR DIE ")
             (text.char (+ '1' n))
             (hero_die_to_six n)))
-    (set text.inverse false)
-    (text.tab 28)
-    (text.add "PRESS ")
-    (text.char (+ '1' n))
-    (text.add " AGAIN")
+    (text.tab 29)
+    (text.add "AGAIN: TAKE")
     (text.show 0)
     (list_six))
 

@@ -7,7 +7,7 @@
 
 (struct Hero ((name (ptr u8)) (hp u8) (figure u8) (col u8)))
 
-(const HERO Hero (make Hero :name "CATWIZ" :hp 30 :figure art.KIND_DOG :col 6))
+(const HERO Hero (make Hero :name "CATWIZ" :hp 30 :figure art.KIND_CAT :col 6))
 
 (struct Spot ((enemy u8) (col u8)))
 

@@ -1,6 +1,5 @@
 ; the dice. A face is an item: a row of FACES. The hero's five dice start as STARTING_DICE
-; (die d is faces d * 6 to d * 6 + 5) and change with the rewards (content/encounters). The
-; tiles are placeholders until the art has a picture for each kind.
+; (die d is faces d * 6 to d * 6 + 5) and change with the rewards (content/encounters).
 
 (import state)
 (import content/action ac)
@@ -33,11 +32,10 @@
 (const PLUS_2 u8 20)
 (const DOUBLE u8 21)
 (const LINT u8 22)
-(const MEOW u8 23) ; not on a die: the hero's once-a-turn meow
-(const FACE_COUNT u8 24)
+(const FACE_COUNT u8 23)
 
-(const FACES (array ac.Action 24)
-    (make (array ac.Action 24)
+(const FACES (array ac.Action 23)
+    (make (array ac.Action 23)
         (make ac.Action
             :name "WAND 2"
             :text "# DAMAGE TO AN ENEMY"
@@ -80,7 +78,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_LEAF
+            :icon art.TILE_KIBBLE
             :upgrade KIBBLE_4)
         (make ac.Action
             :name "KIBBLE 4"
@@ -91,7 +89,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_LEAF
+            :icon art.TILE_KIBBLE
             :upgrade KIBBLE_5)
         (make ac.Action
             :name "KIBBLE 5"
@@ -102,7 +100,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_LEAF
+            :icon art.TILE_KIBBLE
             :upgrade state.NOTHING)
         (make ac.Action
             :name "BONE 2"
@@ -113,7 +111,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_HEART
+            :icon art.TILE_BONE
             :upgrade BONE_3)
         (make ac.Action
             :name "BONE 3"
@@ -124,7 +122,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_HEART
+            :icon art.TILE_BONE
             :upgrade BONE_4)
         (make ac.Action
             :name "BONE 4"
@@ -135,7 +133,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_HEART
+            :icon art.TILE_BONE
             :upgrade state.NOTHING)
         (make ac.Action
             :name "GEM"
@@ -146,7 +144,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_CANDLE
+            :icon art.TILE_GEM
             :upgrade GEM_2)
         (make ac.Action
             :name "BIG GEM"
@@ -157,7 +155,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_CANDLE
+            :icon art.TILE_GEM
             :upgrade state.NOTHING)
         (make ac.Action
             :name "HAIRBALL"
@@ -168,7 +166,7 @@
             :cost 2
             :aim state.Aim.foe
             :motion state.Motion.throw
-            :icon art.TILE_FANG
+            :icon art.TILE_BOOK
             :upgrade state.NOTHING)
         (make ac.Action
             :name "ZOOMIES"
@@ -179,7 +177,7 @@
             :cost 2
             :aim state.Aim.all
             :motion state.Motion.lunge
-            :icon art.TILE_FANG
+            :icon art.TILE_BOOK
             :upgrade state.NOTHING)
         (make ac.Action
             :name "CARDBOARD BOX"
@@ -190,7 +188,7 @@
             :cost 2
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_FANG
+            :icon art.TILE_BOOK
             :upgrade state.NOTHING)
         (make ac.Action
             :name "3 AM SCREAMING"
@@ -201,7 +199,7 @@
             :cost 3
             :aim state.Aim.all
             :motion state.Motion.throw
-            :icon art.TILE_FANG
+            :icon art.TILE_BOOK
             :upgrade state.NOTHING)
         (make ac.Action
             :name "FLEAS"
@@ -212,7 +210,7 @@
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.throw
-            :icon art.TILE_GHOST
+            :icon art.TILE_FLEAS
             :upgrade state.NOTHING)
         (make ac.Action
             :name "WET"
@@ -223,7 +221,7 @@
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.throw
-            :icon art.TILE_GHOST
+            :icon art.TILE_WET
             :upgrade state.NOTHING)
         (make ac.Action
             :name "HISS"
@@ -234,7 +232,7 @@
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.throw
-            :icon art.TILE_GHOST
+            :icon art.TILE_HISS
             :upgrade state.NOTHING)
         (make ac.Action
             :name "BATH TIME"
@@ -245,7 +243,7 @@
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.throw
-            :icon art.TILE_GHOST
+            :icon art.TILE_BATH
             :upgrade state.NOTHING)
         (make ac.Action
             :name "PLUS 1"
@@ -256,7 +254,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_PUFF
+            :icon art.TILE_PLUS1
             :upgrade PLUS_2)
         (make ac.Action
             :name "PLUS 2"
@@ -267,7 +265,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_PUFF
+            :icon art.TILE_PLUS1
             :upgrade state.NOTHING)
         (make ac.Action
             :name "TIMES 2"
@@ -278,7 +276,7 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_PUFF
+            :icon art.TILE_TIMES2
             :upgrade state.NOTHING)
         (make ac.Action
             :name "LINT"
@@ -289,19 +287,8 @@
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
-            :icon art.TILE_PUFF
-            :upgrade PLUS_1)
-        (make ac.Action
-            :name "MEOW"
-            :text "# DAMAGE TO AN ENEMY. ONCE A TURN"
-            :caption ""
-            :effect ac.Effect.hit
-            :amount 1
-            :cost 0
-            :aim state.Aim.foe
-            :motion state.Motion.hop
-            :icon art.TILE_PUFF
-            :upgrade state.NOTHING)))
+            :icon art.TILE_LINT
+            :upgrade PLUS_1)))
 
 ; a die: its name for the reward screen and its six faces
 (struct Die ((name (ptr u8)) (faces (array u8 6))))

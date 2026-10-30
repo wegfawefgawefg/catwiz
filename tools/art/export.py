@@ -26,6 +26,8 @@ sys.path.insert(0, HERE)
 
 from hgr import Canvas, FONT, PALETTE_1, COLOURED, to_hgr, render  # noqa: E402
 import actors  # noqa: E402
+import boss  # noqa: E402
+import hero  # noqa: E402
 import icons  # noqa: E402
 import scenes  # noqa: E402
 
@@ -89,7 +91,7 @@ def cell_bytes(c, col, y):
 
 
 def cut(c, col0, cols, top, rows):
-    # the sprite's bytes in the format above
+    # the sprite's pictures, masks and spans (firsts then counts), in the format above
     pics, masks, firsts, counts = [], [], [], []
     for y in range(top, top + rows):
         cells = [cell_bytes(c, col0 + i, y) for i in range(cols)]
@@ -102,16 +104,41 @@ def cut(c, col0, cols, top, rows):
             continue
         firsts.append(used[0])
         counts.append(used[-1] + 1 - used[0])
-    return pics + masks + firsts + counts
+    return pics, masks, firsts + counts
 
 
 class Sheet:
-    # every sprite, in order: its name, width in bytes, rows and bytes
+    # every sprite, in order: its name, width in bytes, rows, and where its pictures, masks
+    # and spans start in one shared blob. The blit reads each of the three through its own
+    # offset, so a block that is already in the blob (the all-clear masks of opaque tiles,
+    # faces that look the same, the spans of moods with one outline) is not stored again
     def __init__(self):
         self.sprites = []
+        self.data = bytearray()
+        self.added = []   # the bytes each sprite added to the blob
+
+    def place(self, block):
+        # where block is in the blob: an earlier copy, else appended, overlapping the blob's
+        # end as far as they agree
+        block = bytes(block)
+        at = self.data.find(block)
+        if at >= 0:
+            return at
+        for k in range(min(len(block) - 1, len(self.data)), 0, -1):
+            if self.data.endswith(block[:k]):
+                at = len(self.data) - k
+                self.data += block[k:]
+                return at
+        at = len(self.data)
+        self.data += block
+        return at
 
     def add(self, name, c, col0, cols, top, rows):
-        self.sprites.append((name, cols, rows, cut(c, col0, cols, top, rows)))
+        pics, masks, spans = cut(c, col0, cols, top, rows)
+        before = len(self.data)
+        offsets = (self.place(pics), self.place(masks), self.place(spans))
+        self.sprites.append((name, cols, rows, offsets))
+        self.added.append(len(self.data) - before)
         return len(self.sprites) - 1
 
     def add_box(self, name, c):
@@ -126,6 +153,11 @@ def inside_idle(idle, mood):
             if idle.px[y][x] != mood.px[y][x] and (idle.px[y][x] == "." or mood.px[y][x] == "."):
                 return False
     return True
+
+
+def silhouette(c):
+    # which pixels a drawing covers, as one string
+    return "".join("".join("1" if ch != "." else "0" for ch in row) for row in c.px)
 
 
 def diff_box(a, b):
@@ -143,14 +175,14 @@ def diff_box(a, b):
 # the actor kinds: name, how to draw a mood (and flap), shadow width; drawn where the mockup
 # put them. A mood that is not here falls back to the drawing named in FALLBACK
 KINDS = [
-    ("DOG", lambda c, mood, flap: actors.dog(c, 70, GROUND + 2, mood), 14,
-     {"angry": "idle"}),
+    ("CAT", lambda c, mood, flap: hero.cat(c, 70, GROUND + 2, mood), 14, {"angry": "bark"}),
     ("CAP_BIG", lambda c, mood, flap: actors.cap(c, 158, GROUND, 1.15, mood), 12,
      {"bark": "angry", "happy": "idle", "ko": "stunned"}),
     ("CAP_SMALL", lambda c, mood, flap: actors.cap(c, 193, GROUND - 2, 0.85, mood), 9,
      {"bark": "angry", "happy": "idle", "ko": "stunned"}),
     ("BAT", lambda c, mood, flap: actors.bat(c, 232, 66, mood, flap), 11,
      {"idle": "angry", "bark": "angry", "happy": "angry", "ko": "hurt"}),
+    ("BOSS_DOG", lambda c, mood, flap: boss.boss_dog(c, 196, GROUND, mood), 24, {"bark": "angry", "happy": "idle"}),
 ]
 FLAPS = {"BAT"}
 
@@ -186,12 +218,25 @@ def export_kinds(sheet):
             if d is not None:
                 shared = d if shared is None else (min(shared[0], d[0]), min(shared[1], d[1]),
                                                    max(shared[2], d[2]), max(shared[3], d[3]))
+        # the rest only add to the outline (ears up, stars): drawn over the body, after it.
+        # Moods with the same outline share one box, so their masks and spans are stored once
+        outside = {}
+        for m in MOODS:
+            d = diff_box(idle, drawn[m])
+            if m in inside or d is None:
+                continue
+            key = silhouette(drawn[m])
+            b = outside.get(key)
+            outside[key] = d if b is None else (min(b[0], d[0]), min(b[1], d[1]),
+                                                max(b[2], d[2]), max(b[3], d[3]))
         patches = []
         for mood in MOODS:
             d = shared if mood in inside else diff_box(idle, drawn[mood])
             if d is None:
                 patches.append((255, 0, 0, 0))
                 continue
+            if mood not in inside:
+                d = outside[silhouette(drawn[mood])]
             pc0, pcols, ptop, prows = byte_box(d, even=False)
             pc0 = max(pc0, col0)
             pid = sheet.add(name + "_" + mood.upper(), drawn[mood], pc0, pcols, ptop, prows)
@@ -242,7 +287,7 @@ def export_digits(sheet):
 
 def export_tiles(sheet):
     first = None
-    for name, draw in icons.TILES:
+    for name, draw in icons.TILES + icons.OLD_TILES:
         c = Canvas("K")
         draw(c, 28, scenes.DIE_TOP)
         n = sheet.add("TILE_" + name, c, 4, 3, scenes.DIE_TOP, icons.TILE_H)
@@ -282,24 +327,22 @@ HEADER = "; generated by tools/art/export.py from tools/art/*.py: do not edit, r
 
 
 def write_sprites(sheet, kinds, effects, digit0, tile0):
-    data, offsets = [], []
-    for name, cols, rows, b in sheet.sprites:
-        offsets.append(len(data))
-        data += b
+    data = list(sheet.data)
     n = len(sheet.sprites)
     out = [HEADER, "; sprites: %d, %d bytes\n\n" % (n, len(data))]
     out.append("(const SPRITE_COUNT u8 %d)\n" % n)
     out.append("(const NONE u8 255) ; no sprite\n\n")
-    for i, (name, cols, rows, b) in enumerate(sheet.sprites):
+    for i, (name, cols, rows, at) in enumerate(sheet.sprites):
         out.append("(const %s u8 %d) ; %d x %d\n" % (name, i, cols, rows))
     out.append("(const DIGIT_0 u8 %d) ; then 1 to 9 and PLUS\n" % digit0)
     out.append("(const TILE_FIRST u8 %d)\n\n" % tile0)
-    out.append("; width in bytes, rows, and where its pictures, masks and spans start in sprite_data\n")
+    out.append("; width in bytes, rows, and where its pictures, masks and spans start in sprite_data (sprites\n")
+    out.append("; share blocks that are the same)\n")
     out.append(table("SPRITE_W", "u8", [s[1] for s in sheet.sprites]))
     out.append(table("SPRITE_H", "u8", [s[2] for s in sheet.sprites]))
-    out.append(table("SPRITE_AT", "u16", offsets, 12))
-    out.append(table("SPRITE_MASK_AT", "u16", [o + s[1] * s[2] for o, s in zip(offsets, sheet.sprites)], 12))
-    out.append(table("SPRITE_SPAN_AT", "u16", [o + 2 * s[1] * s[2] for o, s in zip(offsets, sheet.sprites)], 12))
+    out.append(table("SPRITE_AT", "u16", [s[3][0] for s in sheet.sprites], 12))
+    out.append(table("SPRITE_MASK_AT", "u16", [s[3][1] for s in sheet.sprites], 12))
+    out.append(table("SPRITE_SPAN_AT", "u16", [s[3][2] for s in sheet.sprites], 12))
     out.append("\n; the actor kinds: body, wing frame, rows from the top to the ground, width\n")
     for i, k in enumerate(kinds):
         out.append("(const KIND_%s u8 %d)\n" % (k["name"], i))
@@ -319,7 +362,8 @@ def write_sprites(sheet, kinds, effects, digit0, tile0):
     out.append("; 1 when the patch is one of the kind's faces that share a box: drawn over another\n")
     out.append(table("KIND_PATCH_SWAPS", "u8", [p[3] for k in kinds for p in k["patches"]], 7))
     out.append("\n; the hud font from ' ' to 'Z', 7 rows a glyph, bit 0 the leftmost dot. Icons: * heart,\n")
-    out.append("; # shield, ! sword, % flame, @ ghost, + mend, $ diamond, & spark\n")
+    out.append("; # shield, ! sword, % flame, @ ghost, + mend, $ diamond, & spark, \" hit all, < buff,\n")
+    out.append("; = summon, > dive, ; ward pip, ' mana pip, , fleas\n")
     out.append(table("FONT", "u8", font_rows(), 14))
     open(os.path.join(GAME_ART, "sprites.tsp"), "w").write("".join(out))
     open(os.path.join(GAME_ART, "sprite_data.tsp"), "w").write(
@@ -344,6 +388,9 @@ def main():
     tile0 = export_tiles(sheet)
     size = write_sprites(sheet, kinds, effects, digit0, tile0)
     print("sprites: %d, %d bytes" % (len(sheet.sprites), size))
+    if "--sizes" in sys.argv:
+        for (name, cols, rows, at), added in zip(sheet.sprites, sheet.added):
+            print("  %-18s %2d x %3d  %5d alone, %5d added" % (name, cols, rows, 2 * cols * rows + 2 * rows, added))
 
     forest = scenes.forest()
     open(os.path.join(GAME_ART, "backdrop.tsp"), "w").write(

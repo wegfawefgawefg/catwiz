@@ -32,7 +32,7 @@
 ; it, every enemy, or an enemy's friend
 (enum Aim (foe self all friend))
 
-; where the action in flight came from: a die face (or the meow), or an enemy's move
+; where the action in flight came from: a die face, or an enemy's move
 (enum Source (face move))
 
 (struct Actor ((alive bool)
@@ -92,7 +92,6 @@
 (let hand (array u8 5)) ; the face each die shows, a row in content/faces
 (let played (array bool 5))
 (let rerolls u8)
-(let meowed bool)
 (let selected u8) ; the die picked to play next, or NOTHING
 (let target u8)   ; the enemy the dice go to
 (let log_hold u8) ; frames the enemies wait, so the last log line can be read

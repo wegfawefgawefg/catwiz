@@ -14,6 +14,7 @@
 (import content/statuses st)
 
 (const PROMPT_COL u8 26)
+(const WOODS_QUIET (ptr u8) "THE WOODS GO QUIET.")
 
 ; what the rows were drawn for, so a change of phase draws them again
 (let shown_phase state.Phase state.Phase.won)
@@ -38,15 +39,9 @@
                     (text.number n)))))
     (text.show 0))
 
-; the face row in slot d of the tray: a die's face, or the meow past the dice
-(fn face_of ((d u8)) u8
-    (if (= d state.HAND)
-        (return faces.MEOW))
-    (at state.hand d))
-
-; the face in slot d, and how to play it
+; the face die d shows, and how to play it
 (fn die_rows ((d u8)) void
-    (let row u8 (face_of d))
+    (let row u8 (at state.hand d))
     (let face ac.Action (at faces.FACES row))
     (text.start)
     (set text.inverse true)
@@ -101,7 +96,7 @@
             (actor_row state.DOG)
             (line_row 1 "ROLLING"))
         (state.Phase.won
-            (line_row 0 "THE WOODS GO QUIET.")
+            (line_row 0 WOODS_QUIET)
             (line_row 1 ""))
         (state.Phase.lost
             (actor_row state.DOG)
@@ -122,7 +117,9 @@
 (fn ending ((won bool)) void
     (text.start)
     (if won
-        (text.add "THE WOODS GO QUIET. TO BE CONTINUED...")
+        (do
+            (text.add WOODS_QUIET)
+            (text.add " TO BE CONTINUED..."))
         (do
             (text.add (log.name state.DOG))
             (text.add " IS DOWN. THE RUN IS OVER.")))

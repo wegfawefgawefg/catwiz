@@ -1,7 +1,7 @@
 ; the turns of a battle. The hero's turn: her five dice roll; she picks one (its text shows at
 ; the bottom) and plays it: on an enemy picked next (Z X C, or the arrows and RETURN), or on
-; herself with the same key again. She re-rolls the unplayed dice up to twice, meows once, and
-; ends her turn. Then each enemy makes the move it showed, statuses tick, the enemies take up
+; herself with the same key again. She re-rolls the unplayed dice up to twice and ends her
+; turn. Then each enemy makes the move it showed, statuses tick, the enemies take up
 ; their next moves, and her turn comes round again.
 
 (import apple2 a2)
@@ -23,7 +23,6 @@
 (const ROLL_EVERY u8 4) ; a power of 2: (& t 3) is the test
 (const ENEMY_PAUSE u8 14)
 (const KEY_1 u8 '1')
-(const MEOW_SLOT u8 state.HAND) ; the selection for the meow: the slot past the dice
 
 (fn any_enemy_alive () bool
     (for i u8 1 state.ACTORS
@@ -37,7 +36,6 @@
     (st.turn_start state.DOG)
     (set state.rerolls 2)
     (set state.hud_rerolls true)
-    (set state.meowed false)
     (set state.selected state.NOTHING)
     (sound.cue sound.Cue.turn_on)
     (log.line "YOUR TURN: PICK A DIE (1-5)." 0)
@@ -108,7 +106,7 @@
     (set state.target t)
     (set state.hud_words true)
     (if (or (= state.selected state.NOTHING)
-            (!= (at faces.FACES (words.face_of state.selected) aim) state.Aim.foe))
+            (!= (at faces.FACES (at state.hand state.selected) aim) state.Aim.foe))
         (do
             (sound.cue sound.Cue.blip)
             (return)))
@@ -122,7 +120,6 @@
     (match (& key 0xDF) ; letters either case
         ('R' (reroll))
         ('E' (end_turn))
-        ('M' (select MEOW_SLOT))
         ('Z' (choose_target 1))
         ('X' (choose_target 2))
         ('C' (choose_target 3))
@@ -135,16 +132,14 @@
                 (a2.KEY_ESC (deselect))
                 (_ (sound.cue sound.Cue.nope))))))
 
-; slot d of the tray to draw again: a die, or the meow beside the re-rolls
+; die d of the tray to draw again (none for NOTHING)
 (fn mark_slot ((d u8)) void
     (if (< d state.HAND)
-        (set state.hud_dice (| state.hud_dice (<< 1 d))))
-    (if (= d MEOW_SLOT)
-        (set state.hud_rerolls true)))
+        (set state.hud_dice (| state.hud_dice (<< 1 d)))))
 
 ; slot d picked: its text shows; picked again, it plays
 (fn select ((d u8)) void
-    (if (or (and (< d state.HAND) (at state.played d)) (and (= d MEOW_SLOT) state.meowed))
+    (if (at state.played d)
         (do
             (sound.cue sound.Cue.nope)
             (return)))
@@ -170,7 +165,7 @@
         (do
             (sound.cue sound.Cue.nope)
             (return)))
-    (let row u8 (words.face_of d))
+    (let row u8 (at state.hand d))
     (let face ac.Action (at faces.FACES row))
     (if (not (fx.can_play row))
         (do
@@ -178,14 +173,12 @@
             (return)))
     (sound.cue sound.Cue.tok)
     (deselect)
-    (if (= d MEOW_SLOT)
-        (set state.meowed true)
-        (set (at state.played d) true))
+    (set (at state.played d) true)
     (mark_slot d)
     (let target u8 (if (= face.aim state.Aim.self)
         state.DOG
         state.target))
-    (log.uses state.DOG face.name)
+    (log.uses state.DOG face.name 0)
     (act.begin state.Source.face row state.DOG target))
 
 (fn reroll () void
@@ -272,7 +265,7 @@
         (return))
     (let row u8 (at state.actors i move))
     (sound.cue sound.Cue.growl)
-    (log.uses i (at en.MOVES row name))
+    (log.uses i (at en.MOVES row text) (fx.intent_amount i row))
     (act.begin state.Source.move row i (fx.move_target i row)))
 
 ; the enemies' statuses tick and each takes up its next move; then the hero's turn

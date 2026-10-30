@@ -1,4 +1,4 @@
-; the action in flight: a die face (or the meow) or an enemy's move, from its start to its effect
+; the action in flight: a die face or an enemy's move, from its start to its effect
 ; landing and the actor settling back. Its look comes from the action's motion:
 ;   lunge  the actor jumps at the target in 2-column steps and lands the effect on contact
 ;   throw  the actor winds up, a bolt arcs across to the target, the effect lands with it

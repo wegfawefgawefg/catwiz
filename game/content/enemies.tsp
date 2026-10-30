@@ -1,6 +1,6 @@
 ; the forest's enemies and their moves. An enemy makes its moves in order, round and round,
 ; from its first; a move's icon is the glyph shown over its head before it acts, and its text
-; what the bottom line says it will do (# the number it will do it for).
+; what the bottom text and the log say it does (# the number it does it for; no name).
 
 (import state)
 (import content/action ac)
@@ -45,7 +45,7 @@
     (make (array ac.Action 7)
         ; puffcap: a head-butt, then hunkers down under spores
         (make ac.Action
-            :name "HEADBUTT"
+            :name ""
             :text "HEADBUTT FOR #"
             :caption ""
             :effect ac.Effect.hit
@@ -56,7 +56,7 @@
             :icon '!'
             :upgrade state.NOTHING)
         (make ac.Action
-            :name "SPORE SHIELD"
+            :name ""
             :text "SPORE SHIELD #"
             :caption ""
             :effect ac.Effect.shield
@@ -68,7 +68,7 @@
             :upgrade state.NOTHING)
         ; sporelet: a nip, then cheers its friend on
         (make ac.Action
-            :name "NIP"
+            :name ""
             :text "NIP FOR #"
             :caption ""
             :effect ac.Effect.hit
@@ -79,7 +79,7 @@
             :icon '!'
             :upgrade state.NOTHING)
         (make ac.Action
-            :name "CHEER"
+            :name ""
             :text "CHEER: A FRIEND HITS +# NEXT"
             :caption ""
             :effect ac.Effect.cheer
@@ -87,11 +87,11 @@
             :cost 0
             :aim state.Aim.friend
             :motion state.Motion.hop
-            :icon '+'
+            :icon '<'
             :upgrade state.NOTHING)
         ; nightflap: two bites, then a dive every third turn
         (make ac.Action
-            :name "BITE"
+            :name ""
             :text "BITE FOR #"
             :caption ""
             :effect ac.Effect.hit
@@ -102,7 +102,7 @@
             :icon '!'
             :upgrade state.NOTHING)
         (make ac.Action
-            :name "BITE"
+            :name ""
             :text "BITE FOR #"
             :caption ""
             :effect ac.Effect.hit
@@ -113,7 +113,7 @@
             :icon '!'
             :upgrade state.NOTHING)
         (make ac.Action
-            :name "DIVE"
+            :name ""
             :text "DIVE FOR #"
             :caption ""
             :effect ac.Effect.hit
@@ -121,5 +121,5 @@
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
-            :icon '!'
+            :icon '>'
             :upgrade state.NOTHING)))

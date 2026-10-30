@@ -32,13 +32,12 @@
 ; the hero's face lands. +1 and x2 add to the boost for the next die; any other face uses
 ; the boost up, and a spell its mana
 (fn land_face ((row u8) (target u8)) void
-    (let face ac.Action (at faces.FACES row))
     (let plus u8 (as u8 st.Status.plus))
     (let double u8 (as u8 st.Status.double))
-    (match face.effect
+    (match (at faces.FACES row effect)
         (ac.Effect.plus
             (sound.cue sound.Cue.chime)
-            (hit.add_stacks state.DOG plus face.amount)
+            (hit.add_stacks state.DOG plus (at faces.FACES row amount))
             (log.line "THE NEXT DIE GETS +#." (state.stack state.DOG plus))
             (return))
         (ac.Effect.double
@@ -48,12 +47,12 @@
             (log.line "THE NEXT DIE DOES DOUBLE." 0)
             (return))
         (_))
-    (let n u8 (boosted face.amount))
+    (let n u8 (boosted (at faces.FACES row amount)))
     (state.set_stack state.DOG plus 0)
     (state.set_stack state.DOG double 0)
-    (if (> face.cost 0)
-        (state.set_stack state.DOG (as u8 st.Status.mana) (- (mana) face.cost)))
-    (apply face.effect state.DOG target n))
+    (if (> (at faces.FACES row cost) 0)
+        (state.set_stack state.DOG (as u8 st.Status.mana) (- (mana) (at faces.FACES row cost))))
+    (apply (at faces.FACES row effect) state.DOG target n))
 
 ; an enemy's move lands. Hit-all moves miss a hero in a box
 (fn land_move ((row u8) (by u8) (target u8)) void

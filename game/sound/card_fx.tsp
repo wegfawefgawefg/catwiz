@@ -5,9 +5,6 @@
 
 (import mockingboard_song tune)
 
-; the dog: "arf-arf", a rough rise and fall, twice
-(tune.effect bark "m3 n6 g4 c5 e5 m1 f5 e5 c5 l2 k3 a4 l2 r l1 v12 m3 a4 d5 m1 e5 d5 l3 k3 b4")
-
 ; one shake of the dice: three dry clicks
 (tune.effect rattle "m2 n2 v12 c4 r n5 v9 c4 r n1 v11 c4")
 

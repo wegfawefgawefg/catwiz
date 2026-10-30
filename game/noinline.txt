@@ -121,3 +121,9 @@ battle/battle.ending
 battle/battle.draw
 draw/screen.byte_of
 draw/screen.bit_of
+battle/look.show_mood
+battle/look.resting_mood
+battle/look.hide
+battle/look.show
+battle/look.bob
+battle/look.tick_actor

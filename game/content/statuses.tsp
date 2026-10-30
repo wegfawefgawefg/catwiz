@@ -29,8 +29,9 @@
         Show.count Show.count Show.hidden Show.flag Show.flag Show.count Show.pips Show.flag
         Show.count Show.count Show.flag))
 
-; the glyphs, in the hud font: # shield, % flame, @ ghost, $ diamond, ! sword, + plus
-(const GLYPH (array u8 11) (make (array u8 11) '#' '%' ' ' 'W' 'Z' '!' '@' 'B' '$' '+' 'X'))
+; the glyphs, in the hud font: # shield, , fleas (a bug), < buff, ; ward pip (a solid
+; shield), ' mana pip (a star), + plus; letters for the rest
+(const GLYPH (array u8 11) (make (array u8 11) '#' ',' ' ' 'W' 'Z' '<' ';' 'B' '\'' '+' 'X'))
 
 ; in words, for the bottom text: a name, then the stack's number for counts
 (const NAME (array (ptr u8) 11)
