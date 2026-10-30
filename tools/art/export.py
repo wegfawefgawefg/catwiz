@@ -185,11 +185,16 @@ KINDS = [
     ("BOSS_DOG", lambda c, mood, flap: boss.boss_dog(c, 196, GROUND, mood), 24, {"bark": "angry", "happy": "idle"}),
 ]
 FLAPS = {"BAT"}
+# kinds drawn but left out of the game for now, for the memory: the boss's pictures (1,803
+# bytes) come back with the final fight
+LEFT_OUT = {"BOSS_DOG"}
 
 
 def export_kinds(sheet):
     rows = []
     for name, draw, shadow_rx, fallback in KINDS:
+        if name in LEFT_OUT:
+            continue
         drawn = {}
         for mood in MOODS:
             real = fallback.get(mood, mood)
@@ -362,7 +367,7 @@ def write_sprites(sheet, kinds, effects, digit0, tile0):
     out.append("; 1 when the patch is one of the kind's faces that share a box: drawn over another\n")
     out.append(table("KIND_PATCH_SWAPS", "u8", [p[3] for k in kinds for p in k["patches"]], 7))
     out.append("\n; the hud font from ' ' to 'Z', 7 rows a glyph, bit 0 the leftmost dot. Icons: * heart,\n")
-    out.append("; # shield, ! sword, % flame, @ ghost, + mend, $ diamond, & spark, \" hit all, < buff,\n")
+    out.append("; # shield, ! sword, % flame, @ ghost, + mend, $ diamond, & hollow star, \" hit all, < buff,\n")
     out.append("; = summon, > dive, ; ward pip, ' mana pip, , fleas\n")
     out.append(table("FONT", "u8", font_rows(), 14))
     open(os.path.join(GAME_ART, "sprites.tsp"), "w").write("".join(out))
