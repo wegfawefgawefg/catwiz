@@ -37,7 +37,7 @@
         (set (at state.actors i mood) (look.resting_mood i)))
     (draw_shadows)
     (hud.forget)
-    (pen.glyph 236 164 82) ; R, by the re-roll die
+    (pen.glyph 236 164 'R') ; by the re-roll die
     (set state.hud_pills 0x0F)
     (set state.hud_intents 0x0E)
     (set state.hud_dice 0x1F)
@@ -48,16 +48,16 @@
     (turn.start_round))
 
 (fn set_dog () void
-    (let hp u8 enc.hero.hp)
+    (let hp u8 enc.HERO.hp)
     (set (at state.actors state.DOG)
         (make state.Actor
             :alive true
             :kind state.NOTHING
-            :figure enc.hero.figure
+            :figure enc.HERO.figure
             :hp hp
             :max_hp hp
-            :col enc.hero.col
-            :home enc.hero.col
+            :col enc.HERO.col
+            :home enc.HERO.col
             :lift 0
             :move 0
             :moves_made 0
@@ -75,8 +75,8 @@
             (set (at state.actors i kind) state.NOTHING)
             (set (at state.actors i dying) 0)
             (return)))
-    (let spot enc.Spot (at enc.forest (- i 1)))
-    (let kind en.Enemy (at en.enemies spot.enemy))
+    (let spot enc.Spot (at enc.FOREST (- i 1)))
+    (let kind en.Enemy (at en.ENEMIES spot.enemy))
     (let made u8 (random.below kind.move_count))
     (set (at state.actors i)
         (make state.Actor

@@ -8,8 +8,6 @@ Targets an enhanced IIe with 128 KB (aux memory holds the pictures).
 - `game/`: the game. `main.tsp` is the loop; `battle/`, `draw/`, `sound/`, `title/` the
   engine; `content/` the rules content as plain tables (dice, enemies, statuses, effects, the
   encounter); `art/` generated pictures.
-- `tools/music/`: the Mockingboard music (`songs.tsp`) and `export.py`, which writes
-  `game/sound/song_data.tsp`.
 - `tools/art/`: the art, drawn in Python at 280 x 192 in the hi-res colours (the v6 mockup's
   style), and `export.py`, which writes `game/art/*.tsp`. `tools/hgr.py` is the canvas and the
   HGR converter; `tools/measure.py` measures frame costs on Tisple's IIe.

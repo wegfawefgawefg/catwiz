@@ -1,6 +1,6 @@
 ; Witchdog's music for the Mockingboard, in lib/mockingboard_song's text: loops of different
-; lengths that drift against each other, no lead tune on top. tools/music/export.py turns it
-; into game/sound/song_data.tsp (bytes kept in aux memory, copied in when a song starts).
+; lengths that drift against each other, no lead tune on top. The songs live in aux memory;
+; game/sound/sound.tsp copies the one starting into main memory to play it.
 ;
 ; Voices: 0-2 the first chip (left), 3-5 the second (right). The battle lends voice 2 to the
 ; dog's effects and voice 5 to the enemies', so those two carry the parts least missed: the
@@ -52,7 +52,8 @@
     (voice 2 in_two loop pad_e pad_c pad_a pad_d pad_b)
     (voice 3 in_arp_b loop arp_b)
     (voice 4 in_bell loop bell_1 bell_2)
-    (voice 5 in_drums loop drums))
+    (voice 5 in_drums loop drums)
+    :in aux)
 
 ; ---- the battle: A dorian, a pulse of 9 ticks (16ths at 100 bpm), soft
 ;
@@ -89,7 +90,8 @@
     (voice 2 in_pad loop b_pad_a b_pad_d b_pad_a b_pad_g b_pad_e)
     (voice 3 in_mallet_b loop mallet_b)
     (voice 4 in_sparkle loop sparkle)
-    (voice 5 shaker))
+    (voice 5 shaker)
+    :in aux)
 
 ; ---- the stingers: once, then quiet. A voice's last pattern is a long rest it loops on.
 ;
@@ -104,7 +106,8 @@
     (voice 0 w_bass loop quiet)
     (voice 1 w_low loop quiet)
     (voice 3 w_high loop quiet)
-    (voice 4 w_ring loop quiet))
+    (voice 4 w_ring loop quiet)
+    :in aux)
 
 ; lost: A minor, falling. Thirds that slide down at 8 and at 12 ticks a note (3 against 2)
 ; over a bass that sinks F E, onto a low A minor; 1.8 s with the ring
@@ -115,4 +118,5 @@
     (pattern l_slow "l1 r l12 v10 k1 a4 g4 e4 d4 l48 k3 c4")
     (voice 0 l_bass loop quiet)
     (voice 1 l_fast loop quiet)
-    (voice 3 l_slow loop quiet))
+    (voice 3 l_slow loop quiet)
+    :in aux)

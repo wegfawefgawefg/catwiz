@@ -36,10 +36,7 @@
     (for r u8 0 rows
         (let y u8 (+ top r))
         (let offset u16 (+ (- (at hgr.ROW y) 0x2000) (as u16 col)))
-        ; interrupts off while the mover has main memory switched out (screen.load_page)
-        (sei)
-        (auxmem.read (screen.row_at screen.BACKDROP y col) (+ picture offset) (as u16 cols))
-        (cli))
+        (auxmem.read (screen.row_at screen.BACKDROP y col) (+ picture offset) (as u16 cols)))
     (scene.mark col top cols rows))
 
 (fn clean_pixels ((x0 u16) (y0 u8) (x1 u16) (y1 u8)) void
@@ -92,7 +89,7 @@
     (clean_pixels (- x AREA_HALF) top (+ x AREA_HALF) (+ top 13))
     (if (not (at state.actors who alive))
         (return))
-    (let move fx.Action (at en.moves (at state.actors who move)))
+    (let move fx.Action (at en.MOVES (at state.actors who move)))
     (let left u16 (label x top (+ 12 (pen.number_width move.amount))))
     (pen.glyph left (+ top 2) move.icon)
     (pen.number (+ left 12) (+ top 2) move.amount))
@@ -107,8 +104,8 @@
     (if (not (at state.played d))
         (do
             (let face u8 (at state.hand d))
-            (blit.sprite screen.BACKDROP col TRAY_TOP (at dice.faces face icon))
-            (let n u8 (at dice.faces face amount))
+            (blit.sprite screen.BACKDROP col TRAY_TOP (at dice.FACES face icon))
+            (let n u8 (at dice.FACES face amount))
             (if (> n 0)
                 (pen.number (- (+ x 11) (>> (pen.number_width n) 1)) (+ DIGIT_TOP 1) n))))
     (scene.mark col TRAY_TOP 3 (+ (- DIGIT_TOP TRAY_TOP) 9)))
@@ -148,7 +145,7 @@
         (1 (tag 4 2 "ROLLING"))
         (2 (tag 4 2 "THEIR TURN"))
         (_
-            (tag 4 2 (en.name (at state.actors (- wanted 3) kind)))
+            (tag 4 2 (at en.ENEMIES (at state.actors (- wanted 3) kind) name))
             (tag_right 276 2 "B BARK E END"))))
 
 ; ---- the end

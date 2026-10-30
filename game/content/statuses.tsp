@@ -7,8 +7,8 @@
 
 (const STATUS_COUNT u8 3)
 
-; the hud glyph for each, in the font: # shield, % flame, @ ghost
-(const GLYPH (array u8 3) (make (array u8 3) 35 37 64))
+; the hud glyph for each, in the font
+(const GLYPH (array u8 3) (make (array u8 3) '#' '%' '@'))
 
 ; at the start of who's turn: last turn's shield is gone
 (fn turn_start ((who u8)) void

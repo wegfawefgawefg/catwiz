@@ -49,21 +49,21 @@
 ; the action in flight, from its table
 (fn action_effect () fx.Effect
     (match state.act_source
-        (state.Source.face (at dice.faces state.act_row effect))
-        (state.Source.move (at en.moves state.act_row effect))
-        (state.Source.bark enc.hero.bark.effect)))
+        (state.Source.face (at dice.FACES state.act_row effect))
+        (state.Source.move (at en.MOVES state.act_row effect))
+        (state.Source.bark enc.HERO.bark.effect)))
 
 (fn action_amount () u8
     (match state.act_source
-        (state.Source.face (at dice.faces state.act_row amount))
-        (state.Source.move (at en.moves state.act_row amount))
-        (state.Source.bark enc.hero.bark.amount)))
+        (state.Source.face (at dice.FACES state.act_row amount))
+        (state.Source.move (at en.MOVES state.act_row amount))
+        (state.Source.bark enc.HERO.bark.amount)))
 
 (fn action_motion () state.Motion
     (match state.act_source
-        (state.Source.face (at dice.faces state.act_row motion))
-        (state.Source.move (at en.moves state.act_row motion))
-        (state.Source.bark enc.hero.bark.motion)))
+        (state.Source.face (at dice.FACES state.act_row motion))
+        (state.Source.move (at en.MOVES state.act_row motion))
+        (state.Source.bark enc.HERO.bark.motion)))
 
 (fn land () void
     (fx.apply (action_effect) state.act_by state.act_on (action_amount))

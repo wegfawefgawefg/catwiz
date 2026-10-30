@@ -57,16 +57,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   effect, `(sound.song sound.Song.battle)` for music. With a Mockingboard (any slot, found at
   start) the card plays them; without one the speaker effects of `sfx.tsp` and the title jingle
   of `music.tsp` play, and there is no other music.
-- Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. The card plays one at a time; one
-  that comes while another plays waits in a short line (`sound.step`, once a frame), except
-  cues marked not to wait. Each borrows a music voice: 2 (left, the dog's side) or 5 (right,
-  the enemies'), so the songs keep their least-missed parts there (the pad and the shaker).
-- The music is written in `tools/music/songs.tsp` (lib/mockingboard_song's text);
-  `python3 tools/music/export.py` turns it into `game/sound/song_data.tsp` (generated, never
-  edit by hand), kept in aux memory and copied into main when a song starts.
-- The handler runs from main memory, so anything that switches aux memory in (lib/auxmem's
-  mover) must do it with interrupts off, in pieces well under a frame: `screen.load_page`
-  copies 256 bytes at a time, `hud.clean` a row at a time.
+- Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. lib/mockingboard plays one at
+  a time and keeps the ones that come while another plays in its own short line; cues marked
+  not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
+  music voice: 2 (left, the dog's side) or 5 (right, the enemies'), so the songs keep their
+  least-missed parts there (the pad and the shaker).
+- The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
+  copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
+  which `tisple expand` shows).
+- `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
+  Mockingboard's handler runs with main memory in even when a tick lands in a copy.
 - `tisple machine ... --mockingboard 4 --wav x.wav` plays and saves it; `MB=4` makes
   `tools/measure.py` measure with the card in.
 

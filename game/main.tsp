@@ -39,8 +39,6 @@
             (match next
                 (state.Screen.title (title.enter))
                 (state.Screen.battle (battle.enter))))
-        ; an effect waiting for the card's effect voice
-        (sound.step)
         ; draw frame, then show it at the next vertical blank
         (match state.screen
             (state.Screen.title (title.draw))

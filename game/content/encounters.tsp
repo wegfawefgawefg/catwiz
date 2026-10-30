@@ -8,7 +8,7 @@
 
 (struct Hero ((hp u8) (figure u8) (col u8) (bark fx.Action))) ; what barking does to the target, once a turn
 
-(let hero Hero
+(const HERO Hero
     (make Hero
         :hp 30
         :figure art.KIND_DOG
@@ -18,13 +18,13 @@
             :amount 1
             :motion state.Motion.hop
             :aim state.Aim.foe
-            :icon 64)))
+            :icon '@')))
 
 (struct Spot ((enemy u8) (col u8)))
 
 (const FOREST_SIZE u8 3)
 
-(let forest (array Spot 3)
+(const FOREST (array Spot 3)
     (make (array Spot 3)
         (make Spot :enemy en.PUFFCAP :col 16)
         (make Spot :enemy en.SPORELET :col 24)

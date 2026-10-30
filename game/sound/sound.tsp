@@ -4,23 +4,22 @@
 ; With a card (found by setup, in any slot): the music plays from the card's timer interrupt
 ; (main's irq calls mb.service), and an effect borrows one music voice while it plays, the
 ; music on it coming back after. The card plays one effect at a time, so one that comes while
-; another plays waits in line, and step starts it when the voice is free: a blow that kills
-; plays its zap, thump and squeak one after the other, as the speaker does. Cues that only
-; matter now (a dice rattle, a dead key) are dropped instead of waiting.
+; another plays waits in lib/mockingboard's line: a blow that kills plays its zap, thump and
+; squeak one after the other, as the speaker does. Cues that only matter now (a dice rattle, a
+; dead key) are dropped instead of waiting.
 ;
 ; With no card: the speaker effects of sfx.tsp, which hold the processor while they play, the
 ; title jingle, and no other music.
 ;
-; The songs live in aux memory (song_data.tsp, made by tools/music/export.py); the one playing
-; is copied into playing.
+; The songs live in aux memory (songs.tsp); the one playing is copied into playing, with
+; interrupts on: setup puts in lib/auxmem's guard.
 
 (import auxmem)
 (import mockingboard mb)
-(import mockingboard_player player)
 (import sound/sfx)
 (import sound/music)
 (import sound/card_fx fx)
-(import sound/song_data songs)
+(import sound/songs)
 
 (enum Cue (bark  ; the dog barks
         rattle   ; one shake of the dice
@@ -53,15 +52,16 @@
         true false true true true true true true true true true true true true true false
         true false))
 
-(const LINE u8 4) ; cues waiting at most
+; the song the card plays, copied from aux memory: the largest song's size (the title's), and
+; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
+(const PLAYING u16 395)
+(let playing (array u8 395))
 
-(let line (array Cue 4))
-(let waiting u8)
-(let playing (array u8 songs.MOST_BYTES)) ; the song the card plays, copied from aux memory
-
-; at the start: find the card, if there is one, and start its tick
+; at the start: find the card, if there is one, and start its tick; the guard lets aux copies
+; run while it ticks
 (fn setup () void
-    (mb.init))
+    (mb.init)
+    (auxmem.guard))
 
 ; the card's effect for each cue (a table of the addresses would be smaller, but a let's
 ; values must be constants, and an address is not one yet)
@@ -112,23 +112,9 @@
         (do
             (speaker c)
             (return)))
-    (if (and (not player.fx_on) (= waiting 0))
-        (do
-            (card_play c)
-            (return)))
-    (if (and (at CUE_WAITS (as u8 c)) (< waiting LINE))
-        (do
-            (set (at line waiting) c)
-            (set waiting (+ waiting 1)))))
-
-; once a frame: the next cue in line, when the effect before it is over
-(fn step () void
-    (if (or (= waiting 0) player.fx_on)
+    (if (and (not (at CUE_WAITS (as u8 c))) (mb.effect_playing))
         (return))
-    (card_play (at line 0))
-    (for i u8 1 waiting
-        (set (at line (- i 1)) (at line i)))
-    (set waiting (- waiting 1)))
+    (card_play c))
 
 (fn song_bytes ((s Song)) (ptr u8)
     (match s
@@ -137,16 +123,9 @@
         (Song.won (addr_of (at songs.won 0)))
         (Song.lost (addr_of (at songs.lost 0)))))
 
-(fn song_size ((s Song)) u16
-    (match s
-        (Song.title songs.TITLE_BYTES)
-        (Song.battle songs.BATTLE_BYTES)
-        (Song.won songs.WON_BYTES)
-        (Song.lost songs.LOST_BYTES)))
-
-; a song from its start: on the card, copied in from aux memory with interrupts off (the copy
-; switches main memory out from under the handler; under 7,000 cycles, so it delays a tick and
-; loses none) and played; on the speaker, the title's jingle and the battle's ends
+; a song from its start: on the card, copied in from aux memory with interrupts off (the
+; handler would read the song playing while it changes; about 6,500 cycles, so it delays a tick
+; and loses none) and played; on the speaker, the title's jingle and the battle's ends
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
@@ -157,5 +136,5 @@
                 (_))
             (return)))
     (sei)
-    (auxmem.read (addr_of (at playing 0)) (song_bytes s) (song_size s))
+    (auxmem.read (addr_of (at playing 0)) (song_bytes s) PLAYING)
     (mb.play (addr_of (at playing 0))))

@@ -8,7 +8,7 @@
 (const DIE_COUNT u8 5)
 (const FACES_PER_DIE u8 6)
 
-(let faces (array fx.Action 30)
+(const FACES (array fx.Action 30)
     (make (array fx.Action 30)
         ; 1: the wand, zaps
         (make fx.Action

@@ -60,7 +60,7 @@
     (if low
         (return state.Mood.worried))
     ; an enemy glares while it means to hit the dog, and is calm while it means to guard
-    (if (= (at en.moves (at state.actors who move) aim) state.Aim.foe)
+    (if (= (at en.MOVES (at state.actors who move) aim) state.Aim.foe)
         (return state.Mood.angry))
     state.Mood.idle)
 

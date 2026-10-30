@@ -60,16 +60,9 @@
         (show_page_2)
         (show_page_1)))
 
-; 8 KB from aux memory onto a page, 256 bytes at a time with interrupts off for each: the
-; mover switches main memory out from under the Mockingboard's handler, and a piece this size
-; (about 4,500 cycles) delays the music's tick a little and never loses one
+; 8 KB from aux memory onto a page, with interrupts on (sound.setup put in lib/auxmem's guard)
 (fn load_page ((page u8) (picture (ptr u8))) void
-    (let dst (ptr u8) (page_start page))
-    (for i u16 0 32
-        (let offset u16 (<< i 8))
-        (sei)
-        (auxmem.read (+ dst offset) (+ picture offset) 256)
-        (cli)))
+    (auxmem.read (page_start page) picture 8192))
 
 ; one page copied onto another, whole
 (fn copy_page ((from u8) (to u8)) void

@@ -17,7 +17,7 @@
 (const ROLL_FRAMES u8 16)
 (const ROLL_EVERY u8 3)
 (const ENEMY_PAUSE u8 14)
-(const KEY_1 u8 0x31)
+(const KEY_1 u8 '1')
 
 (fn any_enemy_alive () bool
     (for i u8 1 state.ACTORS
@@ -97,13 +97,13 @@
         (do
             (play_die (- key KEY_1))
             (return)))
-    (match (& key 0xDF)   ; letters either case
-        (0x52 (reroll))   ; R
-        (0x42 (bark))     ; B
-        (0x45 (end_turn)) ; E
-        (0x5A (choose_target 1)) ; Z
-        (0x58 (choose_target 2)) ; X
-        (0x43 (choose_target 3)) ; C
+    (match (& key 0xDF) ; letters either case
+        ('R' (reroll))
+        ('B' (bark))
+        ('E' (end_turn))
+        ('Z' (choose_target 1))
+        ('X' (choose_target 2))
+        ('C' (choose_target 3))
         (_
             (match key
                 (0 (return))
@@ -121,7 +121,7 @@
     (let face u8 (at state.hand d))
     (set (at state.played d) true)
     (set state.hud_dice (| state.hud_dice (<< 1 d)))
-    (let target u8 (if (= (at dice.faces face aim) state.Aim.foe)
+    (let target u8 (if (= (at dice.FACES face aim) state.Aim.foe)
         state.target
         state.DOG))
     (act.begin state.Source.face face state.DOG target))
@@ -209,7 +209,7 @@
             (return)))
     (set state.next_enemy (+ i 1))
     (let move u8 (at state.actors i move))
-    (let target u8 (if (= (at en.moves move aim) state.Aim.foe)
+    (let target u8 (if (= (at en.MOVES move aim) state.Aim.foe)
         state.DOG
         i))
     (sound.cue sound.Cue.growl)
@@ -239,4 +239,4 @@
     (let made u8 (+ (at state.actors i moves_made) 1))
     (set (at state.actors i moves_made) made)
     (set (at state.actors i move)
-        (+ (at en.enemies kind first_move) (% made (at en.enemies kind move_count)))))
+        (+ (at en.ENEMIES kind first_move) (% made (at en.ENEMIES kind move_count)))))
