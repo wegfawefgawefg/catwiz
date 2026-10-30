@@ -151,6 +151,9 @@
 
 ; the next enemy standing after t, left to right and round again; NOTHING when none is
 (fn next_standing ((t u8)) u8
+    ; once every enemy is down, stay down: NOTHING + 1 would wrap round to the hero
+    (if (= t state.NOTHING)
+        (return state.NOTHING))
     (for n u8 0 3
         (set t (+ t 1))
         (if (= t state.ACTORS)
