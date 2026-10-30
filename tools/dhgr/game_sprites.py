@@ -71,8 +71,8 @@ def runs_half(pic, mask, bw, h, half):
 
 class Sprite:
     # one frame: its box on the screen and its two halves as runs
-    def __init__(self, name, canvas):
-        box = canvas.bbox()
+    def __init__(self, name, canvas, box=None):
+        box = box or canvas.bbox()
         s = dhgr.cut(name, canvas.px, box)
         bw = s.bytes_wide()
         self.name = name
@@ -110,7 +110,7 @@ def digit(ch):
     c = Canvas()
     c.stamp(1, 1, DIGITS[ch], {"#": WHITE})
     c.outline(BLACK, 1, 1)
-    return Sprite("digit_" + ("plus" if ch == "+" else ch), c)
+    return Sprite("digit_" + ("plus" if ch == "+" else ch), c, (0, 0, 7, 11))
 
 
 def marker():

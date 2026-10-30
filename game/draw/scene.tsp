@@ -50,9 +50,13 @@
             (set the_box (make state.Rect :col col :top top :cols wide :rows BADGE_ROWS))
             (return)))
     (let cols u8 (at art.COLS sprite))
+    (let rows u8 (at art.ROWS sprite))
     (if (!= second state.NOTHING)
-        (set cols (+ 2 (at art.COLS second))))
-    (set the_box (make state.Rect :col col :top top :cols cols :rows (at art.ROWS sprite))))
+        (do
+            (set cols (+ 2 (at art.COLS second)))
+            (if (> (at art.ROWS second) rows)
+                (set rows (at art.ROWS second)))))
+    (set the_box (make state.Rect :col col :top top :cols cols :rows rows)))
 
 ; the box look i covers this frame, into (at box i)
 (fn find_box ((i u8)) void
@@ -140,15 +144,21 @@
         (at state.drawn d wide))
     (restore_box page the_box.col the_box.top the_box.cols the_box.rows))
 
-(fn draw_frame () void
+; the frame on the back page; false when that page shows it already (nothing to draw or show)
+(fn draw_frame () bool
     (let page u8 screen.back)
     (let pi u8 screen.back_index)
     (let first_drawn u8 (* pi state.LOOKS))
     (set restored_count 0)
+    (let any bool (or (at state.full_redraw pi) (> (at state.rect_count pi) 0)))
     (for i u8 0 state.LOOKS
         (if (!= (at state.looks i sprite) state.NOTHING)
             (find_box i))
-        (set (at changed i) (not (same i (+ first_drawn i)))))
+        (set (at changed i) (not (same i (+ first_drawn i))))
+        (if (at changed i)
+            (set any true)))
+    (if (not any)
+        (return false))
     ; 1. what to copy back from the backdrop
     (if (at state.full_redraw pi)
         (do
@@ -192,4 +202,5 @@
             (draw_look page i))
         ; what the page shows now: only a changed look shows something new
         (if (at changed i)
-            (set (at state.drawn (+ first_drawn i)) (at state.looks i)))))
+            (set (at state.drawn (+ first_drawn i)) (at state.looks i))))
+    true)

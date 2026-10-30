@@ -66,8 +66,10 @@
         (set x0 origin))
     (if (> x1 end)
         (set x1 end))
-    (for x u8 x0 x1
-        (set (at px (- x origin)) c)))
+    (if (>= x0 x1)
+        (return))
+    (for i u8 (- x0 origin) (- x1 origin)
+        (set (at px i) c)))
 
 ; one pixel, if it is in the stretch
 (fn dot ((x u8) (c u8)) void
@@ -82,18 +84,20 @@
 ; row r (0-5) of hud glyph code at x: its pixels in its own colour, or in ink for a letter or
 ; digit; gives the x after it and a pixel's gap
 (fn glyph ((x u8) (code u8) (r u8) (ink u8)) u8
-    (let at u16 (* (as u16 (- code 32)) 8))
+    (let at u16 (<< (as u16 (- code 32)) 3))
     (let w u8 (at hud.HUD_FONT at))
     (let c u8 (at hud.HUD_FONT (+ at 1)))
     (if (= c 0)
         (set c ink))
-    (if (< r 6)
-        (do
-            (let bits u8 (at hud.HUD_FONT (+ (+ at 2) (as u16 r))))
-            (for i u8 0 w
-                (if (!= (& bits 1) 0)
-                    (dot (+ x i) c))
-                (set bits (>> bits 1)))))
+    (let bits u8 (at hud.HUD_FONT (+ at (as u16 (+ r 2)))))
+    (if (or (= bits 0) (< x origin))
+        (return (+ (+ x w) 1)))
+    (let i u8 (- x origin))
+    (while (!= bits 0)
+        (if (and (!= (& bits 1) 0) (< i width))
+            (set (at px i) c))
+        (set bits (>> bits 1))
+        (set i (+ i 1)))
     (+ (+ x w) 1))
 
 ; how wide a string of hud glyphs is, without the last gap

@@ -41,7 +41,7 @@
 (const DIGIT_7 u8 26) ; 2 x 11
 (const DIGIT_8 u8 27) ; 2 x 11
 (const DIGIT_9 u8 28) ; 2 x 11
-(const DIGIT_PLUS u8 29) ; 2 x 7
+(const DIGIT_PLUS u8 29) ; 2 x 11
 (const GLOW0 u8 30) ; 32 x 32
 (const GLOW1 u8 31) ; 32 x 32
 (const GLOW2 u8 32) ; 32 x 32
@@ -56,7 +56,7 @@
 (const ROWS (array u8 34)
     (make (array u8 34)
         87 87 83 87 102 42 42 36 42 42 35 27 33 27 27 12 11 18 15 11 11 11 11 11
-        11 11 11 11 11 7 32 32 32 32))
+        11 11 11 11 11 11 32 32 32 32))
 
 (const DCOL (array i8 34)
     (make (array i8 34)
@@ -102,11 +102,11 @@
 
 (const KIND_AUX_SIZE (array u16 6)
     (make (array u16 6)
-        5356 1251 1175 1667 989 4568))
+        5356 1251 1175 1667 993 4568))
 
 (const KIND_MAIN_SIZE (array u16 6)
     (make (array u16 6)
-        5186 1203 1039 1733 932 5744))
+        5186 1203 1039 1733 936 5744))
 
 ; kind * ROLE_COUNT + role
 (const KIND_FRAME (array u8 36)

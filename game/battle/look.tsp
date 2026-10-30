@@ -109,21 +109,16 @@
             :white false
             :wide 0)))
 
-; the bob, 0 or 1 pixel (more for flyers), each enemy on its own beat; the hero, the biggest to
-; draw again, stands still
+; the bob: flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels, flapping on the same beat,
+; each on its own beat. The ones standing stand still: drawing a sprite again in double hi-res
+; costs about as much as a frame, so a bob a second each would take a fifth of the time
 (fn bob ((i u8)) u8
-    (if (= i state.HERO)
+    (if (= (at art.KIND_FRAME (+ (* (at state.actors i figure) art.ROLE_COUNT) ROLE_FLAP)) art.NONE)
         (return 0))
-    (let beat u8 (+ state.idle (* i 11)))
-    (if (!= (at art.KIND_FRAME (+ (* (at state.actors i figure) art.ROLE_COUNT) ROLE_FLAP))
-            art.NONE)
-        (do
-            ; flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels, flapping on the same beat
-            (let drift u8 (& (>> beat 4) 3))
-            (return (if (= drift 3)
-                1
-                drift))))
-    (& (>> beat 4) 1))
+    (let drift u8 (& (>> (+ state.idle (* i 11)) 4) 3))
+    (if (= drift 3)
+        1
+        drift))
 
 (fn show_actor ((i u8)) void
     (let kind u8 (at state.actors i figure))

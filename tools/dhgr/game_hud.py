@@ -92,7 +92,7 @@ HUD_ICONS = {
     ";": (["###", "###", "###", ".#."], PURPLE), # a ward pip
     "&": (["###", "#.#", "###", "..."], ORANGE), # in a box
     ">": (["#.#", ".#.", "#.#", "..."], AQUA),   # the next die doubled
-    "^": ([".#.", ".#.", "###", ".#."], WHITE),  # a dive: a big hit
+    "^": (hud.SWORD, ORANGE),           # a dive: a big hit
     "'": (hud.STAR, YELLOW),           # mana, lit
     "$": (hud.STAR, GREY),             # mana, not yet
 }
@@ -125,20 +125,16 @@ def hud_font():
     return bytes(out)
 
 
-# ---- the 35-column font: 95 glyphs from ' ', 8 rows of 3 pixels: 3 bytes a glyph, row r's
-# bits at 3r (bit 0 the leftmost pixel)
+# ---- the 35-column font: 95 glyphs from ' ', 8 rows of 3 pixels, a byte a row (bit 0 the
+# leftmost pixel)
 
 def font35():
     out = bytearray()
     for i in range(32, 127):
         g = fonts.F35.get(chr(i), [])
         rows = [(r + "...")[:3] for r in g] + ["..."] * (8 - len(g))
-        v = 0
-        for r, row in enumerate(rows[:8]):
-            for k, ch in enumerate(row):
-                if ch == "#":
-                    v |= 1 << (r * 3 + k)
-        out += bytes([v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF])
+        for row in rows[:8]:
+            out.append(sum(1 << k for k, ch in enumerate(row) if ch == "#"))
     return bytes(out)
 
 

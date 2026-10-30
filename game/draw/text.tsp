@@ -68,38 +68,26 @@
     (if (> c col)
         (set col c)))
 
-; row y of the line in the 35-column font: 4 pixels a character, the glyph's 3 then a gap
-(const ROW_BYTE (array u8 8) (make (array u8 8) 0 0 0 1 1 1 2 2))
-(const ROW_SHIFT (array u8 8) (make (array u8 8) 0 3 6 1 4 7 2 5))
+; row r of the line in the 35-column font: 4 pixels a character, the glyph's 3 then a gap,
+; white on black (inverse: black on white), each pixel from the row's bits by table
+(const INK0 (array u8 8) (make (array u8 8) 0 15 0 15 0 15 0 15))
+(const INK1 (array u8 8) (make (array u8 8) 0 0 15 15 0 0 15 15))
+(const INK2 (array u8 8) (make (array u8 8) 0 0 0 0 15 15 15 15))
 
 (fn row35 ((r u8)) void
-    (let b u8 (at ROW_BYTE r))
-    (let shift u8 (at ROW_SHIFT r))
     (let x u8 0)
     (for i u8 0 COLUMNS
         (let c u8 (at line i))
-        (let ink u8 15)
-        (let paper u8 0)
+        (let flip u8 0)
         (if (>= c INVERSE)
             (do
-                (set ink 0)
-                (set paper 15)
+                (set flip 15)
                 (set c (& c 0x7F))))
-        (let at u16 (+ (* (as u16 (- c 32)) 3) (as u16 b)))
-        (let bits u16 (as u16 (at hud.FONT35 at)))
-        (if (> shift 5)
-            (set bits (| bits (<< (as u16 (at hud.FONT35 (+ at 1))) 8))))
-        (let row u8 (as u8 (>> bits shift)))
-        (set (at pix.px x) (if (!= (& row 1) 0)
-            ink
-            paper))
-        (set (at pix.px (+ x 1)) (if (!= (& row 2) 0)
-            ink
-            paper))
-        (set (at pix.px (+ x 2)) (if (!= (& row 4) 0)
-            ink
-            paper))
-        (set (at pix.px (+ x 3)) paper)
+        (let bits u8 (at hud.FONT35 (+ (<< (as u16 (- c 32)) 3) (as u16 r))))
+        (set (at pix.px x) (^ (at INK0 bits) flip))
+        (set (at pix.px (+ x 1)) (^ (at INK1 bits) flip))
+        (set (at pix.px (+ x 2)) (^ (at INK2 bits) flip))
+        (set (at pix.px (+ x 3)) flip)
         (set x (+ x 4))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte

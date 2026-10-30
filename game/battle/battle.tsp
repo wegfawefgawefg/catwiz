@@ -200,5 +200,6 @@
     (words.refresh)
     (hud.refresh)
     (look.update (turn.picked_aim))
-    (scene.draw_frame)
-    (screen.flip))
+    (if (scene.draw_frame)
+        (screen.flip)
+        (screen.wait_frame)))

@@ -228,7 +228,7 @@ def hud_module():
     lines.append(table("SLOT_GN", "u8", gns))
     lines.append("(const CAPTION_Y u8 %d)\n(const PICKED_CAPTION_Y u8 %d)" % (H.caption_y(False), H.caption_y(True)))
     lines.append(table("HUD_FONT", "u8", H.hud_font(), "from ' ' to '_': width, colour (0: the ink's), 6 rows of bits"))
-    lines.append(table("FONT35", "u8", H.font35(), "95 glyphs from ' ': 8 rows of 3 pixels, row r at bit 3r"))
+    lines.append(table("FONT35", "u8", H.font35(), "95 glyphs from ' ': 8 rows of 3 pixels, a byte a row, bit 0 the leftmost"))
     return "\n".join(lines)
 
 

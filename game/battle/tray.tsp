@@ -111,29 +111,46 @@
     (if (and (>= y top) (< y (+ top ICON_H)))
         (do
             (let at u16 (+ (* (as u16 tile) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
-            (for i u8 0 ICON_W
+            ; the picture's pixels in the stretch: from i0 to i1 of its 11, at px k on
+            (let i0 u8 0)
+            (if (< x pix.origin)
+                (set i0 (- pix.origin x)))
+            (let end u8 (+ pix.origin pix.width))
+            (let i1 u8 ICON_W)
+            (if (< end (+ x ICON_W))
+                (set i1 (if (> end x)
+                    (- end x)
+                    0)))
+            (let k u8 (- (+ x i0) pix.origin))
+            (for i u8 i0 i1
                 (let b u8 (at icons.PIXELS (+ at (as u16 (>> i 1)))))
                 (let c u8 (if (= (& i 1) 0)
                     (>> b 4)
                     (& b 15)))
                 (if (!= c WHITE)
-                    (pix.dot (+ x i) c)))))
+                    (set (at pix.px k) c))
+                (set k (+ k 1)))))
     (if (and (>= y cap_y) (< y (+ cap_y 5)))
         (pix.glyphs (at caption_x n) (at caption n) (at caption_len n) (- y cap_y) BLACK)))
 
 ; groups g0 to g0 + gn - 1 of the tray's rows composed anew: the cards not picked, then the
 ; picked one over them
+(let near (array bool 6)) ; the slots with a card that reaches into the groups drawn
+
 (fn draw_groups ((g0 u8) (gn u8) (y0 u8) (y1 u8)) void
     (pix.begin g0 gn)
+    (for n u8 0 hud.SLOTS
+        (let s0 u8 (at hud.SLOT_G0 n))
+        (set (at near n) (and (at card n) (and (< s0 (+ g0 gn)) (> (+ s0 (at hud.SLOT_GN n)) g0)))))
     (for y u8 y0 y1
         (pix.fill BLACK)
         (for n u8 0 hud.SLOTS
-            (if (and (at card n) (not (at picked n)))
+            (if (and (at near n) (not (at picked n)))
                 (do
                     (card_row n y)
                     (face_row n y))))
         (for n u8 0 hud.SLOTS
-            (if (and (at card n) (at picked n))
+            (if (and (at near n) (at picked n))
                 (do
                     (card_row n y)
                     (face_row n y))))
