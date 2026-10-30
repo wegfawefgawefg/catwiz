@@ -11,10 +11,11 @@
 
 (import hgr)
 (import art/sprites art)
+(import art/sprite_data)
 (import draw/screen)
 
 (fn data_at ((offset u16)) (ptr u8)
-    (+ (addr_of (at art.sprite_data 0)) offset))
+    (+ (addr_of (at sprite_data.bytes 0)) offset))
 
 ; the sprite drawn over what the page has
 (fn sprite ((page u8) (col u8) (top u8) (id u8)) void

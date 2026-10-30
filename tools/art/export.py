@@ -1,6 +1,7 @@
 # turn the drawings in actors.py, icons.py and scenes.py into Tisple data modules for the game:
-#   game/art/sprites.tsp   every sprite (bodies, mood patches, tiles, digits, effects) and the
-#                          tables that say which is which, plus the hud font
+#   game/art/sprites.tsp   the tables that say which sprite is which (bodies, mood patches,
+#                          tiles, digits, effects) and the hud font
+#   game/art/sprite_data.tsp  the sprites' bytes
 #   game/art/backdrop.tsp  the forest screen, 8 KB in aux memory
 #   game/art/title_N.tsp   the title in four glow steps, 8 KB each in aux memory
 # and preview pictures into shots/art/.
@@ -320,8 +321,9 @@ def write_sprites(sheet, kinds, effects, digit0, tile0):
     out.append("\n; the hud font from ' ' to 'Z', 7 rows a glyph, bit 0 the leftmost dot. Icons: * heart,\n")
     out.append("; # shield, ! sword, % flame, @ ghost, + mend, $ diamond, & spark\n")
     out.append(table("FONT", "u8", font_rows(), 14))
-    out.append("\n" + let_bytes("sprite_data", data))
     open(os.path.join(GAME_ART, "sprites.tsp"), "w").write("".join(out))
+    open(os.path.join(GAME_ART, "sprite_data.tsp"), "w").write(
+        HEADER + "; every sprite's bytes, at the offsets in sprites.tsp\n\n" + let_bytes("bytes", data))
     return len(data)
 
 

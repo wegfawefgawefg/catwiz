@@ -111,8 +111,11 @@
         (do
             (if (< moved (reach by state.act_on))
                 (do
+                    ; a jump: up off the ground on the way, down on contact
                     (set (at state.actors by col) (as u8 (+ (as i8 col) step)))
+                    (set (at state.actors by lift) 4)
                     (return false)))
+            (set (at state.actors by lift) 0)
             (land)
             (return false)))
     ; hold on contact, then step back home
