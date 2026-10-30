@@ -1,4 +1,4 @@
-# Witchdog
+# Catwiz (was Witchdog)
 
 An Apple II hi-res dice roguelike in Tisple ][ (github.com/wegfawefgawefg/tisple), a toy to
 prove the compiler and an engine. Private repo. Enhanced IIe with 128 KB is the target.
@@ -37,6 +37,17 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   content files can be replaced without touching the engine.
 - No text, names or item lists from other games. Our own names and art.
 
+## Text
+
+- The battle runs in mixed mode: the picture's top 160 rows and four rows of 40-column text
+  (`draw/text.tsp`). The text is written to text pages 1 and 2, since the screen flips hi-res
+  pages and each shows its own text page. `battle/words.tsp` writes the top two rows (the die
+  picked: name and what it does; else the target), `battle/log.tsp` the bottom two (what just
+  happened, in sentences).
+- Strings are plain ASCII in the code and the content tables; `#` in a face or move text is its
+  number. The ROM font shows any character; the hi-res hud font (`pen`) only ' ' to 'Z', and
+  some punctuation there is icons (`tools/art/icons.py`).
+
 ## Art
 
 - `tools/art/*.py` draw the actors, dice pictures, backdrop and title, and
@@ -53,14 +64,14 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ## Sound
 
-- `game/sound/sound.tsp` is the one place sounds go through: `(sound.cue sound.Cue.bark)` for an
+- `game/sound/sound.tsp` is the one place sounds go through: `(sound.cue sound.Cue.zap)` for an
   effect, `(sound.song sound.Song.battle)` for music. With a Mockingboard (any slot, found at
   start) the card plays them; without one the speaker effects of `sfx.tsp` and the title jingle
   of `music.tsp` play, and there is no other music.
 - Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. lib/mockingboard plays one at
   a time and keeps the ones that come while another plays in its own short line; cues marked
   not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
-  music voice: 2 (left, the dog's side) or 5 (right, the enemies'), so the songs keep their
+  music voice: 2 (left, the hero's side) or 5 (right, the enemies'), so the songs keep their
   least-missed parts there (the pad and the shaker).
 - The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
   copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
@@ -74,9 +85,19 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ```sh
 TISPLE=~/Coding/LangDev/tisple/build/tisple
-cd game && $TISPLE build main.tsp --origin 0x8000 --disk ../build/witchdog.dsk
-$TISPLE machine --disk ../build/witchdog.dsk --frames 900 --keys "700f:RETURN" --screenshot ../shots/x.png
+tools/build.sh                       # build/witchdog.dsk; tools/build.sh x.dsk --asm > x.asm
+$TISPLE machine --disk build/witchdog.dsk --frames 900 --keys "700f:RETURN" --screenshot shots/x.png
 ```
+
+- `tools/build.sh` is `tisple build main.tsp --origin 0x8000 --disk ...` with a `--no-inline`
+  for each function in `game/noinline.txt`: Tisple copies every small function into each of
+  its callers, which cost about 2 KB here. The list is the code that runs on events (rules,
+  log, words, reward, hud parts); never the per-frame drawing. Add new event functions to it.
+- Tisple bug (2026-10-30, compiler 57bfc80): a call that is the last thing done on one path of
+  an `if` (`(if c (f))` at the end, or `(if c (do (f) (return)))`) in a function kept as a call
+  can become a branch into `f`; when the linker puts the two in different stretches of memory
+  the build fails with "internal: a branch at $XXXX leaves its function's code". Write such
+  calls unconditionally at the end: `(if (not c) (return)) (f)`.
 
 - Never open windows on the owner's display; run the machine headless and look at
   screenshots (`shots/`).
@@ -84,9 +105,7 @@ $TISPLE machine --disk ../build/witchdog.dsk --frames 900 --keys "700f:RETURN" -
   copy that runs flat out and prints cycles a pass of the main loop between two frames;
   `VSYNC=1` measures the real game, extra `"file|old|new"` arguments try an edit in the copy.
   A frame is 17,030 cycles.
-- `tisple build --disk` gives no `--asm` listing (2026-10-30); for one, build a copy of the
-  compiler with the flag added to `src/disk/disk_build_command.cpp`, never in the owner's
-  checkout.
+- `tisple build --disk ... --asm` prints the listing (2026-10-30).
 - At most 8 build jobs and 8 processes at once.
 - Apple ROMs live in `~/.local/share/tisple/roms`; never commit or copy them into the repo.
 - No maintained test suites; one-off runs and screenshots are welcome.
@@ -95,7 +114,21 @@ $TISPLE machine --disk ../build/witchdog.dsk --frames 900 --keys "700f:RETURN" -
 ## Memory
 
 Self-booting disk, origin `$8000`: hi-res page 1 `$2000`, page 2 `$4000`, the backdrop copy
-`$6000`, all reserved. Code and data fill `$8000-$BEFF`, then `$0B00-$1FFF`, then the
+`$6000`, all reserved. Code and data fill `$8000-$BEFF`, then `$0C00-$1FFF`, then the
 language card. The backdrop and title pictures live in aux memory and are copied in with
-lib/auxmem, as are the songs. 2026-10-30, after the Mockingboard: main memory is full, the card
-has about 960 bytes left, aux about 5 KB; zero page 186 of 256.
+lib/auxmem, as are the songs.
+
+- Page `$0B` is reserved whole (`draw/text.tsp`): text page 2's last two mixed-mode rows are at
+  `$0B50` and `$0BD0`, and a disk segment loads whole pages, so anything placed beside them was
+  overwritten when the next segment loaded.
+- Scratch that is set before it is read lives at fixed addresses the layout does not use, and
+  is not zeroed at the start: `$0200-$02B3` (state.drawn), `$0800-$0AFF` once the boot loader
+  is done (the song buffer, the log, the text line, the dice, the floaters, the draw scratch;
+  not `$0A50-$0A77` or `$0AD0-$0AF7`, text page 2's rows), and the rows of text page 1 the
+  mixed screen never shows (`$0400-$05F7` but `$0478-$047F` and the other screen holes, and
+  `$0600-$064F`, `$0680-$06CF`, `$0700-$074F`, `$0780-$07CF`). Each such let says so.
+- No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
+  (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
+  listing for `rt.` calls.
+- 2026-10-30, Catwiz rules and text: main memory full; the language card about 100 bytes left;
+  aux about 5 KB; zero page 179 of 256.

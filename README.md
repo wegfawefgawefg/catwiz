@@ -1,7 +1,7 @@
-# Witchdog (private)
+# Catwiz (private; was Witchdog)
 
 A small Apple II hi-res dice roguelike in Tisple ][ (github.com/wegfawefgawefg/tisple): a
-witchy dog fighting spooky-cute things in a forest with dice. A toy for ourselves, to prove the
+cat wizard fighting spooky-cute things in a forest with dice. A toy for ourselves, to prove the
 compiler and an engine; an homage in the genre, not a remake. The folder name is historical.
 Targets an enhanced IIe with 128 KB (aux memory holds the pictures).
 
@@ -18,14 +18,15 @@ Targets an enhanced IIe with 128 KB (aux memory holds the pictures).
 
 ```sh
 TISPLE=~/Coding/LangDev/tisple/build/tisple
-cd game && $TISPLE build main.tsp --origin 0x8000 --disk ../build/witchdog.dsk
-$TISPLE machine --disk ../build/witchdog.dsk --window      # on your own screen
-$TISPLE machine --disk ../build/witchdog.dsk --mockingboard 4 --window   # with music
-tools/.venv/bin/python tools/art/export.py                 # after changing the art
-python3 tools/music/export.py                              # after changing the music
+tools/build.sh                                            # build/witchdog.dsk
+$TISPLE machine --disk build/witchdog.dsk --window        # on your own screen
+$TISPLE machine --disk build/witchdog.dsk --mockingboard 4 --window   # with music
+tools/.venv/bin/python tools/art/export.py                # after changing the art
 ```
 
-Keys in battle: 1-5 play a die on the target, LEFT and RIGHT pick the target, R re-rolls the
-dice not played yet (twice a turn), B barks (once a turn), E or RETURN ends the turn.
+Keys in battle: 1-5 pick a die (its text shows at the bottom); then Z, X or C (the enemies left
+to right), or LEFT/RIGHT and RETURN, plays it on that enemy; a die for the hero plays when picked
+again (or RETURN). Another die switches, ESC lets go. R re-rolls the dice not played yet (twice
+a turn), E ends the turn. The reward after a fight works the same way with 1-3 (1-6).
 
 Rules for working here: `AGENTS.md`. The plan and where things stand: `docs/plan.md`.

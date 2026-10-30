@@ -1,34 +1,35 @@
 # Plan
 
-Witchdog: a toy Apple II hi-res dice roguelike in Tisple ][, to prove the compiler and an
+Catwiz (was Witchdog): a toy Apple II hi-res dice roguelike in Tisple ][, to prove the compiler and an
 engine. Owner, 2026-10-30: an homage in the genre, not a remake; no text or data from any
 other game; all content gets replaced later by much stranger stuff.
 
-## Where it stands (2026-10-30, branch `witchdog-start`)
+## Where it stands (2026-10-30, branch `catwiz-engine`)
 
-First playable slice, booting from `build/witchdog.dsk` (built from `game/`):
+A first run, booting from `build/witchdog.dsk` (built by `tools/build.sh` from `game/`):
 
-1. Title: WITCHDOG glowing over night clouds, the dog against a big moon, Press Return, a
-   speaker jingle. The glow is four pictures in aux memory copied in turn.
-2. One forest battle: the dog against a puffcap, a sporelet and a nightflap.
-   - 5 dice roll at the start of each turn; 1-5 plays one on the target (LEFT and RIGHT pick
-     it), R re-rolls the unplayed ones (twice a turn), B barks (once a turn: spooks the
-     target), E or RETURN ends the turn.
-   - Enemies show their next move over their heads and make it on their turn.
-   - Statuses: shield (soaks hits until the holder's next turn), burn (hurts at the end of
-     each of the holder's turns, then dies down), spook (the holder's hits do less).
-   - Hit feel: white flash, 2-column knockback, 3-frame hit-stop, a number floating up, the
-     hurt face; the beaten blink, then puff away. Lunges jump, bolts arc.
-   - Win and lose banners, then RETURN goes back to the title.
-3. Speaker sounds: bark, dice rattle, zap, hits, shield ping, mend chime, fire hiss, spook
-   wobble, the dog's yelp, the death squeak, win and lose.
-4. Mockingboard (2026-10-30, branch `witchdog-sound`): found in any slot at start. A title
-   theme (E minor, 7-tick pulse: loops of 7, 12, 13, 16 and 5 pulses coming in one by one) and
-   a battle theme (A dorian, 9-tick pulse: loops of 12, 10, 9, 7 and 15), won and lost
-   stingers, and card versions of every effect plus the die played, an enemy's move, turn start
-   and end, the target moving, RETURN on the title and a dead key. The speaker's sounds stay
-   when there is no card. The music costs about 900 cycles a tick (5% of the processor) and
-   about 4% of the battle's frame rate.
+1. Title: CATWIZ glowing over night clouds, the cat against a big moon, Press Return.
+2. A run: fight 1 (puffcap, sporelet), a reward, fight 2 (puffcap, sporelet, nightflap), then
+   "to be continued" and the title. Hit points carry between fights; losing ends the run.
+3. Rules (decided with the owner; numbers our own starting tuning; the dice are the only luck):
+   - Catwiz, 30 HP, five dice of six faces, rolled each turn; two re-rolls of the unplayed dice.
+   - Faces are items: wand (damage), bone (heal), kibble (shield till the next turn), gem
+     (mana, kept all fight, 5 at most), spells by mana (hairball, zoomies, cardboard box, 3 AM
+     screaming), curses (fleas, wet, hiss, bath time; each ward pip blocks one), +1 and x2
+     (boost the next die), lint (nothing; upgrades to +1).
+   - Enemies show their next move and make their moves in order from the first: puffcap 9 HP
+     (headbutt 2, spore shield 3), sporelet 6 (nip 1, cheer: a friend hits +1 next), nightflap
+     9 with a ward pip (bite 3, bite 3, dive 5).
+   - Reward: one of two new dice (replacing one of yours) or one face upgraded.
+4. Controls: pick a die (1-5), its name and what it does show at the bottom; then an enemy
+   (Z X C, or the arrows and RETURN), or the same die again for the hero's own faces. ESC lets
+   go, R re-rolls, E ends the turn. The phone player has the same as buttons and taps
+   (`tools/phone/witchdog.json`).
+5. Mixed mode: the stage and the tray above four text rows: the pick or the target (name,
+   hit points, statuses, next move in words), then a log of what happened in sentences.
+6. Hit feel, Mockingboard music and effects, speaker effects without a card: as before.
+
+The meow (once a turn) and the bark are gone: the decided rules make the dice the only actions.
 
 ## How it is built
 
@@ -45,16 +46,21 @@ First playable slice, booting from `build/witchdog.dsk` (built from `game/`):
 
 ## Next
 
-1. Play it on the real IIe (FloppyEmu or ADTPro) and fix what only hardware shows.
-2. Speed: per-row overhead dominates the blits (about 200 cycles a row against 28 a byte);
-   the dog, 79 rows tall, costs about 44,000 cycles to move. Ideas: pre-offset sprite
-   pointers, split the dog into hat and body, skip rows the move leaves the same.
-3. Room: main memory and the language card are nearly full (code 16 KB). The four title
-   pictures (32 KB of aux, 8 tracks, about 5 s of the 10 s boot) could be one picture and the
-   glow's changes.
-4. Check for 128 KB at start and say so on a 64 KB machine.
-5. Content: the real strange stuff, more encounters, a run of battles.
-6. Mockingboard: play it on a real card; balance the mix by ear (written blind, by numbers).
+1. Room. Main memory is full and the language card has about 100 bytes left; the boss's
+   pictures (1,803 bytes of their own) are in it though no fight uses them yet. Ideas, biggest first:
+   per-fight sprite data in aux memory, copied into one buffer when a fight starts (the boss
+   and the forest enemies take turns; the export would write them as separate tables); Tisple
+   features: the language card's bank 1 (4 KB unused), code overlays loaded from aux memory
+   or disk per screen, a way to say a small function stays a call (now `game/noinline.txt`).
+2. Play it on the real IIe (FloppyEmu or ADTPro) and fix what only hardware shows.
+3. Tuning by play: a greedy simulated player loses about 0.5 HP in fight 1 and 4 in fight 2
+   (bones and kibble undo fight 1's hits); a careless one loses about 4 and 20.
+4. The title's four glow pictures (32 KB of aux, about 5 s of the boot) could be one picture and
+   the glow's changes.
+5. Speed: per-row overhead dominates the blits (about 200 cycles a row against 28 a byte).
+6. Content: the final fight (the bulldog king), more spells (Static Fur, Catnip, Mark
+   Territory, Knock It Off The Table, Laser Pointer, Belly Rub Trap, Nine Lives).
+7. Mockingboard: play it on a real card; balance the mix by ear.
 
 ## Art rules
 
