@@ -6,6 +6,9 @@ of dice against the forest's spooky-cute things, on the way to a big bad dog. Wr
 
 Two fights and the reward between them play now; ten are planned. The project is shelved.
 
+**[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
+get the disk from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
+
 ![title](shots/title.png) ![a fight, the wand picked](shots/fight.png)
 
 ![the reward](shots/reward.png) ![the fight on an NTSC monitor](shots/fight_ntsc.png)
