@@ -3,8 +3,9 @@
 
 (const ACTORS u8 4) ; the dog, then up to three enemies
 (const DOG u8 0)
-(const STATUS_SLOTS u8 4)
-(const HAND u8 5)     ; dice in the hand
+(const STATUS_SLOTS u8 16)
+(const HAND u8 5) ; dice in the hand
+(const DIE_FACES u8 6)
 (const FLOATERS u8 4) ; damage numbers in the air at once
 (const LOOKS u8 10)   ; things drawn over the backdrop: 4 actors, bolt, marker, 4 floaters
 (const LOOK_BOLT u8 4)
@@ -15,7 +16,11 @@
 
 (enum Screen (title battle))
 
-(enum Phase (rolling player acting enemies won lost))
+(enum Phase (rolling player acting enemies won lost reward))
+
+; the steps of the reward screen: pick an offer, then the die it replaces, or the die and the
+; face to upgrade
+(enum Pick (offer replace upgrade_die upgrade_face))
 
 ; the face an actor shows; the same order as the art's moods
 (enum Mood (idle angry worried hurt bark happy ko))
@@ -23,11 +28,12 @@
 ; how an action looks on screen: a jump at the target, a bolt thrown at it, or a hop in place
 (enum Motion (lunge throw hop))
 
-; who an action is for: the other side, or the one doing it
-(enum Aim (foe self))
+; who an action is for: an enemy the player picks (or the hero, for an enemy), the one doing
+; it, every enemy, or an enemy's friend
+(enum Aim (foe self all friend))
 
-; where the action in flight came from: a die face, an enemy's move, or the bark
-(enum Source (face move bark))
+; where the action in flight came from: a die face (or the meow), or an enemy's move
+(enum Source (face move))
 
 (struct Actor ((alive bool)
         (kind u8)   ; the enemy's row in content/enemies, or NOTHING for the dog
@@ -61,6 +67,10 @@
 
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 
+; Some lets have an :address in memory the layout does not use: $0800-$0AFF (the boot loader's,
+; free once the game runs) and the rows of text page 1 the mixed screen never shows. Those
+; are not zeroed at the start, so the game sets them before it reads them (AGENTS.md, Memory).
+;
 ; ---- the game state, all of it, as top-level lets in this one module: state.phase reads
 ; shorter than state.game.phase, and the code is the same either way. Keep addr_of off their
 ; elements: taking an element's address packs a whole array of structs, and then every
@@ -72,13 +82,25 @@
 (let idle u8)   ; counts up while the dog's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
 (let timer u8) ; frames into the phase
-(let actors (array Actor 4))
-(let stacks (array u8 16)) ; status stacks: actor * STATUS_SLOTS + status
-(let hand (array u8 5))    ; the face each die shows, a row in content/dice faces
+(let actors (array Actor 4) :address 0x0680)
+(let stacks (array u8 64) :address 0x0600) ; status stacks: actor * STATUS_SLOTS + status
+; the run: which fight, the hero's hit points between fights, and her dice as face rows (die d
+; is d * DIE_FACES to d * DIE_FACES + 5)
+(let fight u8)
+(let hero_hp u8)
+(let dice (array u8 30) :address 0x0A10)
+(let hand (array u8 5)) ; the face each die shows, a row in content/faces
 (let played (array bool 5))
 (let rerolls u8)
-(let barked bool)
-(let target u8)     ; the enemy the dice go to
+(let meowed bool)
+(let selected u8) ; the die picked to play next, or NOTHING
+(let target u8)   ; the enemy the dice go to
+(let log_hold u8) ; frames the enemies wait, so the last log line can be read
+; the reward screen
+(let pick Pick)
+(let picked u8) ; the slot picked, or NOTHING
+(let offer u8)  ; the offer taken
+(let upgrade_die u8)
 (let next_enemy u8) ; on the enemies' turn, who acts next
 (let turn u8)
 ; the action in flight
@@ -92,17 +114,19 @@
 (let bolt_col u8)
 (let bolt_top u8)
 (let bolt_on bool)
-(let floaters (array Floater 4))
+(let bolt_sx i16) ; k steps of the way, times 8: see battle/act.tsp
+(let bolt_sy i16)
+(let floaters (array Floater 4) :address 0x0A30)
 ; the hud parts that need drawing again
 (let hud_pills u8)   ; a bit for each actor whose hit points or statuses changed
 (let hud_intents u8) ; a bit for each enemy whose intent changed
 (let hud_dice u8)    ; a bit for each die to draw again
 (let hud_rerolls bool)
-(let hud_top u8) ; what the top line shows: 0 nothing, 1 rolling, 2 their turn, 3 + target
+(let hud_words bool) ; the bottom text's top two lines
 ; drawing: what each look should show, and what each page shows now
-(let looks (array Look 10))
-(let drawn (array Look 20)) ; page * LOOKS + look
-(let rects (array Rect 24)) ; page * RECTS + n
+(let looks (array Look 10) :address 0x0580)
+(let drawn (array Look 20) :address 0x0200) ; page * LOOKS + look
+(let rects (array Rect 24) :address 0x0400) ; page * RECTS + n
 (let rect_count (array u8 2))
 (let full_redraw (array bool 2))
 ; the title

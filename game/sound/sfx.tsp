@@ -16,7 +16,7 @@
 
 (struct Part ((kind Kind) (half u16) (step i16) (count u8)))
 
-(let parts (array Part 33)
+(const PARTS (array Part 33)
     (make (array Part 33)
         ; 0 bark: rrr, rising and rough, then a low wuf
         (make Part :kind Kind.slide :half 1400 :step -60 :count 6)
@@ -68,10 +68,10 @@
 
 (fn play ((first u8) (count u8)) void
     (for p u8 first (+ first count)
-        (let half u16 (at parts p half))
-        (let step i16 (at parts p step))
-        (let kind Kind (at parts p kind))
-        (for i u8 0 (at parts p count)
+        (let half u16 (at PARTS p half))
+        (let step i16 (at PARTS p step))
+        (let kind Kind (at PARTS p kind))
+        (for i u8 0 (at PARTS p count)
             (io_read u8 a2.SPKR)
             (match kind
                 (Kind.tone (wait_cycles half))
@@ -79,42 +79,6 @@
                     (wait_cycles half)
                     (set half (as u16 (+ (as i16 half) step))))
                 (Kind.noise (wait_cycles (+ half (<< (as u16 (random.byte)) 2))))))))
-
-(fn bark () void
-    (play 0 8))
-
-(fn rattle () void
-    (play 8 3))
-
-(fn zap () void
-    (play 11 1))
-
-(fn hit () void
-    (play 12 2))
-
-(fn ping () void
-    (play 14 2))
-
-(fn chime () void
-    (play 16 2))
-
-(fn hiss () void
-    (play 18 1))
-
-(fn wobble () void
-    (play 19 4))
-
-(fn puff () void
-    (play 23 1))
-
-(fn squeak () void
-    (play 24 2))
-
-(fn yelp () void
-    (play 26 1))
-
-(fn tick () void
-    (play 27 1))
 
 (fn win () void
     (play 28 3))

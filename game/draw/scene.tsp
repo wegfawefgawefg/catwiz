@@ -17,15 +17,15 @@
 (import draw/blit)
 
 ; what each page shows: the box of each look as drawn there, page * LOOKS + look
-(let drawn_box (array state.Rect 20))
+(let drawn_box (array state.Rect 20) :address 0x0500) ; scratch: see AGENTS.md, Memory
 
 ; scratch for one frame, not game state: each look's box now, and how to draw it
-(let box (array state.Rect 10))
-(let changed (array bool 10))
-(let moved (array bool 10))
-(let swapped (array bool 10))
-(let redo (array bool 10))
-(let restored (array state.Rect 24))
+(let box (array state.Rect 10) :address 0x0A78)
+(let changed (array bool 10) :address 0x0AA0)
+(let moved (array bool 10) :address 0x0AAA)
+(let swapped (array bool 10) :address 0x0AB4)
+(let redo (array bool 10) :address 0x0ABE)
+(let restored (array state.Rect 24) :address 0x0480)
 (let restored_count u8 0)
 
 ; a box of the backdrop the hud drew into, for both pages
@@ -42,8 +42,8 @@
 
 ; the same for a box in pixels, x0 to x1 - 1 and y0 to y1 - 1
 (fn mark_pixels ((x0 u16) (y0 u8) (x1 u16) (y1 u8)) void
-    (let col0 u8 (as u8 (/ x0 7)))
-    (let col1 u8 (as u8 (/ (+ x1 6) 7)))
+    (let col0 u8 (screen.byte_of x0))
+    (let col1 u8 (+ (screen.byte_of (- x1 1)) 1))
     (mark col0 y0 (- col1 col0) (- y1 y0)))
 
 ; the whole backdrop onto both pages at their next frames

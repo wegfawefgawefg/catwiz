@@ -6,6 +6,7 @@
 (import art/sprites art)
 (import content/statuses st)
 (import battle/place)
+(import battle/log)
 (import sound/sound)
 
 (const FLASH_FRAMES u8 3)
@@ -19,15 +20,17 @@
 ; by hits target for amount: by's statuses, then target's, then what is left comes off its
 ; hit points
 (fn strike ((by u8) (target u8) (amount u8)) void
-    (let damage u8 (st.dealt by amount))
+    (let damage u8 (st.dealt by amount true))
     (set damage (st.taken target damage))
     (set state.hud_pills (| state.hud_pills (<< 1 target)))
     (if (= damage 0)
         (do
+            (log.who target "'S SHIELD TAKES IT ALL." 0)
             (sound.cue sound.Cue.ping)
             (set (at state.actors target flash) 1)
             (float_number target 0 false)
             (return)))
+    (log.who target " TAKES #." damage)
     (lose target damage))
 
 ; n hit points off who, with all the feel of a hit; at 0 it starts dying
@@ -58,6 +61,7 @@
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
     (set state.hud_intents (| state.hud_intents (<< 1 who)))
+    (log.who who " IS BEATEN." 0)
     (sound.cue sound.Cue.squeak))
 
 (fn heal ((who u8) (n u8)) void
@@ -66,6 +70,7 @@
     (if (> n room)
         (set n room))
     (set (at state.actors who hp) (+ hp n))
+    (log.who who " HEALS #." n)
     (set (at state.actors who mood) state.Mood.happy)
     (set (at state.actors who mood_time) HURT_FRAMES)
     (set state.hud_pills (| state.hud_pills (<< 1 who)))

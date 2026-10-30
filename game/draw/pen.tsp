@@ -12,12 +12,12 @@
 
 ; pixels x0 to x1 - 1 of row y on the backdrop, all off
 (fn clear_row ((x0 u16) (x1 u16) (y u8)) void
-    (let first u8 (at hgr.COL_BYTE x0))
-    (let last u8 (at hgr.COL_BYTE (- x1 1)))
+    (let first u8 (screen.byte_of x0))
+    (let last u8 (screen.byte_of (- x1 1)))
     (let row (ptr u8) (screen.row_at screen.BACKDROP y 0))
     ; the dots of the first and last byte that are in the run
-    (let keep_left u8 (- (at hgr.COL_BIT x0) 1))
-    (let keep_right u8 (& (~ (- (<< (at hgr.COL_BIT (- x1 1)) 1) 1)) 0x7F))
+    (let keep_left u8 (- (screen.bit_of x0) 1))
+    (let keep_right u8 (& (~ (- (<< (screen.bit_of (- x1 1)) 1) 1)) 0x7F))
     (if (= first last)
         (do
             (let p (ptr u8) (+ row first))
@@ -52,7 +52,7 @@
 ; row's 10 pixels are shifted into the 7-pixel bytes they fall in, up to three of them
 (fn glyph ((x u16) (y u8) (code u8)) void
     (let at_row u16 (* (as u16 (- code 32)) 7))
-    (let col u8 (at hgr.COL_BYTE x))
+    (let col u8 (screen.byte_of x))
     (let shift u8 (as u8 (- x (* (as u16 col) 7))))
     (for r u8 0 GLYPH_H
         (let bits u16 (<< (at DOUBLED (at art.FONT (+ at_row (as u16 r)))) shift))

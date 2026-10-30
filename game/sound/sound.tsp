@@ -55,7 +55,7 @@
 ; the song the card plays, copied from aux memory: the largest song's size (the title's), and
 ; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
 (const PLAYING u16 395)
-(let playing (array u8 395))
+(let playing (array u8 395) :address 0x0800) ; scratch: see AGENTS.md, Memory
 
 ; at the start: find the card, if there is one, and start its tick; the guard lets aux copies
 ; run while it ticks
@@ -63,65 +63,55 @@
     (mb.init)
     (auxmem.guard))
 
-; the card's effect for each cue (a table of the addresses would be smaller, but a let's
-; values must be constants, and an address is not one yet)
-(fn card_effect ((c Cue)) (ptr u8)
-    (match c
-        (Cue.bark (addr_of (at fx.bark 0)))
-        (Cue.rattle (addr_of (at fx.rattle 0)))
-        (Cue.tok (addr_of (at fx.tok 0)))
-        (Cue.zap (addr_of (at fx.zap 0)))
-        (Cue.thump (addr_of (at fx.thump 0)))
-        (Cue.ping (addr_of (at fx.ping 0)))
-        (Cue.chime (addr_of (at fx.chime 0)))
-        (Cue.hiss (addr_of (at fx.hiss 0)))
-        (Cue.wobble (addr_of (at fx.wobble 0)))
-        (Cue.puff (addr_of (at fx.puff 0)))
-        (Cue.squeak (addr_of (at fx.squeak 0)))
-        (Cue.yelp (addr_of (at fx.yelp 0)))
-        (Cue.growl (addr_of (at fx.growl 0)))
-        (Cue.turn_on (addr_of (at fx.turn_on 0)))
-        (Cue.turn_off (addr_of (at fx.turn_off 0)))
-        (Cue.blip (addr_of (at fx.blip 0)))
-        (Cue.confirm (addr_of (at fx.confirm 0)))
-        (Cue.nope (addr_of (at fx.nope 0)))))
+; the card's effect for each cue, in Cue's order
+(const CARD_EFFECT (array (ptr u8) 18)
+    (make (array (ptr u8) 18)
+        (addr_of (at fx.bark 0))
+        (addr_of (at fx.rattle 0))
+        (addr_of (at fx.tok 0))
+        (addr_of (at fx.zap 0))
+        (addr_of (at fx.thump 0))
+        (addr_of (at fx.ping 0))
+        (addr_of (at fx.chime 0))
+        (addr_of (at fx.hiss 0))
+        (addr_of (at fx.wobble 0))
+        (addr_of (at fx.puff 0))
+        (addr_of (at fx.squeak 0))
+        (addr_of (at fx.yelp 0))
+        (addr_of (at fx.growl 0))
+        (addr_of (at fx.turn_on 0))
+        (addr_of (at fx.turn_off 0))
+        (addr_of (at fx.blip 0))
+        (addr_of (at fx.confirm 0))
+        (addr_of (at fx.nope 0))))
 
 ; the cue on the card now
 (fn card_play ((c Cue)) void
-    (mb.effect (card_effect c) (at CUE_VOICE (as u8 c)) 1))
+    (mb.effect (at CARD_EFFECT (as u8 c)) (at CUE_VOICE (as u8 c)) 1))
 
-; the speaker's version; the cues added with the card have none, but the dead key's tick
-(fn speaker ((c Cue)) void
-    (match c
-        (Cue.bark (sfx.bark))
-        (Cue.rattle (sfx.rattle))
-        (Cue.zap (sfx.zap))
-        (Cue.thump (sfx.hit))
-        (Cue.ping (sfx.ping))
-        (Cue.chime (sfx.chime))
-        (Cue.hiss (sfx.hiss))
-        (Cue.wobble (sfx.wobble))
-        (Cue.puff (sfx.puff))
-        (Cue.squeak (sfx.squeak))
-        (Cue.yelp (sfx.yelp))
-        (Cue.nope (sfx.tick))
-        (_)))
+; the speaker's version of each cue, in Cue's order: the first of sfx.parts and how many
+; (0: none; the cues added with the card have none, but the dead key's tick)
+(const SPEAKER_FIRST (array u8 18)
+    (make (array u8 18) 0 8 0 11 12 14 16 18 19 23 24 26 0 0 0 0 0 27))
+
+(const SPEAKER_COUNT (array u8 18) (make (array u8 18) 8 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1))
 
 (fn cue ((c Cue)) void
     (if (not mb.found)
         (do
-            (speaker c)
+            (sfx.play (at SPEAKER_FIRST (as u8 c)) (at SPEAKER_COUNT (as u8 c)))
             (return)))
     (if (and (not (at CUE_WAITS (as u8 c))) (mb.effect_playing))
         (return))
     (card_play c))
 
-(fn song_bytes ((s Song)) (ptr u8)
-    (match s
-        (Song.title (addr_of (at songs.title 0)))
-        (Song.battle (addr_of (at songs.battle 0)))
-        (Song.won (addr_of (at songs.won 0)))
-        (Song.lost (addr_of (at songs.lost 0)))))
+; each song in aux memory, in Song's order
+(const SONG_BYTES (array (ptr u8) 4)
+    (make (array (ptr u8) 4)
+        (addr_of (at songs.title 0))
+        (addr_of (at songs.battle 0))
+        (addr_of (at songs.won 0))
+        (addr_of (at songs.lost 0))))
 
 ; a song from its start: on the card, copied in from aux memory with interrupts off (the
 ; handler would read the song playing while it changes; about 6,500 cycles, so it delays a tick
@@ -136,5 +126,5 @@
                 (_))
             (return)))
     (sei)
-    (auxmem.read (addr_of (at playing 0)) (song_bytes s) PLAYING)
+    (auxmem.read (addr_of (at playing 0)) (at SONG_BYTES (as u8 s)) PLAYING)
     (mb.play (addr_of (at playing 0))))

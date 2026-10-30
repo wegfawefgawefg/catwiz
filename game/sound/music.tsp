@@ -23,12 +23,27 @@
         (half_period 831)   ; G#5
         (half_period 659))) ; E5
 
-(const NOTE_MS (array u8 10) (make (array u8 10) 90 90 90 200 90 90 160 90 90 250))
+; clicks for ms milliseconds of a note of freq Hz: ms * 1023 / (2 * half), as ms * 128 /
+; (half / 4), worked out while compiling
+(macro clicks (freq ms)
+    (/ (* ms 128) (>> (half_period freq) 2)))
 
-; a note for ms milliseconds: clicks = ms * 1023 / (2 * half), as ms * 128 / (half / 4) to stay
-; in 16 bits
-(fn note ((half u16) (ms u8)) void
-    (let clicks u16 (/ (* (as u16 ms) 128) (>> half 2)))
+; the lengths: 90 90 90 200 90 90 160 90 90 250 milliseconds
+(const NOTE_CLICKS (array u16 10)
+    (make (array u16 10)
+        (clicks 659 90)    ; E5
+        (clicks 784 90)    ; G5
+        (clicks 988 90)    ; B5
+        (clicks 1319 200)  ; E6
+        (clicks 1175 90)   ; D6
+        (clicks 988 90)    ; B5
+        (clicks 1047 160)  ; C6
+        (clicks 988 90)    ; B5
+        (clicks 831 90)    ; G#5
+        (clicks 659 250))) ; E5
+
+; a note: clicks clicks, half cycles apart
+(fn note ((half u16) (clicks u16)) void
     (let left u16 clicks)
     (while (> left 0)
         (let n u8 (if (> left 255)
@@ -39,6 +54,6 @@
 
 (fn jingle () void
     (for i u8 0 NOTES
-        (note (at NOTE_HALF i) (at NOTE_MS i))
+        (note (at NOTE_HALF i) (at NOTE_CLICKS i))
         ; a breath between notes
         (wait_cycles 9000)))

@@ -26,6 +26,15 @@
 (fn page_start ((page u8)) (ptr u8)
     (as (ptr u8) (+ a2.HGR_PAGE1 (<< (as u16 page) 8))))
 
+; the byte column pixel x (0 to 279) is in: x / 7 as (x * 73 + 72) / 512, exact over the
+; screen, so no division routine (and not hgr's 280-entry tables, 560 bytes)
+(fn byte_of ((x u16)) u8
+    (as u8 (>> (+ (* x 73) 72) 9)))
+
+; its dot in that byte
+(fn bit_of ((x u16)) u8
+    (<< 1 (- (as u8 x) (* (byte_of x) 7))))
+
 ; graphics, full screen, page 1 on, page 2 drawn next
 (fn setup () void
     (io_read u8 a2.TXTCLR)
