@@ -1,12 +1,14 @@
-"""Whole runs: the fights in order with the hero's hit points and bag carried over, the
-reward after each won fight (battle/reward.tsp: one of the two new dice, a face upgraded, or a
-die out of the bag), and the report.
+"""Whole runs: the fights in order with the hero's hit points and kit carried over, and the
+choices between fights (rewards.py), then the report.
 
-    python3 tools/sim/run.py                       # game content, every policy, 300 runs
-    python3 tools/sim/run.py --content proposal --policy strong --runs 400 --jobs 8
-    python3 tools/sim/run.py --trace --policy greedy --runs 1    # one run, turn by turn
+    python3 tools/sim/run.py                       # the game's fights 1-2, every policy
+    python3 tools/sim/run.py --content proposal --policy strong --runs 400
+    python3 tools/sim/run.py --content proposal --trace --policy greedy --runs 1 --jobs 1
+    python3 tools/sim/run.py --content bag --variant upgrade=single     # see variants.py
 
-Seeds: run n of --seed s uses s * 100000 + n, so a run is the same each time.
+Content: game (game/content), proposal (the item-slot model, tools/sim/proposal), bag (the
+bag model's proposal, tools/sim/proposal_bag). Seeds: run n of --seed s uses
+s * 100000 + n, so a run is the same each time.
 """
 
 import argparse
@@ -34,16 +36,19 @@ class GameRng:
         return self.r.getrandbits(8)
 
 
-def play_fight(rules, pol, dice, hp, kinds, rng, trace=None, charms=()):
-    b = Battle(rules, dice, hp, kinds, rng, charms=tuple(charms))
+def play_fight(rules, pol, kit, hp, index, rng, trace=None):
+    fight = rules.fights[index]
+    b = Battle(rules, kit.dice, hp, fight.enemies, rng, charms=tuple(kit.charms),
+               levels=kit.battle_levels(), zone=fight.zone, lives=kit.lives)
+    b.maxhp[HERO] = kit.max_hp()
     b.log = trace
     b.start_round()
     usage = []
-    while True:
+    while b.result is None:
         if trace is not None:
             trace.append(describe(b))
         pol.turn(b)
-        usage.append([(b.tray[s], b.played[s]) for s in range(rules.hand)])
+        usage.append([(b.tray[s], b.played[s], b.hand[s]) for s in range(rules.hand)])
         if b.result is not None:
             break
         b.end_turn()
@@ -74,34 +79,38 @@ def one_run(args):
     prng = random.Random(seed ^ 0x5EED)
     pol = po.POLICIES[pname](rules, prng)
     rng = GameRng(seed)
-    dice = [list(d) for d in rules.start_dice]
-    names = [rules.die_name(d) for d in dice]
+    kit = rewards.Kit(rules)
     hp = rules.hero_hp
-    charms = []
-    out = {"fights": [], "won": False, "picks": [], "use": {}, "names": None}
+    out = {"fights": [], "won": False, "picks": [], "use": {}, "faces": {}}
     trace = [] if trace_on else None
     f = 0
     while f < rules.fight_count:
         fight = rules.fights[f]
         index = f
         if fight.other != NOTHING:
-            index = rewards.pick_door(rules, pol, dice, hp, charms, f, fight.other, prng)
-        kinds = rules.fights[index].enemies
+            index = rewards.pick_door(rules, pol, kit, hp, f, fight.other, prng)
         if trace is not None:
-            trace.append("== fight %d (%s) hp %d bag: %s" % (
-                f + 1, ", ".join(rules.kinds[k].name for k in kinds), hp,
-                " | ".join(rules.face_names(d) for d in dice)))
-        b, usage = play_fight(rules, pol, dice, hp, kinds, rng, trace, charms)
+            trace.append("== fight %d (%s) hp %d kit: %s" % (
+                f + 1, ", ".join(rules.kinds[k].name for k in rules.fights[index].enemies), hp,
+                kit_words(rules, kit)))
+        b, usage = play_fight(rules, pol, kit, hp, index, rng, trace)
         for turn in usage:
-            for d, played in turn:
+            for d, played, row in turn:
                 if d == NOTHING:
                     continue
-                u = out["use"].setdefault(names[d] if d < len(names) else "HAIRBALL", [0, 0])
+                name = kit.names[d] if d < len(kit.names) else "HAIRBALL"
+                u = out["use"].setdefault(name, [0, 0])
                 u[0] += 1
                 u[1] += 1 if played else 0
+                if kit.items is not None:
+                    u = out["faces"].setdefault(rules.faces[row].name, [0, 0])
+                    u[0] += 1
+                    u[1] += 1 if played else 0
+        kit.lives = b.lives
         out["fights"].append({"index": index, "won": b.result == "won", "hp_in": hp,
                               "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost,
-                              "self_hits": b.self_hits, "bag": len(dice)})
+                              "self_hits": b.self_hits, "bag": len(kit.dice),
+                              "healed": b.hero_healed})
         if b.result != "won":
             break
         hp = b.hp[HERO]
@@ -109,48 +118,57 @@ def one_run(args):
         if f >= rules.fight_count:
             out["won"] = True
             break
-        hp, pick = rewards.pick(rules, pol, dice, names, charms, hp, f, prng)
-        out["picks"].append(pick)
-        if fight.nap:
-            hp, nap = rewards.nap(rules, pol, dice, names, charms, hp, f, prng)
-            out["picks"].append(nap)
+        kit, hp, taken = rewards.pick(rules, pol, kit, hp, f, index, prng)
+        out["picks"] += [(f, t) for t in taken]
         if trace is not None:
-            trace.append("   reward: " + pick)
-    out["names"] = names
-    out["bag"] = len(dice)
-    out["charms"] = charms
+            trace.append("   took: " + "; ".join(taken))
+    out["bag"] = len(kit.dice)
+    out["kit"] = kit_words(rules, kit)
     out["trace"] = trace
     return out
 
 
+def kit_words(rules, kit):
+    if kit.items is None:
+        return " | ".join(rules.face_names(d) for d in kit.dice)
+    words = []
+    for s in range(6):
+        lv = kit.level(s)
+        words.append(rules.faces[kit.items[s]].name + ("+" * lv))
+    return ", ".join(words) + ("; charms: " + " ".join(kit.charms) if kit.charms else "")
+
+
+def run_many(which, variant, pname, runs, seed=1, jobs=8, trace=False):
+    args = [(which, variant, pname, seed * 100000 + n, trace) for n in range(runs)]
+    if jobs > 1 and runs > 1:
+        with multiprocessing.Pool(min(jobs, 8)) as pool:
+            return pool.map(one_run, args, chunksize=max(1, runs // 64))
+    return [one_run(x) for x in args]
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--content", default="game", choices=["game", "proposal"])
+    ap.add_argument("--content", default="game", choices=sorted(content.DIRS))
     ap.add_argument("--policy", default="all")
     ap.add_argument("--runs", type=int, default=300)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--jobs", type=int, default=8)
     ap.add_argument("--trace", action="store_true")
     ap.add_argument("--variant", default="", help="see variants.py")
+    ap.add_argument("--picks", action="store_true", help="what won runs took, fight by fight")
     a = ap.parse_args()
     names = list(po.POLICIES) if a.policy == "all" else a.policy.split(",")
     rules = content.load(a.content, a.variant)
-    problems = content.check_engine(rules)
-    for p in problems:
+    for p in content.check_engine(rules):
         print("ENGINE CHANGED: " + p)
     for pname in names:
-        jobs = [(a.content, a.variant, pname, a.seed * 100000 + n, a.trace) for n in range(a.runs)]
         t0 = time.time()
-        if a.jobs > 1 and a.runs > 1:
-            with multiprocessing.Pool(min(a.jobs, 8)) as pool:
-                results = pool.map(one_run, jobs, chunksize=max(1, a.runs // 64))
-        else:
-            results = [one_run(j) for j in jobs]
+        results = run_many(a.content, a.variant, pname, a.runs, a.seed, a.jobs, a.trace)
         dt = time.time() - t0
         if a.trace:
             for r in results:
                 print("\n".join(r["trace"]))
-        report.print_report(rules, pname, results, dt)
+        report.print_report(rules, pname, results, dt, a.picks)
         sys.stdout.flush()
 
 

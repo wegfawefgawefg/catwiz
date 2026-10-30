@@ -1,53 +1,53 @@
 """One battle, step by step, as game/battle/*.tsp and game/content/effects.tsp and
-statuses.tsp play it. Each function says which engine function it copies. The proposal's
-mechanics (marked PROPOSAL) are the sim's own: the game has none of them yet, and
-docs/balance.md lists what the engine would need for each.
+statuses.tsp play it. Each function says which engine function it copies. The proposals'
+mechanics are the sim's own (the game has none of them yet; docs/balance.md lists what the
+engine would need): the enemies' new moves are here, marked PROPOSAL; the bag proposal's new
+spells in bagfx.py; the item-slot model's faces, levels and charms in items.py.
 
 A battle is played by a policy calling play(), reroll() and end_turn(), and
 start_round() after end_turn() when the fight goes on. Actor 0 is the hero, 1-3 the enemies.
 """
 
+import bagfx
+import items
+
 NOTHING = 255
 HERO = 0
 ACTORS = 4
 
-# the game's statuses (content/statuses.tsp, in its order), then the proposal's
+# the game's statuses (content/statuses.tsp, in its order), then the proposals'
 STATUSES = [
     "shield", "poison", "flea_turns", "wet", "hiss", "cheer", "ward", "box", "mana", "plus",
     "double",
-    # PROPOSAL
+    # PROPOSAL, both models
     "spook", "reflect", "mark", "laser", "thorns", "catnip", "fluffs", "hurt", "fresh",
     "strength",
+    # PROPOSAL, the item model (items.py)
+    "kittens", "nipped", "tangle", "brand", "knead_fluff", "knead_wand", "nip", "mult", "keep",
+    "freebook",
 ]
-S = {name: i for i, name in enumerate(STATUSES)}
-SHIELD, POISON, FLEA_TURNS, WET, HISS, CHEER, WARD, BOX, MANA, PLUS, DOUBLE = range(11)
-SPOOK, REFLECT, MARK, LASER, THORNS, CATNIP, FLUFFS, HURT, FRESH, STRENGTH = range(11, 21)
+for _i, _name in enumerate(STATUSES):
+    globals()[_name.upper()] = _i
 NS = len(STATUSES)
-# PROPOSAL: the face types a type upgrade raises: the free faces, by effect
-FAMILIES = {"hit": "wand", "shield": "fluff", "heal": "tuna", "mana": "star", "fleas": "fleas",
-            "plus": "plus"}
-
-
-def family(face):
-    if face.cost:
-        return None
-    return FAMILIES.get(face.effect)
-
-
-GONE = 254  # PROPOSAL: a hairball coughed up, held by nobody, back never
-JUNK_MOST = 2  # PROPOSAL: hairballs in the bag at once, at most, past BAG_MOST
+GONE = 254  # the bag proposal: a hairball die coughed up, back never
 
 
 class Battle:
-    def __init__(self, rules, dice, hero_hp, enemies, rng, exact=False, charms=()):
+    def __init__(self, rules, dice, hero_hp, enemies, rng, exact=False, charms=(),
+                 levels=None, zone="", lives=0):
         """battle.enter_fight: the bag's dice (lists of face rows), the hero's hit points and
         the fight's enemy kinds. exact: draw and roll with every random byte the game takes
-        (4 tumbles a roll), for matching the emulator's own random numbers."""
+        (4 tumbles a roll), for matching the emulator's own random numbers. The proposals:
+        charms (kinds, by name), levels (the item model: face row to level), the zone (day,
+        dusk, night) and lives (nine lives charms left this run)."""
         self.R = rules
         self.rng = rng
         self.exact = exact
-        self.dice = list(dice)  # the fight's own list: hairballs coughed in leave with it
-        self.charms = charms  # the sim's variant with charms (variants.py), else none
+        self.dice = list(dice)  # the fight's own list: hairballs leave with it
+        self.charms = charms
+        self.levels = levels or {}
+        self.zone = zone
+        self.lives = lives
         self.hp = [hero_hp, 0, 0, 0]
         self.maxhp = [rules.hero_hp, 0, 0, 0]
         self.alive = [True, False, False, False]
@@ -55,56 +55,45 @@ class Battle:
         self.move = [0] * ACTORS
         self.made = [0] * ACTORS
         self.st = [[0] * NS for _ in range(ACTORS)]
-        self.maxhp[HERO] += 4 * charms.count("fishbone")
-        self.st[HERO][MANA] = 2 * charms.count("nightlight")
-        self.st[HERO][WARD] = charms.count("bell")
-        # PROPOSAL: type upgrades (rewards.py): +1 to every face of a type, kept all run
-        self.bonus = {fam: charms.count("type:" + fam) for fam in FAMILIES.values()}
+        self.bonus = bagfx.type_bonus(charms)
         for i, k in enumerate(enemies):
             self.set_enemy(i + 1, k)
         n = len(dice)
         self.in_draw = [True] * n  # bag.gather
         self.held = [NOTHING] * n  # PROPOSAL: the enemy holding the die (a squirrel)
-        self.tray = [NOTHING] * rules.hand
-        self.hand = [0] * rules.hand
-        self.played = [True] * rules.hand
+        self.hand_n = rules.hand + charms.count("toe")  # the sixth toe charm rolls 6
+        self.tray = [NOTHING] * self.hand_n
+        self.hand = [0] * self.hand_n
+        self.face_of = [0] * self.hand_n  # which face of its die each slot rolled
+        self.played = [True] * self.hand_n
         self.rerolls = 0
         self.target = 1
         self.turn = 0
         self.last_played = NOTHING
+        self.last_face = NOTHING  # the item model: the last face played and on whom (copycat)
+        self.last_on = 1
+        self.clogged = {}  # the item model: slot to the item a hairball covers
+        self.combo = {}  # the item model: faces of each slot played this turn
+        self.rerolled = False
+        self.old_shield = 0
         self.result = None
         self.log = None  # a list to append lines to, for traces
         self.hero_lost = 0  # hit points the hero lost this fight
+        self.hero_healed = 0  # hit points the hero got back this fight
         self.self_hits = 0  # zoomies outlasting the enemies, hitting the cat (as in the game)
+        self.lost_this_round = 0
+        items.fight_start(self)
 
     def clone(self):
         b = Battle.__new__(Battle)
-        b.R = self.R
-        b.rng = self.rng
-        b.exact = self.exact
-        b.dice = self.dice[:]
-        b.charms = self.charms
-        b.bonus = self.bonus
-        b.hp = self.hp[:]
-        b.maxhp = self.maxhp[:]
-        b.alive = self.alive[:]
-        b.kind = self.kind[:]
-        b.move = self.move[:]
-        b.made = self.made[:]
+        b.__dict__.update(self.__dict__)
+        for name in ("dice", "hp", "maxhp", "alive", "kind", "move", "made", "in_draw", "held",
+                     "tray", "hand", "face_of", "played"):
+            setattr(b, name, getattr(self, name)[:])
         b.st = [s[:] for s in self.st]
-        b.in_draw = self.in_draw[:]
-        b.held = self.held[:]
-        b.tray = self.tray[:]
-        b.hand = self.hand[:]
-        b.played = self.played[:]
-        b.rerolls = self.rerolls
-        b.target = self.target
-        b.turn = self.turn
-        b.last_played = self.last_played
-        b.result = self.result
+        b.clogged = dict(self.clogged)
+        b.combo = dict(self.combo)
         b.log = None
-        b.hero_lost = self.hero_lost
-        b.self_hits = self.self_hits
         return b
 
     def say(self, line):
@@ -149,7 +138,7 @@ class Battle:
         return NOTHING
 
     def deal(self):
-        h = self.R.hand
+        h = self.hand_n
         self.tray = [NOTHING] * h
         for s in range(h):
             d = self.draw_one()
@@ -161,9 +150,10 @@ class Battle:
         byte times 6 over 256); the last tumble is the face."""
         tumbles = 4 if self.exact else 1
         for _ in range(tumbles):
-            for s in range(self.R.hand):
+            for s in range(self.hand_n):
                 if not self.played[s]:
                     f = (self.rng.byte() * 6) >> 8
+                    self.face_of[s] = f
                     self.hand[s] = self.dice[self.tray[s]][f]
 
     # ---- the hero's turn: battle/turn.tsp
@@ -171,13 +161,16 @@ class Battle:
     def start_round(self):
         self.turn += 1
         st = self.st[HERO]
+        self.old_shield = st[SHIELD]  # the fluffy tail charm keeps half (items.round_start)
         st[SHIELD] = 0  # statuses.turn_start
         st[BOX] = 0
         st[THORNS] = 0
-        self.rerolls = self.R.rerolls + self.charms.count("pocket")
-        if "pillow" in self.charms:
-            st[SHIELD] = 2
+        self.rerolls = self.R.rerolls
         self.last_played = NOTHING
+        self.lost_this_round = 0
+        items.round_start(self)
+        if self.result is not None:
+            return
         self.deal()
         self.roll()
         self.fix_target()
@@ -197,10 +190,17 @@ class Battle:
         return self.st[HERO][MANA]
 
     def can_play(self, s):
-        return not self.played[s] and self.R.faces[self.hand[s]].cost <= self.st[HERO][MANA]
+        if self.played[s]:
+            return False
+        face = self.R.faces[self.hand[s]]
+        if face.slot == "junk":
+            return False  # a hairball: only a re-roll coughs it up
+        if face.slot == "book":
+            return True  # the item model: a book with too little mana gives 1 mana
+        return face.cost <= self.st[HERO][MANA]
 
     def playable(self):
-        return [s for s in range(self.R.hand) if self.can_play(s)]
+        return [s for s in range(self.hand_n) if self.can_play(s)]
 
     def any_unplayed(self):
         return not all(self.played)
@@ -228,15 +228,19 @@ class Battle:
         if self.log is not None:
             on = "" if t == HERO or face.aim == "all" else " on " + self.R.kinds[self.kind[t]].name
             self.say("  CATWIZ USES %s%s" % (face.name, on))
-        self.land_face(row, t)
+        if self.R.model == "items":
+            items.land(self, row, t)
+        else:
+            self.land_face(row, t)
         self.after_action()
 
     def reroll(self):
         self.rerolls -= 1
+        items.cough(self)
         self.roll()
         if self.log is not None:
             self.say("  RE-ROLL: " + ", ".join(
-                self.R.faces[self.hand[s]].name for s in range(self.R.hand) if not self.played[s]))
+                self.R.faces[self.hand[s]].name for s in range(self.hand_n) if not self.played[s]))
 
     def after_action(self):
         if not self.alive[HERO]:
@@ -266,7 +270,7 @@ class Battle:
             st[PLUS] = (st[PLUS] << 1) & 0xFF
             self.add(HERO, DOUBLE, 1)
             return
-        n = self.boosted(face.amount + self.bonus.get(family(face), 0))
+        n = self.boosted(face.amount + self.bonus.get(bagfx.family(face), 0))
         st[PLUS] = 0
         st[DOUBLE] = 0
         if face.cost > 0:
@@ -281,10 +285,6 @@ class Battle:
         R = self.R
         if effect == "hit":
             self.strike(by, target, n)
-        elif effect == "hit2":  # PROPOSAL
-            self.strike(by, target, n)
-            if self.alive[target]:
-                self.strike(by, target, n)
         elif effect == "shield":
             self.add(target, SHIELD, n)
         elif effect == "heal":
@@ -315,42 +315,15 @@ class Battle:
             pass
         elif effect in ("fleas", "wet", "hiss", "bath", "spook"):
             self.curse(effect, target, n)
-        # PROPOSAL: the hero's new spells
-        elif effect == "mark":
-            self.add(target, MARK, n)
-        elif effect == "laser":
-            self.st[target][LASER] = 1
-        elif effect == "knock":
-            self.st[target][SHIELD] = 0
-            self.strike(by, target, n)
-        elif effect == "catnip":
-            self.add(HERO, CATNIP, n)
-        elif effect == "thorns":
-            self.add(HERO, SHIELD, n)
-            self.st[HERO][THORNS] = R.fx["TRAP_BACK"]
-        elif effect == "static":
-            n += self.st[HERO][FLUFFS]
-            for i in range(1, ACTORS):
-                if self.alive[i]:
-                    self.strike(by, i, n)
-        elif effect == "ward":
-            self.add(target, WARD, n)
         # PROPOSAL: the enemies' new moves
+        elif effect == "hit2":
+            self.strike(by, target, n)
+            if self.alive[target]:
+                self.strike(by, target, n)
         elif effect == "mend":
             for i in range(1, ACTORS):
                 if i != by and self.alive[i]:
                     self.heal(i, n)
-        elif effect == "junk":
-            # PROPOSAL: hairball dice into the bag's draw pile, for this fight
-            for _ in range(n):
-                if len(self.dice) < self.R.bag_most + JUNK_MOST:
-                    self.dice.append(self.R.junk_die)
-                    self.in_draw.append(True)
-                    self.held.append(NOTHING)
-        elif effect == "cough":
-            # PROPOSAL: the hairball played is coughed up: out of the bag for this fight
-            if self.last_played != NOTHING:
-                self.held[self.last_played] = GONE
         elif effect == "summon":
             self.summon(by, n)
         elif effect == "steal":
@@ -358,12 +331,14 @@ class Battle:
             if d != NOTHING and self.held[d] == NOTHING:
                 self.held[d] = by
                 self.in_draw[d] = False
-                self.say("IT TAKES A DIE")
+                self.say("  IT TAKES A DIE")
         elif effect == "grow":
             self.add(by, STRENGTH, n)
         elif effect == "reflect":
             self.add(by, REFLECT, n)
-        else:
+        elif effect == "junk" and R.model == "items":
+            items.clog(self, n)
+        elif not bagfx.apply(self, effect, by, target, n):
             raise ValueError("effect the sim does not know: " + effect)
 
     def next_standing(self, t):
@@ -374,6 +349,8 @@ class Battle:
             if t == ACTORS:
                 t = 1
             if self.alive[t]:
+                if t == HERO and self.R.proposal:
+                    return NOTHING  # the proposals take the fix: no zoomies at the cat
                 return t
         return NOTHING
 
@@ -382,16 +359,23 @@ class Battle:
         st = self.st[target]
         if st[WARD] > 0:
             st[WARD] -= 1
+            items.ward_blocked(self)
             return
         if effect == "fleas":
             self.add(target, POISON, n)
             st[FLEA_TURNS] = self.R.fx["FLEA_TURNS"]
         elif effect == "wet":
-            st[WET] = 1
+            st[WET] = max(st[WET], n, 1)  # the item model's wet lasts n turns; the game's 1
         elif effect == "hiss":
             st[HISS] = 1
         elif effect == "spook":
             self.add(target, SPOOK, n)
+        elif effect == "brand":
+            self.add(target, BRAND, n)
+        elif effect == "tangled":
+            self.add(target, TANGLE, n)
+        elif effect == "blink":
+            st[LASER] = 1
         else:
             st[SHIELD] = 0
 
@@ -413,22 +397,27 @@ class Battle:
         if use:
             st[CHEER] = 0
         d = (damage + cheer + st[STRENGTH]) & 0xFF  # strength: PROPOSAL
+        if st[TANGLE]:  # PROPOSAL: tangled, till its turn ends
+            d = max(0, d - st[TANGLE])
         if st[WET] > 0:
             d >>= 1
         return d
 
-    def strike(self, by, target, amount):
+    def strike(self, by, target, amount, pierce=False):
         if by == HERO and target == HERO:
             self.self_hits += 1
         damage = self.dealt(by, amount, True)
         st = self.st[target]
-        damage += st[MARK]  # PROPOSAL
+        damage += st[MARK] + st[BRAND]  # PROPOSAL
         if st[REFLECT] and by == HERO:  # PROPOSAL
             back = min(st[REFLECT], damage)
             st[REFLECT] -= back
             damage -= back
             self.strike_plain(HERO, back)
-        self.strike_plain(target, damage)
+        if pierce:
+            self.lose(target, damage)
+        else:
+            self.strike_plain(target, damage)
         if target == HERO and by != HERO and self.st[HERO][THORNS]:  # PROPOSAL
             self.lose(by, self.st[HERO][THORNS])
 
@@ -447,9 +436,15 @@ class Battle:
             return
         hp = self.hp[who]
         n = min(n, hp)
+        if who == HERO and n == hp and n > 0 and self.lives > 0:  # PROPOSAL: nine lives
+            self.lives -= 1
+            n = hp - 1
         self.hp[who] = hp - n
         if who == HERO:
             self.hero_lost += n
+            self.lost_this_round += n
+            if n > 0:
+                items.hero_hurt(self)
         else:
             self.st[who][HURT] += n
         if hp - n == 0:
@@ -458,13 +453,15 @@ class Battle:
     def die(self, who):
         if who != HERO:
             then = self.R.kinds[self.kind[who]].then
+            self.release(who)
             if then != NOTHING:  # PROPOSAL: the possum gets up, the boss's next phase
-                self.release(who)
                 self.set_enemy(who, then)
                 self.st[who][FRESH] = 1  # a round to get up: it skips one move
-                self.say("%s GETS UP" % self.R.kinds[then].name)
+                self.say("  %s GETS UP" % self.R.kinds[then].name)
                 return
-            self.release(who)
+            self.alive[who] = False
+            items.enemy_beaten(self, who)
+            return
         self.alive[who] = False
 
     def release(self, who):
@@ -474,7 +471,10 @@ class Battle:
                 self.in_draw[d] = True
 
     def heal(self, who, n):
-        self.hp[who] = min(self.hp[who] + n, self.maxhp[who])
+        hp = min(self.hp[who] + n, self.maxhp[who])
+        if who == HERO:
+            self.hero_healed += hp - self.hp[who]
+        self.hp[who] = hp
 
     def add(self, who, status, n):
         st = self.st[who]
@@ -486,6 +486,9 @@ class Battle:
         """the hero's statuses tick, every enemy makes its move, theirs tick; the next
         round is start_round's, for the caller (a search may stop here and look)"""
         st = self.st[HERO]
+        items.turn_end(self)
+        if self.result is not None:
+            return
         bite = self.status_end(HERO)
         st[CATNIP] = 0
         st[SPOOK] = 0
@@ -500,6 +503,7 @@ class Battle:
                 self.st[i][SHIELD] = 0
                 self.st[i][BOX] = 0
                 self.st[i][REFLECT] = 0
+        hp_before = self.hp[HERO]
         for i in range(1, ACTORS):
             if not self.alive[i]:
                 continue
@@ -511,7 +515,7 @@ class Battle:
                 continue
             kind = self.R.kinds[self.kind[i]]
             if kind.stall and si[HURT] >= kind.stall:
-                self.say("%s STALLS" % kind.name)
+                self.say("  %s STALLS" % kind.name)
                 continue
             row = self.move[i]
             self.land_move(row, i, self.move_target(i, row))
@@ -530,13 +534,15 @@ class Battle:
                     si[FRESH] = 0
                 else:
                     self.next_move(i)
+        items.enemies_done(self, self.hp[HERO] >= hp_before)
         if not any(self.alive[1:]):
             self.result = "won"
 
     def status_end(self, who):
         """statuses.turn_end: wet dries, fleas bite (the damage given back)"""
         st = self.st[who]
-        st[WET] = 0
+        st[WET] = max(0, st[WET] - 1)  # the game's wet is 1: dried
+        st[TANGLE] = 0
         turns = st[FLEA_TURNS]
         if turns == 0:
             return 0
@@ -547,11 +553,13 @@ class Battle:
         return bite
 
     def move_target(self, by, row):
-        aim = self.R.moves[row].aim
-        if aim == "self":
+        move = self.R.moves[row]
+        if move.aim == "self":
             return by
-        if aim == "friend" or (self.st[by][LASER] and self.R.moves[row].effect == "hit"):
-            self.st[by][LASER] = 0
+        lasered = self.st[by][LASER] and move.effect in ("hit", "hit2")
+        if move.aim == "friend" or lasered:
+            if lasered:
+                self.st[by][LASER] = 0
             for i in range(1, ACTORS):
                 if i != by and self.alive[i]:
                     return i
@@ -560,7 +568,8 @@ class Battle:
 
     def land_move(self, row, by, target):
         move = self.R.moves[row]
-        self.say("  %s: %s" % (self.R.kinds[self.kind[by]].name, move.text.replace("#", str(move.amount))))
+        self.say("  %s: %s" % (self.R.kinds[self.kind[by]].name,
+                               move.text.replace("#", str(move.amount))))
         if move.aim == "all" and target == HERO and self.st[HERO][BOX] > 0:
             return
         self.apply(move.effect, by, target, move.amount)
@@ -572,12 +581,3 @@ class Battle:
             made = 0
         self.made[i] = made
         self.move[i] = kind.first + made
-
-    # ---- for policies
-
-    def incoming(self):
-        """what the enemies' shown moves would take off the hero now (a copy plays it out)"""
-        b = self.clone()
-        hp = b.hp[HERO]
-        b.end_turn()
-        return hp - b.hp[HERO]

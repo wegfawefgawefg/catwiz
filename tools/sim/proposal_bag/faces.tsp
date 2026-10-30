@@ -1,4 +1,4 @@
-; PROPOSAL (tools/sim, docs/balance.md): game/content/faces.tsp for fights 3-10 and the boss.
+; PROPOSAL, bag model (kept to compare; tools/sim, docs/balance.md): game/content/faces.tsp for fights 3-10 and the boss.
 ; The game's faces with the port's names (gem is STAR, bone TUNA, kibble FLUFF; the 4 wand is
 ; MOON WAND, as STAR is mana now), then eight new: seven spells and the bell collar. New tiles
 ; for the spells' book and the collar are art still to draw (they borrow TILE_BOOK and
@@ -324,7 +324,7 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name "KNOCK IT OFF"
-            :text "3 MANA: OFF THE TABLE: NO SHIELD, # DAMAGE"
+            :text "3 MANA: SHIELD GONE, THEN # DAMAGE"
             :caption "3'"
             :effect ac.Effect.knock
             :amount 7

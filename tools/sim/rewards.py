@@ -1,180 +1,159 @@
-"""The reward after a won fight (battle/reward.tsp) and the proposal's nap and elite doors,
-for each policy. The game's offers: one of the fight's two new dice into the bag (not when it
-is full: BAG_MOST), one face of a bag die upgraded (faces upgrade), or a die out of the bag
-(not the last). The proposal adds: a new die into a full bag takes the place of one you pick.
-The dogwitch variant (variants.py) has its own offers: a slot upgraded on every die, the spell
-or curse slot swapped, or a charm.
+"""What a run carries between fights (Kit) and the choices between fights: the reward after a
+won fight, the charm after the elites and the day's end, the nap, the elite doors.
 
-random picks any offer; greedy the one that most raises the bag's worth by a fixed table
-of what each face is worth (face_worth); strong tries the best few of those in rollouts of
-the next fight (the greedy player, the same dice for every option) and takes the best.
+The item model (the proposal): after a fight, pick one of its three cards. An item card for
+a slot puts that item in (the old one goes), or, when you hold it, is a level on its slot; an
+upgrade card (UP_WAND...) is a level on that slot. Levels belong to the slot (the item there
+gets its step more a level, whichever item it is), ITEM_MOST at most; the "itembound" variant
+keeps them with the item instead, and "twodoor" offers new item (one of the item cards) or a
+level on any slot. A fight with charms then offers one of three. The nap: heal or a level.
+The bag model's rewards are bagpick.py's.
 
-A run's kit is its bag (dice, names: lists changed in place) and its charms (a list).
+random picks any offer; greedy the one that most raises the kit's worth by a fixed table
+(item_worth, bagpick.face_worth); strong tries each offer (the bag model: the best few) in
+rollouts of the next fight (the greedy player, the same dice for every option).
 """
 
 import random
 
+import bagpick
+import content
 import policy as po
-import variants
-from rules import NOTHING, HERO, FAMILIES, family
-
-TYPE_MOST = 3  # PROPOSAL: a face type takes +3 at most
+from rules import HERO
 
 ROLLOUTS = 6
 SHORTLIST = 5
 
-CHARM_WORTH = {"pocket": 3.0, "nightlight": 2.5, "fishbone": 3.0, "bell": 1.5, "pillow": 3.5}
+CHARM_WORTH = {"pocket": 3.0, "nightlight": 2.5, "fishbone": 3.0, "bell": 1.5, "pillow": 3.5,
+               "toe": 3.0, "still": 2.0, "trio": 2.5, "mittens": 2.0, "mother": 2.5,
+               "tail": 2.5, "grumpy": 2.0, "duck": 1.5, "badmilk": 2.5}
 
 
-def bonus_of(charms):
-    return {fam: charms.count("type:" + fam) for fam in FAMILIES.values()}
+class Kit:
+    """the run's dice (the bag model) or items (the item model: a row a slot), the slots' or
+    items' levels, charms (kinds by name; the bag proposal's type upgrades as "type:..."),
+    the names of the bag's dice, and nine lives left"""
+
+    def __init__(self, rules):
+        self.rules = rules
+        self.items = list(rules.start_items) if rules.model == "items" else None
+        self.bag = [list(d) for d in rules.start_dice] if self.items is None else None
+        self.names = [rules.die_name(d) for d in rules.start_dice]
+        self.levels = {}
+        self.charms = []
+        self.lives = 0
+
+    @property
+    def dice(self):
+        if self.items is not None:
+            return [self.items] * self.rules.hand
+        return self.bag
+
+    @dice.setter
+    def dice(self, value):
+        self.bag = value
+
+    def copy(self):
+        k = Kit.__new__(Kit)
+        k.rules = self.rules
+        k.items = list(self.items) if self.items is not None else None
+        k.bag = [list(d) for d in self.bag] if self.bag is not None else None
+        k.names = list(self.names)
+        k.levels = dict(self.levels)
+        k.charms = list(self.charms)
+        k.lives = self.lives
+        return k
+
+    def level(self, slot):
+        if self.rules.levels == "item":
+            return self.levels.get(self.items[slot], 0)
+        return self.levels.get(slot, 0)
+
+    def battle_levels(self):
+        """face row to level, for the battle"""
+        if self.items is None:
+            return {}
+        return {self.items[s]: self.level(s) for s in range(6)}
+
+    def max_hp(self):
+        return self.rules.hero_hp + 5 * self.charms.count("fishbone")
 
 
-def face_worth(rules, row, bonus=None):
-    """a rough worth of a face, in damage-equivalents, for picking rewards"""
+def item_worth(rules, row, level):
+    """a rough worth of an item on its face, in damage-equivalents a roll"""
     f = rules.faces[row]
+    n = f.amount + level * f.step
     e = f.effect
-    a = f.amount + (bonus.get(family(f), 0) if bonus else 0)
     table = {
-        "hit": a, "shield": 0.6 * a, "heal": 0.7 * a, "mana": 1.1 * a, "plus": 1.0 * a,
-        "double": 2.5, "nothing": 0.0, "fleas": 2.5 * a / 2, "wet": 1.5, "hiss": 2.0,
-        "bath": 1.0, "hairball": 6.0, "zoomies": 5.5, "box": 4.0, "scream": 6.0,
-        "mark": 3.0, "laser": 3.0, "knock": 5.5, "catnip": 4.0, "thorns": 4.0,
-        "static": 5.0, "ward": 1.5, "cough": 0.0,
+        "hit": n, "yarn": 1.3 * n + 0.3, "feather": 1.7 * n, "spray": 1.4 * n,
+        "pierce": 1.2 * n, "hit_all": 2.0 * n, "shield": 0.7 * n, "spiky": 0.8 * n + 0.6,
+        "fort": 0.7 * n + 2.5, "blanket": 0.7 * n + 0.8, "mana": 1.1 * n,
+        "shootstar": 1.1 * n + 1.0, "sundrop": 1.1 * n + 0.4, "moonbowl": 1.5 * n,
+        "luckystar": 1.1 + n, "zoomies": 5.0 * n, "kittens": 3.0 * n, "laserall": 2.0 * n + 2,
+        "knock": n + 2, "scream": 2.5 * n, "sits": 3.0 * n, "purr": 2.0 * n, "heal": 0.7 * n,
+        "goldfish": 2.0 * n, "fleas": 2.0 * n, "wet": 1.5 + n, "hiss": 2.0 + n, "bath": 1.0 + n,
+        "brand": 2.5 * n, "blink": 2.0, "plus": 1.2 * n, "double": 1.2 * n, "catnip2": n,
+        "copy": 2.0 + n, "knead": 1.5 + n, "reroll": 1.2 * n, "sardine": 1.0 + n,
+        "string": 1.8 * n, "shoot": 1.1 + n, "moon": 1.1 + 0.7 * n, "wish": 1.1 * n + 1.5,
+        "litter": 1.1 * n + 1.0, "tangled": 1.5 * n, "pile": 0.7 * n + 1.0, "kittens": 3.0 * n,
     }
-    w = table.get(e, 1.0)
+    w = table.get(e, 0.0)
+    if f.combo and f.combo != "none":
+        w += 0.8
     if f.cost:
-        w -= 0.9 * f.cost  # its mana came from star faces that did nothing else
-        w = max(w, 0.5)
+        w = max(0.5, w - 1.0 * f.cost)
     return w
 
 
-def die_worth(rules, faces, bonus=None):
-    return sum(face_worth(rules, r, bonus) for r in faces) / len(faces)
+def worth(rules, kit):
+    if kit.items is None:
+        return bagpick.worth(rules, kit) + sum(CHARM_WORTH.get(c, 0) for c in kit.charms)
+    w = sum(item_worth(rules, kit.items[s], kit.level(s)) for s in range(6))
+    return w + sum(CHARM_WORTH.get(c, 0) for c in kit.charms)
 
 
-def kit_worth(rules, dice, charms):
-    n = len(dice)
-    bonus = bonus_of(charms)
-    total = sum(die_worth(rules, d, bonus) for d in dice)
-    return total * min(n, rules.hand) / n + sum(CHARM_WORTH.get(c, 0) for c in charms)
+# ---- the item model's offers
 
-
-def upgrade_options(rules, dice, charms):
-    """the upgrades on offer, by the run's rule (rules.upgrade): one face of one die
-    (single, the game today), +1 to every face of a type, current and future dice (type, the
-    proposal), or every face of a type in the bag one step up its upgrade row (typebag)"""
+def item_options(rules, kit, cards):
     out = []
-    if rules.upgrade == "single":
-        seen = set()
-        for d in range(len(dice)):
-            for face in range(len(dice[d])):
-                row = dice[d][face]
-                key = (tuple(dice[d]), row)
-                if rules.faces[row].upgrade != NOTHING and key not in seen:
-                    seen.add(key)
-                    out.append(("up", d, face))
-        return out
-    present = set()
-    for d in dice:
-        for r in d:
-            if rules.upgrade == "typebag" and rules.faces[r].upgrade == NOTHING:
+    if "twodoor" in rules.variant:
+        out = [("item", c) for c in cards if c < 128 and c not in kit.items]
+        return out + [("level", s) for s in range(6) if kit.level(s) < rules.item_most]
+    for c in cards:
+        if c >= 128:
+            slot = c - 128
+        else:
+            slot = content.slot_index(rules.faces[c].slot)
+            if kit.items[slot] != c:
+                out.append(("item", c))
                 continue
-            fam = family(rules.faces[r])
-            if fam and charms.count("type:" + fam) < TYPE_MOST:
-                present.add(fam)
-    what = "type" if rules.upgrade == "type" else "typebag"
-    return [(what, fam, None) for fam in sorted(present)]
-
-
-def options(rules, dice, charms, offers, f):
-    if "dogwitch" in rules.variant:
-        return dogwitch_options(rules, dice, offers, f)
-    out = []
-    for k, die in enumerate(offers):
-        if len(dice) < rules.bag_most:
-            out.append(("add", k, None))
-        elif rules.swap:
-            seen = set()
-            for d in range(len(dice)):
-                if tuple(dice[d]) not in seen:
-                    seen.add(tuple(dice[d]))
-                    out.append(("swap", k, d))
-    out += upgrade_options(rules, dice, charms)
-    if len(dice) > 1:
-        seen = set()
-        for d in range(len(dice)):
-            if tuple(dice[d]) not in seen:
-                seen.add(tuple(dice[d]))
-                out.append(("remove", d, None))
+        if kit.level(slot) < rules.item_most:
+            out.append(("level", slot))
     return out
 
 
-def dogwitch_options(rules, dice, offers, f):
-    """every slot that upgrades; the offered dice's spells and curses for those slots; two
-    charms, by the fight's number"""
-    out = [("slot", s, None) for s in range(6) if rules.faces[dice[0][s]].upgrade != NOTHING]
-    for die in offers:
-        for r in die:
-            face = rules.faces[r]
-            if face.cost > 0 and r != dice[0][4]:
-                out.append(("set", 4, r))
-            elif face.effect in ("fleas", "wet", "hiss", "bath") and r != dice[0][5]:
-                out.append(("set", 5, r))
-    for k in (f, f + 2):
-        out.append(("charm", variants.CHARMS[k % len(variants.CHARMS)][0], None))
-    return list(dict.fromkeys(out))
+def item_apply(rules, kit, opt):
+    kit = kit.copy()
+    what, a = opt[0], opt[1]
+    if what == "item":
+        slot = content.slot_index(rules.faces[a].slot)
+        old = rules.faces[kit.items[slot]].name
+        kit.items[slot] = a
+        return kit, "%s (for %s)" % (rules.faces[a].name, old)
+    if what == "charm":
+        kind = rules.charm_table[a]["kind"]
+        kit.charms.append(kind)
+        if kind == "lives":
+            kit.lives += 1
+        return kit, "charm " + rules.charm_table[a]["name"]
+    key = kit.items[a] if rules.levels == "item" else a
+    kit.levels[key] = kit.levels.get(key, 0) + 1
+    return kit, "+1 %s (%s)" % (content.SLOTS[a].upper(), rules.faces[kit.items[a]].name)
 
 
-def apply(rules, dice, names, charms, offers, opt):
-    """a copy of the kit with option opt taken, and what it was in words"""
-    what, a, b = opt
-    charms = list(charms)
-    if what == "type":
-        charms.append("type:" + a)
-        return [list(d) for d in dice], list(names), charms, "type %s +1" % a.upper()
-    if what == "typebag":
-        dice = [[rules.faces[r].upgrade if family(rules.faces[r]) == a and
-                 rules.faces[r].upgrade != NOTHING else r for r in d] for d in dice]
-        return dice, list(names), charms, "every %s face one step up" % a.upper()
-    if what in ("slot", "set", "charm"):
-        slots = list(dice[0])
-        if what == "slot":
-            text = "upgrade %s" % rules.faces[slots[a]].name
-            slots[a] = rules.faces[slots[a]].upgrade
-        elif what == "set":
-            text = "slot: " + rules.faces[b].name
-            slots[a] = b
-        else:
-            text = "charm " + a
-            charms.append(a)
-        return [slots] * len(dice), list(names), charms, text
-    dice = [list(d) for d in dice]
-    names = list(names)
-    if what == "add":
-        dice.append(list(offers[a]))
-        names.append(rules.die_name(offers[a]))
-        text = "new " + names[-1]
-    elif what == "swap":
-        text = "new %s for %s" % (rules.die_name(offers[a]), names[b])
-        dice[b] = list(offers[a])
-        names[b] = rules.die_name(offers[a])
-    elif what == "up":
-        old = rules.faces[dice[a][b]]
-        dice[a][b] = old.upgrade
-        text = "upgrade %s: %s to %s" % (names[a], old.name, rules.faces[old.upgrade].name)
-    else:
-        text = "remove " + names[a]
-        del dice[a]
-        del names[a]
-    return dice, names, charms, text
+# ---- choosing
 
-
-def max_hp(rules, charms):
-    return rules.hero_hp + 4 * charms.count("fishbone")
-
-
-def rollout(rules, dice, hp, charms, fight, seeds):
+def rollout(rules, kit, hp, fight, seeds):
     """the greedy player's mean result in fight index fight with this kit: hit points left,
     or a big loss"""
     import run  # here, not at the top: run imports this module
@@ -182,89 +161,98 @@ def rollout(rules, dice, hp, charms, fight, seeds):
     total = 0.0
     for s in seeds:
         pol = po.Greedy(rules, random.Random(s))
-        b, _ = run.play_fight(rules, pol, dice, hp, rules.fights[fight].enemies, run.GameRng(s),
-                              charms=charms)
+        b, _ = run.play_fight(rules, pol, kit, hp, fight, run.GameRng(s))
         total += b.hp[HERO] if b.result == "won" else -40.0 + 0.5 * (b.hp[HERO] - sum(b.hp[1:]))
     return total / len(seeds)
 
 
-def take(dice, names, charms, kit):
-    dice[:] = kit[0]
-    names[:] = kit[1]
-    charms[:] = kit[2]
-    return kit[3]
-
-
-def pick(rules, pol, dice, names, charms, hp, f, prng):
-    """the reward after fight f - 1, before fight f; changes the kit in place; gives the hit
-    points (a fishbone charm heals) and what was taken"""
-    offers = rules.fights[f - 1].offers
-    opts = options(rules, dice, charms, offers, f)
+def choose(rules, pol, kit, hp, f, opts, applied, prng):
+    """the option a policy takes; applied(o) gives (kit, words)"""
+    if len(opts) == 1:
+        return opts[0]
     if pol.name == "random":
-        # the four offers first, as the screen has them, then what that offer asks
         kinds = sorted(set(o[0] for o in opts))
         k = kinds[prng.randrange(len(kinds))]
         sub = [o for o in opts if o[0] == k]
-        opt = sub[prng.randrange(len(sub))]
+        return sub[prng.randrange(len(sub))]
+    scored = sorted(opts, key=lambda o: -worth(rules, applied(o)[0]))
+    if pol.name != "strong" or f >= rules.fight_count:
+        return scored[0]
+    short = scored if kit.items is not None else scored[:SHORTLIST]
+    if kit.items is None:
+        short += [o for o in opts if o[0] in ("add", "swap", "type") and o not in short]
+    seeds = [prng.getrandbits(30) for _ in range(ROLLOUTS)]
+    best, pick = None, scored[0]
+    for o in short:
+        k = applied(o)[0]
+        gain = 5 if o[0] == "charm" and rules.charm_table[o[1]]["kind"] == "fishbone" else 0
+        v = rollout(rules, k, hp + gain, f, seeds)
+        if best is None or v > best:
+            best, pick = v, o
+    return pick
+
+
+def pick(rules, pol, kit, hp, f, fought, prng):
+    """the reward after fight index fought (its door), before fight index f. Gives the new kit,
+    the hit points and what was taken (a list of words)"""
+    taken = []
+    fight = rules.fights[fought]
+    if kit.items is None:
+        opts = bagpick.options(rules, kit, fight.offers, f)
+        def applied(o):
+            return bagpick.apply(rules, kit, fight.offers, o)
     else:
-        def worth(o):
-            kit = apply(rules, dice, names, charms, offers, o)
-            return -kit_worth(rules, kit[0], kit[2])
-
-        scored = sorted(opts, key=worth)
-        opt = scored[0]
-        if pol.name == "strong":
-            short = scored[:SHORTLIST]
-            for o in opts:
-                if o[0] in ("add", "swap", "set", "charm", "type") and o not in short:
-                    short.append(o)
-            seeds = [prng.getrandbits(30) for _ in range(ROLLOUTS)]
-            best = None
-            for o in short:
-                kit = apply(rules, dice, names, charms, offers, o)
-                gain = 4 if o[0] == "charm" and o[1] == "fishbone" else 0
-                v = rollout(rules, kit[0], hp + gain, kit[2], f, seeds)
-                if best is None or v > best:
-                    best = v
-                    opt = o
-    text = take(dice, names, charms, apply(rules, dice, names, charms, offers, opt))
-    if opt[0] == "charm" and opt[1] == "fishbone":
-        hp += 4
-    return hp, text
+        opts = item_options(rules, kit, fight.cards)
+        def applied(o):
+            return item_apply(rules, kit, o)
+    if opts:
+        o = choose(rules, pol, kit, hp, f, opts, applied, prng)
+        kit, words = applied(o)
+        taken.append(words)
+    if fight.charms:
+        opts = [("charm", c) for c in fight.charms]
+        k0 = kit
+        o = choose(rules, pol, kit, hp, f, opts, lambda o: item_apply(rules, k0, o), prng)
+        kit, words = item_apply(rules, kit, o)
+        if rules.charm_table[o[1]]["kind"] == "fishbone":
+            hp += 5
+        taken.append(words)
+    if fight.nap:
+        hp, kit, words = nap(rules, pol, kit, hp, f, prng)
+        taken.append(words)
+    return kit, hp, taken
 
 
-def nap(rules, pol, dice, names, charms, hp, f, prng):
-    """PROPOSAL: after an elite, a nap: NAP_HEAL hit points back, or a face upgraded"""
-    if "dogwitch" in rules.variant:
-        ups = [o for o in dogwitch_options(rules, dice, [], f) if o[0] == "slot"]
+def nap(rules, pol, kit, hp, f, prng):
+    """after an elite, a nap: NAP_HEAL hit points back, or a level (the item model: a slot;
+    the bag model: the upgrade the reward would give)"""
+    heal = min(kit.max_hp(), hp + rules.nap_heal)
+    if kit.items is not None:
+        ups = [("level", s) for s in range(6) if kit.level(s) < rules.item_most]
+        def applied(o):
+            return item_apply(rules, kit, o)
     else:
-        ups = upgrade_options(rules, dice, charms)
-    heal = min(max_hp(rules, charms), hp + rules.nap_heal)
+        ups = bagpick.upgrade_options(rules, kit, f)
+        def applied(o):
+            return bagpick.apply(rules, kit, [], o)
     if not ups:
-        return heal, "nap: heal"
-
-    def worth(o):
-        kit = apply(rules, dice, names, charms, [], o)
-        return kit_worth(rules, kit[0], kit[2])
-
-    best_up = max(ups, key=worth)
+        return heal, kit, "nap: heal"
+    best_up = max(ups, key=lambda o: worth(rules, applied(o)[0]))
     if pol.name == "random":
         take_heal = prng.random() < 0.5
     elif pol.name == "greedy":
         take_heal = heal - hp >= rules.nap_heal * 0.7
     else:
         seeds = [prng.getrandbits(30) for _ in range(ROLLOUTS)]
-        v_heal = rollout(rules, dice, heal, charms, f, seeds)
-        kit = apply(rules, dice, names, charms, [], best_up)
-        v_up = rollout(rules, kit[0], hp, kit[2], f, seeds)
-        take_heal = v_heal >= v_up
+        take_heal = rollout(rules, kit, heal, f, seeds) >= rollout(rules, applied(best_up)[0], hp, f, seeds)
     if take_heal:
-        return heal, "nap: heal to %d" % heal
-    return hp, "nap: " + take(dice, names, charms, apply(rules, dice, names, charms, [], best_up))
+        return heal, kit, "nap: heal"
+    k, words = applied(best_up)
+    return hp, k, "nap: " + words
 
 
-def pick_door(rules, pol, dice, hp, charms, f, other, prng):
-    """PROPOSAL: fight f or its other door; the player sees both before choosing"""
+def pick_door(rules, pol, kit, hp, f, other, prng):
+    """fight f or its other door; the player sees both before choosing"""
     if pol.name == "random":
         return f if prng.random() < 0.5 else other
     if pol.name == "greedy":
@@ -272,6 +260,6 @@ def pick_door(rules, pol, dice, hp, charms, f, other, prng):
             return sum(rules.kinds[k].hp for k in rules.fights[i].enemies)
         return f if total(f) <= total(other) else other
     seeds = [prng.getrandbits(30) for _ in range(ROLLOUTS)]
-    a = rollout(rules, dice, hp, charms, f, seeds)
-    b = rollout(rules, dice, hp, charms, other, seeds)
+    a = rollout(rules, kit, hp, f, seeds)
+    b = rollout(rules, kit, hp, other, seeds)
     return f if a >= b else other

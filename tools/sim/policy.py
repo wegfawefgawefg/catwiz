@@ -73,8 +73,11 @@ class Judge:
                 continue
             if b.held[d] != NOTHING:
                 v -= 3.0  # a die a squirrel holds
-            elif b.dice[d] is b.R.junk_die:
-                v -= 1.5  # a hairball still in the bag
+            elif b.R.junk_die is not None and b.dice[d] is b.R.junk_die:
+                v -= 1.5  # a hairball die still in the bag
+        v -= 2.0 * len(b.clogged)  # a slot under a hairball
+        v += 2.5 * st0[ru.KITTENS] + 2.0 * st0[ru.KEEP] * min(st0[ru.SHIELD], 6) / 3
+        v += 1.5 * st0[ru.MULT]
         for i in range(1, ACTORS):
             if not b.alive[i]:
                 continue
@@ -82,6 +85,7 @@ class Judge:
             k = b.kind[i]
             hp = b.hp[i] + self.chain[k]
             v -= hp + 0.8 * s[ru.SHIELD] + 0.5 * s[ru.WARD]
+            v += 1.5 * s[ru.BRAND] + 0.5 * s[ru.WET]
             v -= (self.threat[k] + s[ru.STRENGTH]) * THREAT_TURNS
             if s[ru.FLEA_TURNS]:
                 v += 0.9 * min(s[ru.POISON] * s[ru.FLEA_TURNS], b.hp[i])
@@ -101,7 +105,7 @@ def options(b):
     out = []
     seen = set()
     R = b.R
-    for s in range(R.hand):
+    for s in range(b.hand_n):
         if not b.can_play(s):
             continue
         row = b.hand[s]
