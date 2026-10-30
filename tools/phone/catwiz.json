@@ -1,5 +1,6 @@
 {
  "title": "Catwiz",
+ "about": "A cat wizard's dice battles in the forest: tap a die, then an enemy.",
  "mockingboard": 4,
  "pad": [
   {
@@ -37,17 +38,17 @@
    "size": "big",
    "keys": [
     {
-     "label": "ENEMY 1",
+     "label": "ENEMY\n1",
      "key": "Z",
      "look": "violet"
     },
     {
-     "label": "ENEMY 2",
+     "label": "ENEMY\n2",
      "key": "X",
      "look": "violet"
     },
     {
-     "label": "ENEMY 3",
+     "label": "ENEMY\n3",
      "key": "C",
      "look": "violet"
     }
@@ -57,27 +58,27 @@
    "size": "big",
    "keys": [
     {
-     "label": "DIE 1",
+     "label": "DIE\n1",
      "key": "1",
      "look": "card"
     },
     {
-     "label": "DIE 2",
+     "label": "DIE\n2",
      "key": "2",
      "look": "card"
     },
     {
-     "label": "DIE 3",
+     "label": "DIE\n3",
      "key": "3",
      "look": "card"
     },
     {
-     "label": "DIE 4",
+     "label": "DIE\n4",
      "key": "4",
      "look": "card"
     },
     {
-     "label": "DIE 5",
+     "label": "DIE\n5",
      "key": "5",
      "look": "card"
     }

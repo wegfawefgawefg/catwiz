@@ -23,12 +23,16 @@ the bag runs out, the discard is shuffled back in. After a won fight you pick a 
 die for the bag, one face of a die upgraded, or a die taken out. Hit points and the bag carry
 over; losing ends the run.
 
-- 1-5: pick a die. Its name and what it does show at the bottom; arrows show who it goes to.
-- Z, X, C: play the picked die on the enemies, left to right. LEFT/RIGHT and RETURN do the same.
-- The same number again, or RETURN: play a die that goes to you or to every enemy.
-- ESC lets go of the die, R re-rolls the dice not played yet (twice a turn), E ends the turn,
-  M meows.
-- The reward works the same way with 1-4 (then 1-6).
+Everything is a tap or a click on the screen, or a key:
+
+- A die (1-5): pick it. Its name and what it does show at the bottom; arrows show who it goes to.
+- An enemy (Z, X, C, left to right; LEFT/RIGHT and RETURN too): play the picked die on it.
+- The same die again, or the cat (M): play a die that goes to you; the same die again plays one
+  for every enemy, and lets go of one for a single enemy. Tapping anything else, or ESC, lets go.
+- R2 (R) re-rolls the dice not played yet, twice a turn; END (E) ends the turn. The turn ends by
+  itself when every die is played, or when none can be and there is no re-roll left.
+- The cat (M) with no die for you picked meows.
+- The reward works the same way with 1-4 (then 1-6); tapping elsewhere goes back to the offers.
 
 ## Building
 
@@ -64,7 +68,8 @@ tisple machine --disk build/catwiz.dsk --mockingboard 4 --window      # with mus
 tisple machine --disk build/catwiz.dsk --window --taps tools/phone/catwiz.json   # mouse taps
 ```
 
-With `--taps`, clicking a die, an enemy, the re-roll die or the cat presses its key.
+With `--taps`, a click anywhere on the screen presses what a tap there would (the dice, the
+enemies, the re-roll and END buttons, the cat, the reward's slots; elsewhere ESC).
 
 On a real enhanced IIe with 128 KB, write `build/catwiz.dsk` to a floppy (ADTPro) or put it on
 a FloppyEmu, and boot it. A Mockingboard in any slot plays the music; without one the speaker
@@ -77,7 +82,8 @@ plays the effects.
   the generated pictures.
 - `tools/art/`: the art, drawn at 280 x 192 in the hi-res colours. `tools/hgr.py` is the canvas
   and the HGR converter; `tools/measure.py` measures frame costs.
-- `tools/phone/catwiz.json`: buttons and tap boxes for Tisple's phone player and `--taps`.
+- `tools/phone/catwiz.json`: the phone player's buttons (its portrait pad) and the screen's tap
+  boxes, for Tisple's web player and `--taps`.
 - `tools/reference/`: scripts from the prototype; see its README.
 - `mockup/`: the hi-res mockups of the battle screen the look came from.
 - `shots/`: screenshots; `shots/art/` the export's previews; `shots/history/` the prototype.

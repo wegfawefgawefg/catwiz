@@ -31,15 +31,24 @@ text or data from any other game; the content can be replaced by much stranger s
    - M meows: a sound, a hop and the happy face; no effect on the fight.
 4. Controls: 1-5 pick a die (its text shows at the bottom, arrows show who it goes to); Z X C
    (or the arrows and RETURN) play it on an enemy; the same number again plays a die for the
-   hero or for every enemy. ESC lets go, R re-rolls, E ends the turn. The phone player and
-   `tisple machine --taps` use `tools/phone/catwiz.json` (buttons, and tap boxes on the dice,
-   the enemies, the re-roll die and the cat).
+   hero or for every enemy, and lets go of one for a single enemy; M (the cat) plays a die for
+   the hero, else meows. ESC lets go, R re-rolls, E ends the turn; the turn ends by itself a
+   beat after the last die is played, or when none can be played and no re-roll is left (NO
+   PLAYABLE DICE; with re-rolls left the log says R RE-ROLL OR E END TURN). Any key starts the
+   title and leaves the run's end. Everything is also a tap or a click on the screen:
+   `tools/phone/catwiz.json` has the tap boxes (dice, R2 and END buttons, enemies, the cat, the
+   reward's six slots, then the whole screen as ESC) for Tisple's web player and `tisple
+   machine --taps`, and the web player's portrait pad. The reward's sixth slot sits under the
+   re-roll button, and the reward takes R as that slot (the box there sends R). One-time hints
+   in the log (once a boot): the first turn, the first mana, the first reshuffle.
 5. Screen: mixed mode, the stage and the tray over four text rows: the pick or the target (name,
-   hit points, statuses, next move, BAG n DRAW n), then a log of what happened. The mana is five
-   stars by the tray.
+   hit points, statuses, next move, BAG n DRAW n), then a log of what happened. The tray: a
+   tilted white-rimmed card for each die (in the backdrop art), its number in a pill over the
+   card's foot (white when picked), the slanted R2 and END buttons, and the mana as five stars
+   under them.
 6. Sound: Mockingboard music and effects in any slot; speaker effects and the title jingle
    without one.
-7. Memory: main memory full of code, the language card 839 bytes left, aux about 5.2 KB, zero
+7. Memory: main memory full of code, the language card 203 bytes left, aux about 5.2 KB, zero
    page 179 of 256 (AGENTS.md, Memory).
 
 ## Open
@@ -54,7 +63,7 @@ text or data from any other game; the content can be replaced by much stranger s
 4. A bigger reward picker: the bag stops at six dice because the reward shows the whole bag in
    the tray's six slots; a picker that pages would lift that.
 5. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
-   and enemies; today clicks only work through the phone player and `--taps`.
+   and enemies on a real IIe; today clicks work through the web player and `--taps`.
 6. A balance sim: a greedy simulated player for the run, kept in the repo, to tune by. A one-off
    one (2026-10-30) lost about 2.3 HP in fight 1 and 4.2 in fight 2.
 

@@ -137,3 +137,5 @@ lib/auxmem, as are the songs.
   were left out of the build (`LEFT_OUT` in `tools/art/export.py`: put them back with the final
   fight); aux 41,907 bytes from `$0800` (about 5.2 KB left); zero page 179 of 256. A pass of
   the battle's main loop flat out: 13,304 cycles (0.78 frames).
+- 2026-10-30, after the controls round (auto end turn, the END button, tilted dice cards,
+  hints): the language card 12,085 of 12,288 (203 left); a pass 13,270 cycles.
