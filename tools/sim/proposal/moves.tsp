@@ -72,7 +72,7 @@
         (make ac.Move
             :text "ROD POKE FOR #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -132,7 +132,7 @@
         (make ac.Move
             :text "FULL SPEED BUMP #"
             :effect ac.Effect.hit
-            :amount 7
+            :amount 8
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -140,7 +140,7 @@
         (make ac.Move
             :text "SNEEZE FOR #"
             :effect ac.Effect.hit
-            :amount 1
+            :amount 2
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -170,7 +170,7 @@
         (make ac.Move
             :text "SPRAYS ALL FOR #"
             :effect ac.Effect.hit
-            :amount 1
+            :amount 2
             :aim state.Aim.all
             :motion state.Motion.throw
             :icon '%')
@@ -192,14 +192,14 @@
         (make ac.Move
             :text "SUCKS FOR #"
             :effect ac.Effect.hit
-            :amount 3
+            :amount 6
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
             :text "SUCKS FOR #"
             :effect ac.Effect.hit
-            :amount 3
+            :amount 6
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -207,14 +207,14 @@
         (make ac.Move
             :text "REVS UP: +# FOR GOOD"
             :effect ac.Effect.grow
-            :amount 1
+            :amount 2
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
         (make ac.Move
             :text "MOWS FOR #"
             :effect ac.Effect.hit
-            :amount 4
+            :amount 7
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -222,21 +222,21 @@
         (make ac.Move
             :text "PARCEL FOR #"
             :effect ac.Effect.hit
-            :amount 3
+            :amount 6
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
         (make ac.Move
             :text "RETURN TO SENDER #"
             :effect ac.Effect.reflect
-            :amount 4
+            :amount 6
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '@')
         (make ac.Move
             :text "HEAVY PARCEL FOR #"
             :effect ac.Effect.hit
-            :amount 5
+            :amount 8
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -251,7 +251,7 @@
         (make ac.Move
             :text "NEEDLE: FLEAS #"
             :effect ac.Effect.fleas
-            :amount 2
+            :amount 4
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon ',')
@@ -265,7 +265,7 @@
         (make ac.Move
             :text "CHECKUP FOR #"
             :effect ac.Effect.hit
-            :amount 4
+            :amount 9
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -279,7 +279,7 @@
         (make ac.Move
             :text "TREATS ITSELF +#"
             :effect ac.Effect.heal
-            :amount 5
+            :amount 6
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '+')
@@ -294,7 +294,7 @@
         (make ac.Move
             :text "SPLASH FOR #"
             :effect ac.Effect.hit
-            :amount 3
+            :amount 8
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -309,7 +309,7 @@
         (make ac.Move
             :text "GLUG GLUG # TWICE"
             :effect ac.Effect.hit2
-            :amount 2
+            :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -331,14 +331,14 @@
         (make ac.Move
             :text "CHOMP FOR #"
             :effect ac.Effect.hit
-            :amount 4
+            :amount 9
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
             :text "THRONE NAP: SHIELD #"
             :effect ac.Effect.shield
-            :amount 4
+            :amount 8
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '#')
@@ -353,14 +353,14 @@
         (make ac.Move
             :text "SLOBBER ALL FOR #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 4
             :aim state.Aim.all
             :motion state.Motion.throw
             :icon '%')
         (make ac.Move
             :text "CHOMP FOR #"
             :effect ac.Effect.hit
-            :amount 5
+            :amount 10
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -389,7 +389,7 @@
         (make ac.Move
             :text "BELLY FLOP ALL #"
             :effect ac.Effect.hit
-            :amount 10
+            :amount 18
             :aim state.Aim.all
             :motion state.Motion.lunge
             :icon '!')
@@ -404,7 +404,7 @@
         (make ac.Move
             :text "YAP FOR #"
             :effect ac.Effect.hit
-            :amount 1
+            :amount 2
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')

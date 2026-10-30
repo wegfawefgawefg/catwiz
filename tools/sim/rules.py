@@ -24,7 +24,7 @@ STATUSES = [
     "strength",
     # PROPOSAL, the item model (items.py)
     "kittens", "nipped", "tangle", "brand", "knead_fluff", "knead_wand", "nip", "mult", "keep",
-    "freebook",
+    "freebook", "wish",
 ]
 for _i, _name in enumerate(STATUSES):
     globals()[_name.upper()] = _i
@@ -557,9 +557,16 @@ class Battle:
         if move.aim == "self":
             return by
         lasered = self.st[by][LASER] and move.effect in ("hit", "hit2")
-        if move.aim == "friend" or lasered:
-            if lasered:
-                self.st[by][LASER] = 0
+        if lasered:
+            # PROPOSAL: its hit goes to a friend; with no friend standing it comes at you
+            self.st[by][LASER] = 0
+            for i in range(1, ACTORS):
+                if i != by and self.alive[i]:
+                    return i
+            if self.R.model == "bag":
+                return by  # the bag proposal's laser: alone, it hits itself
+            return HERO
+        if move.aim == "friend":
             for i in range(1, ACTORS):
                 if i != by and self.alive[i]:
                     return i

@@ -7,7 +7,8 @@ none of this yet; docs/balance.md lists what the engine would need.
 
 Boosts on a played face, in this order: a pending times (its number times m, and it counts m
 towards its slot's three), then a pending plus (each hit, each stack, each star), catnip's +1,
-knead (the next fluff x2, the next wand +n), bad milk (wands +1), then a spook takes away.
+knead (the next fluff x2, the next wand +n), bad milk (wands +1), a wishing star (the next wand
+x2), then a spook takes away.
 """
 
 
@@ -56,7 +57,7 @@ def round_start(b):
         st[r.SHIELD] += 2
 
 
-def land(b, row, target, free=False):
+def land(b, row, target, again=False):
     """a face of the item model lands: its number, the boosts, its effect, its combo"""
     r = ru()
     face = b.R.faces[row]
@@ -81,16 +82,20 @@ def land(b, row, target, free=False):
     if face.slot == "wand":
         n += st[r.KNEAD_WAND] + b.charms.count("badmilk")
         st[r.KNEAD_WAND] = 0
+        if st[r.WISH]:
+            n *= 2  # a wishing star: the next wand times 2
+            st[r.WISH] = 0
     if st[r.SPOOK]:
         n = max(0, n - st[r.SPOOK])
     before = b.combo.get(face.slot, 0)
     b.combo[face.slot] = before + counts
     three = before < COMBO_AT <= before + counts
-    if not free:
+    if not again:
         b.last_face = row
         b.last_on = target
-    if face.slot == "book" and not free:
-        # with too little mana a book gives 1 mana instead (she studies it)
+    if face.slot == "book":
+        # with too little mana a book gives 1 mana instead (she studies it); a copycat's
+        # book is paid again
         if st[r.MANA] < face.cost:
             b.apply("mana", r.HERO, r.HERO, 1)
             return
@@ -117,7 +122,7 @@ def trick(b, face, n):
         if b.last_face != r.NOTHING:
             b.add(r.HERO, r.PLUS, n)
             on = b.last_on if b.alive[b.last_on] else b.target
-            land(b, b.last_face, on, free=True)
+            land(b, b.last_face, on, again=True)
     elif e == "catnip2":
         b.add(r.HERO, r.NIP, n)
         st[r.NIPPED] = 1
@@ -158,8 +163,7 @@ def effect(b, e, t, n):
         b.add(H, r.SHIELD, n)
     elif e == "wish":
         b.apply("mana", H, H, n)
-        st[H][r.PLUS] *= 2
-        st[H][r.MULT] = max(st[H][r.MULT], 1) * 2
+        st[H][r.WISH] = 1
     elif e == "litter":
         b.apply("mana", H, H, n + st[H][r.KITTENS])
     elif e == "kittens":
@@ -173,6 +177,8 @@ def effect(b, e, t, n):
     elif e == "knock":
         strip(b, t)
         b.strike(H, t, n)
+    elif e == "cannon":
+        b.strike(H, t, n * st[H][r.KITTENS])
     elif e == "pile":
         b.add(H, r.SHIELD, n + 2 * st[H][r.KITTENS])
     elif e in ("wet", "tangled", "brand"):

@@ -24,6 +24,16 @@
         scream    ; spell: amount damage to every enemy, 1 to you
         knock     ; spell: the enemy drops its shield and buffs, then amount damage
         pile      ; spell: amount shield, and 2 more for each kitten
+        cannon    ; spell: amount damage for each kitten
+        yarn      ; wand: amount damage, and tangled 1
+        spray     ; wand: amount damage, and wet 1
+        feather   ; wand: amount damage, and the kittens pounce it
+        pierce    ; wand: amount damage that no shield stops
+        string    ; wand: amount damage, then amount to the next enemy
+        shoot     ; star: 1 mana, and amount damage
+        moon      ; star: 1 mana, and amount shield
+        wish      ; star: amount mana, and the next wand times 2
+        litter    ; star: amount mana, and 1 more for each kitten
         cheer     ; an enemy's friend hits amount harder next time
         nothing   ; does nothing (the hairball)
         wait      ; an enemy move that does nothing (the countdowns)

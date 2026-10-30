@@ -95,7 +95,7 @@ def item_worth(rules, row, level):
         "brand": 2.5 * n, "blink": 2.0, "plus": 1.2 * n, "double": 1.2 * n, "catnip2": n,
         "copy": 2.0 + n, "knead": 1.5 + n, "reroll": 1.2 * n, "sardine": 1.0 + n,
         "string": 1.8 * n, "shoot": 1.1 + n, "moon": 1.1 + 0.7 * n, "wish": 1.1 * n + 1.5,
-        "litter": 1.1 * n + 1.0, "tangled": 1.5 * n, "pile": 0.7 * n + 1.0, "kittens": 3.0 * n,
+        "litter": 1.1 * n + 1.0, "tangled": 1.5 * n, "pile": 0.7 * n + 1.0, "kittens": 3.0 * n, "cannon": 1.5 * n,
     }
     w = table.get(e, 0.0)
     if f.combo and f.combo != "none":

@@ -46,7 +46,7 @@
 (const SCREAM u8 20)
 (const KNOCK u8 21)
 (const FITS u8 22)
-(const TUNA_CAN u8 23)
+(const CANNON u8 23)
 (const FLEAS u8 24)
 (const WET u8 25)
 (const TANGLE u8 26)
@@ -243,7 +243,7 @@
             :icon art.TILE_GEM)
         (make ac.Item
             :name "WISHING STAR"
-            :text "+# MANA; THE NEXT DIE TIMES 2"
+            :text "+# MANA; THE NEXT WAND TIMES 2"
             :slot Slot.star
             :effect ac.Effect.wish
             :amount 1
@@ -338,16 +338,16 @@
             :aim state.Aim.self
             :icon art.TILE_BOOK)
         (make ac.Item
-            :name "TUNA CAN"
-            :text "2 MANA: HEAL #"
+            :name "KITTEN CANNON"
+            :text "2 MANA: # TO IT FOR EACH KITTEN"
             :slot Slot.book
-            :effect ac.Effect.heal
-            :amount 3
+            :effect ac.Effect.cannon
+            :amount 2
             :step 1
             :cost 2
             :combo Combo.none
             :combo_n 0
-            :aim state.Aim.self
+            :aim state.Aim.foe
             :icon art.TILE_BOOK)
         (make ac.Item
             :name "FLEAS"

@@ -151,7 +151,7 @@
         (make (array u8 3) items.SPRAY_BOTTLE items.SPIKY_FLUFF UP_STAR)
         (make (array u8 3) items.MEOW_BOOK items.LITTER_STAR items.TANGLE)
         (make (array u8 3) UP_FLUFF items.FEATHER_TOY items.MARK)
-        (make (array u8 3) items.BOX items.TUNA_CAN items.COPYCAT)
+        (make (array u8 3) items.BOX items.CANNON items.COPYCAT)
         (make (array u8 3) items.STATIC_FUR items.SHOOTING_STAR items.WET)
         (make (array u8 3) items.WISHING_STAR items.KNOCK items.CATNIP)
         (make (array u8 3) items.MOON_BOWL items.LASER items.MOUSE_STRING)
