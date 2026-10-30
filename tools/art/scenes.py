@@ -4,7 +4,7 @@
 import math
 
 from hgr import Canvas, FONT
-import actors
+import hero
 
 GROUND = 104
 BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
@@ -59,8 +59,8 @@ def tree(c, x, trunk_w, top, crown_r):
 
 # ---- the title
 
-TITLE = "WITCHDOG"
-TITLE_SX, TITLE_SY = 4, 3          # each font dot is 4 px wide, 3 rows tall
+TITLE = "CATWIZ"
+TITLE_SX, TITLE_SY = 6, 4          # each font dot is 6 px wide (even: clean white), 4 rows tall
 TITLE_Y = 30
 
 
@@ -85,7 +85,7 @@ def title_letters():
                     for px in range(TITLE_SX):
                         lit.add((lx + gx * TITLE_SX + px, y))
         if ch == "I":
-            lit |= little_hat(lx + 10, ly - 6)
+            lit |= little_hat(lx + 5 * TITLE_SX // 2, ly - 6)
     return lit
 
 
@@ -139,13 +139,13 @@ def title(step):
             c.set(x, y, "W" if d < 2.5 and step >= 2 else "O")
     for x, y in lit:
         c.set(x, y, "W")
-    dog_card = Canvas(".")
-    actors.dog(dog_card, 136, 160, "happy")
-    dog_card.outline("K", inside=lambda col, x, y: col != ".", t=1)
+    cat_card = Canvas(".")
+    hero.cat(cat_card, 136, 160, "happy")
+    cat_card.outline("K", inside=lambda col, x, y: col != ".", t=1)
     for y in range(192):
         for x in range(280):
-            if dog_card.px[y][x] != ".":
-                c.px[y][x] = dog_card.px[y][x]
+            if cat_card.px[y][x] != ".":
+                c.px[y][x] = cat_card.px[y][x]
     text = "PRESS RETURN"
     tw = len(text) * 12 - 2
     c.text((280 - tw) // 2, 180, text, "W", 2, 1)
@@ -175,7 +175,7 @@ def clouds(c):
 
 
 def moon(c, x, y, r):
-    # a big pale moon for the dog to stand against: white, grey seas in pixel pairs
+    # a big pale moon for the cat to stand against: white, grey seas in pixel pairs
     c.ellipse(x, y, r + 2, r + 1, "K")
     c.ellipse(x, y, r, r - 1, "W")
     for sx, sy, sr in ((-0.45, -0.35, 0.22), (0.35, -0.1, 0.3), (-0.1, 0.45, 0.18)):

@@ -11,7 +11,7 @@
 (let hero Hero
     (make Hero
         :hp 30
-        :figure art.KIND_DOG
+        :figure art.KIND_CAT
         :col 6
         :bark (make fx.Action
             :effect fx.Effect.boo
