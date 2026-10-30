@@ -122,7 +122,7 @@ lib/auxmem, as are the songs.
   `$0B50` and `$0BD0`, and a disk segment loads whole pages, so anything placed beside them was
   overwritten when the next segment loaded.
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
-  is not zeroed at the start: `$0200-$02B3` (state.drawn), `$0800-$0AFF` once the boot loader
+  is not zeroed at the start: `$0200-$02D7` (state.drawn), `$0800-$0AFF` once the boot loader
   is done (the song buffer, the log, the text line, the dice, the floaters, the draw scratch;
   not `$0A50-$0A77` or `$0AD0-$0AF7`, text page 2's rows), and the rows of text page 1 the
   mixed screen never shows (`$0400-$05F7` but `$0478-$047F` and the other screen holes, and
@@ -130,5 +130,7 @@ lib/auxmem, as are the songs.
 - No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
   (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
   listing for `rt.` calls.
-- 2026-10-30, Catwiz rules and text: main memory full; the language card about 100 bytes left;
-  aux about 5 KB; zero page 179 of 256.
+- 2026-10-30, Catwiz polish: main memory full of code (data spills to the language card); the
+  language card about 790 bytes left, after the boss's pictures (1,803 bytes and their tables)
+  were left out of the build (`LEFT_OUT` in `tools/art/export.py`: put them back with the final
+  fight); aux about 5 KB; zero page 179 of 256.

@@ -24,9 +24,11 @@ $TISPLE machine --disk build/witchdog.dsk --mockingboard 4 --window   # with mus
 tools/.venv/bin/python tools/art/export.py                # after changing the art
 ```
 
-Keys in battle: 1-5 pick a die (its text shows at the bottom); then Z, X or C (the enemies left
-to right), or LEFT/RIGHT and RETURN, plays it on that enemy; a die for the hero plays when picked
-again (or RETURN). Another die switches, ESC lets go. R re-rolls the dice not played yet (twice
-a turn), E ends the turn. The reward after a fight works the same way with 1-3 (1-6).
+Keys in battle: 1-5 pick a die (its text shows at the bottom, arrows show who it goes to); then
+Z, X or C (the enemies left to right), or LEFT/RIGHT and RETURN, plays it on that enemy; a die
+for the hero or for every enemy plays when picked again (or RETURN). Another die switches, ESC
+lets go. R re-rolls the dice not played yet (twice a turn), E ends the turn, M meows (for fun).
+The five dice each turn come from the hero's bag. The reward after a fight works the same way
+with 1-4 (then 1-6).
 
 Rules for working here: `AGENTS.md`. The plan and where things stand: `docs/plan.md`.
