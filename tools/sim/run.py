@@ -34,8 +34,8 @@ class GameRng:
         return self.r.getrandbits(8)
 
 
-def play_fight(rules, pol, dice, hp, kinds, rng, trace=None):
-    b = Battle(rules, dice, hp, kinds, rng)
+def play_fight(rules, pol, dice, hp, kinds, rng, trace=None, charms=()):
+    b = Battle(rules, dice, hp, kinds, rng, charms=tuple(charms))
     b.log = trace
     b.start_round()
     usage = []
@@ -69,14 +69,15 @@ def describe(b):
 
 
 def one_run(args):
-    which, pname, seed, trace_on = args
-    rules = content.load(which)
+    which, variant, pname, seed, trace_on = args
+    rules = content.load(which, variant)
     prng = random.Random(seed ^ 0x5EED)
     pol = po.POLICIES[pname](rules, prng)
     rng = GameRng(seed)
     dice = [list(d) for d in rules.start_dice]
     names = [rules.die_name(d) for d in dice]
     hp = rules.hero_hp
+    charms = []
     out = {"fights": [], "won": False, "picks": [], "use": {}, "names": None}
     trace = [] if trace_on else None
     f = 0
@@ -84,23 +85,23 @@ def one_run(args):
         fight = rules.fights[f]
         index = f
         if fight.other != NOTHING:
-            index = rewards.pick_door(rules, pol, dice, hp, f, fight.other, prng)
+            index = rewards.pick_door(rules, pol, dice, hp, charms, f, fight.other, prng)
         kinds = rules.fights[index].enemies
         if trace is not None:
             trace.append("== fight %d (%s) hp %d bag: %s" % (
                 f + 1, ", ".join(rules.kinds[k].name for k in kinds), hp,
                 " | ".join(rules.face_names(d) for d in dice)))
-        b, usage = play_fight(rules, pol, dice, hp, kinds, rng, trace)
+        b, usage = play_fight(rules, pol, dice, hp, kinds, rng, trace, charms)
         for turn in usage:
             for d, played in turn:
                 if d == NOTHING:
                     continue
-                u = out["use"].setdefault(names[d], [0, 0])
+                u = out["use"].setdefault(names[d] if d < len(names) else "HAIRBALL", [0, 0])
                 u[0] += 1
                 u[1] += 1 if played else 0
         out["fights"].append({"index": index, "won": b.result == "won", "hp_in": hp,
                               "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost,
-                              "self_hits": b.self_hits})
+                              "self_hits": b.self_hits, "bag": len(dice)})
         if b.result != "won":
             break
         hp = b.hp[HERO]
@@ -108,14 +109,16 @@ def one_run(args):
         if f >= rules.fight_count:
             out["won"] = True
             break
-        pick = rewards.pick(rules, pol, dice, names, hp, f, prng)
+        hp, pick = rewards.pick(rules, pol, dice, names, charms, hp, f, prng)
         out["picks"].append(pick)
         if fight.nap:
-            hp, nap = rewards.nap(rules, pol, dice, names, hp, f, prng)
+            hp, nap = rewards.nap(rules, pol, dice, names, charms, hp, f, prng)
             out["picks"].append(nap)
         if trace is not None:
             trace.append("   reward: " + pick)
     out["names"] = names
+    out["bag"] = len(dice)
+    out["charms"] = charms
     out["trace"] = trace
     return out
 
@@ -128,14 +131,15 @@ def main():
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--jobs", type=int, default=8)
     ap.add_argument("--trace", action="store_true")
+    ap.add_argument("--variant", default="", help="see variants.py")
     a = ap.parse_args()
     names = list(po.POLICIES) if a.policy == "all" else a.policy.split(",")
-    rules = content.load(a.content)
+    rules = content.load(a.content, a.variant)
     problems = content.check_engine(rules)
     for p in problems:
         print("ENGINE CHANGED: " + p)
     for pname in names:
-        jobs = [(a.content, pname, a.seed * 100000 + n, a.trace) for n in range(a.runs)]
+        jobs = [(a.content, a.variant, pname, a.seed * 100000 + n, a.trace) for n in range(a.runs)]
         t0 = time.time()
         if a.jobs > 1 and a.runs > 1:
             with multiprocessing.Pool(min(a.jobs, 8)) as pool:

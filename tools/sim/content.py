@@ -22,13 +22,13 @@ class Face:
 
     def __init__(self, row, d):
         self.row = row
-        self.name = d["name"]
-        self.text = d["text"]
+        self.name = d.get("name", "")  # an enemy move (the proposal's ac.Move) has none of
+        self.text = d["text"]  # name, cost and upgrade
         self.effect = d["effect"]
         self.amount = d["amount"]
-        self.cost = d["cost"]
+        self.cost = d.get("cost", 0)
         self.aim = d["aim"]
-        self.upgrade = d["upgrade"]
+        self.upgrade = d.get("upgrade", tsp.NOTHING)
 
 
 class Kind:
@@ -80,7 +80,8 @@ class Rules:
         for d in faces.consts["STARTING_DICE"]:
             self.die_names[tuple(d["faces"])] = d["name"]
         self.kinds = [Kind(i, d) for i, d in enumerate(enemies.consts["ENEMIES"])]
-        self.moves = [Face(i, d) for i, d in enumerate(enemies.consts["MOVES"])]
+        moves = enemies.consts.get("MOVES") or c.module("content/moves").consts["MOVES"]
+        self.moves = [Face(i, d) for i, d in enumerate(moves)]
         self.hero_hp = enc.consts["HERO"]["hp"]
         # the dice a fight offers: the game has one pair for every fight (OFFER_DICE); the
         # proposal a table of dice (DICE) and each fight's pair (FIGHT_OFFERS)
@@ -100,12 +101,17 @@ class Rules:
         self.bag_most = state.consts["BAG_MOST"]
         self.die_faces = state.consts["DIE_FACES"]
         self.nap_heal = enc.consts.get("NAP_HEAL", 0)
+        junk = enc.consts.get("JUNK_DIE")
+        self.junk_die = dice_table[junk]["faces"] if junk is not None else None
         # engine literals, read from the engine source so they are not retyped
         self.rerolls = tsp.number_after(
             os.path.join(GAME, "battle/turn.tsp"), r"\(set state\.rerolls (\d+)\)"
         )
         self.status_names = statuses.enums["Status"]
         self.proposal = any(os.path.abspath(d) == PROPOSAL for d in dirs)
+        self.swap = self.proposal  # a new die into a full bag takes a die's place
+        self.upgrade = "type" if self.proposal else "single"  # see rewards.upgrade_options
+        self.variant = {}  # variants.apply's parts
 
     def die_name(self, faces):
         return self.die_names.get(tuple(faces), "DIE")
@@ -114,11 +120,16 @@ class Rules:
         return " ".join(self.faces[r].name for r in faces)
 
 
-def load(which):
-    """'game' for game/content alone, 'proposal' for the proposal over it."""
+def load(which, variant=""):
+    """'game' for game/content alone, 'proposal' for the proposal over it; variant: see
+    variants.py"""
+    import variants
+
     if which == "proposal":
-        return Rules([PROPOSAL, os.path.join(GAME, "content")])
-    return Rules([os.path.join(GAME, "content")])
+        rules = Rules([PROPOSAL, os.path.join(GAME, "content")])
+    else:
+        rules = Rules([os.path.join(GAME, "content")])
+    return variants.apply(rules, variant)
 
 
 def check_engine(rules):

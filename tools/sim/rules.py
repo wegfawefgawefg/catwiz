@@ -17,22 +17,37 @@ STATUSES = [
     "double",
     # PROPOSAL
     "spook", "reflect", "mark", "laser", "thorns", "catnip", "fluffs", "hurt", "fresh",
+    "strength",
 ]
 S = {name: i for i, name in enumerate(STATUSES)}
 SHIELD, POISON, FLEA_TURNS, WET, HISS, CHEER, WARD, BOX, MANA, PLUS, DOUBLE = range(11)
-SPOOK, REFLECT, MARK, LASER, THORNS, CATNIP, FLUFFS, HURT, FRESH = range(11, 20)
+SPOOK, REFLECT, MARK, LASER, THORNS, CATNIP, FLUFFS, HURT, FRESH, STRENGTH = range(11, 21)
 NS = len(STATUSES)
+# PROPOSAL: the face types a type upgrade raises: the free faces, by effect
+FAMILIES = {"hit": "wand", "shield": "fluff", "heal": "tuna", "mana": "star", "fleas": "fleas",
+            "plus": "plus"}
+
+
+def family(face):
+    if face.cost:
+        return None
+    return FAMILIES.get(face.effect)
+
+
+GONE = 254  # PROPOSAL: a hairball coughed up, held by nobody, back never
+JUNK_MOST = 2  # PROPOSAL: hairballs in the bag at once, at most, past BAG_MOST
 
 
 class Battle:
-    def __init__(self, rules, dice, hero_hp, enemies, rng, exact=False):
+    def __init__(self, rules, dice, hero_hp, enemies, rng, exact=False, charms=()):
         """battle.enter_fight: the bag's dice (lists of face rows), the hero's hit points and
         the fight's enemy kinds. exact: draw and roll with every random byte the game takes
         (4 tumbles a roll), for matching the emulator's own random numbers."""
         self.R = rules
         self.rng = rng
         self.exact = exact
-        self.dice = dice
+        self.dice = list(dice)  # the fight's own list: hairballs coughed in leave with it
+        self.charms = charms  # the sim's variant with charms (variants.py), else none
         self.hp = [hero_hp, 0, 0, 0]
         self.maxhp = [rules.hero_hp, 0, 0, 0]
         self.alive = [True, False, False, False]
@@ -40,6 +55,11 @@ class Battle:
         self.move = [0] * ACTORS
         self.made = [0] * ACTORS
         self.st = [[0] * NS for _ in range(ACTORS)]
+        self.maxhp[HERO] += 4 * charms.count("fishbone")
+        self.st[HERO][MANA] = 2 * charms.count("nightlight")
+        self.st[HERO][WARD] = charms.count("bell")
+        # PROPOSAL: type upgrades (rewards.py): +1 to every face of a type, kept all run
+        self.bonus = {fam: charms.count("type:" + fam) for fam in FAMILIES.values()}
         for i, k in enumerate(enemies):
             self.set_enemy(i + 1, k)
         n = len(dice)
@@ -62,7 +82,9 @@ class Battle:
         b.R = self.R
         b.rng = self.rng
         b.exact = self.exact
-        b.dice = self.dice
+        b.dice = self.dice[:]
+        b.charms = self.charms
+        b.bonus = self.bonus
         b.hp = self.hp[:]
         b.maxhp = self.maxhp[:]
         b.alive = self.alive[:]
@@ -152,7 +174,9 @@ class Battle:
         st[SHIELD] = 0  # statuses.turn_start
         st[BOX] = 0
         st[THORNS] = 0
-        self.rerolls = self.R.rerolls
+        self.rerolls = self.R.rerolls + self.charms.count("pocket")
+        if "pillow" in self.charms:
+            st[SHIELD] = 2
         self.last_played = NOTHING
         self.deal()
         self.roll()
@@ -242,7 +266,7 @@ class Battle:
             st[PLUS] = (st[PLUS] << 1) & 0xFF
             self.add(HERO, DOUBLE, 1)
             return
-        n = self.boosted(face.amount)
+        n = self.boosted(face.amount + self.bonus.get(family(face), 0))
         st[PLUS] = 0
         st[DOUBLE] = 0
         if face.cost > 0:
@@ -257,6 +281,10 @@ class Battle:
         R = self.R
         if effect == "hit":
             self.strike(by, target, n)
+        elif effect == "hit2":  # PROPOSAL
+            self.strike(by, target, n)
+            if self.alive[target]:
+                self.strike(by, target, n)
         elif effect == "shield":
             self.add(target, SHIELD, n)
         elif effect == "heal":
@@ -312,6 +340,17 @@ class Battle:
             for i in range(1, ACTORS):
                 if i != by and self.alive[i]:
                     self.heal(i, n)
+        elif effect == "junk":
+            # PROPOSAL: hairball dice into the bag's draw pile, for this fight
+            for _ in range(n):
+                if len(self.dice) < self.R.bag_most + JUNK_MOST:
+                    self.dice.append(self.R.junk_die)
+                    self.in_draw.append(True)
+                    self.held.append(NOTHING)
+        elif effect == "cough":
+            # PROPOSAL: the hairball played is coughed up: out of the bag for this fight
+            if self.last_played != NOTHING:
+                self.held[self.last_played] = GONE
         elif effect == "summon":
             self.summon(by, n)
         elif effect == "steal":
@@ -320,6 +359,8 @@ class Battle:
                 self.held[d] = by
                 self.in_draw[d] = False
                 self.say("IT TAKES A DIE")
+        elif effect == "grow":
+            self.add(by, STRENGTH, n)
         elif effect == "reflect":
             self.add(by, REFLECT, n)
         else:
@@ -371,7 +412,7 @@ class Battle:
         cheer = st[CHEER]
         if use:
             st[CHEER] = 0
-        d = (damage + cheer) & 0xFF
+        d = (damage + cheer + st[STRENGTH]) & 0xFF  # strength: PROPOSAL
         if st[WET] > 0:
             d >>= 1
         return d

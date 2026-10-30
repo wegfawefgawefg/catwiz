@@ -35,7 +35,7 @@ def kind_threat(rules):
                 total += 2.0
             elif m.effect in ("summon",):
                 total += 3.0 * m.amount
-            elif m.effect in ("cheer", "mend", "shield", "reflect"):
+            elif m.effect in ("cheer", "mend", "shield", "reflect", "grow", "junk"):
                 total += 1.0
         out.append(total / k.count)
     return out
@@ -69,8 +69,12 @@ class Judge:
         v += 0.6 * st0[ru.WARD]
         v -= W_HP * st0[ru.POISON] * st0[ru.FLEA_TURNS]
         for d in range(len(b.held)):
+            if b.held[d] == ru.GONE:
+                continue
             if b.held[d] != NOTHING:
-                v -= 3.0
+                v -= 3.0  # a die a squirrel holds
+            elif b.dice[d] is b.R.junk_die:
+                v -= 1.5  # a hairball still in the bag
         for i in range(1, ACTORS):
             if not b.alive[i]:
                 continue
@@ -78,7 +82,7 @@ class Judge:
             k = b.kind[i]
             hp = b.hp[i] + self.chain[k]
             v -= hp + 0.8 * s[ru.SHIELD] + 0.5 * s[ru.WARD]
-            v -= self.threat[k] * THREAT_TURNS
+            v -= (self.threat[k] + s[ru.STRENGTH]) * THREAT_TURNS
             if s[ru.FLEA_TURNS]:
                 v += 0.9 * min(s[ru.POISON] * s[ru.FLEA_TURNS], b.hp[i])
         return v

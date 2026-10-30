@@ -38,6 +38,11 @@ def summary(rules, results):
             "hp_end": sum(r["fights"][-1]["hp_out"] for r in wins) / max(1, len(wins))}
 
 
+def base_runs(results):
+    wins = [r for r in results if r["won"]]
+    return wins if wins else results
+
+
 def print_report(rules, pname, results, seconds):
     n = len(results)
     s = summary(rules, results)
@@ -54,6 +59,9 @@ def print_report(rules, pname, results, seconds):
     selfs = sum(1 for r in results if any(x["self_hits"] for x in r["fights"]))
     if selfs:
         print("runs where zoomies outlasted the enemies and hit the cat: %.0f%%" % (100 * selfs / n))
+    sizes = Counter(r["bag"] for r in base_runs(results))
+    print("bag at the end (%s runs): %s" % ("won" if any(r["won"] for r in results) else "all",
+          ", ".join("%d dice %.0f%%" % (k, 100 * v / sum(sizes.values())) for k, v in sorted(sizes.items()))))
     lost = sorted(s["deaths"].items())
     print("runs lost in fight: " + ", ".join("%d: %.0f%%" % (k, 100 * v / n) for k, v in lost))
     wins = [r for r in results if r["won"]]
