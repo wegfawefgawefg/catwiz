@@ -89,6 +89,12 @@
         (return 'Z'))
     (at en.MOVES row icon))
 
+; what the bottom text says an enemy will do next: its move's text, or that it will skip it
+(fn intent_text ((who u8) (row u8)) (ptr u8)
+    (if (> (state.stack who (as u8 st.Status.hiss)) 0)
+        (return "SKIPS ITS MOVE"))
+    (at en.MOVES row text))
+
 (fn apply ((effect ac.Effect) (by u8) (target u8) (n u8)) void
     (match effect
         (ac.Effect.hit

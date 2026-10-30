@@ -1,8 +1,9 @@
-; the turns of a battle. The hero's turn: her five dice roll; she picks one (its text shows at
-; the bottom) and plays it: on an enemy picked next (Z X C, or the arrows and RETURN), or on
-; herself with the same key again. She re-rolls the unplayed dice up to twice and ends her
-; turn. Then each enemy makes the move it showed, statuses tick, the enemies take up
-; their next moves, and her turn comes round again.
+; the turns of a battle. The hero's turn: five dice from her bag (battle/bag.tsp) roll; she
+; picks one (its text shows at the bottom) and plays it: on an enemy picked next (Z X C, or the
+; arrows and RETURN), or with the same key again on herself, or on every enemy for a hit-all.
+; She re-rolls the unplayed dice up to twice and ends her turn; M meows, for fun. Then each
+; enemy makes the move it showed, statuses tick, the enemies take up their next moves, and her
+; turn comes round again.
 
 (import apple2 a2)
 (import random)
@@ -13,6 +14,7 @@
 (import content/enemies en)
 (import content/statuses st)
 (import battle/act)
+(import battle/bag)
 (import battle/hit)
 (import battle/log)
 (import battle/look)
@@ -39,8 +41,7 @@
     (set state.selected state.NOTHING)
     (sound.cue sound.Cue.turn_on)
     (log.line "YOUR TURN: PICK A DIE (1-5)." 0)
-    (for d u8 0 state.HAND
-        (set (at state.played d) false))
+    (bag.deal)
     (start_roll))
 
 ; 0 to 5, from a random byte times 6 over 256: no division routine
@@ -60,7 +61,7 @@
             (for d u8 0 state.HAND
                 (if (not (at state.played d))
                     (do
-                        (let first u8 (* d state.DIE_FACES))
+                        (let first u8 (* (at state.tray_die d) state.DIE_FACES))
                         (set (at state.hand d) (at state.dice (+ first (random_face))))
                         (set state.hud_dice (| state.hud_dice (<< 1 d))))))
             (sound.cue sound.Cue.rattle)))
@@ -88,29 +89,44 @@
                 (set state.target t)
                 (return)))))
 
-; a target picked with the arrows: a blip when it moves
+; what the die picked goes to; with none, the target is the enemy the text describes
+(fn picked_aim () state.Aim
+    (if (= state.selected state.NOTHING)
+        (return state.Aim.foe))
+    (at faces.FACES (at state.hand state.selected) aim))
+
+; a target picked with the arrows: a blip when it moves. A die for the hero or for every enemy
+; has no target to move
 (fn pick_target ((step u8)) void
     (let was u8 state.target)
-    (next_target step)
+    (if (= (picked_aim) state.Aim.foe)
+        (next_target step))
     (sound.cue (if (= state.target was)
         sound.Cue.nope
         sound.Cue.blip)))
 
 ; an enemy picked by name (Z, X, C: the enemies left to right, and taps on them): with a die
-; for an enemy picked, it plays there; else it becomes the target
+; for an enemy or every enemy picked, it plays there; with none it becomes the target. A die
+; for the hero does not go to an enemy
 (fn choose_target ((t u8)) void
-    (if (not (and (< t state.ACTORS) (at state.actors t alive)))
+    (if (or (not (and (< t state.ACTORS) (at state.actors t alive)))
+            (= (picked_aim) state.Aim.self))
         (do
             (sound.cue sound.Cue.nope)
             (return)))
     (set state.target t)
     (set state.hud_words true)
-    (if (or (= state.selected state.NOTHING)
-            (!= (at faces.FACES (at state.hand state.selected) aim) state.Aim.foe))
+    (if (= state.selected state.NOTHING)
         (do
             (sound.cue sound.Cue.blip)
             (return)))
     (play_selected))
+
+; M: the hero meows and hops, just for fun: no effect on the fight, as often as you like
+(fn meow () void
+    (sound.cue sound.Cue.meow)
+    (log.who state.DOG ": MEOW!" 0)
+    (act.begin state.Source.meow 0 state.DOG state.DOG))
 
 (fn player_key ((key u8)) void
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
@@ -120,6 +136,7 @@
     (match (& key 0xDF) ; letters either case
         ('R' (reroll))
         ('E' (end_turn))
+        ('M' (meow))
         ('Z' (choose_target 1))
         ('X' (choose_target 2))
         ('C' (choose_target 3))

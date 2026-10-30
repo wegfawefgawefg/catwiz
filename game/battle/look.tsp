@@ -5,6 +5,7 @@
 (import state)
 (import art/sprites art)
 (import battle/place)
+(import content/faces)
 (import content/enemies en)
 
 (const BLINK_UNTIL u8 16) ; dying: blinking above this, then the two puffs
@@ -159,6 +160,33 @@
             :swaps (= (at art.KIND_PATCH_SWAPS mood_row) 1)
             :face_on_body (= (at state.actors i mood) state.Mood.idle))))
 
+; marker k over who's head, bob pixels down
+(fn marker ((k u8) (who u8) (bob u8)) void
+    (show (+ state.LOOK_MARKER k)
+        art.MARKER
+        (- (place.middle who) 2)
+        (+ (- (place.top who) 30) bob)))
+
+; on the hero's turn, arrows over whoever the die picked goes to, bobbing: the target, the hero
+; for her own faces, every enemy for a hit-all. With no die picked, a still arrow over the
+; enemy the bottom text describes
+(fn markers () void
+    (if (= state.selected state.NOTHING)
+        (do
+            (marker 0 state.target 0)
+            (return)))
+    (let bob u8 (& (>> state.idle 3) 2))
+    (match (at faces.FACES (at state.hand state.selected) aim)
+        (state.Aim.self (marker 0 state.DOG bob))
+        (state.Aim.all
+            (let k u8 0)
+            (for i u8 1 state.ACTORS
+                (if (at state.actors i alive)
+                    (do
+                        (marker k i bob)
+                        (set k (+ k 1))))))
+        (_ (marker 0 state.target bob))))
+
 ; every look for this frame
 (fn update () void
     (for i u8 0 state.ACTORS
@@ -166,14 +194,10 @@
     (hide state.LOOK_BOLT)
     (if state.bolt_on
         (show state.LOOK_BOLT art.BOLT state.bolt_col state.bolt_top))
-    (hide state.LOOK_MARKER)
+    (for k u8 0 state.MARKERS
+        (hide (+ state.LOOK_MARKER k)))
     (if (= state.phase state.Phase.player)
-        (do
-            (let t u8 state.target)
-            (let top u8 (- (place.top t) 30))
-            (if (= (& (>> state.idle 4) 1) 1)
-                (set top (+ top 2)))
-            (show state.LOOK_MARKER art.MARKER (- (place.middle t) 2) top)))
+        (markers))
     (for i u8 0 state.FLOATERS
         (let look u8 (+ state.LOOK_FLOATER i))
         (hide look)

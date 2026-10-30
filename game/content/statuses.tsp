@@ -21,13 +21,13 @@
 (const STATUS_COUNT u8 11)
 
 ; how the hud shows each: under the hit points as glyph and number, as a glyph alone, as one
-; glyph per stack in the hit point pill, or not at all
+; glyph per stack in the hit point pill, or not at all (mana: the stars by the tray show it)
 (enum Show (count flag pips hidden))
 
 (const SHOW (array Show 11)
     (make (array Show 11)
         Show.count Show.count Show.hidden Show.flag Show.flag Show.count Show.pips Show.flag
-        Show.count Show.count Show.flag))
+        Show.hidden Show.count Show.flag))
 
 ; the glyphs, in the hud font: # shield, , fleas (a bug), < buff, ; ward pip (a solid
 ; shield), ' mana pip (a star), + plus; letters for the rest
@@ -36,7 +36,7 @@
 ; in words, for the bottom text: a name, then the stack's number for counts
 (const NAME (array (ptr u8) 11)
     (make (array (ptr u8) 11)
-        "SHIELD" "FLEAS" "" "WET" "HISSED" "CHEERED +" "WARD" "IN A BOX" "MANA" "NEXT +"
+        "SHIELD " "FLEAS " "" "WET" "HISSED" "CHEERED +" "WARD " "IN A BOX" "MANA " "NEXT +"
         "NEXT X2"))
 
 ; a new fight: no stacks, and the ward its kind has (the hero: kind NOTHING)

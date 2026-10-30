@@ -1,19 +1,20 @@
 ; the top two rows of the bottom text: what the player needs to choose. With a die picked, its
 ; name and what it does (with its number after boosts) and how to play it; else the target's
-; name, hit points, statuses and next move in words; on the enemies' turn the hero's own. The
-; log (battle/log.tsp) has the two rows under it. Drawn again only when something it shows
-; may have changed.
+; name, hit points, statuses and next move in words, and the bag; on the enemies' turn the
+; hero's own. The log (battle/log.tsp) has the two rows under it. Drawn again only when
+; something it shows may have changed.
 
 (import state)
 (import draw/text)
 (import battle/log)
+(import battle/bag)
 (import content/action ac)
 (import content/faces)
-(import content/enemies en)
 (import content/effects fx)
 (import content/statuses st)
 
-(const PROMPT_COL u8 26)
+(const PROMPT_COL u8 17) ; after the longest face name
+(const BAG_COL u8 28)    ; after the longest move
 (const WOODS_QUIET (ptr u8) "THE WOODS GO QUIET.")
 
 ; what the rows were drawn for, so a change of phase draws them again
@@ -55,7 +56,9 @@
             (do
                 (text.add "PRESS ")
                 (text.char (+ '1' d))
-                (text.add " AGAIN"))))
+                (text.add (if (= face.aim state.Aim.all)
+                    " AGAIN: HITS ALL"
+                    " AGAIN: ON YOU")))))
     (text.show 0)
     (text.start)
     (let n u8 face.amount)
@@ -64,14 +67,17 @@
     (text.add_n face.text n)
     (text.show 1))
 
-; the target's next move
+; the target's next move, and the bag: its dice, and how many are left to draw
 (fn intent_row ((who u8)) void
     (text.start)
     (if (at state.actors who alive)
         (do
             (let row u8 (at state.actors who move))
             (text.add "NEXT: ")
-            (text.add_n (at en.MOVES row text) (fx.intent_amount who row))))
+            (text.add_n (fx.intent_text who row) (fx.intent_amount who row))))
+    (text.tab BAG_COL)
+    (text.add_n "BAG #" state.bag)
+    (text.add_n " DRAW #" (bag.draw_count))
     (text.show 1))
 
 (fn line_row ((r u8) (s (ptr u8))) void

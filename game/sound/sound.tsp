@@ -37,18 +37,20 @@
         turn_off  ; and ends
         blip      ; the target moves
         confirm   ; RETURN on the title
-        nope))    ; a key that does nothing now
+        nope      ; a key that does nothing now
+        meow))    ; the hero's meow, M
 
 (enum Song (title battle won lost))
 
 ; the voice each cue borrows: 2, the pad on the left chip, for the dog's side, and 5, the
 ; shaker on the right chip, for the enemies'. The dog stands on the left of the screen.
-(const CUE_VOICE (array u8 17) (make (array u8 17) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2))
+(const CUE_VOICE (array u8 18) (make (array u8 18) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2))
 
 ; whether a cue waits in line while another effect plays; false: dropped
-(const CUE_WAITS (array bool 17)
-    (make (array bool 17)
-        false true true true true true true true true true true true true true false true false))
+(const CUE_WAITS (array bool 18)
+    (make (array bool 18)
+        false true true true true true true true true true true true true true false true false
+        false))
 
 ; the song the card plays, copied from aux memory: the largest song's size (the title's), and
 ; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
@@ -62,8 +64,8 @@
     (auxmem.guard))
 
 ; the card's effect for each cue, in Cue's order
-(const CARD_EFFECT (array (ptr u8) 17)
-    (make (array (ptr u8) 17)
+(const CARD_EFFECT (array (ptr u8) 18)
+    (make (array (ptr u8) 18)
         (addr_of (at fx.rattle 0))
         (addr_of (at fx.tok 0))
         (addr_of (at fx.zap 0))
@@ -80,7 +82,8 @@
         (addr_of (at fx.turn_off 0))
         (addr_of (at fx.blip 0))
         (addr_of (at fx.confirm 0))
-        (addr_of (at fx.nope 0))))
+        (addr_of (at fx.nope 0))
+        (addr_of (at fx.meow 0))))
 
 ; the cue on the card now
 (fn card_play ((c Cue)) void
@@ -88,10 +91,9 @@
 
 ; the speaker's version of each cue, in Cue's order: the first of sfx.parts and how many
 ; (0: none; the cues added with the card have none, but the dead key's tick)
-(const SPEAKER_FIRST (array u8 18)
-    (make (array u8 18) 0 8 0 11 12 14 16 18 19 23 24 26 0 0 0 0 0 27))
+(const SPEAKER_FIRST (array u8 18) (make (array u8 18) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25))
 
-(const SPEAKER_COUNT (array u8 17) (make (array u8 17) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1))
+(const SPEAKER_COUNT (array u8 18) (make (array u8 18) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2))
 
 (fn cue ((c Cue)) void
     (if (not mb.found)

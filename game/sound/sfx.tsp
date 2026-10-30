@@ -16,8 +16,8 @@
 
 (struct Part ((kind Kind) (half u16) (step i16) (count u8)))
 
-(const PARTS (array Part 25)
-    (make (array Part 25)
+(const PARTS (array Part 27)
+    (make (array Part 27)
         ; 0 rattle: one shake of the dice, a few dry clicks
         (make Part :kind Kind.noise :half 120 :step 0 :count 2)
         (make Part :kind Kind.noise :half 1200 :step 0 :count 2)
@@ -55,7 +55,10 @@
         (make Part :kind Kind.tone :half 517 :step 0 :count 180)
         ; 23 lose: a long falling slide
         (make Part :kind Kind.slide :half 400 :step 8 :count 120)
-        (make Part :kind Kind.slide :half 1360 :step 2 :count 40)))
+        (make Part :kind Kind.slide :half 1360 :step 2 :count 40)
+        ; 25 meow: a mew up, then down
+        (make Part :kind Kind.slide :half 520 :step -10 :count 30)
+        (make Part :kind Kind.slide :half 250 :step 9 :count 40)))
 
 ; count clicks from half cycles apart, the gap moving by step after each (0 for a tone);
 ; noise adds a random 0 to 4 * 255 cycles to each gap. One wait for all three kinds: each

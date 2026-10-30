@@ -1,19 +1,21 @@
-; the reward after a won fight, in the tray and the bottom text: pick one of three offers (two
-; new dice, or one face upgraded). A new die then takes the place of a die of yours you pick; an
-; upgrade asks for the die, then the face. As in battle, a number key picks a slot and shows
-; its text, the same key again (or RETURN) takes it; ESC goes back to the offers.
+; the reward after a won fight, in the tray and the bottom text: pick one of four offers (two
+; new dice for the bag, one face upgraded, or a die taken out of the bag). An upgrade asks for
+; the die, then the face; taking a die out asks which. As in battle, a number key picks a slot
+; and shows its text, the same key again (or RETURN) takes it; ESC goes back to the offers.
 
 (import apple2 a2)
 (import state)
 (import art/sprites art)
 (import draw/text)
 (import battle/hud)
+(import battle/bag)
 (import content/action ac)
 (import content/faces)
 (import content/encounters enc)
 (import sound/sound)
 
 (const OFFER_UPGRADE u8 2) ; the third offer; the first two are enc.OFFER_DICE
+(const OFFER_REMOVE u8 3)
 
 ; the six faces the text lists now
 (let six (array u8 6) :address 0x0A08) ; scratch: see AGENTS.md, Memory
@@ -30,21 +32,23 @@
     (draw_slots)
     (text.clear)
     (text.start)
-    (text.add (match pick
-        (state.Pick.offer "A REWARD! PICK ONE (1-3).")
-        (state.Pick.replace "THE NEW DIE REPLACES WHICH? (1-5)")
-        (state.Pick.upgrade_die "UPGRADE A FACE OF WHICH DIE? (1-5)")
-        (state.Pick.upgrade_face "UPGRADE WHICH FACE? (1-6)")))
+    (text.add_n
+        (match pick
+            (state.Pick.offer "A REWARD! PICK ONE (1-4).")
+            (state.Pick.remove "TAKE WHICH DIE OUT OF THE BAG? (1-#)")
+            (state.Pick.upgrade_die "UPGRADE A FACE OF WHICH DIE? (1-#)")
+            (state.Pick.upgrade_face "UPGRADE WHICH FACE? (1-6)"))
+        state.bag)
     (text.show 0))
 
 ; how many slots this step has
 (fn slots () u8
     (match state.pick
-        (state.Pick.offer 3)
+        (state.Pick.offer 4)
         (state.Pick.upgrade_face state.DIE_FACES)
-        (_ state.HAND)))
+        (_ state.bag)))
 
-; the face row hero die d shows first, its picture in the tray
+; the face row bag die d shows first, its picture in the tray
 (fn first_face ((d u8)) u8
     (at state.dice (* d state.DIE_FACES)))
 
@@ -52,9 +56,13 @@
     (let picked bool (= n state.picked))
     (match state.pick
         (state.Pick.offer
-            (if (= n OFFER_UPGRADE)
-                (hud.slot n art.TILE_WAND "UP" picked)
-                (hud.slot n (at faces.FACES (at (at enc.OFFER_DICE n faces) 0) icon) "NU" picked)))
+            (match n
+                (OFFER_UPGRADE (hud.slot n art.TILE_PLUS1 "<" picked))
+                (OFFER_REMOVE (hud.slot n art.TILE_LINT "-" picked))
+                (_
+                    (hud.slot n
+                        (at faces.FACES (at (at enc.OFFER_DICE n faces) 0) icon)
+                        "" picked))))
         (state.Pick.upgrade_face
             (let face u8 (at state.dice (+ (* state.upgrade_die state.DIE_FACES) n)))
             (hud.slot n (at faces.FACES face icon) (at faces.FACES face caption) picked))
@@ -80,22 +88,34 @@
     (for f u8 0 state.DIE_FACES
         (set (at six f) (at state.dice (+ (* d state.DIE_FACES) f)))))
 
+; how to take it, at the end of row 0
+(fn again () void
+    (text.tab 29)
+    (text.add "AGAIN: TAKE")
+    (text.show 0))
+
 ; slot n's text: rows 0 to 3
 (fn describe ((n u8)) void
     (text.clear)
     (text.start)
     (match state.pick
         (state.Pick.offer
-            (if (= n OFFER_UPGRADE)
+            (if (>= n OFFER_UPGRADE)
                 (do
-                    (text.add "UPGRADE ONE FACE")
-                    (text.show 0)
+                    (text.add (if (= n OFFER_UPGRADE)
+                        "UPGRADE ONE FACE OF A DIE"
+                        "TAKE A DIE OUT OF THE BAG"))
+                    (again)
                     (text.start)
-                    (text.add "PICK A DIE, THEN ONE OF ITS FACES.")
+                    (text.add (if (= n OFFER_UPGRADE)
+                        "PICK THE DIE, THEN THE FACE."
+                        "FEWER DICE: THE REST COME UP MORE."))
                     (text.show 1)
                     (return)))
             (text.add "NEW DIE: ")
             (text.add (at enc.OFFER_DICE n name))
+            (if (= state.bag state.BAG_MOST)
+                (text.add ". BAG FULL"))
             (for f u8 0 state.DIE_FACES
                 (set (at six f) (at (at enc.OFFER_DICE n faces) f))))
         (state.Pick.upgrade_face
@@ -116,27 +136,40 @@
             (text.show 1)
             (return))
         (_
-            (text.add "YOUR DIE ")
+            (text.add "BAG DIE ")
             (text.char (+ '1' n))
             (hero_die_to_six n)))
-    (text.tab 29)
-    (text.add "AGAIN: TAKE")
-    (text.show 0)
+    (again)
     (list_six))
 
 ; the slot picked is taken. Gives true when the reward is done
 (fn take ((n u8)) bool
     (match state.pick
         (state.Pick.offer
-            (set state.offer n)
-            (go (if (= n OFFER_UPGRADE)
-                state.Pick.upgrade_die
-                state.Pick.replace))
-            false)
-        (state.Pick.replace
+            (if (= n OFFER_UPGRADE)
+                (do
+                    (go state.Pick.upgrade_die)
+                    (return false)))
+            (if (= n OFFER_REMOVE)
+                (do
+                    (if (<= state.bag 1)
+                        (do
+                            (sound.cue sound.Cue.nope)
+                            (return false)))
+                    (go state.Pick.remove)
+                    (return false)))
+            ; a new die into the bag
+            (if (>= state.bag state.BAG_MOST)
+                (do
+                    (sound.cue sound.Cue.nope)
+                    (return false)))
+            (let first u8 (* state.bag state.DIE_FACES))
             (for f u8 0 state.DIE_FACES
-                (set (at state.dice (+ (* n state.DIE_FACES) f))
-                    (at (at enc.OFFER_DICE state.offer faces) f)))
+                (set (at state.dice (+ first f)) (at (at enc.OFFER_DICE n faces) f)))
+            (set state.bag (+ state.bag 1))
+            true)
+        (state.Pick.remove
+            (bag.remove n)
             true)
         (state.Pick.upgrade_die
             (set state.upgrade_die n)

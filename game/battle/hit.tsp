@@ -69,6 +69,11 @@
     (let room u8 (- (at state.actors who max_hp) hp))
     (if (> n room)
         (set n room))
+    ; nothing to mend: no +0 floats up
+    (if (= n 0)
+        (do
+            (log.who who " IS AT FULL HP ALREADY." 0)
+            (return)))
     (set (at state.actors who hp) (+ hp n))
     (log.who who " HEALS #." n)
     (set (at state.actors who mood) state.Mood.happy)

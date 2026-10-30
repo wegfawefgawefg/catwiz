@@ -11,6 +11,7 @@ content/effects.land_move
 content/effects.move_target
 content/effects.intent_amount
 content/effects.intent_icon
+content/effects.intent_text
 content/effects.apply
 content/effects.next_standing
 content/effects.curse
@@ -127,3 +128,15 @@ battle/look.hide
 battle/look.show
 battle/look.bob
 battle/look.tick_actor
+battle/turn.meow
+battle/turn.picked_aim
+battle/look.marker
+battle/bag.fill
+battle/bag.gather
+battle/bag.draw_count
+battle/bag.in_tray
+battle/bag.reshuffle
+battle/bag.draw_one
+battle/bag.deal
+battle/bag.remove
+battle/reward.again

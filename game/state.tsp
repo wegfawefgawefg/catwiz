@@ -7,10 +7,12 @@
 (const HAND u8 5) ; dice in the hand
 (const DIE_FACES u8 6)
 (const FLOATERS u8 4) ; damage numbers in the air at once
-(const LOOKS u8 10)   ; things drawn over the backdrop: 4 actors, bolt, marker, 4 floaters
+(const BAG_MOST u8 6) ; dice in the bag at most: the reward's pickers show them all in the tray
+(const MARKERS u8 3)  ; arrows over who the picked die goes to: every enemy, for a hit-all
+(const LOOKS u8 12)   ; things drawn over the backdrop: 4 actors, bolt, 3 markers, 4 floaters
 (const LOOK_BOLT u8 4)
 (const LOOK_MARKER u8 5)
-(const LOOK_FLOATER u8 6)
+(const LOOK_FLOATER u8 8)
 (const RECTS u8 12) ; backdrop boxes waiting to be copied onto each page
 (const NOTHING u8 255)
 
@@ -18,9 +20,9 @@
 
 (enum Phase (rolling player acting enemies won lost reward))
 
-; the steps of the reward screen: pick an offer, then the die it replaces, or the die and the
-; face to upgrade
-(enum Pick (offer replace upgrade_die upgrade_face))
+; the steps of the reward screen: pick an offer, then the die to take out of the bag, or the
+; die and the face to upgrade
+(enum Pick (offer remove upgrade_die upgrade_face))
 
 ; the face an actor shows; the same order as the art's moods
 (enum Mood (idle angry worried hurt bark happy ko))
@@ -32,8 +34,9 @@
 ; it, every enemy, or an enemy's friend
 (enum Aim (foe self all friend))
 
-; where the action in flight came from: a die face, or an enemy's move
-(enum Source (face move))
+; where the action in flight came from: a die face, an enemy's move, or the hero's meow (M:
+; just for fun, no effect)
+(enum Source (face move meow))
 
 (struct Actor ((alive bool)
         (kind u8)   ; the enemy's row in content/enemies, or NOTHING for the dog
@@ -84,12 +87,17 @@
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
 (let stacks (array u8 64) :address 0x0600) ; status stacks: actor * STATUS_SLOTS + status
-; the run: which fight, the hero's hit points between fights, and her dice as face rows (die d
-; is d * DIE_FACES to d * DIE_FACES + 5)
+; the run: which fight, the hero's hit points between fights, and her bag of dice as face rows
+; (die d is d * DIE_FACES to d * DIE_FACES + 5)
 (let fight u8)
 (let hero_hp u8)
-(let dice (array u8 30) :address 0x0A10)
-(let hand (array u8 5)) ; the face each die shows, a row in content/faces
+(let dice (array u8 36) :address 0x0708) ; BAG_MOST * DIE_FACES
+(let bag u8)                             ; dice in the bag
+; each turn the tray takes HAND dice from the bag's draw pile; when it runs out, the dice not
+; in the tray are shuffled back into it. A fight starts with every die in the draw pile
+(let in_draw (array bool 6) :address 0x072C) ; die d is in the draw pile
+(let tray_die (array u8 5) :address 0x0732)  ; the bag die in each tray slot, NOTHING for none
+(let hand (array u8 5))                      ; the face each die shows, a row in content/faces
 (let played (array bool 5))
 (let rerolls u8)
 (let selected u8) ; the die picked to play next, or NOTHING
@@ -98,7 +106,6 @@
 ; the reward screen
 (let pick Pick)
 (let picked u8) ; the slot picked, or NOTHING
-(let offer u8)  ; the offer taken
 (let upgrade_die u8)
 (let next_enemy u8) ; on the enemies' turn, who acts next
 (let turn u8)
@@ -123,8 +130,8 @@
 (let hud_rerolls bool)
 (let hud_words bool) ; the bottom text's top two lines
 ; drawing: what each look should show, and what each page shows now
-(let looks (array Look 10) :address 0x0580)
-(let drawn (array Look 20) :address 0x0200) ; page * LOOKS + look
+(let looks (array Look 12) :address 0x0580)
+(let drawn (array Look 24) :address 0x0200) ; page * LOOKS + look
 (let rects (array Rect 24) :address 0x0400) ; page * RECTS + n
 (let rect_count (array u8 2))
 (let full_redraw (array bool 2))
@@ -136,6 +143,10 @@
 (fn stack ((who u8) (status u8)) u8
     (at stacks (+ (* who STATUS_SLOTS) status)))
 
+; a stack changes who's pill, and may change the intent over its head (wet halves it, a hiss
+; skips it)
 (fn set_stack ((who u8) (status u8) (n u8)) void
     (set (at stacks (+ (* who STATUS_SLOTS) status)) n)
-    (set hud_pills (| hud_pills (<< 1 who))))
+    (let bit u8 (<< 1 who))
+    (set hud_pills (| hud_pills bit))
+    (set hud_intents (| hud_intents bit)))

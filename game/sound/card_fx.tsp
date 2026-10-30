@@ -53,3 +53,6 @@
 
 ; a key that does nothing now: a soft low bonk
 (tune.effect nope "l2 v9 k3 e3")
+
+; the hero's meow: a mew sliding up, then down
+(tune.effect meow "v12 l2 g5 b5 d6 f6 l3 e6 d6 l10 k2 b5")

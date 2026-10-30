@@ -1,6 +1,6 @@
 ; the hud, drawn into the backdrop page and marked for copying onto both pages: hit points (and
 ; ward pips) and a status row under each actor, enemy intents over their heads, and the dice
-; tray in a black band at the foot of the picture, with the re-rolls beside it.
+; tray in a black band at the foot of the picture, with the re-rolls and the mana beside it.
 ; Each part is redrawn whole when its flag in state says it changed: first the clean backdrop
 ; from aux memory over its area. The words are at the bottom, in text (battle/words, log).
 
@@ -28,10 +28,12 @@
 (const MARK_TOP u8 127) ; the bar over the picked die
 (const TRAY_TOP u8 130) ; the dice pictures
 (const DIGIT_TOP u8 150)
-(const TRAY_FIRST_COL u8 4)
+(const TRAY_FIRST_COL u8 2)
 (const TRAY_STEP u8 6)
-(const SIDE_X u16 258) ; the middle of the re-rolls, right of the dice
+(const SIDE_COL u8 29) ; the re-rolls and the mana, right of the dice
+(const SIDE_X u16 241) ; and their middle
 (const REROLL_Y u8 131)
+(const MANA_Y u8 144)
 
 ; what the backdrop shows now, not game state: how far down and how far either side of its
 ; middle each actor's hud reaches, so a redraw cleans only that
@@ -150,11 +152,12 @@
 ; ---- the dice tray and the re-rolls
 
 ; tray slot n: a face's picture and caption, or nothing (icon art.NONE); picked, a white bar
-; over it
+; over it. A two-glyph caption is 22 px, a pixel wider than the picture, so the slot cleans a
+; fourth column too: else that pixel stays when the next face has a narrower one
 (fn slot ((n u8) (icon u8) (caption (ptr u8)) (picked bool)) void
     (let col u8 (+ TRAY_FIRST_COL (* n TRAY_STEP)))
     (let x u16 (* (as u16 col) 7))
-    (blit.fill screen.BACKDROP col MARK_TOP 3 (- (+ DIGIT_TOP 9) MARK_TOP) 0)
+    (blit.fill screen.BACKDROP col MARK_TOP 4 (- (+ DIGIT_TOP 9) MARK_TOP) 0)
     (if picked
         (blit.fill screen.BACKDROP col MARK_TOP 3 2 0x7F))
     (if (!= icon art.NONE)
@@ -163,9 +166,9 @@
             (let w u16 (pen.text_width caption))
             (if (> w 0)
                 (do
-                    (pen.capsule x DIGIT_TOP (+ x 21) (+ DIGIT_TOP 9))
+                    (pen.capsule x DIGIT_TOP (+ x 22) (+ DIGIT_TOP 9))
                     (pen.text (- (+ x 11) (>> w 1)) (+ DIGIT_TOP 1) caption)))))
-    (scene.mark col MARK_TOP 3 (- (+ DIGIT_TOP 9) MARK_TOP)))
+    (scene.mark col MARK_TOP 4 (- (+ DIGIT_TOP 9) MARK_TOP)))
 
 (fn die ((d u8)) void
     (if (at state.played d)
@@ -175,16 +178,27 @@
     (let face u8 (at state.hand d))
     (slot d (at faces.FACES face icon) (at faces.FACES face caption) (= state.selected d)))
 
-; R and the re-rolls left
+; R and the re-rolls left; under it the mana as stars, filled for what the hero has, so it
+; sits by the spell faces' costs
 (fn side () void
     (start_glyphs)
     (put 'R')
     (put_number state.rerolls)
     (draw_glyphs SIDE_X REROLL_Y)
-    (scene.mark 33 REROLL_Y 7 CAPSULE_ROWS))
+    (start_glyphs)
+    (let mana u8 (fx.mana))
+    (for k u8 0 fx.MOST_MANA
+        (put (if (< k mana)
+            '\''
+            '&')))
+    (draw_glyphs SIDE_X MANA_Y)
+    (scene.mark SIDE_COL REROLL_Y (- 40 SIDE_COL) (- (+ MANA_Y CAPSULE_ROWS) REROLL_Y)))
 
 ; whatever changed since the last frame
 (fn refresh () void
+    ; the hero's stacks hold her mana, by the tray
+    (if (!= (& state.hud_pills 1) 0)
+        (set state.hud_rerolls true))
     (for i u8 0 state.ACTORS
         (let bit u8 (<< 1 i))
         (if (or (= i state.DOG) (!= (at state.actors i kind) state.NOTHING))

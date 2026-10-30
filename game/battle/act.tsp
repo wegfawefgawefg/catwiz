@@ -1,4 +1,4 @@
-; the action in flight: a die face or an enemy's move, from its start to its effect
+; the action in flight: a die face, an enemy's move or the meow, from its start to its effect
 ; landing and the actor settling back. Its look comes from the action's motion:
 ;   lunge  the actor jumps at the target in 2-column steps and lands the effect on contact
 ;   throw  the actor winds up, a bolt arcs across to the target, the effect lands with it
@@ -49,12 +49,14 @@
 (fn action_motion () state.Motion
     (match state.act_source
         (state.Source.face (at faces.FACES state.act_row motion))
-        (state.Source.move (at en.MOVES state.act_row motion))))
+        (state.Source.move (at en.MOVES state.act_row motion))
+        (state.Source.meow state.Motion.hop)))
 
 (fn land () void
     (match state.act_source
         (state.Source.face (fx.land_face state.act_row state.act_on))
-        (state.Source.move (fx.land_move state.act_row state.act_by state.act_on)))
+        (state.Source.move (fx.land_move state.act_row state.act_by state.act_on))
+        (state.Source.meow))
     (set state.act_done true)
     (set state.act_time 0))
 

@@ -1,6 +1,6 @@
-; the run's battles in the forest: a run starts the hero's dice and hit points, each fight is set
-; up from its encounter, steps one frame at a time and is drawn; after a won fight the reward
-; (battle/reward.tsp), then the next fight; after the last, "to be continued".
+; the run's battles in the forest: a run starts the hero's bag of dice and hit points, each
+; fight is set up from its encounter, steps one frame at a time and is drawn; after a won fight
+; the reward (battle/reward.tsp), then the next fight; after the last, "to be continued".
 
 (import apple2 a2)
 (import state)
@@ -8,7 +8,6 @@
 (import art/backdrop bd)
 (import content/enemies en)
 (import content/encounters enc)
-(import content/faces)
 (import content/statuses st)
 (import draw/screen)
 (import draw/scene)
@@ -18,6 +17,7 @@
 (import battle/look)
 (import battle/hud)
 (import battle/act)
+(import battle/bag)
 (import battle/turn)
 (import battle/words)
 (import battle/log)
@@ -28,10 +28,7 @@
 
 ; a new run: the starting dice, full hit points, the first fight
 (fn enter () void
-    (for d u8 0 faces.DIE_COUNT
-        (for f u8 0 state.DIE_FACES
-            (set (at state.dice (+ (* d state.DIE_FACES) f))
-                (at (at faces.STARTING_DICE d faces) f))))
+    (bag.fill)
     (set state.hero_hp enc.HERO.hp)
     (set state.fight 0)
     (set state.screen state.Screen.battle)
@@ -47,6 +44,7 @@
     (set state.target 1)
     (set state.selected state.NOTHING)
     (set state.log_hold 0)
+    (bag.gather)
     (for i u8 0 state.FLOATERS
         (set (at state.floaters i time) 0))
     (set_dog)

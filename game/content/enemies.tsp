@@ -1,6 +1,7 @@
 ; the forest's enemies and their moves. An enemy makes its moves in order, round and round,
 ; from its first; a move's icon is the glyph shown over its head before it acts, and its text
-; what the bottom text and the log say it does (# the number it does it for; no name).
+; what the bottom text and the log say it does (# the number it does it for; no name; 21
+; characters at most, so the bag still fits on the bottom text's row after it).
 
 (import state)
 (import content/action ac)
@@ -35,7 +36,7 @@
             :move_count 2)
         (make Enemy
             :name "NIGHTFLAP"
-            :hp 9
+            :hp 8
             :ward 1
             :figure art.KIND_BAT
             :first_move 4
@@ -49,7 +50,7 @@
             :text "HEADBUTT FOR #"
             :caption ""
             :effect ac.Effect.hit
-            :amount 2
+            :amount 4
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
@@ -72,7 +73,7 @@
             :text "NIP FOR #"
             :caption ""
             :effect ac.Effect.hit
-            :amount 1
+            :amount 2
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
@@ -80,7 +81,7 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name ""
-            :text "CHEER: A FRIEND HITS +# NEXT"
+            :text "CHEER: FRIEND +# NEXT"
             :caption ""
             :effect ac.Effect.cheer
             :amount 1
@@ -89,13 +90,13 @@
             :motion state.Motion.hop
             :icon '<'
             :upgrade state.NOTHING)
-        ; nightflap: two bites, then a dive every third turn
+        ; nightflap: a scratch, a bite, then a dive every third turn
         (make ac.Action
             :name ""
-            :text "BITE FOR #"
+            :text "SCRATCH FOR #"
             :caption ""
             :effect ac.Effect.hit
-            :amount 3
+            :amount 1
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
@@ -106,7 +107,7 @@
             :text "BITE FOR #"
             :caption ""
             :effect ac.Effect.hit
-            :amount 3
+            :amount 2
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
@@ -117,7 +118,7 @@
             :text "DIVE FOR #"
             :caption ""
             :effect ac.Effect.hit
-            :amount 5
+            :amount 3
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge

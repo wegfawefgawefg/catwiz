@@ -12,9 +12,9 @@
 (const WAND_2 u8 0)
 (const WAND_3 u8 1)
 (const WAND_4 u8 2)
-(const KIBBLE_3 u8 3)
-(const KIBBLE_4 u8 4)
-(const KIBBLE_5 u8 5)
+(const KIBBLE_2 u8 3)
+(const KIBBLE_3 u8 4)
+(const KIBBLE_4 u8 5)
 (const BONE_2 u8 6)
 (const BONE_3 u8 7)
 (const BONE_4 u8 8)
@@ -70,6 +70,17 @@
             :icon art.TILE_WAND
             :upgrade state.NOTHING)
         (make ac.Action
+            :name "KIBBLE 2"
+            :text "SHIELD # TILL YOUR NEXT TURN"
+            :caption "2"
+            :effect ac.Effect.shield
+            :amount 2
+            :cost 0
+            :aim state.Aim.self
+            :motion state.Motion.hop
+            :icon art.TILE_KIBBLE
+            :upgrade KIBBLE_3)
+        (make ac.Action
             :name "KIBBLE 3"
             :text "SHIELD # TILL YOUR NEXT TURN"
             :caption "3"
@@ -86,17 +97,6 @@
             :caption "4"
             :effect ac.Effect.shield
             :amount 4
-            :cost 0
-            :aim state.Aim.self
-            :motion state.Motion.hop
-            :icon art.TILE_KIBBLE
-            :upgrade KIBBLE_5)
-        (make ac.Action
-            :name "KIBBLE 5"
-            :text "SHIELD # TILL YOUR NEXT TURN"
-            :caption "5"
-            :effect ac.Effect.shield
-            :amount 5
             :cost 0
             :aim state.Aim.self
             :motion state.Motion.hop
@@ -160,7 +160,7 @@
         (make ac.Action
             :name "HAIRBALL"
             :text "2 MANA: # DAMAGE + FLEAS (2 A TURN)"
-            :caption "2$"
+            :caption "2'"
             :effect ac.Effect.hairball
             :amount 4
             :cost 2
@@ -171,7 +171,7 @@
         (make ac.Action
             :name "ZOOMIES"
             :text "2 MANA: # DAMAGE 5 TIMES, LEFT TO RIGHT"
-            :caption "2$"
+            :caption "2'"
             :effect ac.Effect.zoomies
             :amount 1
             :cost 2
@@ -182,7 +182,7 @@
         (make ac.Action
             :name "CARDBOARD BOX"
             :text "2 MANA: SHIELD #, HIT-ALLS MISS YOU"
-            :caption "2$"
+            :caption "2'"
             :effect ac.Effect.box
             :amount 6
             :cost 2
@@ -193,7 +193,7 @@
         (make ac.Action
             :name "3 AM SCREAMING"
             :text "3 MANA: # DAMAGE TO ALL, 1 TO YOU"
-            :caption "3$"
+            :caption "3'"
             :effect ac.Effect.scream
             :amount 3
             :cost 3
@@ -297,10 +297,10 @@
     (make (array Die 5)
         (make Die
             :name "WAND DIE"
-            :faces (make (array u8 6) WAND_2 WAND_2 WAND_2 WAND_3 WAND_3 KIBBLE_3))
+            :faces (make (array u8 6) WAND_2 WAND_2 WAND_2 WAND_3 WAND_3 KIBBLE_2))
         (make Die :name "WAND DIE" :faces (make (array u8 6) WAND_2 WAND_2 WAND_3 GEM GEM BONE_2))
         (make Die
             :name "KIBBLE DIE"
-            :faces (make (array u8 6) KIBBLE_3 KIBBLE_3 KIBBLE_3 KIBBLE_4 BONE_2 BONE_2))
+            :faces (make (array u8 6) KIBBLE_2 KIBBLE_2 KIBBLE_2 KIBBLE_3 BONE_2 BONE_2))
         (make Die :name "GEM DIE" :faces (make (array u8 6) GEM GEM GEM_2 HAIRBALL ZOOMIES WAND_2))
         (make Die :name "CURSE DIE" :faces (make (array u8 6) FLEAS WET HISS PLUS_1 LINT DOUBLE))))

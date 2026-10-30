@@ -17,14 +17,14 @@
 (import draw/blit)
 
 ; what each page shows: the box of each look as drawn there, page * LOOKS + look
-(let drawn_box (array state.Rect 20) :address 0x0500) ; scratch: see AGENTS.md, Memory
+(let drawn_box (array state.Rect 24) :address 0x0500) ; scratch: see AGENTS.md, Memory
 
 ; scratch for one frame, not game state: each look's box now, and how to draw it
-(let box (array state.Rect 10) :address 0x0A78)
-(let changed (array bool 10) :address 0x0AA0)
-(let moved (array bool 10) :address 0x0AAA)
-(let swapped (array bool 10) :address 0x0AB4)
-(let redo (array bool 10) :address 0x0ABE)
+(let box (array state.Rect 12) :address 0x0A78)
+(let changed (array bool 12) :address 0x0780)
+(let moved (array bool 12) :address 0x078C)
+(let swapped (array bool 12) :address 0x0798)
+(let redo (array bool 12) :address 0x07A4)
 (let restored (array state.Rect 24) :address 0x0480)
 (let restored_count u8 0)
 
@@ -291,5 +291,9 @@
                 (at state.looks i second_col)
                 (at state.looks i second_top)
                 (at state.looks i second)))
-        (set (at state.drawn d) (at state.looks i))
-        (set (at drawn_box d) (at box i))))
+        ; what the page shows now: only a changed look shows something new (same compares
+        ; all that a look draws)
+        (if (at changed i)
+            (do
+                (set (at state.drawn d) (at state.looks i))
+                (set (at drawn_box d) (at box i))))))
