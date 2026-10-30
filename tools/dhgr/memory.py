@@ -69,27 +69,48 @@ def best_patch(idle, frame):
     return best
 
 
+class Kind:
+    # one fighter's frames for one zone: written to art/dhgr/, and their sizes
+    def __init__(self, art, kind, zone):
+        self.lit, self.mats = bytearray(), bytearray()
+        self.trimmed = 0
+        idle = None
+        for fr in frames(kind):
+            d = screen.figure(kind, fr)
+            lit = light.lit(d, zone)
+            s = dhgr.cut("%s_%s" % (kind, fr), lit.px, lit.bbox())
+            raw = export.sprite_bytes(s)
+            export.write(art, "sprites/%s/%s_%s.bin" % (zone, kind, fr), raw)
+            mb, _ = export.material_bytes(d, d.bbox())
+            export.write(art, "materials/%s_%s.bin" % (kind, fr), mb)
+            self.lit += raw
+            self.mats += mb
+            spans = span_bytes(lit, lit.bbox())
+            if idle is None:
+                idle = lit
+                self.trimmed += spans
+            else:
+                self.trimmed += min(spans, best_patch(idle, lit)[0])
+
+    def packed(self):
+        return dhgr.packed(bytes(self.mats))
+
+
 def run(art):
     out = []
     say = out.append
-    say("Catwiz double hi-res art: memory per day fight (python3 tools/dhgr/make.py memory)")
-    say("raw = bytes as the game uses them; packed = zlib -9 of those bytes (a stand-in packer)")
+    say("Catwiz double hi-res art: memory for the day fights (python3 tools/dhgr/make.py memory)")
+    say("raw: bytes as the game uses them. packed: zlib -9 (a stand-in for Tisple's packer).")
+    say("lit sprites: picture + mask, every frame whole; trimmed: each row only its bytes, and a")
+    say("frame that is idle moved plus a patch (the hop, a new face) stored as that.")
+    say("materials: a frame unlit at 3-5 bits a pixel, one copy for every zone (light.py).")
     say("")
     # ---- shared by every fight
-    names = list(icons.ICONS)
-    ic = Canvas()
-    for i, n in enumerate(names):
-        icons.draw(ic, (i % 10) * 14, (i // 10) * 16, n)
-    for y in range(dhgr.H):
-        for x in range(dhgr.W):
-            if ic.px[y][x] == dhgr.WHITE or ic.px[y][x] is None:
-                pass
     icon_blob = bytearray()
-    for i, n in enumerate(names):
+    for n in icons.ICONS:
         one = Canvas()
         icons.draw(one, 0, 0, n)
-        s = dhgr.cut(n, one.px, (0, 0, 14, icons.ICON_H))
-        icon_blob += s.raw()
+        icon_blob += dhgr.cut(n, one.px, (0, 0, 14, icons.ICON_H)).raw()
     export.write(art, "icons.bin", bytes(icon_blob))
     font = bytearray()
     for i in range(32, 127):
@@ -105,18 +126,23 @@ def run(art):
     tray = Canvas(dhgr.BLACK)
     hud.tray(tray, hud.U_DAY, [("lint", "")] * 5, None)
     tray_raw = stage_bytes(tray.px, range(hud.TRAY_TOP, hud.TEXT_TOP))
-    say("shared by all fights")
+    kinds = {}
+    for k in ["cat", "puffcap", "sporelet", "nightflap"]:
+        kinds[k] = Kind(art, k, "day")
+    cat_ = kinds["cat"]
+    say("shared by every fight")
     say("  " + export.report_line("12 card pictures (pic+mask)", icon_blob))
-    say("  " + export.report_line("40-column font (95 glyphs)", font, "inverse is the same XOR $7F"))
+    say("  " + export.report_line("40-column font (95 glyphs)", font, "inverse: each byte XOR $7F"))
     say("  " + export.report_line("  or the 35-column font", font35, "3 pixels a row, shifted into place"))
     say("  " + export.report_line("tray picture, rows 124-159", tray_raw, "card blanks, buttons; icons go on top"))
-    shared_raw = len(icon_blob) + len(font) + len(tray_raw)
-    shared_packed = dhgr.packed(bytes(icon_blob) + bytes(font) + tray_raw)
-    say("  %-34s %7d raw %7d packed" % ("shared total", shared_raw, shared_packed))
+    say("  " + export.report_line("the cat, %d frames, lit" % len(cat.FRAMES), cat_.lit, "trimmed: %d" % cat_.trimmed))
+    say("  " + export.report_line("  the cat as materials", cat_.mats))
+    shared_pk = dhgr.packed(bytes(icon_blob) + bytes(font) + tray_raw) + cat_.packed()
+    say("  %-34s %7s     %7d packed  (cards, 40-column font, tray, the cat as materials)" % ("stored", "", shared_pk))
     say("")
-    # ---- the fights
+    run_pk = shared_pk
+    seen = set()
     base = None
-    sprite_cache = {}
     for F in palettes.FIGHTS:
         P = F["P"]
         n, variant, zone = F["n"], F["variant"], F["zone"]
@@ -127,7 +153,7 @@ def run(art):
         stage = stage_bytes(bd.px)
         say("fight %d (%s, %s light): %s" % (n, variant, zone, ", ".join(["cat"] + F["foes"])))
         say("  " + export.report_line("screen, whole 16 KB page", main + aux))
-        say("  " + export.report_line("screen, stage rows 0-123", stage))
+        say("  " + export.report_line("screen, the stage (rows 0-123)", stage))
         screen_pk = dhgr.packed(stage)
         if base is None:
             base = bd
@@ -135,52 +161,27 @@ def run(art):
             boxes = export.patches(base.px, bd.px)
             pb = export.patch_bytes(bd.px, boxes)
             export.write(art, "patches/%s.bin" % name, pb)
-            say("  " + export.report_line("  or as patches over fight 1", pb, "%d boxes" % len(boxes)))
+            say("  " + export.report_line("  or patches over fight 1", pb, "%d boxes" % len(boxes)))
             screen_pk = min(screen_pk, dhgr.packed(pb))
-        spr = bytearray()
-        mats = bytearray()
-        trimmed = 0
-        for kind in ["cat"] + F["foes"]:
-            idle = None
-            for fr in frames(kind):
-                key = (kind, fr, zone)
-                d = screen.figure(kind, fr)
-                lit = light.lit(d, zone)
-                if key not in sprite_cache:
-                    s_ = dhgr.cut("%s_%s" % (kind, fr), lit.px, lit.bbox())
-                    raw = export.sprite_bytes(s_)
-                    export.write(art, "sprites/%s/%s_%s.bin" % (zone, kind, fr), raw)
-                    mb, used = export.material_bytes(d, d.bbox())
-                    export.write(art, "materials/%s_%s.bin" % (kind, fr), mb)
-                    spans = span_bytes(lit, lit.bbox())
-                    if idle is None:
-                        idle = lit
-                        how = spans
-                    else:
-                        how = min(spans, best_patch(idle, lit)[0])
-                    sprite_cache[key] = (raw, mb, how)
-                else:
-                    idle = idle or lit
-                raw, mb, how = sprite_cache[key]
-                spr += raw
-                mats += mb
-                trimmed += how
-        say("  " + export.report_line("fighters, lit, pic+mask", spr, "every frame whole"))
-        say("  %-34s %7d raw          rows trimmed to their bytes; a frame that is idle moved"
-            % ("  trimmed, frames over idle", trimmed))
-        say("  %-34s %7s              plus a patch (the hop, a new face) stored as that" % ("", ""))
-        say("  " + export.report_line("  stored unlit (materials)", mats, "one copy for every zone"))
-        tot_raw = len(stage) + len(spr)
-        tot_pk = screen_pk + dhgr.packed(bytes(mats))
-        say("  %-34s %7d raw %7d packed  (stage + lit sprites raw; best screen + materials packed)"
-            % ("fight total", tot_raw, tot_pk))
+        foes_lit = sum(len(kinds[k].lit) for k in F["foes"])
+        foes_trim = sum(kinds[k].trimmed for k in F["foes"])
+        foes_pk = sum(kinds[k].packed() for k in F["foes"])
+        new_pk = sum(kinds[k].packed() for k in F["foes"] if k not in seen)
+        seen |= set(F["foes"])
+        say("  %-34s %7d raw %7d packed  as materials; trimmed lit %d" % ("enemies, every frame", foes_lit, foes_pk, foes_trim))
+        ram = len(stage) + cat_.trimmed + foes_trim
+        say("  %-34s %7d       while the fight runs: the stage's clean copy, the cat and" % ("in memory (beyond the pages)", ram))
+        say("  %-34s %7s       the enemies lit and trimmed" % ("", ""))
+        say("  %-34s %7s     %7d packed  (the screen as stored, enemies not stored before)" % ("stored, new for this fight", "", screen_pk + new_pk))
+        run_pk += screen_pk + new_pk
         say("")
+    say("the four day fights stored, everything above packed: %d bytes" % run_pk)
+    say("")
     # the night and dusk backdrops of the lighting proof, for the next rounds
     for zone, bd in (("dusk", night.dusk()), ("night", night.night())):
         main, aux = dhgr.to_pages(bd.px)
         export.write(art, "screens/proof_%s.bin" % zone, main + aux)
-    say("in memory while a fight runs (not stored): two 16 KB pages to flip, and a clean copy of")
-    say("the stage (rows 0-123: 9,920 bytes, half main half aux) to restore under moving sprites.")
+    say("not counted: the two 16 KB pages the screen flips between (main and aux $2000-$5FFF).")
     text = "\n".join(out) + "\n"
     with open(os.path.join(art, "memory.txt"), "w") as f:
         f.write(text)
