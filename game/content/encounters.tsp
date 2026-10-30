@@ -20,8 +20,8 @@
         (make Fight
             :count 2
             :spots (make (array Spot 3)
-                (make Spot :enemy en.PUFFCAP :col 18)
-                (make Spot :enemy en.SPORELET :col 26)
+                (make Spot :enemy en.PUFFCAP :col 16)
+                (make Spot :enemy en.SPORELET :col 24)
                 (make Spot :enemy en.PUFFCAP :col 0)))
         (make Fight
             :count 3

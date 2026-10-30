@@ -1,5 +1,5 @@
 {
- "title": "Witchdog",
+ "title": "Catwiz",
  "mockingboard": 4,
  "columns": 5,
  "buttons": [
@@ -29,19 +29,19 @@
    "sub": "die"
   },
   {
-   "label": "&larr;",
-   "key": "LEFT",
-   "sub": "target"
+   "label": "Z",
+   "key": "Z",
+   "sub": "enemy 1"
   },
   {
-   "label": "&rarr;",
-   "key": "RIGHT",
-   "sub": "target"
+   "label": "X",
+   "key": "X",
+   "sub": "enemy 2"
   },
   {
-   "label": "B",
-   "key": "B",
-   "sub": "bark"
+   "label": "C",
+   "key": "C",
+   "sub": "enemy 3"
   },
   {
    "label": "R",
@@ -54,72 +54,69 @@
    "sub": "end turn"
   },
   {
-   "label": "RETURN",
-   "key": "RETURN",
-   "sub": "start / continue",
-   "wide": true
+   "label": "&larr;",
+   "key": "LEFT",
+   "sub": "target"
+  },
+  {
+   "label": "&rarr;",
+   "key": "RIGHT",
+   "sub": "target"
   },
   {
    "label": "ESC",
-   "key": "ESC"
+   "key": "ESC",
+   "sub": "let go"
+  },
+  {
+   "label": "RETURN",
+   "key": "RETURN",
+   "sub": "play / start",
+   "wide": true
   }
  ],
  "taps": [
   {
-   "x": 20,
-   "y": 148,
-   "w": 36,
-   "h": 44,
+   "x": 22,
+   "y": 126,
+   "w": 34,
+   "h": 34,
    "key": "1"
   },
   {
-   "x": 62,
-   "y": 148,
-   "w": 36,
-   "h": 44,
+   "x": 64,
+   "y": 126,
+   "w": 34,
+   "h": 34,
    "key": "2"
   },
   {
-   "x": 104,
-   "y": 148,
-   "w": 36,
-   "h": 44,
+   "x": 106,
+   "y": 126,
+   "w": 34,
+   "h": 34,
    "key": "3"
   },
   {
-   "x": 146,
-   "y": 148,
-   "w": 36,
-   "h": 44,
+   "x": 148,
+   "y": 126,
+   "w": 34,
+   "h": 34,
    "key": "4"
   },
   {
-   "x": 188,
-   "y": 148,
-   "w": 36,
-   "h": 44,
+   "x": 190,
+   "y": 126,
+   "w": 34,
+   "h": 34,
    "key": "5"
   },
   {
    "x": 232,
-   "y": 148,
+   "y": 126,
    "w": 48,
-   "h": 44,
+   "h": 34,
    "key": "R"
-  },
-  {
-   "x": 124,
-   "y": 0,
-   "w": 66,
-   "h": 14,
-   "key": "B"
-  },
-  {
-   "x": 194,
-   "y": 0,
-   "w": 86,
-   "h": 14,
-   "key": "E"
   },
   {
    "x": 106,
