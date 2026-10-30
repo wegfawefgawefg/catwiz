@@ -112,6 +112,12 @@
         (addr_of (at songs.won 0))
         (addr_of (at songs.lost 0))))
 
+; no song for a moment: before a screen's art unpacks into the aux language card with
+; interrupts off, which would hold the notes playing
+(fn quiet () void
+    (if mb.found
+        (mb.stop)))
+
 ; a song from its start: on the card, copied in from aux memory with interrupts off (the
 ; handler would read the song playing while it changes; about 6,500 cycles, so it delays a tick
 ; and loses none) and played; on the speaker, the title's jingle and the battle's ends

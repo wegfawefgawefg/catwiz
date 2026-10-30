@@ -29,15 +29,16 @@
         Show.count Show.count Show.hidden Show.flag Show.flag Show.count Show.pips Show.flag
         Show.hidden Show.count Show.flag))
 
-; the glyphs, in the hud font: # shield, , fleas (a bug), < buff, ; ward pip (a solid
-; shield), ' mana pip (a star), + plus; letters for the rest
-(const GLYPH (array u8 11) (make (array u8 11) '#' ',' ' ' 'W' 'Z' '<' ';' 'B' '\'' '+' 'X'))
+; the glyphs, in the hud font (tools/dhgr/game_hud.py): # shield, , fleas (a bug), % wet (a
+; drop), @ hissed (a Z), < cheered, ; a ward pip (a solid shield), & in a box, ' mana (a star),
+; + the next die's plus, > its double
+(const GLYPH (array u8 11) (make (array u8 11) '#' ',' ' ' '%' '@' '<' ';' '&' '\'' '+' '>'))
 
 ; in words, for the bottom text: a name, then the stack's number for counts
 (const NAME (array (ptr u8) 11)
     (make (array (ptr u8) 11)
-        "SHIELD " "FLEAS " "" "WET" "HISSED" "CHEERED +" "WARD " "IN A BOX" "MANA " "NEXT +"
-        "NEXT X2"))
+        "Shield " "Fleas " "" "Wet" "Hissed" "Cheered +" "Ward " "In a box" "Mana " "Next +"
+        "Next x2"))
 
 ; a new fight: no stacks, and the ward its kind has (the hero: kind NOTHING)
 (fn start ((who u8) (kind u8)) void
@@ -61,7 +62,7 @@
     (state.set_stack who (as u8 Status.flea_turns) (- turns 1))
     (if (= turns 1)
         (state.set_stack who (as u8 Status.poison) 0))
-    (log.who who " TAKES # FROM FLEAS." bite)
+    (log.who who " takes # from fleas." bite)
     bite)
 
 ; whether who skips the move it was going to make (hissed at); the hiss is used up
@@ -69,7 +70,7 @@
     (if (= (state.stack who (as u8 Status.hiss)) 0)
         (return false))
     (state.set_stack who (as u8 Status.hiss) 0)
-    (log.who who " SKIPS ITS MOVE." 0)
+    (log.who who " skips its move." 0)
     true)
 
 ; a hit who makes, after their statuses: cheer adds (used up when the hit is made, use),

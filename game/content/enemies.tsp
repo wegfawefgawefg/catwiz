@@ -1,6 +1,6 @@
 ; the forest's enemies and their moves. An enemy makes its moves in order, round and round,
 ; from its first; a move's icon is the glyph shown over its head before it acts, and its text
-; what the bottom text and the log say it does (# the number it does it for; no name; 21
+; what the bottom text and the log say it does (# the number it does it for; no name; 16
 ; characters at most, so the bag still fits on the bottom text's row after it).
 
 (import state)
@@ -21,24 +21,24 @@
 (const ENEMIES (array Enemy 3)
     (make (array Enemy 3)
         (make Enemy
-            :name "PUFFCAP"
+            :name "Puffcap"
             :hp 9
             :ward 0
-            :figure art.KIND_CAP_BIG
+            :figure art.KIND_PUFFCAP
             :first_move 0
             :move_count 2)
         (make Enemy
-            :name "SPORELET"
+            :name "Sporelet"
             :hp 6
             :ward 0
-            :figure art.KIND_CAP_SMALL
+            :figure art.KIND_SPORELET
             :first_move 2
             :move_count 2)
         (make Enemy
-            :name "NIGHTFLAP"
+            :name "Nightflap"
             :hp 8
             :ward 1
-            :figure art.KIND_BAT
+            :figure art.KIND_NIGHTFLAP
             :first_move 4
             :move_count 3)))
 
@@ -47,7 +47,7 @@
         ; puffcap: a head-butt, then hunkers down under spores
         (make ac.Action
             :name ""
-            :text "HEADBUTT FOR #"
+            :text "Headbutt for #"
             :caption ""
             :effect ac.Effect.hit
             :amount 4
@@ -58,7 +58,7 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name ""
-            :text "SPORE SHIELD #"
+            :text "Spore shield #"
             :caption ""
             :effect ac.Effect.shield
             :amount 3
@@ -70,7 +70,7 @@
         ; sporelet: a nip, then cheers its friend on
         (make ac.Action
             :name ""
-            :text "NIP FOR #"
+            :text "Nip for #"
             :caption ""
             :effect ac.Effect.hit
             :amount 2
@@ -81,7 +81,7 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name ""
-            :text "CHEER: FRIEND +# NEXT"
+            :text "Cheer: friend +#"
             :caption ""
             :effect ac.Effect.cheer
             :amount 1
@@ -93,7 +93,7 @@
         ; nightflap: a scratch, a bite, then a dive every third turn
         (make ac.Action
             :name ""
-            :text "SCRATCH FOR #"
+            :text "Scratch for #"
             :caption ""
             :effect ac.Effect.hit
             :amount 1
@@ -104,7 +104,7 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name ""
-            :text "BITE FOR #"
+            :text "Bite for #"
             :caption ""
             :effect ac.Effect.hit
             :amount 2
@@ -115,12 +115,12 @@
             :upgrade state.NOTHING)
         (make ac.Action
             :name ""
-            :text "DIVE FOR #"
+            :text "Dive for #"
             :caption ""
             :effect ac.Effect.hit
             :amount 3
             :cost 0
             :aim state.Aim.foe
             :motion state.Motion.lunge
-            :icon '>'
+            :icon '^'
             :upgrade state.NOTHING)))

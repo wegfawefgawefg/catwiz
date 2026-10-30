@@ -18,8 +18,8 @@
 (let hints_shown u8 0)
 
 ; what the two rows show, as screen codes
-(let older (array u8 40) :address 0x0990) ; scratch: see AGENTS.md, Memory
-(let newer (array u8 40) :address 0x09B8)
+(let older (array u8 35) :address 0x0990) ; scratch: see AGENTS.md, Memory
+(let newer (array u8 35) :address 0x09B8)
 
 ; who's name: the hero's, or the enemy kind's
 (fn name ((who u8)) (ptr u8)
@@ -57,7 +57,7 @@
     (text.add_n s n)
     (push))
 
-; who starts an action: "CATWIZ: WAND 2.", "PUFFCAP: HEADBUTT FOR 2." (s with n for its #)
+; who starts an action: "Catwiz: WAND 2.", "Puffcap: Headbutt for 2." (s with n for its #)
 (fn uses ((w u8) (s (ptr u8)) (n u8)) void
     (text.start)
     (text.add (name w))

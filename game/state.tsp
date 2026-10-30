@@ -9,12 +9,19 @@
 (const FLOATERS u8 4) ; damage numbers in the air at once
 (const BAG_MOST u8 6) ; dice in the bag at most: the reward's pickers show them all in the tray
 (const MARKERS u8 3)  ; arrows over who the picked die goes to: every enemy, for a hit-all
-(const LOOKS u8 12)   ; things drawn over the backdrop: 4 actors, bolt, 3 markers, 4 floaters
-(const LOOK_BOLT u8 4)
-(const LOOK_MARKER u8 5)
-(const LOOK_FLOATER u8 8)
-(const RECTS u8 12) ; backdrop boxes waiting to be copied onto each page
+; things drawn over the backdrop, later ones on top: 4 actors, their hit point badges, the
+; enemies' intent badges, the bolt, 3 markers, 4 floaters
+(const LOOKS u8 19)
+(const LOOK_HP u8 4)
+(const LOOK_INTENT u8 8) ; then 9 and 10: actor i's at LOOK_INTENT + i - 1
+(const LOOK_BOLT u8 11)
+(const LOOK_MARKER u8 12)
+(const LOOK_FLOATER u8 15)
+(const BADGES u8 7)     ; the badges: 4 hit point ones, then 3 intents
+(const BADGE_MOST u8 8) ; glyphs in a badge at most
+(const RECTS u8 12)     ; backdrop boxes waiting to be copied onto each page
 (const NOTHING u8 255)
+(const BADGE u8 254) ; a look's sprite when it is a badge
 
 (enum Screen (title battle))
 
@@ -24,8 +31,8 @@
 ; die and the face to upgrade
 (enum Pick (offer remove upgrade_die upgrade_face))
 
-; the face an actor shows; the same order as the art's moods
-(enum Mood (idle angry worried hurt attack happy ko))
+; the face an actor shows (battle/look turns it into a frame of the art)
+(enum Mood (idle angry worried hurt attack happy ko surprised))
 
 ; how an action looks on screen: a jump at the target, a bolt thrown at it, or a hop in place
 (enum Motion (lunge throw hop))
@@ -56,17 +63,16 @@
 
 (struct Floater ((sprite u8) (second u8) (col u8) (top u8) (time u8)))
 
-; what one look on screen shows: a sprite and a second one over it (a face patch, a second
-; digit), or sprite NOTHING when it is not there
+; what one look on screen shows: a sprite (and a second one beside it, a floater's second
+; digit), or a badge (sprite BADGE: its glyphs in state.badge_glyphs, second the count of its
+; changes so a page sees a new one), or sprite NOTHING when it is not there. col is a byte
+; column (even), top a row
 (struct Look ((sprite u8)
         (col u8)
         (top u8)
         (second u8)
-        (second_col u8)
-        (second_top u8)
         (white bool) ; drawn as a white shape: the hit flash
-        (swaps bool) ; the second is a face that can be drawn straight over another such face
-        (face_on_body bool))) ; and it is the face the body already has: drawn only to swap back
+        (wide u8)))  ; a badge's byte columns
 
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 
@@ -91,12 +97,12 @@
 ; (die d is d * DIE_FACES to d * DIE_FACES + 5)
 (let fight u8)
 (let hero_hp u8)
-(let dice (array u8 36) :address 0x0708) ; BAG_MOST * DIE_FACES
+(let dice (array u8 36) :address 0x0700) ; BAG_MOST * DIE_FACES
 (let bag u8)                             ; dice in the bag
 ; each turn the tray takes HAND dice from the bag's draw pile; when it runs out, the dice not
 ; in the tray are shuffled back into it. A fight starts with every die in the draw pile
-(let in_draw (array bool 6) :address 0x072C) ; die d is in the draw pile
-(let tray_die (array u8 5) :address 0x0732)  ; the bag die in each tray slot, NOTHING for none
+(let in_draw (array bool 6) :address 0x06D6) ; die d is in the draw pile
+(let tray_die (array u8 5) :address 0x06DC)  ; the bag die in each tray slot, NOTHING for none
 (let hand (array u8 5))                      ; the face each die shows, a row in content/faces
 (let played (array bool 5))
 (let rerolls u8)
@@ -123,23 +129,27 @@
 (let bolt_on bool)
 (let bolt_sx i16) ; k steps of the way, times 8: see battle/act.tsp
 (let bolt_sy i16)
-(let floaters (array Floater 4) :address 0x0A30)
+(let floaters (array Floater 4) :address 0x06BC)
 ; the hud parts that need drawing again
 (let hud_pills u8)   ; a bit for each actor whose hit points or statuses changed
 (let hud_intents u8) ; a bit for each enemy whose intent changed
 (let hud_dice u8)    ; a bit for each die to draw again
 (let hud_rerolls bool)
 (let hud_words bool) ; the bottom text's top two lines
+; the badges' glyphs (badge * BADGE_MOST + k), how many, and a count of their changes
+(let badge_glyphs (array u8 56) :address 0x0724)
+(let badge_count (array u8 7) :address 0x075C)
+(let badge_stamp (array u8 7) :address 0x0763)
+(let badge_x (array u8 7) :address 0x076A) ; the pill's first pixel
 ; drawing: what each look should show, and what each page shows now
-(let looks (array Look 12) :address 0x0580)
-(let drawn (array Look 24) :address 0x0200) ; page * LOOKS + look
+(let looks (array Look 19) :address 0x0580)
+(let drawn (array Look 38) :address 0x0200) ; page * LOOKS + look
 (let rects (array Rect 24) :address 0x0400) ; page * RECTS + n
 (let rect_count (array u8 2))
 (let full_redraw (array bool 2))
 ; the title
 (let glow u8) ; which step of the glow cycle it shows
 (let glow_time u8)
-(let glow_loaded bool) ; a new glow step is on the back page, to show
 
 (fn stack ((who u8) (status u8)) u8
     (at stacks (+ (* who STATUS_SLOTS) status)))

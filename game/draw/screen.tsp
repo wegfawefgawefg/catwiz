@@ -1,56 +1,33 @@
-; the three hi-res pages: page 1 at $2000 and page 2 at $4000 take turns on screen, and the
-; backdrop page at $6000 holds the clean picture everything is drawn over. A page is named by
-; how far it sits past page 1, in pages of 256 bytes: PAGE_1, PAGE_2 or BACKDROP, so the
-; address of row y on it is (at hgr.ROW y) plus that many pages.
+; the double hi-res pages (lib/dhgr): page 1 at $2000 and page 2 at $4000 take turns on screen,
+; the whole screen graphics, and the backdrop page at $6000 holds the clean picture with the hud
+; drawn into it, which everything else is drawn over. Each is 8 KB of main memory and 8 KB of
+; aux memory at the same addresses; a page is named by its high byte (dhgr.PAGE1, dhgr.PAGE2,
+; BACKDROP), so row y of it is (at dhgr.ROW y) plus that many pages less $20.
 
 (import apple2 a2)
-(import hgr)
-(import auxmem)
+(import dhgr)
+(import unpack)
 
-(let page2 (array u8 8192) :address a2.HGR_PAGE2 :reserve)
-(let backdrop_page (array u8 8192) :address 0x6000 :reserve)
+(let backdrop_main (array u8 8192) :address 0x6000 :reserve)
+(let backdrop_aux (array u8 8192) :address 0x6000 :in aux :reserve)
 
-(const PAGE_1 u8 0x00)
-(const PAGE_2 u8 0x20)
-(const BACKDROP u8 0x40)
+(const BACKDROP u8 0x60)
 
 ; the page being drawn, which is not the one on screen, and its number (0 or 1)
-(let back u8 PAGE_2)
+(let back u8 dhgr.PAGE2)
 (let back_index u8 1)
 
-; the address of byte column col of row y on page
-(fn row_at ((page u8) (y u8) (col u8)) (ptr u8)
-    (let row u16 (at hgr.ROW y))
-    (as (ptr u8) (+ (+ row (<< (as u16 page) 8)) (as u16 col))))
+; the address of byte column col of row y on page, in the memory it is read from
+(fn row_at ((page u8) (y u8) (col u8)) u16
+    (+ (+ (at dhgr.ROW y) (<< (as u16 (- page dhgr.PAGE1)) 8)) (as u16 col)))
 
-(fn page_start ((page u8)) (ptr u8)
-    (as (ptr u8) (+ a2.HGR_PAGE1 (<< (as u16 page) 8))))
-
-; the byte column pixel x (0 to 279) is in: x / 7 as (x * 73 + 72) / 512, exact over the
-; screen, so no division routine (and not hgr's 280-entry tables, 560 bytes)
-(fn byte_of ((x u16)) u8
-    (as u8 (>> (+ (* x 73) 72) 9)))
-
-; its dot in that byte
-(fn bit_of ((x u16)) u8
-    (<< 1 (- (as u8 x) (* (byte_of x) 7))))
-
-; graphics, full screen, page 1 on, page 2 drawn next
-(fn setup () void
-    (io_read u8 a2.TXTCLR)
-    (io_read u8 a2.MIXCLR)
-    (io_read u8 a2.HIRES)
-    (show_page_1))
-
-(fn show_page_1 () void
-    (io_read u8 a2.LOWSCR)
-    (set back PAGE_2)
+; graphics, the whole screen, page 1 on, page 2 drawn next (the title turns it on once its
+; picture is on both pages)
+(fn on () void
+    (dhgr.show dhgr.PAGE1)
+    (dhgr.on false)
+    (set back dhgr.PAGE2)
     (set back_index 1))
-
-(fn show_page_2 () void
-    (io_read u8 a2.HISCR)
-    (set back PAGE_1)
-    (set back_index 0))
 
 ; false only to measure frame costs: frames then run as fast as they can
 (const WAIT_FOR_BLANK bool true)
@@ -65,17 +42,24 @@
 ; at the next vertical blank, show the page just drawn
 (fn flip () void
     (wait_frame)
-    (if (= back PAGE_2)
-        (show_page_2)
-        (show_page_1)))
+    (dhgr.show back)
+    (set back (dhgr.hidden))
+    (set back_index (if (= back dhgr.PAGE2)
+        1
+        0)))
 
-; 8 KB from aux memory onto a page, with interrupts on (sound.setup put in lib/auxmem's guard)
-(fn load_page ((page u8) (picture (ptr u8))) void
-    (auxmem.read (page_start page) picture 8192))
+; a box of page from copied onto page, both memories
+(fn copy_box ((page u8) (col u8) (top u8) (cols u8) (rows u8) (from u8)) void
+    (dhgr.copy_box page dhgr.AUX col top cols rows from)
+    (dhgr.copy_box page dhgr.MAIN col top cols rows from))
 
 ; one page copied onto another, whole
 (fn copy_page ((from u8) (to u8)) void
-    (let src (ptr u8) (page_start from))
-    (let dst (ptr u8) (page_start to))
-    (for i u16 0 8192
-        (store (+ dst i) (load (+ src i)))))
+    (copy_box to 0 0 40 192 from))
+
+; a screen packed in aux memory (its two halves, art/NAME_aux and NAME_main) onto page, which
+; is the backdrop or a page not on screen
+(fn unpack_page ((page u8) (aux (ptr u8)) (main (ptr u8))) void
+    (let at (ptr u8) (as (ptr u8) (<< (as u16 page) 8)))
+    (unpack.aux_to_aux at aux)
+    (unpack.aux_to_main at main))

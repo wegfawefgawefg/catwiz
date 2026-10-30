@@ -13,9 +13,9 @@
 (import content/effects fx)
 (import content/statuses st)
 
-(const PROMPT_COL u8 17) ; after the longest face name
-(const BAG_COL u8 28)    ; after the longest move
-(const WOODS_QUIET (ptr u8) "THE WOODS GO QUIET.")
+(const PROMPT_COL u8 16) ; after the longest face name
+(const BAG_COL u8 23)    ; after "Next: " and the longest move
+(const WOODS_QUIET (ptr u8) "The woods go quiet.")
 
 ; what the rows were drawn for, so a change of phase draws them again
 (let shown_phase state.Phase state.Phase.won)
@@ -28,7 +28,7 @@
     (text.number (at state.actors who hp))
     (text.char '/')
     (text.number (at state.actors who max_hp))
-    (text.add " HP")
+    (text.add " hp")
     (for s u8 0 st.STATUS_COUNT
         (let n u8 (state.stack who s))
         (let show st.Show (at st.SHOW s))
@@ -50,12 +50,12 @@
     (set text.inverse false)
     (text.tab PROMPT_COL)
     (if (not (fx.can_play row))
-        (text.add_n "NEEDS # MANA" face.cost)
+        (text.add_n "Needs # mana" face.cost)
         (if (= face.aim state.Aim.foe)
-            (text.add "PICK AN ENEMY")
+            (text.add "Pick an enemy")
             (text.add (if (= face.aim state.Aim.all)
-                "PICK IT AGAIN: HITS ALL"
-                "PICK IT AGAIN: ON YOU"))))
+                "Again: hits all"
+                "Again: on you"))))
     (text.show 0)
     (text.start)
     (let n u8 face.amount)
@@ -70,11 +70,11 @@
     (if (at state.actors who alive)
         (do
             (let row u8 (at state.actors who move))
-            (text.add "NEXT: ")
+            (text.add "Next: ")
             (text.add_n (fx.intent_text who row) (fx.intent_amount who row))))
     (text.tab BAG_COL)
-    (text.add_n "BAG #" state.bag)
-    (text.add_n " DRAW #" (bag.draw_count))
+    (text.add_n "Bag #" state.bag)
+    (text.add_n " draw #" (bag.draw_count))
     (text.show 1))
 
 (fn line_row ((r u8) (s (ptr u8))) void
@@ -85,7 +85,7 @@
 ; on the enemies' turn: the hero's own state
 (fn their_turn () void
     (actor_row state.HERO)
-    (line_row 1 "THEIR TURN"))
+    (line_row 1 "Their turn"))
 
 (fn refresh () void
     (if (and (and (not state.hud_words) (= shown_phase state.phase))
@@ -97,7 +97,7 @@
         (state.Phase.enemies (their_turn))
         (state.Phase.rolling
             (actor_row state.HERO)
-            (line_row 1 "ROLLING"))
+            (line_row 1 "Rolling"))
         (state.Phase.won
             (line_row 0 WOODS_QUIET)
             (line_row 1 ""))
@@ -122,9 +122,12 @@
     (if won
         (do
             (text.add WOODS_QUIET)
-            (text.add " TO BE CONTINUED..."))
+            (text.show 0)
+            (line_row 1 "To be continued..."))
         (do
             (text.add (log.name state.HERO))
-            (text.add " IS DOWN. THE RUN IS OVER.")))
-    (text.show 0)
-    (line_row 1 "PRESS RETURN OR TAP"))
+            (text.add " is down. The run is over.")
+            (text.show 0)
+            (line_row 1 "")))
+    (line_row 2 "")
+    (line_row 3 "Press RETURN or tap."))

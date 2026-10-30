@@ -1,150 +1,136 @@
 ; sprites onto a page, and the backdrop back over a page.
 ;
-; a sprite (art/sprites.tsp) w bytes wide and h rows tall is h rows of w picture bytes, h rows
-; of w mask bytes, then each row's span: h firsts and h counts, the bytes with something in
-; them. Each screen byte in a span becomes (screen & mask) | picture. Sprites go on the byte
-; grid: col is a byte column (7 pixels), top a pixel row, both of the sprite's top-left corner.
+; a sprite (art/sprites.tsp) is two halves stored as lib/dhgr runs: its aux memory bytes and
+; its main memory bytes. A screen's kinds are unpacked when it starts (want, unpack_all) into the
+; aux language card and aux memory, one kind after another, so neither half takes main memory. Sprites go on the byte grid: col is
+; an even byte column (7 pixels a step of 2), top a row, both of the sprite's top-left corner.
 ; Nothing is clipped: callers keep sprites on the screen.
-;
-; the inner loops index the sprite row and the screen row with the same Y, so a row costs a
-; screen address and two pointer steps.
 
-(import hgr)
+(import auxcard)
+(import dhgr)
+(import unpack)
 (import art/sprites art)
-(import art/sprite_data)
+(import art/runs_cat)
+(import art/runs_puffcap)
+(import art/runs_sporelet)
+(import art/runs_nightflap)
+(import art/runs_misc)
+(import art/runs_glow)
 (import draw/screen)
 
-(fn data_at ((offset u16)) (ptr u8)
-    (+ (addr_of (at sprite_data.bytes 0)) offset))
+; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
+; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
+; each fits. Fight 2 (the cat, the small ones, puffcap, sporelet, nightflap): 10,093 bytes of
+; main halves and 10,438 of aux ones; the cat's aux half (5,356) is the one in sprite_aux
+(const AUX_BYTES u16 5376)
+(const CARD_START u16 0xD000)
+(const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
+(const CARD1_END u16 0xE000)
+(let sprite_aux (array u8 5376) :in aux)
 
-; the sprite drawn over what the page has
+; where each kind's runs are now (an address, and dhgr.runs' flags saying in which memory)
+(let aux_at (array u16 6))
+(let aux_flags (array u8 6))
+(let card_at (array u16 6))
+(let card_flags (array u8 6))
+; and where the next ones go
+(let aux_next u16 0)
+(let card2_next u16 0xD000)
+(let card1_next u16 0xD000)
+
+; a new screen's kinds from here on
+(fn start () void
+    (set wanted_count 0)
+    (set aux_next 0)
+    (set card2_next CARD_START)
+    (set card1_next CARD_START))
+
+; one kind's packed runs, the aux halves and the main ones
+(fn kind_aux ((kind u8)) (ptr u8)
+    (match kind
+        (art.KIND_CAT (addr_of (at runs_cat.cat_aux 0)))
+        (art.KIND_PUFFCAP (addr_of (at runs_puffcap.puffcap_aux 0)))
+        (art.KIND_SPORELET (addr_of (at runs_sporelet.sporelet_aux 0)))
+        (art.KIND_NIGHTFLAP (addr_of (at runs_nightflap.nightflap_aux 0)))
+        (art.KIND_MISC (addr_of (at runs_misc.misc_aux 0)))
+        (_ (addr_of (at runs_glow.glow_aux 0)))))
+
+(fn kind_main ((kind u8)) (ptr u8)
+    (match kind
+        (art.KIND_CAT (addr_of (at runs_cat.cat_main 0)))
+        (art.KIND_PUFFCAP (addr_of (at runs_puffcap.puffcap_main 0)))
+        (art.KIND_SPORELET (addr_of (at runs_sporelet.sporelet_main 0)))
+        (art.KIND_NIGHTFLAP (addr_of (at runs_nightflap.nightflap_main 0)))
+        (art.KIND_MISC (addr_of (at runs_misc.misc_main 0)))
+        (_ (addr_of (at runs_glow.glow_main 0)))))
+
+; packed runs of size bytes into the card: bank 2 if they fit, else bank 1 (with aux_first,
+; bank 1 first); gives the flags for where, or 0 for neither
+(let placed_at u16 0)
+
+(fn into_card ((src (ptr u8)) (size u16) (aux_first bool)) u8
+    (let fits2 bool (<= size (- CARD2_END card2_next)))
+    (let fits1 bool (<= size (- CARD1_END card1_next)))
+    (if (and fits1 (or aux_first (not fits2)))
+        (do
+            (set placed_at card1_next)
+            (unpack.aux_to_card (as (ptr u8) card1_next) src auxcard.BANK1)
+            (set card1_next (+ card1_next size))
+            (return dhgr.FROM_CARD1)))
+    (if fits2
+        (do
+            (set placed_at card2_next)
+            (unpack.aux_to_card (as (ptr u8) card2_next) src auxcard.BANK2)
+            (set card2_next (+ card2_next size))
+            (return dhgr.FROM_CARD)))
+    0)
+
+; the kinds this screen wants, unpacked together by unpack_all
+(let wanted (array u8 6))
+(let wanted_count u8 0)
+
+(fn want ((kind u8)) void
+    (set (at wanted wanted_count) kind)
+    (set wanted_count (+ wanted_count 1)))
+
+; the wanted kinds' runs unpacked for this screen, all the main halves first (they must go in
+; the card), then the aux halves (interrupts are off while a half unpacks into the card)
+(fn unpack_all () void
+    (for i u8 0 wanted_count
+        (let kind u8 (at wanted i))
+        (set (at card_flags kind) (into_card (kind_main kind) (at art.KIND_MAIN_SIZE kind) false))
+        (set (at card_at kind) placed_at))
+    (for i u8 0 wanted_count
+        (let kind u8 (at wanted i))
+        (let flags u8 (into_card (kind_aux kind) (at art.KIND_AUX_SIZE kind) true))
+        (set (at aux_flags kind) flags)
+        (set (at aux_at kind) placed_at)
+        (if (= flags 0)
+            (do
+                (let at (ptr u8) (+ (addr_of (at sprite_aux 0)) aux_next))
+                (unpack.aux_to_aux at (kind_aux kind))
+                (set (at aux_at kind) (as u16 at))
+                (set aux_next (+ aux_next (at art.KIND_AUX_SIZE kind)))))))
+
+(fn aux_runs ((id u8)) (ptr u8)
+    (as (ptr u8) (+ (at aux_at (at art.KIND_OF id)) (at art.AUX_AT id))))
+
+(fn card_runs ((id u8)) (ptr u8)
+    (as (ptr u8) (+ (at card_at (at art.KIND_OF id)) (at art.MAIN_AT id))))
+
+; the sprite drawn over what the page has, or its shape in white (the hit flash)
+(fn draw ((page u8) (col u8) (top u8) (id u8) (white bool)) void
+    (let rows u8 (at art.ROWS id))
+    (let kind u8 (at art.KIND_OF id))
+    (let flags u8 (if white
+        dhgr.AS_WHITE
+        0))
+    (dhgr.runs page dhgr.AUX col top rows (aux_runs id) (| flags (at aux_flags kind)))
+    (dhgr.runs page dhgr.MAIN col top rows (card_runs id) (| flags (at card_flags kind))))
+
 (fn sprite ((page u8) (col u8) (top u8) (id u8)) void
-    (let w u8 (at art.SPRITE_W id))
-    (let h u8 (at art.SPRITE_H id))
-    (let pic (ptr u8) (data_at (at art.SPRITE_AT id)))
-    (let mask (ptr u8) (data_at (at art.SPRITE_MASK_AT id)))
-    (let firsts (ptr u8) (data_at (at art.SPRITE_SPAN_AT id)))
-    (let counts (ptr u8) (+ firsts h))
-    (for r u8 0 h
-        (let first u8 (load (+ firsts r)))
-        (let end u8 (+ first (load (+ counts r))))
-        (let dst (ptr u8) (screen.row_at page (+ top r) col))
-        (for c u8 first end
-            (store (+ dst c) (| (& (load (+ dst c)) (load (+ mask c))) (load (+ pic c)))))
-        (set pic (+ pic w))
-        (set mask (+ mask w))))
-
-; the sprite's shape in white: the hit flash
-(fn white ((page u8) (col u8) (top u8) (id u8)) void
-    (let w u8 (at art.SPRITE_W id))
-    (let h u8 (at art.SPRITE_H id))
-    (let mask (ptr u8) (data_at (at art.SPRITE_MASK_AT id)))
-    (let firsts (ptr u8) (data_at (at art.SPRITE_SPAN_AT id)))
-    (let counts (ptr u8) (+ firsts h))
-    (for r u8 0 h
-        (let first u8 (load (+ firsts r)))
-        (let end u8 (+ first (load (+ counts r))))
-        (let dst (ptr u8) (screen.row_at page (+ top r) col))
-        (for c u8 first end
-            (let m u8 (load (+ mask c)))
-            (store (+ dst c) (| (& (load (+ dst c)) m) (& (~ m) 0x7F))))
-        (set mask (+ mask w))))
+    (draw page col top id false))
 
 ; a box of the backdrop page copied onto page: cols byte columns from col, rows from top
 (fn restore ((page u8) (col u8) (top u8) (cols u8) (rows u8)) void
-    (for r u8 0 rows
-        (let row u16 (+ (at hgr.ROW (+ top r)) (as u16 col)))
-        (let src (ptr u8) (as (ptr u8) (+ row (<< (as u16 screen.BACKDROP) 8))))
-        (let dst (ptr u8) (as (ptr u8) (+ row (<< (as u16 page) 8))))
-        (for i u8 0 cols
-            (store (+ dst i) (load (+ src i))))))
-
-; a box of page filled with one byte
-(fn fill ((page u8) (col u8) (top u8) (cols u8) (rows u8) (value u8)) void
-    (for r u8 0 rows
-        (let dst (ptr u8) (screen.row_at page (+ top r) col))
-        (for i u8 0 cols
-            (store (+ dst i) value))))
-
-; a sprite moved or changed, in one pass over the rows either covers: in the new sprite's
-; spans the screen gets the backdrop with the sprite over it ((backdrop & mask) | picture, or
-; white for the flash), and the rest of the old sprite's spans gets the backdrop back. old may
-; be art.NONE for a sprite just appearing. Only for a sprite that nothing else on the screen
-; meets: it draws from the backdrop, not over what the page has
-(fn move ((page u8)
-        (old u8)
-        (old_col u8)
-        (old_top u8)
-        (new u8)
-        (new_col u8)
-        (new_top u8)
-        (white bool)) void
-    (let w u8 (at art.SPRITE_W new))
-    (let new_rows u8 (at art.SPRITE_H new))
-    ; the picture and mask pointers are moved back by new_col, so the same screen column
-    ; indexes the screen row and the sprite row
-    (let pic (ptr u8) (- (data_at (at art.SPRITE_AT new)) (as u16 new_col)))
-    (let mask (ptr u8) (- (data_at (at art.SPRITE_MASK_AT new)) (as u16 new_col)))
-    (let firsts (ptr u8) (data_at (at art.SPRITE_SPAN_AT new)))
-    (let counts (ptr u8) (+ firsts new_rows))
-    (let old_rows u8 0)
-    (let old_firsts (ptr u8) firsts)
-    (if (!= old art.NONE)
-        (do
-            (set old_rows (at art.SPRITE_H old))
-            (set old_firsts (data_at (at art.SPRITE_SPAN_AT old)))))
-    (let old_counts (ptr u8) (+ old_firsts old_rows))
-    (let old_end u8 (+ old_top old_rows))
-    (let new_end u8 (+ new_top new_rows))
-    (let y0 u8 new_top)
-    (let y1 u8 new_end)
-    (if (and (> old_rows 0) (< old_top y0))
-        (set y0 old_top))
-    (if (and (> old_rows 0) (> old_end y1))
-        (set y1 old_end))
-    (for y u8 y0 y1
-        (let row u16 (at hgr.ROW y))
-        (let src (ptr u8) (as (ptr u8) (+ row (<< (as u16 screen.BACKDROP) 8))))
-        (let dst (ptr u8) (as (ptr u8) (+ row (<< (as u16 page) 8))))
-        ; this row's new span, in screen columns, n_first up to n_end; empty off the sprite
-        (let n_first u8 0)
-        (let n_end u8 0)
-        (if (and (>= y new_top) (< y new_end))
-            (do
-                (let r u8 (- y new_top))
-                (let count u8 (load (+ counts r)))
-                (if (> count 0)
-                    (do
-                        (set n_first (+ new_col (load (+ firsts r))))
-                        (set n_end (+ n_first count))))))
-        ; the old span, cleaned where the new one does not cover it
-        (if (and (>= y old_top) (< y old_end))
-            (do
-                (let r u8 (- y old_top))
-                (let o_first u8 (+ old_col (load (+ old_firsts r))))
-                (let o_end u8 (+ o_first (load (+ old_counts r))))
-                (if (= n_end 0)
-                    (for c u8 o_first o_end
-                        (store (+ dst c) (load (+ src c))))
-                    (do
-                        (let left_end u8 (if (< o_end n_first)
-                            o_end
-                            n_first))
-                        (for c u8 o_first left_end
-                            (store (+ dst c) (load (+ src c))))
-                        (let right_first u8 (if (> o_first n_end)
-                            o_first
-                            n_end))
-                        (for c u8 right_first o_end
-                            (store (+ dst c) (load (+ src c))))))))
-        ; the new span
-        (if white
-            (for c u8 n_first n_end
-                (let m u8 (load (+ mask c)))
-                (store (+ dst c) (| (& (load (+ src c)) m) (& (~ m) 0x7F))))
-            (for c u8 n_first n_end
-                (store (+ dst c) (| (& (load (+ src c)) (load (+ mask c))) (load (+ pic c))))))
-        (if (and (>= y new_top) (< y new_end))
-            (do
-                (set pic (+ pic w))
-                (set mask (+ mask w))))))
+    (screen.copy_box page col top cols rows screen.BACKDROP))

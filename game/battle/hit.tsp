@@ -25,12 +25,12 @@
     (set state.hud_pills (| state.hud_pills (<< 1 target)))
     (if (= damage 0)
         (do
-            (log.who target "'S SHIELD TAKES IT ALL." 0)
+            (log.who target "'s shield takes it all." 0)
             (sound.cue sound.Cue.ping)
             (set (at state.actors target flash) 1)
             (float_number target 0 false)
             (return)))
-    (log.who target " TAKES #." damage)
+    (log.who target " takes #." damage)
     (lose target damage))
 
 ; n hit points off who, with all the feel of a hit; at 0 it starts dying
@@ -61,7 +61,7 @@
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
     (set state.hud_intents (| state.hud_intents (<< 1 who)))
-    (log.who who " IS BEATEN." 0)
+    (log.who who " is beaten." 0)
     (sound.cue sound.Cue.squeak))
 
 (fn heal ((who u8) (n u8)) void
@@ -72,10 +72,10 @@
     ; nothing to mend: no +0 floats up
     (if (= n 0)
         (do
-            (log.who who " IS AT FULL HP ALREADY." 0)
+            (log.who who " is at full hp already." 0)
             (return)))
     (set (at state.actors who hp) (+ hp n))
-    (log.who who " HEALS #." n)
+    (log.who who " heals #." n)
     (set (at state.actors who mood) state.Mood.happy)
     (set (at state.actors who mood_time) HURT_FRAMES)
     (set state.hud_pills (| state.hud_pills (<< 1 who)))
@@ -103,21 +103,23 @@
             (set second (+ art.DIGIT_0 (% n 10)))))
     (if (and plus (< n 10))
         (do
-            (set first art.BIG_PLUS)
+            (set first art.DIGIT_PLUS)
             (set second (+ art.DIGIT_0 n))))
     ; enemies: above the intent over the head, low enough to rise without leaving the screen.
     ; The hero: beside her face, clear of the tall hat, so the number never has to be drawn
     ; over her
-    (let col u8 (- (place.middle who) 1))
+    (let col u8 (& (- (place.middle who) 1) 0xFE))
     (if (!= second state.NOTHING)
-        (set col (- col 1)))
+        (set col (- col 2)))
     (let top u8 (place.top who))
     (set top (if (> top 54)
         (- top 34)
         20))
     (if (= who state.HERO)
         (do
-            (set col (+ (at state.actors who home) (at art.KIND_COLS (at state.actors who figure))))
+            (set col
+                (& (+ (at state.actors who home) (at art.KIND_COLS (at state.actors who figure)))
+                    0xFE))
             (set top 44)))
     (set (at state.floaters slot)
         (make state.Floater :sprite first :second second :col col :top top :time FLOAT_FRAMES)))
