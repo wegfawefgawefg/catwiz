@@ -1,0 +1,7 @@
+; Catwiz: tisple build makes the disk, tisple run plays it
+(program game/main.tsp)
+(origin 0x8000)
+(disk build/catwiz.dsk)
+(mockingboard 4)
+(scale 2)
+(taps tools/phone/catwiz.json)

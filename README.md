@@ -29,28 +29,31 @@ over; losing ends the run.
 
 ## Building
 
-Needs Tisple at commit 02e5697 or later (C++20, CMake, Ninja; see its README):
+Needs Tisple at commit 71899ed or later (C++20, CMake, Ninja; see its README):
 
 ```sh
 git clone https://github.com/wegfawefgawefg/tisple
 cd tisple && cmake --preset release && cmake --build --preset release   # tisple/build/tisple
 ```
 
-Then, here:
+Then, anywhere in this repo:
 
 ```sh
-TISPLE=/path/to/tisple/build/tisple tools/build.sh      # writes build/catwiz.dsk
+tisple build      # writes build/catwiz.dsk
 ```
 
-Without `TISPLE`, `tools/build.sh` uses `~/Coding/LangDev/tisple/build/tisple`, else `tisple`
-on the PATH. The art is drawn in plain Python 3 (`tools/art/`) and exported to
+`tisple.project` holds the settings: the program (`game/main.tsp`), its origin, the disk, and the
+machine flags `tisple run` uses. The art is drawn in plain Python 3 (`tools/art/`) and exported to
 `game/art/*.tsp`, which are checked in; after changing it, run
 `TISPLE=/path/to/tisple/build/tisple python3 tools/art/export.py`.
 
 ## Running
 
-`scripts/run.sh` builds the disk and plays it in a window with the music and clicks. By hand, in
-Tisple's emulator:
+`tisple run` builds the disk and plays it in a window with the music (Mockingboard in slot 4)
+and clicks, as `tisple.project` says; flags after it win, like `tisple run --scale 3`.
+`scripts/run.sh` does the same with `TISPLE` naming the compiler (default
+`~/Coding/LangDev/tisple/build/tisple`, else `tisple` on the PATH). By hand, in Tisple's
+emulator:
 
 ```sh
 tisple machine --disk build/catwiz.dsk --window                       # speaker sound

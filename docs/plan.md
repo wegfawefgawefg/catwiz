@@ -6,7 +6,8 @@ text or data from any other game; the content can be replaced by much stranger s
 
 ## Where it stands
 
-`tools/build.sh` builds `build/catwiz.dsk` from `game/` (Tisple 02e5697 or later).
+`tisple build` builds `build/catwiz.dsk` from `game/` (Tisple 71899ed or later; settings in
+`tisple.project`).
 
 1. Boot: LOADING for about 12 s, then the title: CATWIZ glowing over night clouds, the cat
    against a big moon, Press Return.

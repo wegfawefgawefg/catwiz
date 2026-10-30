@@ -87,12 +87,14 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ```sh
 TISPLE=~/Coding/LangDev/tisple/build/tisple
-tools/build.sh                       # build/catwiz.dsk; tools/build.sh x.dsk --asm > x.asm
+$TISPLE build                        # build/catwiz.dsk; $TISPLE build --disk x.dsk --asm > x.asm
 $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --screenshot shots/x.png
 ```
 
-- `tools/build.sh` is `tisple build main.tsp --origin 0x8000 --disk ...` (needs Tisple 02e5697
-  or later). When the program does not fit, Tisple builds it with a tighter size budget
+- `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
+  game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
+  with `--mockingboard 4 --scale 2 --taps tools/phone/catwiz.json` (needs Tisple 71899ed or
+  later). When the program does not fit, Tisple builds it with a tighter size budget
   (squeeze levels) and says which functions it kept as calls instead of copying them into
   their callers; `TISPLE_SIZE_NOTES=1` lists what the budget weighs. The game keeps no list of
   its own (it had `game/noinline.txt` until 2026-10-30).
