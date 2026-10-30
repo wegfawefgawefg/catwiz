@@ -22,6 +22,13 @@ First playable slice, booting from `build/witchdog.dsk` (built from `game/`):
    - Win and lose banners, then RETURN goes back to the title.
 3. Speaker sounds: bark, dice rattle, zap, hits, shield ping, mend chime, fire hiss, spook
    wobble, the dog's yelp, the death squeak, win and lose.
+4. Mockingboard (2026-10-30, branch `witchdog-sound`): found in any slot at start. A title
+   theme (E minor, 7-tick pulse: loops of 7, 12, 13, 16 and 5 pulses coming in one by one) and
+   a battle theme (A dorian, 9-tick pulse: loops of 12, 10, 9, 7 and 15), won and lost
+   stingers, and card versions of every effect plus the die played, an enemy's move, turn start
+   and end, the target moving, RETURN on the title and a dead key. The speaker's sounds stay
+   when there is no card. The music costs about 900 cycles a tick (5% of the processor) and
+   about 4% of the battle's frame rate.
 
 ## How it is built
 
@@ -47,8 +54,7 @@ First playable slice, booting from `build/witchdog.dsk` (built from `game/`):
    glow's changes.
 4. Check for 128 KB at start and say so on a 64 KB machine.
 5. Content: the real strange stuff, more encounters, a run of battles.
-6. Mockingboard (later): emulate the card in Tisple's machine, detect it at start, music and
-   effects when present, the speaker otherwise.
+6. Mockingboard: play it on a real card; balance the mix by ear (written blind, by numbers).
 
 ## Art rules
 

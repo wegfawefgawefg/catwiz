@@ -8,6 +8,8 @@ Targets an enhanced IIe with 128 KB (aux memory holds the pictures).
 - `game/`: the game. `main.tsp` is the loop; `battle/`, `draw/`, `sound/`, `title/` the
   engine; `content/` the rules content as plain tables (dice, enemies, statuses, effects, the
   encounter); `art/` generated pictures.
+- `tools/music/`: the Mockingboard music (`songs.tsp`) and `export.py`, which writes
+  `game/sound/song_data.tsp`.
 - `tools/art/`: the art, drawn in Python at 280 x 192 in the hi-res colours (the v6 mockup's
   style), and `export.py`, which writes `game/art/*.tsp`. `tools/hgr.py` is the canvas and the
   HGR converter; `tools/measure.py` measures frame costs on Tisple's IIe.
@@ -20,7 +22,9 @@ Targets an enhanced IIe with 128 KB (aux memory holds the pictures).
 TISPLE=~/Coding/LangDev/tisple/build/tisple
 cd game && $TISPLE build main.tsp --origin 0x8000 --disk ../build/witchdog.dsk
 $TISPLE machine --disk ../build/witchdog.dsk --window      # on your own screen
+$TISPLE machine --disk ../build/witchdog.dsk --mockingboard 4 --window   # with music
 tools/.venv/bin/python tools/art/export.py                 # after changing the art
+python3 tools/music/export.py                              # after changing the music
 ```
 
 Keys in battle: 1-5 play a die on the target, LEFT and RIGHT pick the target, R re-rolls the

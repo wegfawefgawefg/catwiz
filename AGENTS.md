@@ -51,6 +51,25 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   target; check the clean look for readability. Actors sit on even byte columns so their
   colours hold (a 1-byte move swaps violet and green).
 
+## Sound
+
+- `game/sound/sound.tsp` is the one place sounds go through: `(sound.cue sound.Cue.bark)` for an
+  effect, `(sound.song sound.Song.battle)` for music. With a Mockingboard (any slot, found at
+  start) the card plays them; without one the speaker effects of `sfx.tsp` and the title jingle
+  of `music.tsp` play, and there is no other music.
+- Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. The card plays one at a time; one
+  that comes while another plays waits in a short line (`sound.step`, once a frame), except
+  cues marked not to wait. Each borrows a music voice: 2 (left, the dog's side) or 5 (right,
+  the enemies'), so the songs keep their least-missed parts there (the pad and the shaker).
+- The music is written in `tools/music/songs.tsp` (lib/mockingboard_song's text);
+  `python3 tools/music/export.py` turns it into `game/sound/song_data.tsp` (generated, never
+  edit by hand), kept in aux memory and copied into main when a song starts.
+- The handler runs from main memory, so anything that switches aux memory in (lib/auxmem's
+  mover) must do it with interrupts off, in pieces well under a frame: `screen.load_page`
+  copies 256 bytes at a time, `hud.clean` a row at a time.
+- `tisple machine ... --mockingboard 4 --wav x.wav` plays and saves it; `MB=4` makes
+  `tools/measure.py` measure with the card in.
+
 ## Building and running
 
 ```sh
@@ -78,4 +97,5 @@ $TISPLE machine --disk ../build/witchdog.dsk --frames 900 --keys "700f:RETURN" -
 Self-booting disk, origin `$8000`: hi-res page 1 `$2000`, page 2 `$4000`, the backdrop copy
 `$6000`, all reserved. Code and data fill `$8000-$BEFF`, then `$0B00-$1FFF`, then the
 language card. The backdrop and title pictures live in aux memory and are copied in with
-lib/auxmem. 2026-10-30: main has about 2 KB left, the card about 3 KB, aux about 6 KB.
+lib/auxmem, as are the songs. 2026-10-30, after the Mockingboard: main memory is full, the card
+has about 960 bytes left, aux about 5 KB; zero page 186 of 256.

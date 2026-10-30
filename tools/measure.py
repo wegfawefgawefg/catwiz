@@ -4,7 +4,8 @@
 #
 # run: tools/.venv/bin/python tools/measure.py "1000f:RETURN" 1100 1400
 #      keys as for tisple machine, then the two frames to measure between, then any number of
-#      "file|old|new" edits to the copy it builds, to try something out
+#      "file|old|new" edits to the copy it builds, to try something out; MB=4 puts a
+#      Mockingboard in slot 4, so the music plays while it measures
 
 import os
 import re
@@ -44,8 +45,9 @@ def build(changes):
 
 
 def ticks_at(disk, keys, frame, address):
+    card = ["--mockingboard", os.environ["MB"]] if os.environ.get("MB") else []
     out = subprocess.run([TISPLE, "machine", "--disk", disk, "--frames", str(frame), "--keys", keys,
-                          "--peek", "0x%04X:2" % address], capture_output=True, text=True, check=True).stdout
+                          "--peek", "0x%04X:2" % address] + card, capture_output=True, text=True, check=True).stdout
     m = re.search(r"peek \$[0-9A-F]+: [0-9A-F]{2} [0-9A-F]{2}  \(u16 (\d+)\)", out)
     if not m:
         sys.exit("no peek in: " + out)
