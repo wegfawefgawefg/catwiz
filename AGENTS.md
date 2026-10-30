@@ -1,7 +1,9 @@
-# Catwiz (was Witchdog)
+# Catwiz
 
 An Apple II hi-res dice roguelike in Tisple ][ (github.com/wegfawefgawefg/tisple), a toy to
-prove the compiler and an engine. Private repo. Enhanced IIe with 128 KB is the target.
+prove the compiler and an engine. Public repo, shelved 2026-10-30 with two fights of ten. It
+started as Witchdog (a dog witch hero); the old name stays only in history notes. Enhanced
+IIe with 128 KB is the target.
 
 ## Code style: C+-
 
@@ -51,7 +53,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Art
 
 - `tools/art/*.py` draw the actors, dice pictures, backdrop and title, and
-  `tools/.venv/bin/python tools/art/export.py` writes them to `game/art/*.tsp` (generated:
+  `python3 tools/art/export.py` writes them to `game/art/*.tsp` (generated:
   never edit by hand; split to stay under 500 lines) and previews to `shots/art/`. Offline
   asset tools in Python are fine; keep them plain. Throwaway scripts need less rigour.
 - Faces are patches over the body. Moods whose changes stay inside the idle silhouette share
@@ -85,23 +87,20 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ```sh
 TISPLE=~/Coding/LangDev/tisple/build/tisple
-tools/build.sh                       # build/witchdog.dsk; tools/build.sh x.dsk --asm > x.asm
-$TISPLE machine --disk build/witchdog.dsk --frames 900 --keys "700f:RETURN" --screenshot shots/x.png
+tools/build.sh                       # build/catwiz.dsk; tools/build.sh x.dsk --asm > x.asm
+$TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --screenshot shots/x.png
 ```
 
-- `tools/build.sh` is `tisple build main.tsp --origin 0x8000 --disk ...` with a `--no-inline`
-  for each function in `game/noinline.txt`: Tisple copies every small function into each of
-  its callers, which cost about 2 KB here. The list is the code that runs on events (rules,
-  log, words, reward, hud parts); never the per-frame drawing. Add new event functions to it.
-- Tisple bug (2026-10-30, compiler 57bfc80): a call that is the last thing done on one path of
-  an `if` (`(if c (f))` at the end, or `(if c (do (f) (return)))`) in a function kept as a call
-  can become a branch into `f`; when the linker puts the two in different stretches of memory
-  the build fails with "internal: a branch at $XXXX leaves its function's code". Write such
-  calls unconditionally at the end: `(if (not c) (return)) (f)`.
+- `tools/build.sh` is `tisple build main.tsp --origin 0x8000 --disk ...` (needs Tisple 02e5697
+  or later). When the program does not fit, Tisple builds it with a tighter size budget
+  (squeeze levels) and says which functions it kept as calls instead of copying them into
+  their callers; `TISPLE_SIZE_NOTES=1` lists what the budget weighs. The game keeps no list of
+  its own (it had `game/noinline.txt` until 2026-10-30).
+- The boot shows LOADING for about 12 s (the title's pictures go to aux memory), then the title.
 
 - Never open windows on the owner's display; run the machine headless and look at
   screenshots (`shots/`).
-- Frame costs: `tools/.venv/bin/python tools/measure.py "1000f:RETURN" 1300 1600` builds a
+- Frame costs: `python3 tools/measure.py "1000f:RETURN" 1300 1600` builds a
   copy that runs flat out and prints cycles a pass of the main loop between two frames;
   `VSYNC=1` measures the real game, extra `"file|old|new"` arguments try an edit in the copy.
   A frame is 17,030 cycles.
@@ -130,7 +129,9 @@ lib/auxmem, as are the songs.
 - No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
   (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
   listing for `rt.` calls.
-- 2026-10-30, Catwiz polish: main memory full of code (data spills to the language card); the
-  language card about 790 bytes left, after the boss's pictures (1,803 bytes and their tables)
+- 2026-10-30, at the shelving (Tisple 02e5697, squeeze 3 of 10): main memory full of code
+  (`$8000-$BEFF` and `$0C00-$1FFF`, data spills to the language card); the language card
+  11,449 of 12,288 bytes (839 left), after the boss's pictures (1,803 bytes and their tables)
   were left out of the build (`LEFT_OUT` in `tools/art/export.py`: put them back with the final
-  fight); aux about 5 KB; zero page 179 of 256.
+  fight); aux 41,907 bytes from `$0800` (about 5.2 KB left); zero page 179 of 256. A pass of
+  the battle's main loop flat out: 13,304 cycles (0.78 frames).

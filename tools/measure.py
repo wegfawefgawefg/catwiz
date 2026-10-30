@@ -2,7 +2,7 @@
 # so the main loop runs flat out, boots it, presses the keys given, and reads the loop counter
 # (state.ticks) at two moments. Cycles a frame = cycles between them / passes between them.
 #
-# run: tools/.venv/bin/python tools/measure.py "1000f:RETURN" 1100 1400
+# run: python3 tools/measure.py "1000f:RETURN" 1100 1400
 #      keys as for tisple machine, then the two frames to measure between, then any number of
 #      "file|old|new" edits to the copy it builds, to try something out; MB=4 puts a
 #      Mockingboard in slot 4, so the music plays while it measures

@@ -6,7 +6,7 @@
 #   game/art/title_N.tsp   the title in four glow steps, 8 KB each in aux memory
 # and preview pictures into shots/art/.
 #
-# run: tools/.venv/bin/python tools/art/export.py
+# run: python3 tools/art/export.py
 #
 # a sprite is cut on the byte grid from a left column that is even, so it keeps its colours
 # wherever the game puts it on an even column. A sprite w bytes wide and h rows tall is stored

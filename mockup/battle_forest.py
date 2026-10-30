@@ -7,7 +7,7 @@
 #   with either palette, so the green/orange byte clash never comes up.
 # - darker shades use a staggered checker, not skipped rows (those read as scanlines).
 #
-# run: tools/.venv/bin/python mockup/battle_forest.py  -> mockup/out/battle_forest_*.png
+# run: python3 mockup/battle_forest.py  -> mockup/out/battle_forest_*.png
 
 import os
 import sys

@@ -7,7 +7,7 @@
 #   framing a clearing. darker ground towards the bottom.
 # - quiet UI: small HUD, frameless pills, a die for re-roll.
 #
-# run: tools/.venv/bin/python mockup/battle_forest_v3.py
+# run: python3 mockup/battle_forest_v3.py  -> mockup/out/
 
 import math
 import os
