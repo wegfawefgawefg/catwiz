@@ -10,14 +10,17 @@
 (const BLACK u8 0)
 (const WHITE u8 15)
 
-; badge b (0 to state.BADGES - 1) in the box of wide byte columns from col, rows from top
-(fn draw ((page u8) (b u8) (col u8) (top u8) (wide u8)) void
+; badge b (0 to state.BADGES - 1) in the box of wide byte columns from col, rows from top; its
+; first rows rows
+(fn draw ((page u8) (b u8) (col u8) (top u8) (wide u8) (rows u8)) void
     (let n u8 (at state.badge_count b))
     (let glyphs (ptr u8) (addr_of (at state.badge_glyphs (* b state.BADGE_MOST))))
     (let x0 u8 (at state.badge_x b))
     (let x1 u8 (+ (+ x0 (pix.glyphs_width glyphs n)) 4))
     (pix.begin (>> col 1) (>> wide 1))
-    (for r u8 0 ROWS
+    (if (> rows ROWS)
+        (set rows ROWS))
+    (for r u8 0 rows
         (let y u8 (+ top r))
         (pix.read page y)
         (let inset u8 (if (or (= r 0) (= r (- ROWS 1)))

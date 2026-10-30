@@ -19,7 +19,7 @@
 ; to draw (see AGENTS.md, Memory)
 (let box (array state.Rect 19) :address 0x0500)
 (let changed (array bool 19) :address 0x054C)
-(let redo (array bool 19) :address 0x055F)
+(let redo (array u8 19) :address 0x055F) ; rows to draw again from the top, 0 for none
 (let restored (array state.Rect 30) :address 0x0480)
 (let restored_count u8 0)
 (const MOST_RESTORED u8 30)
@@ -122,18 +122,30 @@
         (return false))
     (= (at state.looks i white) (at state.drawn d white)))
 
-(fn draw_look ((page u8) (i u8)) void
+; look i to be drawn again down to row bottom (as far as its box goes)
+(fn cover ((i u8) (bottom u8)) void
+    (let top u8 (at box i top))
+    (if (<= bottom top)
+        (return))
+    (let rows u8 (- bottom top))
+    (if (> rows (at box i rows))
+        (set rows (at box i rows)))
+    (if (> rows (at redo i))
+        (set (at redo i) rows)))
+
+; look i drawn over the page, its first rows rows
+(fn draw_look ((page u8) (i u8) (rows u8)) void
     (let sprite u8 (at state.looks i sprite))
     (let col u8 (at state.looks i col))
     (let top u8 (at state.looks i top))
     (if (= sprite state.BADGE)
         (do
-            (badge.draw page (- i state.LOOK_HP) col top (at state.looks i wide))
+            (badge.draw page (- i state.LOOK_HP) col top (at state.looks i wide) rows)
             (return)))
-    (blit.draw page col top sprite (at state.looks i white))
+    (blit.draw page col top sprite (at state.looks i white) rows)
     (let second u8 (at state.looks i second))
     (if (!= second state.NOTHING)
-        (blit.sprite page (+ col 2) top second)))
+        (blit.draw page (+ col 2) top second false rows)))
 
 ; the old box of the look page shows as d, copied back from the backdrop
 (fn restore_drawn ((page u8) (d u8)) void
@@ -152,13 +164,14 @@
     (set restored_count 0)
     (let any bool (or (at state.full_redraw pi) (> (at state.rect_count pi) 0)))
     (for i u8 0 state.LOOKS
-        (if (!= (at state.looks i sprite) state.NOTHING)
-            (find_box i))
         (set (at changed i) (not (same i (+ first_drawn i))))
         (if (at changed i)
             (set any true)))
     (if (not any)
         (return false))
+    (for i u8 0 state.LOOKS
+        (if (!= (at state.looks i sprite) state.NOTHING)
+            (find_box i)))
     ; 1. what to copy back from the backdrop
     (if (at state.full_redraw pi)
         (do
@@ -180,26 +193,28 @@
                 (let d u8 (+ first_drawn i))
                 (if (and (at changed i) (!= (at state.drawn d sprite) state.NOTHING))
                     (restore_drawn page d)))))
-    ; 2. what to draw: the changed looks, and the ones a copied box cut into
+    ; 2. what to draw, and how many of its rows from its top: a changed look whole, one a
+    ; copied box cut into down to that box's foot
     (for i u8 0 state.LOOKS
-        (set (at redo i) false)
+        (set (at redo i) 0)
         (if (!= (at state.looks i sprite) state.NOTHING)
             (do
                 (if (at changed i)
-                    (set (at redo i) true))
+                    (set (at redo i) (at box i rows)))
                 (for n u8 0 restored_count
                     (if (box_meets_restored i n)
-                        (set (at redo i) true))))))
-    ; and anything on top of a look being drawn, since drawing it covers them
+                        (cover i (+ (at restored n top) (at restored n rows))))))))
+    ; and anything on top of a look being drawn, down to where that drawing reaches, since
+    ; drawing it covers them
     (for i u8 0 state.LOOKS
-        (if (at redo i)
+        (if (> (at redo i) 0)
             (for j u8 (+ i 1) state.LOOKS
-                (if (and (not (at redo j)) (!= (at state.looks j sprite) state.NOTHING))
+                (if (!= (at state.looks j sprite) state.NOTHING)
                     (if (box_meets_box i j)
-                        (set (at redo j) true))))))
+                        (cover j (+ (at box i top) (at redo i))))))))
     (for i u8 0 state.LOOKS
-        (if (at redo i)
-            (draw_look page i))
+        (if (> (at redo i) 0)
+            (draw_look page i (at redo i)))
         ; what the page shows now: only a changed look shows something new
         (if (at changed i)
             (set (at state.drawn (+ first_drawn i)) (at state.looks i))))

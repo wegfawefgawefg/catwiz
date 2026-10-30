@@ -100,6 +100,15 @@
     (make (array u8 6)
         10 12 8 14 4 32))
 
+; how far right of its home column any frame reaches, and left
+(const KIND_REACH (array u8 6)
+    (make (array u8 6)
+        14 12 8 14 6 32))
+
+(const KIND_LEFT (array u8 6)
+    (make (array u8 6)
+        2 0 2 2 0 0))
+
 (const KIND_AUX_SIZE (array u16 6)
     (make (array u16 6)
         5356 1251 1175 1667 993 4568))

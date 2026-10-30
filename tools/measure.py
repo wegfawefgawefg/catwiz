@@ -54,12 +54,24 @@ def ticks_at(disk, keys, frame, address):
     return int(m.group(1))
 
 
+def ticks_near(disk, keys, frame, address):
+    # the counter at frame, or a frame or two later: a run may stop while the game's double
+    # hi-res code runs with RAMRD or ALTZP on, and --peek then reads aux memory's byte (0); so
+    # a reading counts when it and the one 12 frames on are not 0 and a little apart
+    for f in range(frame, frame + 8):
+        a = ticks_at(disk, keys, f, address)
+        b = ticks_at(disk, keys, f + 12, address)
+        if a > 0 and b > 0 and 0 <= b - a <= 400:
+            return a
+    sys.exit("no steady reading of the counter near frame %d" % frame)
+
+
 def main():
     os.makedirs(BUILD, exist_ok=True)
     keys, start, end = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
     disk, address = build(sys.argv[4:])
-    a = ticks_at(disk, keys, start, address)
-    b = ticks_at(disk, keys, end, address)
+    a = ticks_near(disk, keys, start, address)
+    b = ticks_near(disk, keys, end, address)
     passes = b - a
     cycles = (end - start) * CYCLES_PER_FRAME
     print("frames %d to %d: %d passes, %d cycles a pass (%.2f vblanks)" % (

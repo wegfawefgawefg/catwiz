@@ -12,6 +12,7 @@
 (import art/font40)
 (import draw/screen)
 (import draw/pix)
+(import dhgr_pixels)
 (import draw/scene)
 
 (const FONT_35 bool true) ; the one place the text's font is chosen
@@ -68,27 +69,28 @@
     (if (> c col)
         (set col c)))
 
-; row r of the line in the 35-column font: 4 pixels a character, the glyph's 3 then a gap,
-; white on black (inverse: black on white), each pixel from the row's bits by table
-(const INK0 (array u8 8) (make (array u8 8) 0 15 0 15 0 15 0 15))
-(const INK1 (array u8 8) (make (array u8 8) 0 0 15 15 0 0 15 15))
-(const INK2 (array u8 8) (make (array u8 8) 0 0 0 0 15 15 15 15))
+; row r of the line in the 35-column font onto row y of the backdrop: a 4-pixel cell a
+; character, the glyph's 3 pixels then a gap (lib/dhgr_pixels' cells), inverse the cell's bits
+; flipped; glyph_at and flip are the line's, worked out once
+(let glyph_at (array u16 35))
+(let flip (array u8 35))
+(let cells (array u8 35))
 
-(fn row35 ((r u8)) void
-    (let x u8 0)
+(fn glyphs35 () void
     (for i u8 0 COLUMNS
         (let c u8 (at line i))
-        (let flip u8 0)
+        (set (at flip i) 0)
         (if (>= c INVERSE)
             (do
-                (set flip 15)
+                (set (at flip i) 15)
                 (set c (& c 0x7F))))
-        (let bits u8 (at hud.FONT35 (+ (<< (as u16 (- c 32)) 3) (as u16 r))))
-        (set (at pix.px x) (^ (at INK0 bits) flip))
-        (set (at pix.px (+ x 1)) (^ (at INK1 bits) flip))
-        (set (at pix.px (+ x 2)) (^ (at INK2 bits) flip))
-        (set (at pix.px (+ x 3)) flip)
-        (set x (+ x 4))))
+        (set (at glyph_at i) (<< (as u16 (- c 32)) 3))))
+
+(fn row35 ((r u8) (y u8)) void
+    (for i u8 0 COLUMNS
+        (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
+        (set (at cells i) (^ bits (at flip i))))
+    (dhgr_pixels.cells screen.BACKDROP 0 y 5 (addr_of (at cells 0))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte
 (fn row40 ((r u8) (y u8)) void
@@ -125,12 +127,11 @@
     (for i u8 0 COLUMNS
         (set (at shown (+ at i)) (at line i)))
     (let y u8 (+ TOP (<< r 3)))
-    (pix.begin 0 pix.MOST_GROUPS)
+    (if FONT_35
+        (glyphs35))
     (for k u8 0 8
         (if FONT_35
-            (do
-                (row35 k)
-                (pix.write screen.BACKDROP (+ y k)))
+            (row35 k (+ y k))
             (row40 k (+ y k))))
     (scene.mark 0 y 40 8))
 

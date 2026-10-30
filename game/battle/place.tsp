@@ -30,12 +30,14 @@
         1
         -1))
 
-; the byte column just in front of who, where a thrown bolt starts (the bolt is 2 wide)
+; the byte column just in front of who, where a thrown bolt starts (the bolt is 2 wide): clear
+; of every frame of who, so the bolt is never drawn over it and it never drawn again for it
 (fn front ((who u8)) u8
     (let home u8 (at state.actors who home))
+    (let kind u8 (at state.actors who figure))
     (if (= who state.HERO)
-        (return (+ home (at art.KIND_COLS (at state.actors who figure)))))
-    (- home 2))
+        (return (+ home (at art.KIND_REACH kind))))
+    (- (- home (at art.KIND_LEFT kind)) 2))
 
 ; the row a thrown bolt starts at: a little above who's middle, so it clears the heads of
 ; whoever stands in front

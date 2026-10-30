@@ -86,9 +86,11 @@
 ; (at actors i hp) multiplies i by the struct's size instead of one LDA hp,X
 
 (let screen Screen)
-(let ticks u16) ; every pass of the main loop, for measuring frame costs
-(let frame u8)  ; counts up every frame but in hit-stop
-(let idle u8)   ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
+; every pass of the main loop, for measuring frame costs (tools/measure.py reads it with --peek:
+; outside zero page, which reads as aux memory's while code with the aux language card in runs)
+(let ticks u16 :address 0x06E2)
+(let frame u8) ; counts up every frame but in hit-stop
+(let idle u8)  ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)

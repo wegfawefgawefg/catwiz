@@ -126,13 +126,15 @@ def sprites_module(kinds):
     for k, (kind, sprites, roles) in enumerate(kinds):
         first[kind] = n
         n += len(sprites)
-    home, top, feet, kcols, asz, msz, frames = [], [], [], [], [], [], []
+    home, top, feet, kcols, asz, msz, frames, reach, left = [], [], [], [], [], [], [], [], []
     for k, (kind, sprites, roles) in enumerate(kinds):
         base = sprites[0]
         home.append(base.col)
         top.append(base.top)
         feet.append(base.top + base.rows)
         kcols.append(base.cols)
+        reach.append(max(sp.col + sp.cols for sp in sprites) - base.col)
+        left.append(base.col - min(sp.col for sp in sprites))
         asz.append(sum(len(s.aux) for s in sprites))
         msz.append(sum(len(s.main) for s in sprites))
         for r in gs.ROLE_NAMES:
@@ -143,6 +145,8 @@ def sprites_module(kinds):
     lines.append(table("KIND_TOP", "u8", top))
     lines.append(table("KIND_FEET", "u8", feet))
     lines.append(table("KIND_COLS", "u8", kcols))
+    lines.append(table("KIND_REACH", "u8", reach, "how far right of its home column any frame reaches, and left"))
+    lines.append(table("KIND_LEFT", "u8", left))
     lines.append(table("KIND_AUX_SIZE", "u16", asz))
     lines.append(table("KIND_MAIN_SIZE", "u16", msz))
     lines.append(table("KIND_FRAME", "u8", frames, "kind * ROLE_COUNT + role"))

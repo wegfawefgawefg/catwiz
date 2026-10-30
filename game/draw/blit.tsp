@@ -1,9 +1,10 @@
 ; sprites onto a page, and the backdrop back over a page.
 ;
 ; a sprite (art/sprites.tsp) is two halves stored as lib/dhgr runs: its aux memory bytes and
-; its main memory bytes. A screen's kinds are unpacked when it starts (want, unpack_all) into the
-; aux language card and aux memory, one kind after another, so neither half takes main memory. Sprites go on the byte grid: col is
-; an even byte column (7 pixels a step of 2), top a row, both of the sprite's top-left corner.
+; its main memory bytes. A screen's kinds are unpacked when it starts (want, unpack_all) into
+; the aux language card and aux memory, so neither half takes main memory. Sprites go on the
+; byte grid: col is an even byte column (7 pixels a step of 2), top a row, both of the sprite's
+; top-left corner.
 ; Nothing is clipped: callers keep sprites on the screen.
 
 (import auxcard)
@@ -118,9 +119,11 @@
 (fn card_runs ((id u8)) (ptr u8)
     (as (ptr u8) (+ (at card_at (at art.KIND_OF id)) (at art.MAIN_AT id))))
 
-; the sprite drawn over what the page has, or its shape in white (the hit flash)
-(fn draw ((page u8) (col u8) (top u8) (id u8) (white bool)) void
-    (let rows u8 (at art.ROWS id))
+; the sprite drawn over what the page has, or its shape in white (the hit flash): its first rows
+; rows (as many as it has at most), the rest left as they are
+(fn draw ((page u8) (col u8) (top u8) (id u8) (white bool) (rows u8)) void
+    (if (> rows (at art.ROWS id))
+        (set rows (at art.ROWS id)))
     (let kind u8 (at art.KIND_OF id))
     (let flags u8 (if white
         dhgr.AS_WHITE
@@ -129,7 +132,7 @@
     (dhgr.runs page dhgr.MAIN col top rows (card_runs id) (| flags (at card_flags kind))))
 
 (fn sprite ((page u8) (col u8) (top u8) (id u8)) void
-    (draw page col top id false))
+    (draw page col top id false 255))
 
 ; a box of the backdrop page copied onto page: cols byte columns from col, rows from top
 (fn restore ((page u8) (col u8) (top u8) (cols u8) (rows u8)) void

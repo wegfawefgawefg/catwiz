@@ -2,7 +2,8 @@
 # tables in art/dhgr/, the previews in shots/dhgr/, and the memory each fight needs.
 #
 # run: python3 tools/dhgr/make.py            (everything)
-#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, palettes, memory)
+#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, palettes, memory,
+#                                            game: the game's tables in game/art/, game.py)
 #
 # TISPLE=path picks the emulator (default: the Tisple build next to this repo's siblings).
 
@@ -187,7 +188,7 @@ def palette_sheet():
 
 
 def main():
-    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "memory"]
+    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "memory", "game"]
     os.makedirs(SHOTS, exist_ok=True)
     for w in what:
         if w == "fights":
@@ -205,6 +206,9 @@ def main():
         elif w == "memory":
             import memory
             memory.run(ART)
+        elif w == "game":
+            import game
+            game.main()
         else:
             raise SystemExit("make.py: no step " + w)
 

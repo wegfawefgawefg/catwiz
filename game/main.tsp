@@ -22,6 +22,7 @@
     (if (not (machine.has_aux))
         (machine.refuse))
     (sound.setup)
+    (set state.ticks 0)
     (title.enter)
     (while true
         (set state.ticks (+ state.ticks 1))
