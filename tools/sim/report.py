@@ -51,6 +51,9 @@ def print_report(rules, pname, results, seconds):
             f + 1, 100 * row["reached"], 100 * row["won"], row["hp_in"], row["lost"], row["net"],
             row["turns"], row["turns_max"]))
     print("runs won: %.0f%%, hp at the end of won runs %.1f" % (100 * s["win"], s["hp_end"]))
+    selfs = sum(1 for r in results if any(x["self_hits"] for x in r["fights"]))
+    if selfs:
+        print("runs where zoomies outlasted the enemies and hit the cat: %.0f%%" % (100 * selfs / n))
     lost = sorted(s["deaths"].items())
     print("runs lost in fight: " + ", ".join("%d: %.0f%%" % (k, 100 * v / n) for k, v in lost))
     wins = [r for r in results if r["won"]]

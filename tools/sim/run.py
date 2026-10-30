@@ -99,7 +99,8 @@ def one_run(args):
                 u[0] += 1
                 u[1] += 1 if played else 0
         out["fights"].append({"index": index, "won": b.result == "won", "hp_in": hp,
-                              "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost})
+                              "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost,
+                              "self_hits": b.self_hits})
         if b.result != "won":
             break
         hp = b.hp[HERO]

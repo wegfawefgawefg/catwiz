@@ -55,6 +55,7 @@ class Battle:
         self.result = None
         self.log = None  # a list to append lines to, for traces
         self.hero_lost = 0  # hit points the hero lost this fight
+        self.self_hits = 0  # zoomies outlasting the enemies, hitting the cat (as in the game)
 
     def clone(self):
         b = Battle.__new__(Battle)
@@ -81,6 +82,7 @@ class Battle:
         b.result = self.result
         b.log = None
         b.hero_lost = self.hero_lost
+        b.self_hits = self.self_hits
         return b
 
     def say(self, line):
@@ -375,6 +377,8 @@ class Battle:
         return d
 
     def strike(self, by, target, amount):
+        if by == HERO and target == HERO:
+            self.self_hits += 1
         damage = self.dealt(by, amount, True)
         st = self.st[target]
         damage += st[MARK]  # PROPOSAL
