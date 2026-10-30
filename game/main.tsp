@@ -5,6 +5,7 @@
 (import state)
 (import draw/screen)
 (import title/title)
+(import title/machine)
 (import battle/battle)
 
 (fn wants_key () bool
@@ -13,6 +14,8 @@
         (state.Screen.battle (battle.wants_key))))
 
 (fn main () void
+    (if (not (machine.has_aux))
+        (machine.refuse))
     (screen.setup)
     (title.enter)
     (while true

@@ -77,7 +77,8 @@
             :second_col 0
             :second_top 0
             :white false
-            :swaps false)))
+            :swaps false
+            :face_on_body false)))
 
 (fn show ((i u8) (sprite u8) (col u8) (top u8)) void
     (set (at state.looks i)
@@ -89,7 +90,8 @@
             :second_col 0
             :second_top 0
             :white false
-            :swaps false)))
+            :swaps false
+            :face_on_body false)))
 
 ; the bob, 0 or 1 pixel (more for flyers), each actor on its own beat; the dog, the biggest
 ; to redraw, breathes slowest
@@ -150,7 +152,8 @@
             :second_col (+ col (at art.KIND_PATCH_DX mood_row))
             :second_top (+ top (at art.KIND_PATCH_DY mood_row))
             :white (> (at state.actors i flash) 0)
-            :swaps (= (at art.KIND_PATCH_SWAPS mood_row) 1))))
+            :swaps (= (at art.KIND_PATCH_SWAPS mood_row) 1)
+            :face_on_body (= (at state.actors i mood) state.Mood.idle))))
 
 ; every look for this frame
 (fn update () void

@@ -55,8 +55,9 @@
         (second u8)
         (second_col u8)
         (second_top u8)
-        (white bool)   ; drawn as a white shape: the hit flash
-        (swaps bool))) ; the second is a face that can be drawn straight over another such face
+        (white bool) ; drawn as a white shape: the hit flash
+        (swaps bool) ; the second is a face that can be drawn straight over another such face
+        (face_on_body bool))) ; and it is the face the body already has: drawn only to swap back
 
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 

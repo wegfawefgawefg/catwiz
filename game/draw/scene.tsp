@@ -193,7 +193,7 @@
             (return)))
     (blit.sprite page col top sprite)
     (let second u8 (at state.looks i second))
-    (if (!= second state.NOTHING)
+    (if (and (!= second state.NOTHING) (not (at state.looks i face_on_body)))
         (blit.sprite page (at state.looks i second_col) (at state.looks i second_top) second)))
 
 ; look i in one pass from the backdrop: the old second sprite's box cleaned, the main sprite
@@ -201,7 +201,10 @@
 (fn move_look ((page u8) (i u8) (d u8)) void
     (let old u8 (at state.drawn d sprite))
     (let old_second u8 (at state.drawn d second))
-    (if (and (!= old state.NOTHING) (!= old_second state.NOTHING))
+    ; a face inside the body's outline goes with the body's old spans; one outside needs its
+    ; box cleaned
+    (if (and (and (!= old state.NOTHING) (!= old_second state.NOTHING))
+            (not (at state.drawn d swaps)))
         (blit.restore page
             (at state.drawn d second_col)
             (at state.drawn d second_top)
@@ -216,7 +219,7 @@
         (at state.looks i top)
         white)
     (let second u8 (at state.looks i second))
-    (if (and (!= second state.NOTHING) (not white))
+    (if (and (and (!= second state.NOTHING) (not white)) (not (at state.looks i face_on_body)))
         (blit.sprite page (at state.looks i second_col) (at state.looks i second_top) second)))
 
 (fn draw_frame () void

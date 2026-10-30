@@ -81,8 +81,10 @@
         (white bool)) void
     (let w u8 (at art.SPRITE_W new))
     (let new_rows u8 (at art.SPRITE_H new))
-    (let pic (ptr u8) (data_at (at art.SPRITE_AT new)))
-    (let mask (ptr u8) (data_at (at art.SPRITE_MASK_AT new)))
+    ; the picture and mask pointers are moved back by new_col, so the same screen column
+    ; indexes the screen row and the sprite row
+    (let pic (ptr u8) (- (data_at (at art.SPRITE_AT new)) (as u16 new_col)))
+    (let mask (ptr u8) (- (data_at (at art.SPRITE_MASK_AT new)) (as u16 new_col)))
     (let firsts (ptr u8) (data_at (at art.SPRITE_SPAN_AT new)))
     (let counts (ptr u8) (+ firsts new_rows))
     (let old_rows u8 0)
@@ -135,20 +137,13 @@
                             n_end))
                         (for c u8 right_first o_end
                             (store (+ dst c) (load (+ src c))))))))
-        ; the new span, indexed from the sprite's own left edge
-        (if (> n_end 0)
-            (do
-                (let s (ptr u8) (+ src new_col))
-                (let d (ptr u8) (+ dst new_col))
-                (let first u8 (- n_first new_col))
-                (let end u8 (- n_end new_col))
-                (if white
-                    (for c u8 first end
-                        (let m u8 (load (+ mask c)))
-                        (store (+ d c) (| (& (load (+ s c)) m) (& (~ m) 0x7F))))
-                    (for c u8 first end
-                        (store (+ d c)
-                            (| (& (load (+ s c)) (load (+ mask c))) (load (+ pic c))))))))
+        ; the new span
+        (if white
+            (for c u8 n_first n_end
+                (let m u8 (load (+ mask c)))
+                (store (+ dst c) (| (& (load (+ src c)) m) (& (~ m) 0x7F))))
+            (for c u8 n_first n_end
+                (store (+ dst c) (| (& (load (+ src c)) (load (+ mask c))) (load (+ pic c))))))
         (if (and (>= y new_top) (< y new_end))
             (do
                 (set pic (+ pic w))
