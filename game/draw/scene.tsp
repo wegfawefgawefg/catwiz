@@ -133,6 +133,18 @@
     (if (> rows (at redo i))
         (set (at redo i) rows)))
 
+; whether look i is what d shows but for the white flash: then it is drawn straight over it,
+; with no box copied back first (the white shape covers every pixel the sprite has, and the
+; sprite over its white shape puts each one back)
+(fn flash_only ((i u8) (d u8)) bool
+    (and
+        (and (= (at state.looks i sprite) (at state.drawn d sprite))
+            (!= (at state.looks i sprite) state.BADGE))
+        (and
+            (and (= (at state.looks i col) (at state.drawn d col))
+                (= (at state.looks i top) (at state.drawn d top)))
+            (= (at state.looks i second) (at state.drawn d second)))))
+
 ; look i drawn over the page, its first rows rows
 (fn draw_look ((page u8) (i u8) (rows u8)) void
     (let sprite u8 (at state.looks i sprite))
@@ -191,7 +203,8 @@
             (set (at state.rect_count pi) 0)
             (for i u8 0 state.LOOKS
                 (let d u8 (+ first_drawn i))
-                (if (and (at changed i) (!= (at state.drawn d sprite) state.NOTHING))
+                (if (and (and (at changed i) (!= (at state.drawn d sprite) state.NOTHING))
+                        (not (flash_only i d)))
                     (restore_drawn page d)))))
     ; 2. what to draw, and how many of its rows from its top: a changed look whole, one a
     ; copied box cut into down to that box's foot
