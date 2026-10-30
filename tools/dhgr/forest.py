@@ -20,8 +20,6 @@ import dhgr
 
 STAGE = 124
 HORIZON = 84          # where the meadow meets the wood
-CLOUD = [(-3, 40, 8, 0), (7, 30, 10, 0), (18, 20, 13, 0), (30, 22, 11, 0), (41, 31, 8, 0),
-         (50, 39, 6, 0), (6, 42, 8, 2), (21, 40, 9, 2), (35, 42, 8, 2), (46, 44, 6, 2)]
 
 # the far wood: crowns rising out of the haze (x, height in rows, half width in pixels)
 FAR = [(8, 18, 6), (20, 26, 5), (34, 20, 6), (46, 30, 5), (58, 24, 6), (112, 26, 5), (121, 36, 6),
@@ -58,22 +56,40 @@ def tree(c, x, base, w, h, seed, ramp, cuts, trunk):
     volume(c, crown(x, cy, w, h, seed), ramp, cuts)
 
 
+def cloud(c, P, puffs):
+    # a storybook cumulus: round puffs on a flat foot, white; the shade colour comes in on
+    # every other row over its lower third (a soft belly that NTSC keeps clean)
+    m = Canvas()
+    for cx, cy, r in puffs:
+        m.ellipse(cx, cy, r / ASPECT * 1.15, r, 1)
+    top = min(cy - r for cx, cy, r in puffs)
+    foot = max(cy + r * 0.5 for cx, cy, r in puffs)
+    for y in range(max(0, int(top)), int(foot) + 1):
+        for x in range(dhgr.W):
+            if m.px[y][x]:
+                low = (y - top) / max(1, foot - top)
+                c.px[y][x] = P["cloud_sh"] if (low > 0.72 and y % 2 == 1) or low > 0.93 else P["cloud"]
+
+
+CLOUD = [(8, 30, 8), (18, 22, 11), (31, 21, 10), (41, 28, 8), (0, 36, 6), (50, 36, 6), (26, 32, 9),
+         (12, 37, 6), (39, 37, 6)]
+CLOUD2 = [(98, 13, 4), (104, 10, 5.5), (111, 13, 4)]
+
+
 def sky(c, P):
-    bands(c, 0, 66, P.get("sky_bands") or [P["sky"], P["sky"], P["haze"]], blend=10)
+    bands(c, 0, 66, P.get("sky_bands") or [P["sky"]] * 4 + [P["haze"]] * 2, blend=7)
     c.rect(0, 66, dhgr.W, HORIZON, P["haze"])
-    volume(c, CLOUD, (P["cloud_sh"], P["cloud"], P["cloud"]), (0.12, 0.9), height=0.5, stretch=1.1)
-    for cx, cy, ry in ((98, 12, 4), (103, 10, 5), (109, 13, 4)):
-        c.ellipse(cx, cy, ry / ASPECT * 1.2, ry, P["cloud"])
-    c.rect(93, 13, 114, 15, P["cloud"])
+    cloud(c, P, CLOUD)
+    cloud(c, P, CLOUD2)
 
 
 def far_wood(c, P):
     for x in range(dhgr.W):
-        top = int(ridge(x, 1.0, 66, 3))
+        top = int(ridge(x, 1.0, 74, 2))
         for y in range(top, HORIZON):
             c.px[y][x] = P["far"]
     for x, h, w in FAR:
-        c.ellipse(x, 70 - h * 0.45, w, h * 0.55, P["far"])
+        c.ellipse(x, 76 - h * 0.18, w, h * 0.3, P["far"])
 
 
 def wood(c, P, trees):
@@ -95,9 +111,10 @@ def meadow(c, P):
         for y in range(HORIZON - 2, HORIZON + deep):
             if y < HORIZON + deep - 2 or (x + y) % 2 == 0 and y % 2 == 0:
                 c.px[y][x] = P["grass_sh"]
-    # sun where the fighters stand
-    c.ellipse(80, 104, 46, 6.5, P["sun"])
-    c.ellipse(34, 106, 21, 5, P["sun"])
+    # sun where the fighters stand, its edge every other row (soft, and clean in NTSC)
+    for cx, cy, rx, ry in ((80, 104, 46, 6.5), (34, 106, 21, 5)):
+        c.ellipse(cx, cy, rx, ry, P["sun"], test=lambda x, y, cx=cx, cy=cy, rx=rx, ry=ry:
+                  y % 2 == 0 or ((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2 < 0.6)
     bands(c, STAGE - 9, STAGE, [P["grass"], P["grass_sh"]], blend=5,
           test=lambda x, y: c.px[y][x] in (P["grass"], P["sun"]))
 
@@ -131,35 +148,47 @@ def flowers(c, P, spots=FLOWERS):
 # ---- the variants: what each adds over the clearing
 
 def path(c, P):
-    # a sandy path winding in from the back to the front, the fighters' ground
-    for y in range(HORIZON + 4, STAGE):
+    # a sandy path winding in from the back to the front under the fighters, its edges
+    # grown over (every other row the grass's shade), a few pebbles
+    for y in range(HORIZON + 2, STAGE):
         t = (y - HORIZON) / (STAGE - HORIZON)
-        mid = 76 - 30 * math.sin(t * 2.4) + 10 * t
-        half = 3 + 46 * t ** 1.4
-        for x in range(int(mid - half), int(mid + half) + 1):
-            if 0 <= x < dhgr.W:
-                edge = abs(x + 0.5 - mid) > half - 1.2 - t * 1.5
-                c.px[y][x] = P["path_sh"] if edge and y % 2 == 0 else P["path"]
-    for x, y in ((40, 110), (96, 116), (66, 100), (110, 106), (22, 118)):
+        mid = 70 - 26 * math.sin(t * 2.6) + 14 * t
+        half = 2 + 34 * t ** 1.3
+        for x in range(int(mid - half) - 1, int(mid + half) + 2):
+            if not 0 <= x < dhgr.W:
+                continue
+            d = abs(x + 0.5 - mid) - half
+            if d < -1.0:
+                c.px[y][x] = P["path"]
+            elif d < 0.8 and y % 2 == 0:
+                c.px[y][x] = P["grass_sh"]
+    for x, y in ((48, 112), (92, 118), (70, 100), (60, 118), (80, 108)):
         if c.px[y][x] == P["path"]:
             c.rect(x, y, x + 2, y + 1, P["path_sh"])
 
 
 def brook(c, P):
-    # a brook across the meadow behind the fighters, a lit far bank, glints, stepping stones
+    # a brook across the meadow behind the fighters: the far bank in shade, the water lit
+    # in rows, white glints, stepping stones
+    def top(x):
+        return int(92 + 2.5 * math.sin(x * 0.06 + 0.5) + 1.2 * math.sin(x * 0.19))
     for x in range(dhgr.W):
-        y0 = int(91 + 3 * math.sin(x * 0.07 + 0.5) + 1.5 * math.sin(x * 0.21))
+        y0 = top(x)
+        c.px[y0 - 2][x] = P["grass_sh"]
         c.px[y0 - 1][x] = P["grass_sh"]
-        for y in range(y0, y0 + 6):
+        for y in range(y0, y0 + 9):
             c.px[y][x] = P["water"]
         c.px[y0][x] = P["water_sh"]
-        c.px[y0 + 6][x] = P["grass_sh"]
-        if (x * 7) % 13 == 0:
-            c.rect(x, y0 + 2 + (x % 3), x + 2, y0 + 3 + (x % 3), P["glint"])
-    for x, w in ((18, 4), (44, 3), (118, 4)):
-        y0 = int(91 + 3 * math.sin(x * 0.07 + 0.5) + 1.5 * math.sin(x * 0.21))
-        c.ellipse(x, y0 + 3, w, 2.2, P["stone"])
-        c.hline(x - w + 1, x + w - 1, y0 + 2, P["glint"])
+        if x % 2 == 0:
+            c.px[y0 + 1][x] = P["water_sh"]
+        c.px[y0 + 9][x] = P["grass_sh"]
+        k = (x * 7) % 17
+        if k < 3:
+            c.px[y0 + 3 + (x // 9) % 4][x] = P["glint"]
+    for x, w in ((14, 4), (40, 3.5), (122, 4)):
+        y0 = top(x)
+        c.ellipse(x, y0 + 5, w, 2.4, P["stone"])
+        c.hline(int(x - w + 1), int(x + w - 1), y0 + 3, P["glint"])
 
 
 def thicket(c, P):
@@ -186,7 +215,6 @@ def picture(P, variant="clearing"):
     flowers(c, P)
     if variant == "brook":
         brook(c, P)
-    canopy(c, P)
     if variant == "thicket":
         thicket(c, P)
     c.rect(0, STAGE, dhgr.W, dhgr.H, dhgr.BLACK)

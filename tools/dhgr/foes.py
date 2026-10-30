@@ -73,7 +73,7 @@ def face(c, fx, fy, frame):
 
 
 def puffcap(x, feet, frame="idle"):
-    return mushroom(x, feet, 1.0, "puff", frame)
+    return mushroom(x, feet, 1.12, "puff", frame)
 
 
 def sporelet(x, feet, frame="idle"):

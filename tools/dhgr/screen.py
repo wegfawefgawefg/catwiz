@@ -52,7 +52,7 @@ def build(backdrop, zone, foes_here, shadow, frames=None, U=None, lights=None, t
     intents = intents or {"puffcap": "4", "sporelet": "2", "nightflap": "3"}
     for k, (x0, y0, x1, y1) in zip(kinds, boxes):
         mid = CAT[0] if k == "cat" else SLOTS[k][0]
-        foot = 112 if k != "nightflap" else 112
+        foot = 112 if k != "nightflap" else y1 + 2
         hud.badge(c, U, mid, foot, hud.HEART, U["heart"], hp[k])
         if k != "cat":
             hud.badge(c, U, mid, y0 - 12, hud.SWORD, U["sword"], intents[k])

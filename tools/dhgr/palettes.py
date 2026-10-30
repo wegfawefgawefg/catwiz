@@ -12,11 +12,11 @@ DAY = dict(sky=LBLUE, haze=WHITE, cloud=WHITE, cloud_sh=LBLUE, far=LBLUE,
            leaf_far=(LBLUE, LBLUE, LBLUE), cuts_far=(0.28, 0.6),
            leaf_near=(DGREEN, GREEN, AQUA), cuts_near=(0.22, 0.62),
            trunk=DGREEN, grass=AQUA, grass_sh=GREEN, sun=YELLOW, flower=(WHITE, PINK, YELLOW),
-           path=YELLOW, path_sh=ORANGE, water=LBLUE, water_sh=MBLUE, glint=WHITE, stone=GREY)
+           path=YELLOW, path_sh=WHITE, water=LBLUE, water_sh=MBLUE, glint=WHITE, stone=GREY)
 
 # fight 4 is the afternoon: the haze and the leaves' light warm to yellow, towards dusk
-AFTERNOON = dict(DAY, haze=YELLOW, cloud_sh=PINK, leaf_near=(DGREEN, GREEN, YELLOW), sun=WHITE,
-                 far=AQUA, leaf_far=(AQUA, AQUA, AQUA))
+AFTERNOON = dict(DAY, cloud_sh=PINK, leaf_near=(DGREEN, GREEN, AQUA, YELLOW),
+                 cuts_near=(0.22, 0.58, 0.8), flower=(YELLOW, PINK, WHITE))
 
 FIGHTS = [
     dict(n=1, variant="clearing", P=DAY, zone="day", foes=["puffcap", "sporelet"]),
