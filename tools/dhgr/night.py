@@ -20,7 +20,7 @@ import forest
 MOON = (25, 33, 10.5, 19)
 
 DUSK = dict(sky=PURPLE, sky_bands=[PURPLE, MAGENTA, ORANGE], haze=ORANGE, cloud=PINK,
-            cloud_sh=MAGENTA, far=MAGENTA, leaf_far=(MAGENTA, MAGENTA, MAGENTA), cuts_far=(0.28, 0.6),
+            cloud_sh=MAGENTA, far=BLACK, leaf_far=(BLACK, BLACK, BLACK), cuts_far=(0.28, 0.6),
             leaf_near=(BLACK, BLACK, ORANGE), cuts_near=(0.3, 0.86),
             trunk=BLACK, grass=BLACK, grass_sh=BLACK, sun=ORANGE, flower=(PINK, YELLOW, PINK),
             path=ORANGE, path_sh=MAGENTA, water=PINK, water_sh=MAGENTA, glint=YELLOW,

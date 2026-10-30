@@ -13,7 +13,7 @@ from shade import lit_ellipse, shape_pixels, span_shade, volume
 FRAMES = {"puffcap": ["idle", "attack", "hurt"], "sporelet": ["idle", "attack", "hurt"],
           "nightflap": ["idle", "flap", "attack", "hurt"]}
 
-CAP_CUTS = (0.42, 0.9)
+CAP_CUTS = (0.42, 0.95)
 STEM_CUTS = (0.3,)
 
 EYES = {
@@ -97,7 +97,7 @@ def sporelet(x, feet, frame="idle"):
     left = [(bx + u, top - v * h) for u, v in outline]
     right = []
     bell = shape_pixels(lambda s: s.poly(left + right, "x"))
-    span_shade(c, bell, ("spore_sh", "spore", "spore_hi"), (0.2, 0.9), tilt=0.45)
+    span_shade(c, bell, ("spore_sh", "spore", "spore_hi"), (0.2, 0.95), tilt=0.45)
     c.rect(int(bx - 7), top - 1, int(bx + 8), top + 1, "spore_sh")
     k = squash
     for sx, sy in ((bx - 3, top - 7 * k), (bx + 3, top - 9 * k), (bx + 1, top - 15 * k)):

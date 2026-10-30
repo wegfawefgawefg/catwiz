@@ -2,7 +2,7 @@
 # tables in art/dhgr/, the previews in shots/dhgr/, and the memory each fight needs.
 #
 # run: python3 tools/dhgr/make.py            (everything)
-#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, memory)
+#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, palettes, memory)
 #
 # TISPLE=path picks the emulator (default: the Tisple build next to this repo's siblings).
 
@@ -145,8 +145,49 @@ def lighting():
     print(emu.sheet(cells, 2, os.path.join(SHOTS, "lighting.png")))
 
 
+def palette_sheet():
+    # each fight's colours on the stage (rows 0-123), widest first: the backdrop's and the
+    # fighters', with how much of the stage each covers, and their brightness tier
+    from PIL import Image, ImageDraw, ImageFont
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
+        bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
+    except OSError:
+        font = bold = ImageFont.load_default()
+    rows = []
+    for F in palettes.FIGHTS:
+        P = F["P"]
+        bd = forest.picture(P, F["variant"])
+        c, _ = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
+        n = {}
+        back = set()
+        for y in range(forest.STAGE):
+            for x in range(dhgr.W):
+                n[c.px[y][x]] = n.get(c.px[y][x], 0) + 1
+                back.add(bd.px[y][x])
+        rows.append(("fight %d %s" % (F["n"], F["variant"]), n, back))
+    sw, pad = 74, 8
+    im = Image.new("RGB", (230 + 15 * (sw + 4), len(rows) * 96 + pad), (24, 24, 28))
+    d = ImageDraw.Draw(im)
+    for r, (label, n, back) in enumerate(rows):
+        y = pad + r * 96
+        d.text((pad, y + 20), label, fill=(235, 235, 235), font=bold)
+        d.text((pad, y + 42), "%d colours, %d in the backdrop" % (len(n), len(back)), fill=(180, 180, 180), font=font)
+        total = sum(n.values())
+        for k, (col, cnt) in enumerate(sorted(n.items(), key=lambda kv: -kv[1])):
+            x = 230 + k * (sw + 4)
+            d.rectangle([x, y, x + sw, y + 44], fill=dhgr.RGB[col])
+            d.rectangle([x, y + 46, x + sw, y + 52], fill=(dhgr.LUMA[col],) * 3)
+            d.text((x, y + 56), dhgr.NAMES[col], fill=(230, 230, 230), font=font)
+            tag = "%.1f%%%s" % (100.0 * cnt / total, "" if col in back else " fig")
+            d.text((x, y + 72), tag, fill=(170, 170, 170), font=font)
+    path = os.path.join(SHOTS, "palettes.png")
+    im.save(path, optimize=True)
+    print(path)
+
+
 def main():
-    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "memory"]
+    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "memory"]
     os.makedirs(SHOTS, exist_ok=True)
     for w in what:
         if w == "fights":
@@ -159,6 +200,8 @@ def main():
             font_sheet()
         elif w == "light":
             lighting()
+        elif w == "palettes":
+            palette_sheet()
         elif w == "memory":
             import memory
             memory.run(ART)
