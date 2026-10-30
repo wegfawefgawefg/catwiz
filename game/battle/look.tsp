@@ -1,15 +1,24 @@
 ; the battle's moving picture: idle bobs and wing flaps, faces, flashes, knockback, the death
 ; blink and poof, the floating numbers; then what each look should show this frame
-; (state.looks), for draw/scene.tsp to bring the page up to date.
+; (state.looks), for draw/scene.tsp to bring the page up to date. The badges' looks are the
+; hud's (battle/hud.tsp).
+;
+; a mood shows as one of the kind's frames (art.KIND_FRAME by role: idle, attack, hurt, happy,
+; surprised, flap); a kind without that frame shows its idle one.
 
 (import state)
 (import art/sprites art)
 (import battle/place)
-(import content/faces)
 (import content/enemies en)
 
 (const BLINK_UNTIL u8 16) ; dying: blinking above this, then the two puffs
 (const POOF_SWITCH u8 8)
+(const ROLE_IDLE u8 0)
+(const ROLE_ATTACK u8 1)
+(const ROLE_HURT u8 2)
+(const ROLE_HAPPY u8 3)
+(const ROLE_SURPRISED u8 4)
+(const ROLE_FLAP u8 5)
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void
@@ -47,28 +56,36 @@
 
 ; the face who shows when nothing has just happened to it
 (fn resting_mood ((who u8)) state.Mood
-    (let low bool
-        (<= (* (as u16 (at state.actors who hp)) 3) (as u16 (at state.actors who max_hp))))
     (if (= who state.HERO)
         (do
             (if (= state.phase state.Phase.won)
                 (return state.Mood.happy))
             (if (not (at state.actors who alive))
-                (return state.Mood.ko))
-            (if low
-                (return state.Mood.worried))
-            (return state.Mood.idle)))
-    (if low
-        (return state.Mood.worried))
-    ; an enemy glares while it means to hit the hero, and is calm while it means to guard
-    (if (= (at en.MOVES (at state.actors who move) aim) state.Aim.foe)
-        (return state.Mood.angry))
+                (return state.Mood.ko))))
     state.Mood.idle)
 
 ; a temporary face for frames frames
 (fn show_mood ((who u8) (mood state.Mood) (frames u8)) void
     (set (at state.actors who mood) mood)
     (set (at state.actors who mood_time) frames))
+
+; the role a mood shows as
+(fn role ((mood state.Mood)) u8
+    (match mood
+        (state.Mood.attack ROLE_ATTACK)
+        (state.Mood.angry ROLE_ATTACK)
+        (state.Mood.hurt ROLE_HURT)
+        (state.Mood.ko ROLE_HURT)
+        (state.Mood.happy ROLE_HAPPY)
+        (state.Mood.surprised ROLE_SURPRISED)
+        (_ ROLE_IDLE)))
+
+; the sprite kind shows for role, its idle frame when it has none for it
+(fn frame ((kind u8) (r u8)) u8
+    (let id u8 (at art.KIND_FRAME (+ (* kind art.ROLE_COUNT) r)))
+    (if (= id art.NONE)
+        (return (at art.KIND_FRAME (* kind art.ROLE_COUNT))))
+    id)
 
 ; ---- the looks
 
@@ -79,11 +96,8 @@
             :col 0
             :top 0
             :second state.NOTHING
-            :second_col 0
-            :second_top 0
             :white false
-            :swaps false
-            :face_on_body false)))
+            :wide 0)))
 
 (fn show ((i u8) (sprite u8) (col u8) (top u8)) void
     (set (at state.looks i)
@@ -92,29 +106,22 @@
             :col col
             :top top
             :second state.NOTHING
-            :second_col 0
-            :second_top 0
             :white false
-            :swaps false
-            :face_on_body false)))
+            :wide 0)))
 
-; the bob, 0 or 1 pixel (more for flyers), each actor on its own beat; the hero, the biggest
-; to redraw, breathes slowest
+; the bob: flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels, flapping on the same beat,
+; each on its own beat. The ones standing stand still: drawing a sprite again in double hi-res
+; costs about as much as a frame, so a bob a second each would take a fifth of the time
 (fn bob ((i u8)) u8
-    (let beat u8 (+ state.idle (* i 11)))
-    (if (= i state.HERO)
-        (return (& (>> beat 5) 1)))
-    (if (!= (at art.KIND_FLAP (at state.actors i figure)) art.NONE)
-        (do
-            ; flyers (kinds with a wing frame) drift 0, 1, 2, 1 pixels, flapping on the same beat
-            (let drift u8 (& (>> beat 4) 3))
-            (return (if (= drift 3)
-                1
-                drift))))
-    (& (>> beat 4) 1))
+    (if (= (at art.KIND_FRAME (+ (* (at state.actors i figure) art.ROLE_COUNT) ROLE_FLAP)) art.NONE)
+        (return 0))
+    (let drift u8 (& (>> (+ state.idle (* i 11)) 4) 3))
+    (if (= drift 3)
+        1
+        drift))
 
 (fn show_actor ((i u8)) void
-    (let figure u8 (at state.actors i figure))
+    (let kind u8 (at state.actors i figure))
     (let dying u8 (at state.actors i dying))
     ; a beaten enemy is gone once it has puffed away; the hero stays down
     (if (and (and (not (at state.actors i alive)) (= dying 0)) (!= i state.HERO))
@@ -126,7 +133,7 @@
     (if (> (at state.actors i knock) 0)
         (do
             (let knocked u8 (as u8 (- (as i8 col) (* (place.facing i) 2))))
-            (if (and (< knocked 250) (<= (+ knocked (at art.KIND_COLS figure)) 40))
+            (if (and (< knocked 250) (<= (+ knocked (at art.KIND_COLS kind)) 40))
                 (set col knocked))))
     (let top u8 (- (- (place.top i) (at state.actors i lift)) (bob i)))
     ; dying: blink, then puff away
@@ -135,48 +142,38 @@
             (let poof u8 (if (> dying POOF_SWITCH)
                 art.POOF0
                 art.POOF1))
-            (let pcol u8 (- (place.middle i) (>> (at art.SPRITE_W poof) 1)))
-            (let ptop u8 (+ top (>> (at art.SPRITE_H (at art.KIND_BODY figure)) 2)))
+            (let pcol u8 (- (place.middle i) (>> (at art.COLS poof) 1)))
+            (let ptop u8 (+ top (>> (- (place.feet i) (place.top i)) 2)))
             (show i poof (& pcol 0xFE) ptop)
             (return)))
     (if (and (> dying 0) (= (& (>> dying 2) 1) 0))
         (do
             (hide i)
             (return)))
-    (let body u8 (at art.KIND_BODY figure))
-    (let flap u8 (at art.KIND_FLAP figure))
-    (if (and (!= flap art.NONE) (= (& (>> (+ state.idle (* i 11)) 4) 1) 1))
-        (set body flap))
-    (let mood_row u8 (+ (* figure art.MOOD_COUNT) (as u8 (at state.actors i mood))))
-    (set (at state.looks i)
-        (make state.Look
-            :sprite body
-            :col col
-            :top top
-            :second (at art.KIND_PATCH mood_row)
-            :second_col (+ col (at art.KIND_PATCH_DX mood_row))
-            :second_top (+ top (at art.KIND_PATCH_DY mood_row))
-            :white (> (at state.actors i flash) 0)
-            :swaps (= (at art.KIND_PATCH_SWAPS mood_row) 1)
-            :face_on_body (= (at state.actors i mood) state.Mood.idle))))
+    (let r u8 (role (at state.actors i mood)))
+    (if (and (= r ROLE_IDLE) (= (& (>> (+ state.idle (* i 11)) 4) 1) 1))
+        (set r ROLE_FLAP))
+    (let id u8 (frame kind r))
+    (show i id (as u8 (+ (as i8 col) (at art.DCOL id))) (as u8 (+ (as i8 top) (at art.DTOP id))))
+    (set (at state.looks i white) (> (at state.actors i flash) 0)))
 
-; marker k over who's head, bob pixels down
+; marker k over who's head (over its intent badge), bob rows down
 (fn marker ((k u8) (who u8) (bob u8)) void
-    (show (+ state.LOOK_MARKER k)
-        art.MARKER
-        (- (place.middle who) 2)
-        (+ (- (place.top who) 30) bob)))
+    (let top u8 (if (= who state.HERO)
+        8
+        (- (place.top who) 25)))
+    (show (+ state.LOOK_MARKER k) art.MARKER (& (- (place.middle who) 2) 0xFE) (+ top bob)))
 
 ; on the hero's turn, arrows over whoever the die picked goes to, bobbing: the target, the hero
 ; for her own faces, every enemy for a hit-all. With no die picked, a still arrow over the
 ; enemy the bottom text describes
-(fn markers () void
+(fn markers ((aim state.Aim)) void
     (if (= state.selected state.NOTHING)
         (do
             (marker 0 state.target 0)
             (return)))
     (let bob u8 (& (>> state.idle 3) 2))
-    (match (at faces.FACES (at state.hand state.selected) aim)
+    (match aim
         (state.Aim.self (marker 0 state.HERO bob))
         (state.Aim.all
             (let k u8 0)
@@ -187,8 +184,8 @@
                         (set k (+ k 1))))))
         (_ (marker 0 state.target bob))))
 
-; every look for this frame
-(fn update () void
+; every look for this frame but the badges; aim is the picked die's
+(fn update ((aim state.Aim)) void
     (for i u8 0 state.ACTORS
         (show_actor i))
     (hide state.LOOK_BOLT)
@@ -197,17 +194,14 @@
     (for k u8 0 state.MARKERS
         (hide (+ state.LOOK_MARKER k)))
     (if (= state.phase state.Phase.player)
-        (markers))
+        (markers aim))
     (for i u8 0 state.FLOATERS
         (let look u8 (+ state.LOOK_FLOATER i))
         (hide look)
         (if (> (at state.floaters i time) 0)
             (do
-                (let col u8 (at state.floaters i col))
-                (let top u8 (at state.floaters i top))
-                (show look (at state.floaters i sprite) col top)
-                (if (!= (at state.floaters i second) state.NOTHING)
-                    (do
-                        (set (at state.looks look second) (at state.floaters i second))
-                        (set (at state.looks look second_col) (+ col 2))
-                        (set (at state.looks look second_top) top)))))))
+                (show look
+                    (at state.floaters i sprite)
+                    (at state.floaters i col)
+                    (at state.floaters i top))
+                (set (at state.looks look second) (at state.floaters i second))))))

@@ -38,13 +38,13 @@
         (ac.Effect.plus
             (sound.cue sound.Cue.chime)
             (hit.add_stacks state.HERO plus (at faces.FACES row amount))
-            (log.line "THE NEXT DIE GETS +#." (state.stack state.HERO plus))
+            (log.line "The next die gets +#." (state.stack state.HERO plus))
             (return))
         (ac.Effect.double
             (sound.cue sound.Cue.chime)
             (state.set_stack state.HERO plus (<< (state.stack state.HERO plus) 1))
             (hit.add_stacks state.HERO double 1)
-            (log.line "THE NEXT DIE DOES DOUBLE." 0)
+            (log.line "The next die does double." 0)
             (return))
         (_))
     (let n u8 (boosted (at faces.FACES row amount)))
@@ -60,7 +60,7 @@
     (if (and (= move.aim state.Aim.all) (> (state.stack target (as u8 st.Status.box)) 0))
         (do
             (sound.cue sound.Cue.ping)
-            (log.line "IT MISSES THE BOX." 0)
+            (log.line "It misses the box." 0)
             (return)))
     (apply move.effect by target move.amount))
 
@@ -83,16 +83,16 @@
         (return (st.dealt who move.amount false)))
     move.amount)
 
-; the glyph shown over an enemy for its next move: Z when it will skip it
+; the glyph shown over an enemy for its next move: @ (a Z) when it will skip it
 (fn intent_icon ((who u8) (row u8)) u8
     (if (> (state.stack who (as u8 st.Status.hiss)) 0)
-        (return 'Z'))
+        (return '@'))
     (at en.MOVES row icon))
 
 ; what the bottom text says an enemy will do next: its move's text, or that it will skip it
 (fn intent_text ((who u8) (row u8)) (ptr u8)
     (if (> (state.stack who (as u8 st.Status.hiss)) 0)
-        (return "SKIPS ITS MOVE"))
+        (return "Skips its move"))
     (at en.MOVES row text))
 
 (fn apply ((effect ac.Effect) (by u8) (target u8) (n u8)) void
@@ -103,7 +103,7 @@
         (ac.Effect.shield
             (sound.cue sound.Cue.ping)
             (hit.add_stacks target (as u8 st.Status.shield) n)
-            (log.who target " SHIELDS #." n))
+            (log.who target " shields #." n))
         (ac.Effect.heal
             (sound.cue sound.Cue.chime)
             (hit.heal target n))
@@ -113,7 +113,7 @@
             (if (> now MOST_MANA)
                 (set now MOST_MANA))
             (state.set_stack state.HERO (as u8 st.Status.mana) now)
-            (log.line "MANA IS NOW #." now))
+            (log.line "Mana is now #." now))
         (ac.Effect.hairball
             (sound.cue sound.Cue.zap)
             (hit.strike by target n)
@@ -130,21 +130,21 @@
             (sound.cue sound.Cue.ping)
             (hit.add_stacks target (as u8 st.Status.shield) n)
             (state.set_stack target (as u8 st.Status.box) 1)
-            (log.who target " HIDES IN A BOX: SHIELD #." n))
+            (log.who target " hides in a box: shield #." n))
         (ac.Effect.scream
             (sound.cue sound.Cue.wobble)
             (for i u8 1 state.ACTORS
                 (if (at state.actors i alive)
                     (hit.strike by i n)))
             (hit.lose state.HERO SCREAM_SELF)
-            (log.who state.HERO " TAKES # FROM SCREAMING." SCREAM_SELF))
+            (log.who state.HERO " takes # from screaming." SCREAM_SELF))
         (ac.Effect.cheer
             (sound.cue sound.Cue.chime)
             (hit.add_stacks target (as u8 st.Status.cheer) n)
-            (log.who target " WILL HIT # HARDER." n))
+            (log.who target " will hit # harder." n))
         (ac.Effect.nothing
             (sound.cue sound.Cue.puff)
-            (log.line "LINT. NOTHING HAPPENS." 0))
+            (log.line "Lint. Nothing happens." 0))
         (ac.Effect.plus)
         (ac.Effect.double)
         (_ (curse effect target n))))
@@ -166,19 +166,19 @@
     (if (> ward 0)
         (do
             (state.set_stack target (as u8 st.Status.ward) (- ward 1))
-            (log.who target ": WARD BROKEN, NO CURSE." 0)
+            (log.who target ": ward broken, no curse." 0)
             (return)))
     (match effect
         (ac.Effect.fleas
             (hit.add_stacks target (as u8 st.Status.poison) n)
             (state.set_stack target (as u8 st.Status.flea_turns) FLEA_TURNS)
-            (log.who target " GETS FLEAS: # A TURN." (state.stack target (as u8 st.Status.poison))))
+            (log.who target " gets fleas: # a turn." (state.stack target (as u8 st.Status.poison))))
         (ac.Effect.wet
             (state.set_stack target (as u8 st.Status.wet) 1)
-            (log.who target " IS WET: HALF DAMAGE." 0))
+            (log.who target " is wet: half damage." 0))
         (ac.Effect.hiss
             (state.set_stack target (as u8 st.Status.hiss) 1)
-            (log.who target " IS HISSED AT: SKIPS." 0))
+            (log.who target " is hissed at: skips." 0))
         (_
             (state.set_stack target (as u8 st.Status.shield) 0)
-            (log.who target " HAS A BATH: NO SHIELD." 0))))
+            (log.who target " has a bath: no shield." 0))))

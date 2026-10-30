@@ -5,9 +5,9 @@
 
 (import apple2 a2)
 (import state)
-(import art/sprites art)
+(import art/icons)
 (import draw/text)
-(import battle/hud)
+(import battle/tray)
 (import battle/bag)
 (import content/action ac)
 (import content/faces)
@@ -34,10 +34,10 @@
     (text.start)
     (text.add_n
         (match pick
-            (state.Pick.offer "A REWARD! PICK ONE (1-4).")
-            (state.Pick.remove "TAKE WHICH DIE OUT OF THE BAG? (1-#)")
-            (state.Pick.upgrade_die "UPGRADE A FACE OF WHICH DIE? (1-#)")
-            (state.Pick.upgrade_face "UPGRADE WHICH FACE? (1-6)"))
+            (state.Pick.offer "A reward! Pick one (1-4).")
+            (state.Pick.remove "Take which die out of the bag? 1-#")
+            (state.Pick.upgrade_die "Upgrade a face of which die? 1-#")
+            (state.Pick.upgrade_face "Upgrade which face? (1-6)"))
         state.bag)
     (text.show 0))
 
@@ -57,34 +57,34 @@
     (match state.pick
         (state.Pick.offer
             (match n
-                (OFFER_UPGRADE (hud.slot n art.TILE_PLUS1 "<" picked))
-                (OFFER_REMOVE (hud.slot n art.TILE_LINT "-" picked))
+                (OFFER_UPGRADE (tray.slot n true icons.TILE_PLUS1 "+" picked))
+                (OFFER_REMOVE (tray.slot n true icons.TILE_LINT "-" picked))
                 (_
-                    (hud.slot n
+                    (tray.slot n true
                         (at faces.FACES (at (at enc.OFFER_DICE n faces) 0) icon)
                         "" picked))))
         (state.Pick.upgrade_face
             (let face u8 (at state.dice (+ (* state.upgrade_die state.DIE_FACES) n)))
-            (hud.slot n (at faces.FACES face icon) (at faces.FACES face caption) picked))
+            (tray.slot n true (at faces.FACES face icon) (at faces.FACES face caption) picked))
         (_
             (let face u8 (first_face n))
-            (hud.slot n (at faces.FACES face icon) "" picked))))
+            (tray.slot n true (at faces.FACES face icon) "" picked))))
 
 ; the slots this step has on the tray's cards (the sixth where the buttons were), the other
 ; cards empty
 (fn draw_slots () void
-    (hud.clear_side)
+    (tray.clear_side)
     (for n u8 0 state.BAG_MOST
         (if (< n (slots))
             (draw_slot n)
-            (hud.slot n art.NONE "" false))))
+            (tray.slot n (< n state.HAND) state.NOTHING "" false))))
 
 ; the names of the six faces in six, two to a row on rows 1 to 3
 (fn list_six () void
     (for r u8 0 3
         (text.start)
         (text.add (at faces.FACES (at six (* r 2)) name))
-        (text.tab 20)
+        (text.tab 18)
         (text.add (at faces.FACES (at six (+ (* r 2) 1)) name))
         (text.show (+ r 1))))
 
@@ -94,8 +94,8 @@
 
 ; how to take it, at the end of row 0
 (fn again () void
-    (text.tab 29)
-    (text.add "AGAIN: TAKE")
+    (text.tab 24)
+    (text.add "Again: take")
     (text.show 0))
 
 ; slot n's text: rows 0 to 3
@@ -107,19 +107,25 @@
             (if (>= n OFFER_UPGRADE)
                 (do
                     (text.add (if (= n OFFER_UPGRADE)
-                        "UPGRADE ONE FACE OF A DIE"
-                        "TAKE A DIE OUT OF THE BAG"))
+                        "Upgrade one face"
+                        "Take a die out"))
                     (again)
                     (text.start)
                     (text.add (if (= n OFFER_UPGRADE)
-                        "PICK THE DIE, THEN THE FACE."
-                        "FEWER DICE: THE REST COME UP MORE."))
+                        "Pick the die, then the face."
+                        "Fewer dice: the rest come up more."))
                     (text.show 1)
                     (return)))
-            (text.add "NEW DIE: ")
+            (text.add "New die: ")
             (text.add (at enc.OFFER_DICE n name))
             (if (= state.bag state.BAG_MOST)
-                (text.add ". BAG FULL"))
+                (do
+                    (text.add ". Bag full")
+                    (text.show 0)
+                    (for f u8 0 state.DIE_FACES
+                        (set (at six f) (at (at enc.OFFER_DICE n faces) f)))
+                    (list_six)
+                    (return)))
             (for f u8 0 state.DIE_FACES
                 (set (at six f) (at (at enc.OFFER_DICE n faces) f))))
         (state.Pick.upgrade_face
@@ -128,11 +134,11 @@
             (text.add face.name)
             (if (= face.upgrade state.NOTHING)
                 (do
-                    (text.add ": NO UPGRADE")
+                    (text.add ": no upgrade")
                     (text.show 0)
                     (return)))
             (let better ac.Action (at faces.FACES face.upgrade))
-            (text.add " BECOMES ")
+            (text.add " becomes ")
             (text.add better.name)
             (text.show 0)
             (text.start)
@@ -140,7 +146,7 @@
             (text.show 1)
             (return))
         (_
-            (text.add "BAG DIE ")
+            (text.add "Bag die ")
             (text.char (+ '1' n))
             (hero_die_to_six n)))
     (again)

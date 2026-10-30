@@ -1,40 +1,35 @@
-; the title: CATWIZ glowing over the night clouds, a jingle, and Press Return (any key or tap
-; starts). The glow is
-; four pictures in aux memory, faint to full, each copied onto the back page in turn and shown.
+; the title: CATWIZ with a glowing rim over the night, the cat against the moon, a jingle, and
+; PRESS RETURN (any key or tap starts). One picture (art/title_*, packed), unpacked onto the
+; backdrop page and both pages; the glow is the letters' rim drawn again in turn in each of its
+; colours (art KIND_GLOW: the rim's sprites), on the page not shown, then shown.
 
 (import apple2 a2)
+(import dhgr)
 (import random)
 (import state)
-(import art/title_0)
-(import art/title_1)
-(import art/title_2)
-(import art/title_3)
+(import art/sprites art)
 (import draw/screen)
-(import draw/text)
+(import draw/blit)
+(import draw/stage)
 (import sound/sound)
 
-(const GLOW_STEPS u8 6)  ; faint, mid, bright, full, bright, mid
-(const GLOW_FRAMES u8 6) ; frames on each step, on top of the copy's own
-
-(const GLOW_PICTURE (array u8 6) (make (array u8 6) 0 1 2 3 2 1))
-
-(fn picture ((n u8)) (ptr u8)
-    (match n
-        (0 (addr_of (at title_0.picture 0)))
-        (1 (addr_of (at title_1.picture 0)))
-        (2 (addr_of (at title_2.picture 0)))
-        (_ (addr_of (at title_3.picture 0)))))
+(const GLOW_STEPS u8 4)   ; the rim's colours in turn (tools/dhgr/title.py, GLOW)
+(const GLOW_FRAMES u8 10) ; frames on each step
 
 (fn enter () void
     (set state.screen state.Screen.title)
-    (screen.load_page screen.back (picture 3))
-    (screen.flip)
-    ; full screen from the battle's mixed one only now: while the picture loaded, the battle's
-    ; page still showed, and its rows under the text are not part of the battle's picture
-    (text.mixed false)
-    (set state.glow 3)
+    (sound.quiet)
+    (screen.wait_frame)
+    (screen.wait_frame)
+    (stage.title)
+    (blit.start)
+    (blit.want art.KIND_GLOW)
+    (blit.unpack_all)
+    (screen.copy_page screen.BACKDROP dhgr.PAGE1)
+    (screen.copy_page screen.BACKDROP dhgr.PAGE2)
+    (screen.on)
+    (set state.glow 0)
     (set state.glow_time 0)
-    (set state.glow_loaded false)
     ; a tap or key from the loading or the run before waits in the keyboard: not a start
     (io_read u8 a2.KBDSTRB)
     (sound.song sound.Song.title))
@@ -48,20 +43,17 @@
             (sound.cue sound.Cue.confirm)
             (return state.Screen.battle)))
     (set state.glow_time (+ state.glow_time 1))
+    state.Screen.title)
+
+(fn draw () void
     (if (< state.glow_time GLOW_FRAMES)
-        (return state.Screen.title))
+        (do
+            (screen.wait_frame)
+            (return)))
     (set state.glow_time 0)
     (set state.glow (+ state.glow 1))
     (if (= state.glow GLOW_STEPS)
         (set state.glow 0))
-    (screen.load_page screen.back (picture (at GLOW_PICTURE state.glow)))
-    (set state.glow_loaded true)
-    state.Screen.title)
-
-(fn draw () void
-    (if state.glow_loaded
-        (do
-            (screen.flip)
-            (set state.glow_loaded false)
-            (return)))
-    (screen.wait_frame))
+    (let rim u8 (+ art.GLOW0 state.glow))
+    (blit.sprite screen.back (at art.KIND_COL art.KIND_GLOW) (at art.KIND_TOP art.KIND_GLOW) rim)
+    (screen.flip))

@@ -1,7 +1,7 @@
 # the dice faces' pictures, hand-pixelled at 11 x 15 wide pixels for the tray's white cards:
 # black ink lines, one or two colours each. KEY maps the letters to colours; '.' is the card.
 #   wand    damage                tuna    heal (a tin of it, a fish on the label)
-#   fluff   shield (hackles up)   gem     mana
+#   fluff   shield (hackles up)   star    mana (a bold yellow star, as the mana meter's)
 #   book    a spell               fleas, wet, hiss, bath   the curses
 #   plus1, times2                 the boosts               lint    nothing at all
 
@@ -64,21 +64,21 @@ ICONS = {
         "..K.....K..",
         ".KK....KK..",
     ],
-    "gem": [
+    "star": [
         "...........",
-        "...........",
-        "..KKKKKKK..",
-        ".KLWLLLBBK.",
-        "KLWLLLBBBBK",
-        "KKKKKKKKKKK",
-        ".KLLLLBBBK.",
-        ".KLLLBBBBK.",
-        "..KLLBBBK..",
-        "..KLLBBBK..",
-        "...KLBBK...",
-        "....KBK....",
         ".....K.....",
-        "...........",
+        "....KYK....",
+        "....KYK....",
+        "...KYYYK...",
+        "KKKKYYYKKKK",
+        "KYYYYYYYYYK",
+        ".KYYYYYYYK.",
+        "..KYYYYYK..",
+        "..KYYYYYK..",
+        ".KYYYKYYYK.",
+        ".KYYK.KYYK.",
+        "KYKK...KKYK",
+        "KK.......KK",
         "...........",
     ],
     "book": [
@@ -221,7 +221,7 @@ ICONS = {
 
 # which picture each face kind of the game shows (game/content/faces.tsp: TILE_*); bone and
 # kibble are the cat's tuna and fluff now
-FOR_TILE = {"TILE_WAND": "wand", "TILE_BONE": "tuna", "TILE_KIBBLE": "fluff", "TILE_GEM": "gem",
+FOR_TILE = {"TILE_WAND": "wand", "TILE_BONE": "tuna", "TILE_KIBBLE": "fluff", "TILE_STAR": "star",
             "TILE_BOOK": "book", "TILE_FLEAS": "fleas", "TILE_WET": "wet", "TILE_HISS": "hiss",
             "TILE_BATH": "bath", "TILE_PLUS1": "plus1", "TILE_TIMES2": "times2", "TILE_LINT": "lint"}
 

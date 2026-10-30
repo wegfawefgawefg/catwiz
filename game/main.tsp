@@ -1,9 +1,8 @@
-; Catwiz: a cat wizard's dice battle in the forest, for the Apple IIe in hi-res.
+; Catwiz: a cat wizard's dice battle in the forest, for the Apple IIe in double hi-res.
 ; The title, then a battle, then back to the title. See AGENTS.md and docs/plan.md.
 
 (import keys)
 (import state)
-(import draw/screen)
 (import title/title)
 (import title/machine)
 (import battle/battle)
@@ -23,7 +22,7 @@
     (if (not (machine.has_aux))
         (machine.refuse))
     (sound.setup)
-    (screen.setup)
+    (set state.ticks 0)
     (title.enter)
     (while true
         (set state.ticks (+ state.ticks 1))

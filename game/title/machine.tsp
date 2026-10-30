@@ -3,7 +3,6 @@
 ; aux memory, which a 64 KB machine does not have.
 
 (import apple2 a2)
-(import draw/text)
 
 (const PROBE u16 0x0400) ; text page 1, which the game never shows
 
@@ -21,16 +20,20 @@
     (io_write u8 a2.CLR80STORE 0)
     (= seen 0xA5))
 
+; one line of the 40-column text screen, at text row 20 + r: s in normal characters
+(fn say ((r u8) (s (ptr u8))) void
+    (let row u16 (+ 0x0650 (* (as u16 r) 0x80)))
+    (let i u8 0)
+    (while (!= (load (+ s i)) 0)
+        (io_write u8 (+ row (as u16 i)) (| (load (+ s i)) 0x80))
+        (set i (+ i 1))))
+
 ; say what is missing, at the foot of a blank text screen, and stay there
 (fn refuse () void
     (io_read u8 a2.TXTSET)
     (io_read u8 a2.LOWSCR)
     (for i u16 0 0x0400
-        (io_write u8 (+ PROBE i) text.SPACE))
-    (text.start)
-    (text.add "CATWIZ NEEDS A 128K APPLE IIE")
-    (text.show 1)
-    (text.start)
-    (text.add "(AN EXTENDED 80-COLUMN CARD)")
-    (text.show 2)
+        (io_write u8 (+ PROBE i) 0xA0))
+    (say 1 "CATWIZ NEEDS A 128K APPLE IIE")
+    (say 2 "(AN EXTENDED 80-COLUMN CARD)")
     (while true))

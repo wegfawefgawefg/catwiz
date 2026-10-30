@@ -1,4 +1,5 @@
-# turn the drawings in actors.py, icons.py and scenes.py into Tisple data modules for the game:
+# turn the drawings in actors.py, icons.py and scenes.py into Tisple data modules for the hi-res
+# game (shelved 2026-10-30; they go to build/art_hires/ now, see GAME_ART):
 #   game/art/sprites.tsp   the tables that say which sprite is which (bodies, mood patches,
 #                          tiles, digits, effects) and the hud font
 #   game/art/sprite_data.tsp  the sprites' bytes
@@ -31,7 +32,10 @@ import hero  # noqa: E402
 import icons  # noqa: E402
 import scenes  # noqa: E402
 
-GAME_ART = os.path.join(ROOT, "game", "art")
+# the hi-res art's tables, kept for the record since the game moved to double hi-res
+# (2026-10-30, tools/dhgr/game.py writes game/art/ now): to build/art_hires/, not the game
+GAME_ART = os.path.join(ROOT, "build", "art_hires")
+os.makedirs(GAME_ART, exist_ok=True)
 SHOTS = os.path.join(ROOT, "shots", "art")
 GROUND = scenes.GROUND
 

@@ -14,7 +14,7 @@ from dhgr import BLACK
 CAT = (30, 108)
 SLOTS = {"puffcap": (77, 108), "sporelet": (103, 106), "nightflap": (115, 44)}
 
-HAND = [("wand", "3"), ("tuna", "2"), ("fluff", "3"), ("gem", "1"), ("times2", "X2")]
+HAND = [("wand", "3"), ("tuna", "2"), ("fluff", "3"), ("star", "1"), ("times2", "X2")]
 TEXT = [("GOLD WAND  3 damage to one enemy.", ((0, 9),)),
         ("Target PUFFCAP: 9 hp, hits you for 4.", ()),
         ("Sporelet cheers. Puffcap hits +1.", ()),

@@ -5,13 +5,13 @@
 (import apple2 a2)
 (import state)
 (import art/sprites art)
-(import art/backdrop bd)
 (import content/enemies en)
 (import content/encounters enc)
 (import content/statuses st)
 (import draw/screen)
 (import draw/scene)
 (import draw/blit)
+(import draw/stage)
 (import draw/text)
 (import battle/place)
 (import battle/look)
@@ -32,11 +32,37 @@
     (set state.hero_hp enc.HERO.hp)
     (set state.fight 0)
     (set state.screen state.Screen.battle)
-    (text.mixed true)
     (enter_fight))
 
+; the fight's art: its backdrop onto the backdrop page, the hero's, the small sprites' and its
+; enemies' runs unpacked (draw/blit). The music stops first: the card's half unpacks with
+; interrupts off
+(fn load_art () void
+    (sound.quiet)
+    (screen.wait_frame)
+    (screen.wait_frame)
+    (let fight enc.Fight (at enc.FIGHTS state.fight))
+    (stage.backdrop fight.backdrop)
+    (blit.start)
+    (blit.want art.KIND_CAT)
+    (blit.want art.KIND_MISC)
+    (for i u8 0 fight.count
+        (let spot enc.Spot (at fight.spots i))
+        (let kind u8 (at en.ENEMIES spot.enemy figure))
+        (let seen bool false)
+        (for j u8 0 i
+            (let other enc.Spot (at fight.spots j))
+            (if (= (at en.ENEMIES other.enemy figure) kind)
+                (set seen true)))
+        (if (not seen)
+            (blit.want kind)))
+    (blit.unpack_all)
+    (text.forget)
+    (hud.forget)
+    (scene.mark_all))
+
 (fn enter_fight () void
-    (screen.load_page screen.BACKDROP (addr_of (at bd.backdrop 0)))
+    (load_art)
     (set state.turn 0)
     (set state.hitstop 0)
     (set state.bolt_on false)
@@ -53,8 +79,6 @@
         (if (!= (at state.actors i kind) state.NOTHING)
             (st.start i (at state.actors i kind)))
         (set (at state.actors i mood) (look.resting_mood i)))
-    (draw_shadows)
-    (hud.forget)
     (text.clear)
     (log.clear)
     (set state.hud_pills 0x0F)
@@ -113,16 +137,6 @@
             :flash 0
             :knock 0
             :dying 0)))
-
-; shadows on the ground under everyone, part of the backdrop
-(fn draw_shadows () void
-    (for i u8 0 state.ACTORS
-        (if (or (= i state.HERO) (!= (at state.actors i kind) state.NOTHING))
-            (do
-                (let a u8 (at state.actors i figure))
-                (let col u8 (as u8 (+ (as i8 (at state.actors i home)) (at art.KIND_SHADOW_DX a))))
-                (let top u8 (as u8 (+ (as i8 place.GROUND) (at art.KIND_SHADOW_DY a))))
-                (blit.sprite screen.BACKDROP col top (at art.KIND_SHADOW a))))))
 
 ; whether this frame takes a key: in the hero's turn, the reward and at the end
 (fn wants_key () bool
@@ -185,6 +199,7 @@
 (fn draw () void
     (words.refresh)
     (hud.refresh)
-    (look.update)
-    (scene.draw_frame)
-    (screen.flip))
+    (look.update (turn.picked_aim))
+    (if (scene.draw_frame)
+        (screen.flip)
+        (screen.wait_frame)))

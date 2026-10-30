@@ -46,9 +46,9 @@
     (sound.cue sound.Cue.turn_on)
     (if (log.once log.HINT_TURN)
         (do
-            (log.line "PICK A DIE (1-5), THEN AN ENEMY (Z X C)." 0)
-            (log.line "DONE? E (OR TAP END) ENDS YOUR TURN." 0))
-        (log.line "YOUR TURN: PICK A DIE (1-5)." 0))
+            (log.line "Pick a die 1-5, then an enemy ZXC." 0)
+            (log.line "Done? E (or tap END) ends the turn." 0))
+        (log.line "Your turn: pick a die (1-5)." 0))
     (bag.deal)
     (start_roll))
 
@@ -96,9 +96,9 @@
             (return)))
     (if (> state.rerolls 0)
         (do
-            (log.line "R RE-ROLL OR E END TURN." 0)
+            (log.line "R re-roll or E end turn." 0)
             (return)))
-    (log.line "NO PLAYABLE DICE." 0)
+    (log.line "No playable dice." 0)
     (set state.end_wait END_BEAT))
 
 ; the next living enemy one way or the other from the target (step 1 or 255)
@@ -157,7 +157,7 @@
             (play_selected)
             (return)))
     (sound.cue sound.Cue.meow)
-    (log.who state.HERO ": MEOW!" 0)
+    (log.who state.HERO ": meow!" 0)
     (act.begin state.Source.meow 0 state.HERO state.HERO))
 
 (fn player_key ((key u8)) void
@@ -279,7 +279,7 @@
             (return)))
     (if (> (fx.mana) 0)
         (if (log.once log.HINT_MANA)
-            (log.line "MANA FILLS THE STARS. SPELLS SPEND IT." 0)))
+            (log.line "Stars fill your mana; spells spend." 0)))
     (start_player))
 
 (fn end_battle ((how state.Phase)) void

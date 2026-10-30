@@ -1,35 +1,36 @@
-; the four lines of 40-column text under the picture (mixed mode). A line is built in line,
-; then shown: copied to text page 1, which the bottom of the screen reads while hi-res page 1
-; is shown, and to text page 2, which it reads while page 2 is shown (the game flips the two
-; every frame). Text page 2's last two lines lie inside the program's memory ($0B50 and
-; $0BD0), kept out of the layout below; its first two in the boot loader's, free once the
-; game runs.
+; the four lines of text at the foot of the screen, drawn into the picture (rows 160-191 of the
+; backdrop page, then copied onto both pages as any hud part is). A line is built in line, then
+; shown. The font is the 35-column one in whole colour pixels (white in every look: a glyph is 3
+; pixels of a 4-pixel cell); FONT_35 false draws the 40-column dot font instead (white in NTSC,
+; violet and green in the flat colour look), with strings of 35 at most either way.
 ;
-; strings are plain ASCII; add turns them into screen codes (bit 7 set: normal, or inverse
-; while inverse is on). A # in a string stands for the number given to add_n.
+; strings are plain ASCII; inverse (set while adding) draws them dark on a light block. A # in a
+; string stands for the number given to add_n.
 
-(import apple2 a2)
+(import auxmem)
+(import art/hud_data hud)
+(import art/font40)
+(import draw/screen)
+(import draw/pix)
+(import dhgr_pixels)
+(import draw/scene)
 
-(const COLUMNS u8 40)
+(const FONT_35 bool true) ; the one place the text's font is chosen
+(const COLUMNS u8 35)
 (const ROWS u8 4)
-(const SPACE u8 0xA0)
+(const TOP u8 160) ; the first text row on the screen
+(const INVERSE u8 0x80)
 
-; all of page $0B: a disk segment loads whole pages, so code or data beside the two rows would
-; share a page with the next segment and be overwritten when it loads (Tisple, 2026-10-30)
-(let text2_rows (array u8 256) :address 0x0B00 :reserve)
-
-; text rows 20 to 23 on each page
-(const PAGE1_ROW (array u16 4) (make (array u16 4) 0x0650 0x06D0 0x0750 0x07D0))
-(const PAGE2_ROW (array u16 4) (make (array u16 4) 0x0A50 0x0AD0 0x0B50 0x0BD0))
-
-; the line being built, as screen codes, and where the next character goes
-(let line (array u8 40) :address 0x09E0) ; scratch: see AGENTS.md, Memory
+; the line being built, as ASCII with INVERSE set for inverse, and where the next character
+; goes; and what each line on the screen shows, so an unchanged one is not drawn again
+(let line (array u8 35) :address 0x09E0) ; scratch: see AGENTS.md, Memory
+(let shown (array u8 140) :address 0x0A10)
 (let col u8 0)
 (let inverse bool false)
 
 (fn start () void
     (for i u8 0 COLUMNS
-        (set (at line i) SPACE))
+        (set (at line i) ' '))
     (set col 0)
     (set inverse false))
 
@@ -37,12 +38,9 @@
 (fn char ((c u8)) void
     (if (>= col COLUMNS)
         (return))
-    (let code u8 (| c 0x80))
-    (if inverse
-        (set code (if (>= c 0x40)
-            (- c 0x40)
-            c)))
-    (set (at line col) code)
+    (set (at line col) (if inverse
+        (| c INVERSE)
+        c))
     (set col (+ col 1)))
 
 ; n in decimal
@@ -71,14 +69,71 @@
     (if (> c col)
         (set col c)))
 
-; the line onto text row r (0 to 3) of both pages
-(fn show ((r u8)) void
-    (let p1 (ptr u8) (as (ptr u8) (at PAGE1_ROW r)))
-    (let p2 (ptr u8) (as (ptr u8) (at PAGE2_ROW r)))
+; row r of the line in the 35-column font onto row y of the backdrop: a 4-pixel cell a
+; character, the glyph's 3 pixels then a gap (lib/dhgr_pixels' cells), inverse the cell's bits
+; flipped; glyph_at and flip are the line's, worked out once
+(let glyph_at (array u16 35))
+(let flip (array u8 35))
+(let cells (array u8 35))
+
+(fn glyphs35 () void
     (for i u8 0 COLUMNS
         (let c u8 (at line i))
-        (store (+ p1 i) c)
-        (store (+ p2 i) c)))
+        (set (at flip i) 0)
+        (if (>= c INVERSE)
+            (do
+                (set (at flip i) 15)
+                (set c (& c 0x7F))))
+        (set (at glyph_at i) (<< (as u16 (- c 32)) 3))))
+
+(fn row35 ((r u8) (y u8)) void
+    (for i u8 0 COLUMNS
+        (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
+        (set (at cells i) (^ bits (at flip i))))
+    (dhgr_pixels.cells screen.BACKDROP 0 y 5 (addr_of (at cells 0))))
+
+; row y of the line in the 40-column font: a character is one aux byte and one main byte
+(fn row40 ((r u8) (y u8)) void
+    (for i u8 0 40
+        (let c u8 (if (< i COLUMNS)
+            (at line i)
+            ' '))
+        (let flip u8 0)
+        (if (>= c INVERSE)
+            (do
+                (set flip 0x7F)
+                (set c (& c 0x7F))))
+        (let at u16 (+ (* (as u16 (- c 32)) 16) (as u16 (<< r 1))))
+        (set (at pix.aux_bytes i) (^ (at font40.FONT40 at) flip))
+        (set (at pix.main_bytes i) (^ (at font40.FONT40 (+ at 1)) flip)))
+    (let p (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP y 0)))
+    (for i u8 0 40
+        (store (+ p i) (at pix.main_bytes i)))
+    (auxmem.write p (addr_of (at pix.aux_bytes 0)) 40))
+
+; whether text row r already shows the line
+(fn same ((r u8)) bool
+    (let at u8 (* r COLUMNS))
+    (for i u8 0 COLUMNS
+        (if (!= (at shown (+ at i)) (at line i))
+            (return false)))
+    true)
+
+; the line onto text row r (0 to 3): into the backdrop, marked for both pages
+(fn show ((r u8)) void
+    (if (same r)
+        (return))
+    (let at u8 (* r COLUMNS))
+    (for i u8 0 COLUMNS
+        (set (at shown (+ at i)) (at line i)))
+    (let y u8 (+ TOP (<< r 3)))
+    (if FONT_35
+        (glyphs35))
+    (for k u8 0 8
+        (if FONT_35
+            (row35 k (+ y k))
+            (row40 k (+ y k))))
+    (scene.mark 0 y 40 8))
 
 ; the line kept elsewhere (the log), and back
 (fn save ((to (ptr u8))) void
@@ -89,14 +144,12 @@
     (for i u8 0 COLUMNS
         (set (at line i) (load (+ from i)))))
 
-; all four rows blank
+; all four rows blank; forget delays nothing: a new backdrop has none of the lines on it
+(fn forget () void
+    (for i u8 0 140
+        (set (at shown i) 0)))
+
 (fn clear () void
     (start)
     (for r u8 0 ROWS
         (show r)))
-
-; graphics with the four text rows under it, or the whole screen graphics
-(fn mixed ((on_now bool)) void
-    (if on_now
-        (io_read u8 a2.MIXSET)
-        (io_read u8 a2.MIXCLR)))

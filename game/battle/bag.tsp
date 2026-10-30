@@ -41,7 +41,7 @@
 ; the discard back into the draw pile: every die not in the tray
 (fn reshuffle () void
     (if (log.once log.HINT_SHUFFLE)
-        (log.line "BAG EMPTY: USED DICE SHUFFLED BACK IN." 0))
+        (log.line "Bag empty: dice shuffled back in." 0))
     (for d u8 0 state.bag
         (if (not (in_tray d))
             (set (at state.in_draw d) true))))

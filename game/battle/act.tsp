@@ -143,7 +143,7 @@
     (let top i16 (+ y0 (>> state.bolt_sy 3)))
     (set state.bolt_sx (+ state.bolt_sx (- (as i16 (place.middle target)) x0)))
     (set state.bolt_sy (+ state.bolt_sy (- (as i16 (+ (place.top target) 8)) y0)))
-    (set state.bolt_col (- (as u8 col) 2))
+    (set state.bolt_col (& (as u8 col) 0xFE))
     (set state.bolt_top (- (as u8 top) (at ARC k)))
     (set state.bolt_on true)
     false)
