@@ -141,15 +141,17 @@ def cap_face(c, x, feet, s, fx, ey, mood):
 
 
 def bat(c, x, y, mood="angry", flap=0):
-    # a jagged-winged bat glaring at the dog with a fanged grin; flap 1 has the wings swapped
+    # a jagged-winged bat glaring at the cat with a fanged grin. flap 0 is the upstroke, both
+    # wings raised; flap 1 the downstroke, both wings swung down together, hanging lower than
+    # they were raised (each turned over the middle of where it meets the body, then dropped)
     wing = [(x - 6, y - 2), (x - 30, y - 14), (x - 25, y - 4), (x - 32, y + 1), (x - 21, y + 1),
             (x - 23, y + 8), (x - 10, y + 5)]
-    if flap:
-        wing = [(px, 2 * y - py - 2) for px, py in wing]          # near wing up
-    c.poly(wing, "K")
     far = [(2 * x - px + 2, py - 3) for px, py in wing]
     if flap:
-        far = [(px, 2 * y - py - 4) for px, py in far]            # far wing down
+        drop = 2
+        wing = [(px + 1, 2 * (y + 1.5) - py + drop) for px, py in wing]
+        far = [(px - 1, 2 * (y - 1.5) - py + drop) for px, py in far]
+    c.poly(wing, "K")
     c.poly(far, "K")
     c.ellipse(x, y + 1, 9, 10, "K")
     c.poly([(x - 8, y - 6), (x - 6, y - 17), (x - 2, y - 7)], "K")
