@@ -61,9 +61,10 @@
 
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 
-; ---- the game state, all of it. Top-level lets, not one struct: Tisple keeps a top-level
-; array of structs as one byte table a field (LDA field,X), but packs one inside a struct
-; (an index times the struct's size for every access)
+; ---- the game state, all of it, as top-level lets in this one module: state.phase reads
+; shorter than state.game.phase, and the code is the same either way. Keep addr_of off their
+; elements: taking an element's address packs a whole array of structs, and then every
+; (at actors i hp) multiplies i by the struct's size instead of one LDA hp,X
 
 (let screen Screen)
 (let ticks u16) ; every pass of the main loop, for measuring frame costs

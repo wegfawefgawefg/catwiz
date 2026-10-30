@@ -11,12 +11,13 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   `battle/`, `draw/`, `sound/`, `content/`, `title/`, `art/` (generated). No `utils`,
   `common` or `misc` files.
 - Ultra low abstraction: plain structs and free functions. One game state: `state.tsp`
-  holds all of it as top-level lets (`state.actors`, `state.phase`, ...). Not one struct:
-  Tisple splits a top-level array of structs into a byte table a field (`LDA hp,X`) but packs
-  one inside a struct, so every access would multiply. Drawing keeps its own scratch in
-  `draw/scene.tsp`. A thin `main.tsp` whose loop reads top to bottom in commented paragraphs.
+  holds all of it as top-level lets (`state.actors`, `state.phase`, ...). Drawing keeps its
+  own record of what each page shows, and its scratch, in `draw/scene.tsp`. A thin
+  `main.tsp` whose loop reads top to bottom in commented paragraphs.
 - Hot arrays stay split: no `addr_of` on an element of `state.actors`, `state.looks` and the
-  like (taking an element's address packs the whole array). Pass indices, not pointers.
+  like. Tisple stores an array of structs as one byte table a field (`LDA hp,X`) until
+  something takes an element's address; then it packs the whole array and every access
+  multiplies (it cost the redraw about half its speed once). Pass indices, not pointers.
 - Early returns and flat branching; concrete names; code easy to trace in the listing
   (`tisple build --asm`).
 - Explicit dispatch: effects and enemy actions are a `match` on a kind enum, in one obvious
