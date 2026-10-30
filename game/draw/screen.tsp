@@ -79,9 +79,3 @@
     (let dst (ptr u8) (page_start to))
     (for i u16 0 8192
         (store (+ dst i) (load (+ src i)))))
-
-; every byte of a page the same
-(fn fill_page ((page u8) (value u8)) void
-    (let dst (ptr u8) (page_start page))
-    (for i u16 0 8192
-        (store (+ dst i) value)))

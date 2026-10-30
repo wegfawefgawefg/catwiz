@@ -1,9 +1,12 @@
 ; the turns of a battle. The hero's turn: five dice from her bag (battle/bag.tsp) roll; she
 ; picks one (its text shows at the bottom) and plays it: on an enemy picked next (Z X C, or the
-; arrows and RETURN), or with the same key again on herself, or on every enemy for a hit-all.
-; She re-rolls the unplayed dice up to twice and ends her turn; M meows, for fun. Then each
-; enemy makes the move it showed, statuses tick, the enemies take up their next moves, and her
-; turn comes round again.
+; arrows and RETURN), or with the same key again (or M, the cat) on herself, or on every enemy
+; for a hit-all. The same key again on a die for one enemy lets it go, as ESC does. She
+; re-rolls the unplayed dice up to twice and ends her turn (E); M with no die for her meows, for
+; fun. With every die played, or none playable and no re-roll left, the turn ends by itself
+; after a beat. Then each enemy makes the move it showed, statuses tick, the enemies take up
+; their next moves, and her turn comes round again. Taps on the screen send the same keys
+; (tools/phone/catwiz.json).
 
 (import apple2 a2)
 (import random)
@@ -25,6 +28,7 @@
 (const ROLL_EVERY u8 4) ; a power of 2: (& t 3) is the test
 (const ENEMY_PAUSE u8 14)
 (const KEY_1 u8 '1')
+(const END_BEAT u8 30) ; frames from the last play to a turn that ends by itself
 
 (fn any_enemy_alive () bool
     (for i u8 1 state.ACTORS
@@ -40,7 +44,11 @@
     (set state.hud_rerolls true)
     (set state.selected state.NOTHING)
     (sound.cue sound.Cue.turn_on)
-    (log.line "YOUR TURN: PICK A DIE (1-5)." 0)
+    (if (log.once log.HINT_TURN)
+        (do
+            (log.line "PICK A DIE (1-5), THEN AN ENEMY (Z X C)." 0)
+            (log.line "DONE? E (OR TAP END) ENDS YOUR TURN." 0))
+        (log.line "YOUR TURN: PICK A DIE (1-5)." 0))
     (bag.deal)
     (start_roll))
 
@@ -69,10 +77,29 @@
         (return))
     (start_player))
 
+; the hero's turn goes on; with nothing left to play it ends by itself after a beat, unless
+; a re-roll might help
 (fn start_player () void
     (set state.phase state.Phase.player)
     (if (not (at state.actors state.target alive))
-        (next_target 1)))
+        (next_target 1))
+    (let left bool false)
+    (for d u8 0 state.HAND
+        (if (not (at state.played d))
+            (do
+                (if (fx.can_play (at state.hand d))
+                    (return))
+                (set left true))))
+    (if (not left)
+        (do
+            (set state.end_wait END_BEAT)
+            (return)))
+    (if (> state.rerolls 0)
+        (do
+            (log.line "R RE-ROLL OR E END TURN." 0)
+            (return)))
+    (log.line "NO PLAYABLE DICE." 0)
+    (set state.end_wait END_BEAT))
 
 ; the next living enemy one way or the other from the target (step 1 or 255)
 (fn next_target ((step u8)) void
@@ -122,13 +149,26 @@
             (return)))
     (play_selected))
 
-; M: the hero meows and hops, just for fun: no effect on the fight, as often as you like
+; M (and taps on the cat): a die for the hero picked plays; else she meows and hops, just for
+; fun: no effect on the fight, as often as you like
 (fn meow () void
+    (if (= (picked_aim) state.Aim.self)
+        (do
+            (play_selected)
+            (return)))
     (sound.cue sound.Cue.meow)
     (log.who state.HERO ": MEOW!" 0)
     (act.begin state.Source.meow 0 state.HERO state.HERO))
 
 (fn player_key ((key u8)) void
+    ; the beat before a turn ends by itself; a key in it still counts
+    (if (> state.end_wait 0)
+        (do
+            (set state.end_wait (- state.end_wait 1))
+            (if (= state.end_wait 0)
+                (do
+                    (end_turn)
+                    (return)))))
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
         (do
             (select (- key KEY_1))
@@ -154,10 +194,12 @@
     (if (< d state.HAND)
         (set state.hud_dice (| state.hud_dice (<< 1 d)))))
 
-; slot d picked: its text shows; picked again, it plays
+; slot d picked: its text shows; picked again, it plays, or with a die for one enemy it is let
+; go. An empty slot lets go of the picked die
 (fn select ((d u8)) void
     (if (at state.played d)
         (do
+            (deselect)
             (sound.cue sound.Cue.nope)
             (return)))
     (if (!= d state.selected)
@@ -167,6 +209,10 @@
             (set state.selected d)
             (set state.hud_words true)
             (sound.cue sound.Cue.blip)
+            (return)))
+    (if (= (picked_aim) state.Aim.foe)
+        (do
+            (deselect)
             (return)))
     (play_selected))
 
@@ -231,6 +277,9 @@
             (set state.phase state.Phase.enemies)
             (set state.timer 0)
             (return)))
+    (if (> (fx.mana) 0)
+        (if (log.once log.HINT_MANA)
+            (log.line "MANA FILLS THE STARS. SPELLS SPEND IT." 0)))
     (start_player))
 
 (fn end_battle ((how state.Phase)) void
@@ -250,6 +299,7 @@
 
 ; the hero's statuses tick, then the enemies' turn begins: their shields from last turn go
 (fn end_turn () void
+    (set state.end_wait 0)
     (deselect)
     (sound.cue sound.Cue.turn_off)
     (turn_end state.HERO)

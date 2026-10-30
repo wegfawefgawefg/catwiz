@@ -37,7 +37,6 @@
 
 (fn enter_fight () void
     (screen.load_page screen.BACKDROP (addr_of (at bd.backdrop 0)))
-    (hud.band)
     (set state.turn 0)
     (set state.hitstop 0)
     (set state.bolt_on false)
@@ -164,7 +163,7 @@
     (>= (+ state.fight 1) enc.FIGHT_COUNT))
 
 ; after the last blow: once the beaten have puffed away, the reward, or the end of the run
-; (to be continued, or lost), where RETURN goes back to the title
+; (to be continued, or lost), where any key (RETURN, a tap) goes back to the title
 (fn ending ((key u8) (won bool)) state.Screen
     (if (< state.timer 255)
         (set state.timer (+ state.timer 1)))
@@ -179,10 +178,8 @@
             (sound.song (if won
                 sound.Song.won
                 sound.Song.lost))))
-    (if (and (> state.timer BANNER_AFTER) (= key a2.KEY_RETURN))
-        (do
-            (text.mixed false)
-            (return state.Screen.title)))
+    (if (and (> state.timer BANNER_AFTER) (!= key 0))
+        (return state.Screen.title))
     state.Screen.battle)
 
 (fn draw () void

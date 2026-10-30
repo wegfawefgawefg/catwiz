@@ -9,12 +9,19 @@ import hero
 GROUND = 104
 BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 
-# the dice tray: five dice and the re-roll die. Each die's face picture goes in a tile at
-# byte column DIE_COL[i], rows DIE_TOP to DIE_TOP + 20; its number below that
-DIE_CENTRES = (38, 80, 122, 164, 206)
-DIE_TILTS = (-6, 4, -3, 5, -4)
-DIE_COLS = (4, 10, 16, 22, 28)
-DIE_TOP = 155
+# the dice tray, in a black band from row 127 down to the text (rows 160 on are under the text
+# in mixed mode, black too). Each die's face picture goes in a tile at byte column DIE_COL[i],
+# rows DIE_TOP to DIE_TOP + 20, with its number in a pill below (the game draws those: battle/
+# hud.tsp) over the foot of a tilted card with a white rim. Right of the dice the re-roll and
+# end-turn buttons, slanted white boxes; the game writes R and the re-rolls left on the first
+# and the mana stars under them
+DIE_COLS = (2, 8, 14, 20, 26)
+DIE_TILTS = (-4, 3, -3, 4, -3)
+DIE_TOP = 130
+BAND_TOP = 127
+BUTTON_TOP, BUTTON_BOTTOM = 128, 142
+REROLL_X = (212, 238)  # the top edge; the bottom one 2 px to the left
+END_X = (242, 280)
 
 
 def forest():
@@ -38,16 +45,19 @@ def forest():
     tree(c, 276, 14, 16, 34)
     c.ellipse(30, 146, 30, 10, "K")
     c.ellipse(258, 146, 34, 12, "K")
-    # the tray: five tilted dice, black faces with a white rim
-    for cx, deg in zip(DIE_CENTRES, DIE_TILTS):
-        c.poly_rot(cx, 170, 37, 37, deg, "K")
-        c.poly_rot(cx, 170, 34, 34, deg, "W")
-        c.poly_rot(cx, 170, 30, 30, deg, "K")
-    # the re-roll die: five pips; the rolls left go under it
-    c.rect(252, 156, 274, 178, "W")
-    for px, py in ((256, 160), (268, 160), (262, 166), (256, 172), (268, 172)):
-        c.rect(px, py, px + 3, py + 3, "K")
+    tray(c)
     return c
+
+
+def tray(c):
+    c.rect(0, BAND_TOP, 280, 192, "K")
+    for col, deg in zip(DIE_COLS, DIE_TILTS):
+        cx = col * 7 + 10.5
+        c.poly_rot(cx, 142, 31, 29, deg, "W")
+        c.poly_rot(cx, 142, 27, 25, deg, "K")
+    for x0, x1 in (REROLL_X, END_X):
+        c.poly([(x0, BUTTON_TOP), (x1, BUTTON_TOP), (x1 - 2, BUTTON_BOTTOM), (x0 - 2, BUTTON_BOTTOM)], "W")
+    c.text(END_X[0] + 1, BUTTON_TOP + 3, "END", "K", scale=2, sy=1)
 
 
 def tree(c, x, trunk_w, top, crown_r):

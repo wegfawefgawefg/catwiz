@@ -100,6 +100,7 @@
 (let hand (array u8 5))                      ; the face each die shows, a row in content/faces
 (let played (array bool 5))
 (let rerolls u8)
+(let end_wait u8) ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8) ; the die picked to play next, or NOTHING
 (let target u8)   ; the enemy the dice go to
 (let log_hold u8) ; frames the enemies wait, so the last log line can be read

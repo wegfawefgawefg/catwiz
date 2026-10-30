@@ -70,10 +70,14 @@
             (let face u8 (first_face n))
             (hud.slot n (at faces.FACES face icon) "" picked))))
 
+; the slots this step has on the tray's cards (the sixth where the buttons were), the other
+; cards empty
 (fn draw_slots () void
-    (hud.band)
-    (for n u8 0 (slots)
-        (draw_slot n)))
+    (hud.clear_side)
+    (for n u8 0 state.BAG_MOST
+        (if (< n (slots))
+            (draw_slot n)
+            (hud.slot n art.NONE "" false))))
 
 ; the names of the six faces in six, two to a row on rows 1 to 3
 (fn list_six () void
@@ -202,6 +206,9 @@
 
 ; one frame of the reward; true when it is done and the next fight can start
 (fn step ((key u8)) bool
+    ; the tap box over the sixth slot's top is the battle's re-roll button, R
+    (if (= (& key 0xDF) 'R')
+        (set key '6'))
     (if (and (>= key '1') (< key (+ '1' (slots))))
         (return (pick_slot (- key '1'))))
     (match key

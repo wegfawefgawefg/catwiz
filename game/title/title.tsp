@@ -1,4 +1,5 @@
-; the title: CATWIZ glowing over the night clouds, a jingle, and Press Return. The glow is
+; the title: CATWIZ glowing over the night clouds, a jingle, and Press Return (any key or tap
+; starts). The glow is
 ; four pictures in aux memory, faint to full, each copied onto the back page in turn and shown.
 
 (import apple2 a2)
@@ -9,6 +10,7 @@
 (import art/title_2)
 (import art/title_3)
 (import draw/screen)
+(import draw/text)
 (import sound/sound)
 
 (const GLOW_STEPS u8 6)  ; faint, mid, bright, full, bright, mid
@@ -27,16 +29,21 @@
     (set state.screen state.Screen.title)
     (screen.load_page screen.back (picture 3))
     (screen.flip)
+    ; full screen from the battle's mixed one only now: while the picture loaded, the battle's
+    ; page still showed, and its rows under the text are not part of the battle's picture
+    (text.mixed false)
     (set state.glow 3)
     (set state.glow_time 0)
     (set state.glow_loaded false)
+    ; a tap or key from the loading or the run before waits in the keyboard: not a start
+    (io_read u8 a2.KBDSTRB)
     (sound.song sound.Song.title))
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen
     ; the time to the key press seeds the dice
     (set random.seed (+ random.seed 1))
-    (if (= key a2.KEY_RETURN)
+    (if (!= key 0)
         (do
             (sound.cue sound.Cue.confirm)
             (return state.Screen.battle)))

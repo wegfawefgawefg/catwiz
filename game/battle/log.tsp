@@ -11,6 +11,12 @@
 (const ROW_NEWER u8 3)
 (const HOLD_FRAMES u8 40)
 
+; one-time hints for a new player, in the log: a bit each, set once it has shown (once a boot)
+(const HINT_TURN u8 1)    ; the first turn: how to play a die and end the turn
+(const HINT_MANA u8 2)    ; the first mana
+(const HINT_SHUFFLE u8 4) ; the first time the discard goes back into the draw pile
+(let hints_shown u8 0)
+
 ; what the two rows show, as screen codes
 (let older (array u8 40) :address 0x0990) ; scratch: see AGENTS.md, Memory
 (let newer (array u8 40) :address 0x09B8)
@@ -59,3 +65,10 @@
     (text.add_n s n)
     (text.char '.')
     (push))
+
+; whether hint h is still to show: true the first time, then never again
+(fn once ((h u8)) bool
+    (if (!= (& hints_shown h) 0)
+        (return false))
+    (set hints_shown (| hints_shown h))
+    true)

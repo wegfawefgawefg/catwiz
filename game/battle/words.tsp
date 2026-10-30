@@ -53,12 +53,9 @@
         (text.add_n "NEEDS # MANA" face.cost)
         (if (= face.aim state.Aim.foe)
             (text.add "PICK AN ENEMY")
-            (do
-                (text.add "PRESS ")
-                (text.char (+ '1' d))
-                (text.add (if (= face.aim state.Aim.all)
-                    " AGAIN: HITS ALL"
-                    " AGAIN: ON YOU")))))
+            (text.add (if (= face.aim state.Aim.all)
+                "PICK IT AGAIN: HITS ALL"
+                "PICK IT AGAIN: ON YOU"))))
     (text.show 0)
     (text.start)
     (let n u8 face.amount)
@@ -130,4 +127,4 @@
             (text.add (log.name state.HERO))
             (text.add " IS DOWN. THE RUN IS OVER.")))
     (text.show 0)
-    (line_row 1 "PRESS RETURN"))
+    (line_row 1 "PRESS RETURN OR TAP"))

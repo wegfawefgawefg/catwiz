@@ -1,6 +1,7 @@
 ; the hud, drawn into the backdrop page and marked for copying onto both pages: hit points (and
 ; ward pips) and a status row under each actor, enemy intents over their heads, and the dice
-; tray in a black band at the foot of the picture, with the re-rolls and the mana beside it.
+; tray at the foot of the picture, with the mana beside it. The backdrop has the tray's black
+; band, a tilted card for each die and the re-roll and end-turn buttons (tools/art/scenes.py).
 ; Each part is redrawn whole when its flag in state says it changed: first the clean backdrop
 ; from aux memory over its area. The words are at the bottom, in text (battle/words, log).
 
@@ -25,15 +26,16 @@
 (const CAPSULE_ROWS u8 11)
 (const BAND_TOP u8 127) ; the tray's black band, down to the text
 (const BAND_ROWS u8 33)
-(const MARK_TOP u8 127) ; the bar over the picked die
 (const TRAY_TOP u8 130) ; the dice pictures
 (const DIGIT_TOP u8 150)
 (const TRAY_FIRST_COL u8 2)
 (const TRAY_STEP u8 6)
-(const SIDE_COL u8 29) ; the re-rolls and the mana, right of the dice
-(const SIDE_X u16 241) ; and their middle
-(const REROLL_Y u8 131)
-(const MANA_Y u8 144)
+(const SIXTH_COL u8 30) ; the reward's sixth slot, where the re-roll button is in a fight
+(const SIDE_COL u8 30)  ; the buttons and the mana, right of the dice
+(const BUTTON_TOP u8 128)
+(const REROLL_X u16 213) ; R and the re-rolls left, on the re-roll button
+(const MANA_X u16 245)   ; the mana stars' middle
+(const MANA_Y u8 145)
 
 ; what the backdrop shows now, not game state: how far down and how far either side of its
 ; middle each actor's hud reaches, so a redraw cleans only that
@@ -77,14 +79,14 @@
     (set (at glyphs glyph_count) 0)
     (let half u8 (+ (* glyph_count 6) 3))
     (let left u16 (- x (as u16 (- half 4))))
-    (pen.capsule (- x (as u16 half)) top (+ x (as u16 half)) (+ top CAPSULE_ROWS))
+    (pen.capsule (- x (as u16 half)) top (+ x (as u16 half)) (+ top CAPSULE_ROWS) false)
     (pen.text left (+ top 2) (addr_of (at glyphs 0)))
     half)
 
-; the black band the tray sits in, over the backdrop's foot
-(fn band () void
-    (blit.fill screen.BACKDROP 0 BAND_TOP 40 BAND_ROWS 0)
-    (scene.mark 0 BAND_TOP 40 BAND_ROWS))
+; the buttons and the mana off, for the reward: its sixth slot goes there
+(fn clear_side () void
+    (blit.fill screen.BACKDROP SIDE_COL BAND_TOP (- 40 SIDE_COL) BAND_ROWS 0)
+    (scene.mark SIDE_COL BAND_TOP (- 40 SIDE_COL) BAND_ROWS))
 
 ; ---- under each actor: hit points and ward pips, then a row of its statuses
 
@@ -151,24 +153,24 @@
 
 ; ---- the dice tray and the re-rolls
 
-; tray slot n: a face's picture and caption, or nothing (icon art.NONE); picked, a white bar
-; over it. A two-glyph caption is 22 px, a pixel wider than the picture, so the slot cleans a
-; fourth column too: else that pixel stays when the next face has a narrower one
+; tray slot n: a face's picture on its card, and its number in a pill over the card's foot,
+; white when picked; or the empty card (icon art.NONE). The pill is 22 px, a pixel wider than
+; the picture, so it covers a fourth column. The reward's sixth slot has no card
 (fn slot ((n u8) (icon u8) (caption (ptr u8)) (picked bool)) void
-    (let col u8 (+ TRAY_FIRST_COL (* n TRAY_STEP)))
+    (let col u8 (if (= n 5)
+        SIXTH_COL
+        (+ TRAY_FIRST_COL (* n TRAY_STEP))))
     (let x u16 (* (as u16 col) 7))
-    (blit.fill screen.BACKDROP col MARK_TOP 4 (- (+ DIGIT_TOP 9) MARK_TOP) 0)
-    (if picked
-        (blit.fill screen.BACKDROP col MARK_TOP 3 2 0x7F))
-    (if (!= icon art.NONE)
+    (if (= icon art.NONE)
         (do
-            (blit.sprite screen.BACKDROP col TRAY_TOP icon)
-            (let w u16 (pen.text_width caption))
-            (if (> w 0)
-                (do
-                    (pen.capsule x DIGIT_TOP (+ x 22) (+ DIGIT_TOP 9))
-                    (pen.text (- (+ x 11) (>> w 1)) (+ DIGIT_TOP 1) caption)))))
-    (scene.mark col MARK_TOP 4 (- (+ DIGIT_TOP 9) MARK_TOP)))
+            (if (= n 5)
+                (blit.fill screen.BACKDROP col TRAY_TOP 4 (- (+ DIGIT_TOP 9) TRAY_TOP) 0)
+                (clean col TRAY_TOP 4 (- (+ DIGIT_TOP 9) TRAY_TOP)))
+            (return)))
+    (blit.sprite screen.BACKDROP col TRAY_TOP icon)
+    (pen.capsule x DIGIT_TOP (+ x 22) (+ DIGIT_TOP 9) picked)
+    (pen.text (- (+ x 11) (>> (pen.text_width caption) 1)) (+ DIGIT_TOP 1) caption)
+    (scene.mark col TRAY_TOP 4 (- (+ DIGIT_TOP 9) TRAY_TOP)))
 
 (fn die ((d u8)) void
     (if (at state.played d)
@@ -178,21 +180,25 @@
     (let face u8 (at state.hand d))
     (slot d (at faces.FACES face icon) (at faces.FACES face caption) (= state.selected d)))
 
-; R and the re-rolls left; under it the mana as stars, filled for what the hero has, so it
-; sits by the spell faces' costs
+; R and the re-rolls left on the re-roll button (only its rim when there are none); under the
+; buttons the mana as stars, filled for what the hero has, so it sits by the spell faces' costs
 (fn side () void
     (start_glyphs)
     (put 'R')
     (put_number state.rerolls)
-    (draw_glyphs SIDE_X REROLL_Y)
+    (set (at glyphs glyph_count) 0)
+    (clean SIDE_COL BUTTON_TOP 4 14)
+    (if (= state.rerolls 0)
+        (pen.capsule (- REROLL_X 1) (+ BUTTON_TOP 2) (+ REROLL_X 23) (+ BUTTON_TOP 12) false))
+    (pen.text REROLL_X (+ BUTTON_TOP 3) (addr_of (at glyphs 0)))
     (start_glyphs)
     (let mana u8 (fx.mana))
     (for k u8 0 fx.MOST_MANA
         (put (if (< k mana)
             '\''
             '&')))
-    (draw_glyphs SIDE_X MANA_Y)
-    (scene.mark SIDE_COL REROLL_Y (- 40 SIDE_COL) (- (+ MANA_Y CAPSULE_ROWS) REROLL_Y)))
+    (draw_glyphs MANA_X MANA_Y)
+    (scene.mark SIDE_COL BUTTON_TOP (- 40 SIDE_COL) (- (+ MANA_Y CAPSULE_ROWS) BUTTON_TOP)))
 
 ; whatever changed since the last frame
 (fn refresh () void
