@@ -6,7 +6,6 @@
 (import apple2 a2)
 (import random)
 (import state)
-(import content/effects fx)
 (import content/dice)
 (import content/enemies en)
 (import content/statuses st)
@@ -192,7 +191,10 @@
                 (let burn u8 (st.turn_end i))
                 (if (> burn 0)
                     (hit.lose i burn))
-                (next_move i))))
+                (next_move i)
+                ; its face follows its new intent, unless it is still showing a hurt
+                (if (= (at state.actors i mood_time) 0)
+                    (set (at state.actors i mood) (look.resting_mood i))))))
     (set state.hud_intents 0x0E)
     (if (not (any_enemy_alive))
         (do

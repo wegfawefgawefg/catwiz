@@ -5,6 +5,7 @@
 (import state)
 (import art/sprites art)
 (import battle/place)
+(import content/enemies en)
 
 (const BLINK_UNTIL u8 16) ; dying: blinking above this, then the two puffs
 (const POOF_SWITCH u8 8)
@@ -58,7 +59,10 @@
             (return state.Mood.idle)))
     (if low
         (return state.Mood.worried))
-    state.Mood.angry)
+    ; an enemy glares while it means to hit the dog, and is calm while it means to guard
+    (if (= (at en.moves (at state.actors who move) aim) state.Aim.foe)
+        (return state.Mood.angry))
+    state.Mood.idle)
 
 ; a temporary face for frames frames
 (fn show_mood ((who u8) (mood state.Mood) (frames u8)) void

@@ -1,10 +1,9 @@
 ; the hud, drawn into the backdrop page and marked for copying onto both pages: hit point pills
 ; and status stacks under each actor, enemy intents over their heads, the dice tray, the
 ; re-rolls left, the top line, and the win and lose banners. Each part is redrawn whole when its
-; flag in state.game says it changed: first the clean backdrop from aux memory over its area.
+; flag in state says it changed: first the clean backdrop from aux memory over its area.
 
 (import state)
-(import art/sprites art)
 (import art/backdrop bd)
 (import auxmem)
 (import hgr)
@@ -22,11 +21,14 @@
 (const STATUS_TOP u8 122)
 (const STATUS_STEP u8 9)
 (const AREA_HALF u16 21) ; an actor's hud is 42 px wide round its middle
-(const AREA_BOTTOM u8 150)
-(const TRAY_TOP u8 155) ; the dice pictures, as in tools/art/scenes.py
+(const TRAY_TOP u8 155)  ; the dice pictures, as in tools/art/scenes.py
 (const DIGIT_TOP u8 177)
 (const TRAY_FIRST_COL u8 4)
 (const TRAY_STEP u8 6)
+
+; what the backdrop shows now, not game state: how far down each actor's pill and status rows
+; reach, so a redraw cleans only that much
+(let pill_bottom (array u8 4))
 
 ; the clean backdrop back over a box, from the copy in aux memory, and marked
 (fn clean ((col u8) (top u8) (cols u8) (rows u8)) void
@@ -50,9 +52,17 @@
 
 ; ---- under each actor: hit points, then a row for each status it has
 
+; a fresh backdrop: nothing drawn on it yet
+(fn forget () void
+    (for i u8 0 state.ACTORS
+        (set (at pill_bottom i) PILL_TOP)))
+
 (fn pill ((who u8)) void
     (let x u16 (place.centre_x who))
-    (clean_pixels (- x AREA_HALF) PILL_TOP (+ x AREA_HALF) AREA_BOTTOM)
+    (let bottom u8 (at pill_bottom who))
+    (if (> bottom PILL_TOP)
+        (clean_pixels (- x AREA_HALF) PILL_TOP (+ x AREA_HALF) bottom))
+    (set (at pill_bottom who) PILL_TOP)
     ; a beaten enemy's pill goes; the dog's stays, at 0
     (if (and (not (at state.actors who alive)) (!= who state.DOG))
         (return))
@@ -68,7 +78,8 @@
                 (let sl u16 (label x top (+ 12 (pen.number_width n))))
                 (pen.glyph sl (+ top 2) (at st.GLYPH s))
                 (pen.number (+ sl 12) (+ top 2) n)
-                (set top (+ top STATUS_STEP))))))
+                (set top (+ top STATUS_STEP)))))
+    (set (at pill_bottom who) (+ top 2)))
 
 ; ---- over each enemy: what it means to do next
 

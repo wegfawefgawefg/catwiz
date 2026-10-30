@@ -33,8 +33,10 @@
         (set (at state.stacks i) 0))
     (set_dog)
     (for i u8 1 state.ACTORS
-        (set_enemy i))
+        (set_enemy i)
+        (set (at state.actors i mood) (look.resting_mood i)))
     (draw_shadows)
+    (hud.forget)
     (pen.glyph 236 164 82) ; R, by the re-roll die
     (set state.hud_pills 0x0F)
     (set state.hud_intents 0x0E)
