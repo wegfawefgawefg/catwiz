@@ -7,8 +7,8 @@
 # colours read as glow, not paint. The hat stands against a big moon. Glows are drawn on
 # every other row (scanline halos): no dots side by side, so NTSC keeps them clean.
 #
-# dusk: the day forest's shapes (forest.py) in a dusk palette - an orange and pink sky, the
-# woods gone to purple and black silhouettes - so it costs no new drawing.
+# dusk: the day forest's shapes (forest.py) in a dusk palette - an orange sky, the sun low
+# and the woods gone to black silhouettes - so it costs no new drawing.
 
 import math
 
@@ -19,12 +19,10 @@ import forest
 
 MOON = (25, 33, 10.5, 19)
 
-DUSK = dict(sky=PURPLE, sky_bands=[PURPLE, MAGENTA, ORANGE], haze=ORANGE, cloud=PINK,
-            cloud_sh=MAGENTA, far=BLACK, leaf_far=(BLACK, BLACK, BLACK), cuts_far=(0.28, 0.6),
-            leaf_near=(BLACK, BLACK, ORANGE), cuts_near=(0.3, 0.86),
-            trunk=BLACK, grass=BLACK, grass_sh=BLACK, sun=ORANGE, flower=(PINK, YELLOW, PINK),
-            path=ORANGE, path_sh=MAGENTA, water=PINK, water_sh=MAGENTA, glint=YELLOW,
-            stone=DBLUE)
+DUSK = dict(band=PURPLE, paper=ORANGE, sun=YELLOW, sun_rim=PINK, cloud=PINK, far=BLACK,
+            leaf=(BLACK, BLACK, ORANGE), cuts=(0.3, 0.88), trunk=BLACK, grass=BLACK,
+            horizon=MAGENTA, tuft=MAGENTA, flower=(PINK,), path=MAGENTA, pebble=PINK,
+            water=PINK, glint=YELLOW, bank=MAGENTA, stone=PURPLE, frame=BLACK, shadow=BLACK)
 
 
 def ring(c, cx, cy, rx, ry, col, every=2, inner=0.0, ymax=124):

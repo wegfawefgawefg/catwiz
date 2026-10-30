@@ -153,7 +153,7 @@ def run(art):
         stage = stage_bytes(bd.px)
         say("fight %d (%s, %s light): %s" % (n, variant, zone, ", ".join(["cat"] + F["foes"])))
         say("  " + export.report_line("screen, whole 16 KB page", main + aux))
-        say("  " + export.report_line("screen, the stage (rows 0-123)", stage))
+        say("  " + export.report_line("screen, the stage (rows 0-%d)" % (STAGE_ROWS - 1), stage))
         screen_pk = dhgr.packed(stage)
         if base is None:
             base = bd

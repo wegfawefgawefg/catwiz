@@ -13,7 +13,7 @@ from shade import lit_ellipse, shape_pixels, span_shade, volume
 FRAMES = {"puffcap": ["idle", "attack", "hurt"], "sporelet": ["idle", "attack", "hurt"],
           "nightflap": ["idle", "flap", "attack", "hurt"]}
 
-CAP_CUTS = (0.42, 0.95)
+CAP_CUTS = (-2.0, 2.0)   # flat: the cap is one pink, its underside the shade
 STEM_CUTS = (0.3,)
 
 EYES = {
@@ -76,34 +76,33 @@ def puffcap(x, feet, frame="idle"):
     return mushroom(x, feet, 1.12, "puff", frame)
 
 
-def sporelet(x, feet, frame="idle"):
-    # a chubby little stem under a tall bell of a cap that leans back, a few white dots
+def sporelet(x, feet, frame="idle", k=1.25):
+    # a chubby little stem under a tall bell of a cap that leans back, a few white dots;
+    # k scales it
     c = Canvas()
     squash = 0.85 if frame == "hurt" else 1.0
-    lean = {"attack": -2.0, "hurt": 1.0}.get(frame, 0.0)
-    sw = 4.2
-    st = feet - int(12 * squash)
-    c.poly([(x - sw, feet - 1), (x - sw - 0.8, feet - 5), (x - sw + 0.5 + lean, st), (x + sw - 0.5 + lean, st),
-            (x + sw + 0.8, feet - 5), (x + sw, feet - 1)], "stem")
-    c.poly([(x + 1.5, feet - 1), (x + sw + 0.8, feet - 5), (x + sw - 0.5 + lean, st), (x + 1 + lean, st)], "stem_sh")
+    lean = {"attack": -2.0, "hurt": 1.0}.get(frame, 0.0) * k
+    sw = 4.2 * k
+    st = feet - int(12 * k * squash)
+    c.poly([(x - sw, feet - 1), (x - sw - 0.8 * k, feet - 5 * k), (x - sw + 0.5 * k + lean, st),
+            (x + sw - 0.5 * k + lean, st), (x + sw + 0.8 * k, feet - 5 * k), (x + sw, feet - 1)], "stem")
+    c.poly([(x + 1.5 * k, feet - 1), (x + sw + 0.8 * k, feet - 5 * k), (x + sw - 0.5 * k + lean, st),
+            (x + 1 * k + lean, st)], "stem_sh")
     c.rect(int(x - sw), feet - 1, int(x + sw) + 1, feet, "stem_sh")
-    # the bell: a tall rounded cone leaning back, cut flat underneath, shaded as a puff
+    # the bell: a rounded cone, taller than wide, its crown tipped back, cut flat underneath
     bx = x + lean * 1.4
     top = st + 1
-    h = 21 * squash
-    # a rounded bell, taller than wide, its crown tipped back a little
+    h = 21 * k * squash
     outline = [(-6.6, 0), (-6.4, 0.22), (-5.6, 0.45), (-4.4, 0.65), (-2.8, 0.82), (-1.0, 0.95), (0.8, 1.0),
                (2.6, 0.95), (4.0, 0.82), (5.2, 0.62), (6.2, 0.4), (6.9, 0.2), (7.2, 0)]
-    left = [(bx + u, top - v * h) for u, v in outline]
-    right = []
-    bell = shape_pixels(lambda s: s.poly(left + right, "x"))
+    bell = shape_pixels(lambda s: s.poly([(bx + u * k, top - v * h) for u, v in outline], "x"))
     span_shade(c, bell, ("spore_sh", "spore", "spore_hi"), (0.2, 0.95), tilt=0.45)
-    c.rect(int(bx - 7), top - 1, int(bx + 8), top + 1, "spore_sh")
-    k = squash
-    for sx, sy in ((bx - 3, top - 7 * k), (bx + 3, top - 9 * k), (bx + 1, top - 15 * k)):
+    c.rect(int(bx - 7 * k), top - 1, int(bx + 8 * k), top + 1, "spore_sh")
+    for sx, sy in ((bx - 3 * k, top - 7 * k * squash), (bx + 3 * k, top - 9 * k * squash),
+                   (bx + 1 * k, top - 15 * k * squash)):
         c.ellipse(sx, sy, 1.1, 1.6, "spore_spot")
     fx = int(round(x + lean * 0.5 - 1))
-    fy = feet - int(10 * squash)
+    fy = feet - int(10 * k * squash)
     face(c, fx, fy, frame)
     sticker(c, "ink")
     return c

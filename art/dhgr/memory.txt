@@ -9,45 +9,45 @@ shared by every fight
   40-column font (95 glyphs)            1520 raw     475 packed  inverse: each byte XOR $7F
     or the 35-column font                760 raw     289 packed  3 pixels a row, shifted into place
   tray picture, rows 124-159            2880 raw     548 packed  card blanks, buttons; icons go on top
-  the cat, 5 frames, lit               19916 raw    2373 packed  trimmed: 13570
-    the cat as materials                8886 raw    2138 packed  
-  stored                                            3759 packed  (cards, 40-column font, tray, the cat as materials)
+  the cat, 5 frames, lit               19916 raw    2341 packed  trimmed: 13570
+    the cat as materials                8886 raw    2058 packed  
+  stored                                            3679 packed  (cards, 40-column font, tray, the cat as materials)
 
 fight 1 (clearing, day light): cat, puffcap, sporelet
-  screen, whole 16 KB page             16384 raw    1813 packed  
-  screen, the stage (rows 0-123)        9920 raw    1207 packed  
-  enemies, every frame                  7720 raw    1384 packed  as materials; trimmed lit 5786
-  in memory (beyond the pages)         29276       while the fight runs: the stage's clean copy, the cat and
+  screen, whole 16 KB page             16384 raw     992 packed  
+  screen, the stage (rows 0-117)        9440 raw     621 packed  
+  enemies, every frame                  8968 raw    1395 packed  as materials; trimmed lit 6710
+  in memory (beyond the pages)         29720       while the fight runs: the stage's clean copy, the cat and
                                                    the enemies lit and trimmed
-  stored, new for this fight                        2591 packed  (the screen as stored, enemies not stored before)
+  stored, new for this fight                        2016 packed  (the screen as stored, enemies not stored before)
 
 fight 2 (path, day light): cat, puffcap, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    1964 packed  
-  screen, the stage (rows 0-123)        9920 raw    1335 packed  
-    or patches over fight 1             1233 raw     292 packed  3 boxes
-  enemies, every frame                 14336 raw    2520 packed  as materials; trimmed lit 9460
-  in memory (beyond the pages)         32950       while the fight runs: the stage's clean copy, the cat and
+  screen, whole 16 KB page             16384 raw    1157 packed  
+  screen, the stage (rows 0-117)        9440 raw     747 packed  
+    or patches over fight 1             1669 raw     182 packed  1 boxes
+  enemies, every frame                 15584 raw    2286 packed  as materials; trimmed lit 10384
+  in memory (beyond the pages)         33394       while the fight runs: the stage's clean copy, the cat and
                                                    the enemies lit and trimmed
-  stored, new for this fight                        1428 packed  (the screen as stored, enemies not stored before)
+  stored, new for this fight                        1073 packed  (the screen as stored, enemies not stored before)
 
 fight 3 (brook, day light): cat, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    2033 packed  
-  screen, the stage (rows 0-123)        9920 raw    1354 packed  
-    or patches over fight 1             1445 raw     381 packed  1 boxes
-  enemies, every frame                  9188 raw    1667 packed  as materials; trimmed lit 5876
-  in memory (beyond the pages)         29366       while the fight runs: the stage's clean copy, the cat and
+  screen, whole 16 KB page             16384 raw    1178 packed  
+  screen, the stage (rows 0-117)        9440 raw     750 packed  
+    or patches over fight 1              965 raw     212 packed  1 boxes
+  enemies, every frame                 10436 raw    1547 packed  as materials; trimmed lit 6800
+  in memory (beyond the pages)         29810       while the fight runs: the stage's clean copy, the cat and
                                                    the enemies lit and trimmed
-  stored, new for this fight                         381 packed  (the screen as stored, enemies not stored before)
+  stored, new for this fight                         212 packed  (the screen as stored, enemies not stored before)
 
 fight 4 (thicket, day light): cat, puffcap, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    2624 packed  
-  screen, the stage (rows 0-123)        9920 raw    1885 packed  
-    or patches over fight 1             8289 raw    1719 packed  6 boxes
-  enemies, every frame                 14336 raw    2520 packed  as materials; trimmed lit 9460
-  in memory (beyond the pages)         32950       while the fight runs: the stage's clean copy, the cat and
+  screen, whole 16 KB page             16384 raw    1104 packed  
+  screen, the stage (rows 0-117)        9440 raw     697 packed  
+    or patches over fight 1             9445 raw     703 packed  1 boxes
+  enemies, every frame                 15584 raw    2286 packed  as materials; trimmed lit 10384
+  in memory (beyond the pages)         33394       while the fight runs: the stage's clean copy, the cat and
                                                    the enemies lit and trimmed
-  stored, new for this fight                        1719 packed  (the screen as stored, enemies not stored before)
+  stored, new for this fight                         697 packed  (the screen as stored, enemies not stored before)
 
-the four day fights stored, everything above packed: 9878 bytes
+the four day fights stored, everything above packed: 7677 bytes
 
 not counted: the two 16 KB pages the screen flips between (main and aux $2000-$5FFF).

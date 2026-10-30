@@ -34,7 +34,7 @@ ART = os.path.join(ROOT, "art", "dhgr")
 
 def day_shadow(P):
     def shadow(c, cx, y, rx):
-        c.ellipse(cx, y, rx, 2.2, P["grass_sh"])
+        c.ellipse(cx, y, rx, 2.2, P["shadow"])
     return shadow
 
 

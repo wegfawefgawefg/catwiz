@@ -2,22 +2,21 @@
 # light.py), its variant of the forest and who is in it. Fights 1-4 are the day: a small
 # palette each, high key, the darks kept to small pieces.
 #
-# ramps (shade to light) hue-shift: the leaves go dark green > green > aqua (cooler in the
-# light, the sky's colour), the sun yellow; shadows on the meadow are green, not grey.
+# three tiers: the paper (white, the light blue band and far wood), the ground (aqua, one
+# flat colour), and the fighters' darks. Yellow is the sun and the hud's focus only. The
+# crowns' ramp hue-shifts: green in the shade, aqua in the light.
 
 from dhgr import (BLACK, MAGENTA, DBLUE, PURPLE, DGREEN, GREY, MBLUE, LBLUE, BROWN, ORANGE,
                   PINK, GREEN, YELLOW, AQUA, WHITE)
 
-DAY = dict(sky=LBLUE, haze=WHITE, cloud=WHITE, cloud_sh=LBLUE, far=LBLUE,
-           leaf_far=(LBLUE, LBLUE, LBLUE), cuts_far=(0.28, 0.6),
-           leaf_near=(DGREEN, GREEN, AQUA), cuts_near=(0.12, 0.42),
-           trunk=DGREEN, grass=AQUA, grass_sh=GREEN, sun=YELLOW, flower=(WHITE, PINK, YELLOW),
-           path=YELLOW, path_sh=WHITE, water=LBLUE, water_sh=MBLUE, glint=WHITE, stone=GREY)
+DAY = dict(band=LBLUE, paper=WHITE, sun=YELLOW, sun_rim=WHITE, cloud=LBLUE, far=LBLUE,
+           leaf=(GREEN, AQUA, AQUA), cuts=(0.3, 0.5), trunk=GREEN, grass=AQUA, horizon=GREEN,
+           tuft=GREEN, flower=(PINK, WHITE), path=WHITE, pebble=GREY, water=LBLUE, glint=WHITE,
+           bank=GREEN, stone=GREY, frame=BLACK, shadow=BLACK)
 
-# fight 4 is the afternoon: the leaves' tops catch a yellow light and the cloud's belly
-# goes pink, towards dusk
-AFTERNOON = dict(DAY, cloud_sh=PINK, leaf_near=(DGREEN, GREEN, AQUA, YELLOW),
-                 cuts_near=(0.12, 0.42, 0.82), flower=(YELLOW, PINK, WHITE))
+# fight 4, the afternoon on the way to dusk: the band and the cloud go pink, the sun lower
+# and orange-rimmed, black trunks close in
+AFTERNOON = dict(DAY, band=PINK, cloud=PINK, sun_rim=ORANGE, flower=(YELLOW, PINK))
 
 FIGHTS = [
     dict(n=1, variant="clearing", P=DAY, zone="day", foes=["puffcap", "sporelet"]),

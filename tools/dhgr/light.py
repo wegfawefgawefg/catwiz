@@ -4,7 +4,7 @@
 # the sprites are stored once, as material numbers, and turned into screen bytes for the
 # fight's zone (export.py).
 #
-#   day    fights 1-4: warm sun from the upper left, no rims, the fur's sheen a dark blue
+#   day    fights 1-4: the sun from the upper left, no rims: the fighters are the page's darks
 #   dusk   fights 5-7: the low sun's orange on the left edge of every figure, a magenta
 #          bounce on the right, pinker whites
 #   night  fights 8-10 and the boss: moonlight (light blue) on the left and top edges, the
@@ -23,9 +23,10 @@ DAY = {
     # everyone
     "ink": BLACK, "eye": BLACK, "shine": WHITE, "mouth": PINK, "blush": PINK,
     # the cat
-    "fur": BLACK, "sheen": DBLUE, "tip": WHITE, "robe": DBLUE, "robe_hi": MBLUE, "robe_star": YELLOW, "trim": MAGENTA, "paw": WHITE,
+    "fur": BLACK, "sheen": DBLUE, "tip": WHITE, "robe": MBLUE, "robe_hi": MBLUE, "robe_star": WHITE, "trim": MAGENTA,
+    "paw": WHITE,
     "face": WHITE, "face_sh": LBLUE, "nose": PINK, "ear_in": PINK, "hat": BLACK, "band": MAGENTA,
-    "band_hi": PINK, "star": YELLOW, "star_hi": WHITE, "wand": ORANGE,
+    "band_hi": PINK, "star": YELLOW, "star_hi": WHITE, "wand": YELLOW,
     # puffcap
     "puff": PINK, "puff_sh": MAGENTA, "puff_hi": WHITE, "puff_spot": WHITE,
     # sporelet
@@ -33,19 +34,20 @@ DAY = {
     # both mushrooms' stems
     "stem": WHITE, "stem_sh": LBLUE, "gill": PINK,
     # nightflap
-    "bat": PURPLE, "bat_sh": DBLUE, "bat_hi": PINK, "wing": MAGENTA, "wing_sh": DBLUE,
-    "bone": BLACK, "fang": WHITE, "bat_eye": YELLOW,
+    "bat": PURPLE, "bat_sh": PURPLE, "bat_hi": PINK, "wing": BLACK, "wing_sh": BLACK,
+    "bone": MAGENTA, "fang": WHITE, "bat_eye": WHITE,
 }
 
 DUSK = dict(DAY)
 DUSK.update({"face_sh": PINK, "sheen": MAGENTA, "stem_sh": PINK, "puff_hi": YELLOW,
-             "spore_hi": YELLOW, "spot_sh": PINK, "wand": ORANGE})
+             "spore_hi": YELLOW, "spot_sh": PINK})
 
 NIGHT = dict(DAY)
-NIGHT.update({"sheen": BLACK, "trim": BLACK, "robe": BLACK, "robe_hi": BLACK, "band": PURPLE, "wand": GREY,
+NIGHT.update({"sheen": BLACK, "trim": BLACK, "robe": BLACK, "robe_hi": BLACK, "robe_star": DBLUE,
+              "band": PURPLE, "wand": GREY,
               "puff_hi": WHITE, "spore": AQUA, "spore_sh": DBLUE, "spore_hi": WHITE,
-              "spore_spot": WHITE, "bat": BLACK, "bat_sh": BLACK, "wing": DBLUE, "wing_sh": BLACK,
-              "bat_hi": PURPLE})
+              "spore_spot": WHITE, "bat": BLACK, "bat_sh": BLACK, "bone": DBLUE, "bat_hi": PURPLE,
+              "bat_eye": YELLOW})
 
 # rims: (side, colour, first row from the figure's top as a share of its height); side is
 # "left", "right" or "top" (the top edge, on the figure's left half only)
