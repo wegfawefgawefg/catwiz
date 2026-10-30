@@ -174,7 +174,7 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
   the battle's main loop flat out: 13,304 cycles (0.78 frames).
 - 2026-10-30, after the controls round (auto end turn, the END button, tilted dice cards,
   hints): the language card 12,085 of 12,288 (203 left); a pass 13,270 cycles.
-- 2026-10-30, the double hi-res port (Tisple catwiz-dhgr-lib b4ce8ef+, squeeze 1 and 4
+- 2026-10-30, the double hi-res port (Tisple catwiz-dhgr-lib e67b906, squeeze 1 and 4
   functions in bank 1): main memory full (`$8000-$BEFF`, `$0BE0-$1BFF`); the language card
   9,203 of 12,288 (about 3 KB left), bank 1 3,575 of 4,096; aux 18,698 bytes (`$0800-$1BCF`,
   `$8000-$B4D1`: about 2.9 KB left at `$B4D2-$BFFF`), of it 5,376 `sprite_aux`; the aux
