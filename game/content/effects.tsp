@@ -18,7 +18,7 @@
 (const SCREAM_SELF u8 1)
 
 (fn mana () u8
-    (state.stack state.DOG (as u8 st.Status.mana)))
+    (state.stack state.HERO (as u8 st.Status.mana)))
 
 ; whether the hero can play face row now: spells need their mana
 (fn can_play ((row u8)) bool
@@ -26,8 +26,8 @@
 
 ; amount after the boosts the +1 and x2 faces left for the next die
 (fn boosted ((n u8)) u8
-    (let doubles u8 (state.stack state.DOG (as u8 st.Status.double)))
-    (+ (<< n doubles) (state.stack state.DOG (as u8 st.Status.plus))))
+    (let doubles u8 (state.stack state.HERO (as u8 st.Status.double)))
+    (+ (<< n doubles) (state.stack state.HERO (as u8 st.Status.plus))))
 
 ; the hero's face lands. +1 and x2 add to the boost for the next die; any other face uses
 ; the boost up, and a spell its mana
@@ -37,22 +37,22 @@
     (match (at faces.FACES row effect)
         (ac.Effect.plus
             (sound.cue sound.Cue.chime)
-            (hit.add_stacks state.DOG plus (at faces.FACES row amount))
-            (log.line "THE NEXT DIE GETS +#." (state.stack state.DOG plus))
+            (hit.add_stacks state.HERO plus (at faces.FACES row amount))
+            (log.line "THE NEXT DIE GETS +#." (state.stack state.HERO plus))
             (return))
         (ac.Effect.double
             (sound.cue sound.Cue.chime)
-            (state.set_stack state.DOG plus (<< (state.stack state.DOG plus) 1))
-            (hit.add_stacks state.DOG double 1)
+            (state.set_stack state.HERO plus (<< (state.stack state.HERO plus) 1))
+            (hit.add_stacks state.HERO double 1)
             (log.line "THE NEXT DIE DOES DOUBLE." 0)
             (return))
         (_))
     (let n u8 (boosted (at faces.FACES row amount)))
-    (state.set_stack state.DOG plus 0)
-    (state.set_stack state.DOG double 0)
+    (state.set_stack state.HERO plus 0)
+    (state.set_stack state.HERO double 0)
     (if (> (at faces.FACES row cost) 0)
-        (state.set_stack state.DOG (as u8 st.Status.mana) (- (mana) (at faces.FACES row cost))))
-    (apply (at faces.FACES row effect) state.DOG target n))
+        (state.set_stack state.HERO (as u8 st.Status.mana) (- (mana) (at faces.FACES row cost))))
+    (apply (at faces.FACES row effect) state.HERO target n))
 
 ; an enemy's move lands. Hit-all moves miss a hero in a box
 (fn land_move ((row u8) (by u8) (target u8)) void
@@ -74,7 +74,7 @@
                 (if (and (!= i by) (at state.actors i alive))
                     (return i)))
             by)
-        (_ state.DOG)))
+        (_ state.HERO)))
 
 ; the number shown over an enemy for its next move: a hit after its own statuses
 (fn intent_amount ((who u8) (row u8)) u8
@@ -112,7 +112,7 @@
             (let now u8 (+ (mana) n))
             (if (> now MOST_MANA)
                 (set now MOST_MANA))
-            (state.set_stack state.DOG (as u8 st.Status.mana) now)
+            (state.set_stack state.HERO (as u8 st.Status.mana) now)
             (log.line "MANA IS NOW #." now))
         (ac.Effect.hairball
             (sound.cue sound.Cue.zap)
@@ -136,8 +136,8 @@
             (for i u8 1 state.ACTORS
                 (if (at state.actors i alive)
                     (hit.strike by i n)))
-            (hit.lose state.DOG SCREAM_SELF)
-            (log.who state.DOG " TAKES # FROM SCREAMING." SCREAM_SELF))
+            (hit.lose state.HERO SCREAM_SELF)
+            (log.who state.HERO " TAKES # FROM SCREAMING." SCREAM_SELF))
         (ac.Effect.cheer
             (sound.cue sound.Cue.chime)
             (hit.add_stacks target (as u8 st.Status.cheer) n)

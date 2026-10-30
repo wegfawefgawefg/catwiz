@@ -45,7 +45,7 @@
         ; 16 squeak: the last of a beaten enemy, two falling chirps
         (make Part :kind Kind.slide :half 160 :step 12 :count 40)
         (make Part :kind Kind.slide :half 200 :step 16 :count 36)
-        ; 18 yelp: the dog's ow
+        ; 18 yelp: the hero's ow
         (make Part :kind Kind.slide :half 300 :step 30 :count 30)
         ; 19 tick: a key that does nothing now
         (make Part :kind Kind.tone :half 120 :step 0 :count 2)

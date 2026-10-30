@@ -35,13 +35,13 @@
 ; an enemy beaten: two falling chirps
 (tune.effect squeak "v14 g6 e6 c6 a5 r f6 d6 b5 g5 l3 k3 e5")
 
-; the dog hurt: a yelp
+; the hero hurt: a yelp
 (tune.effect yelp "m3 n10 e6 m1 d6 c6 a5 g5 e5 l3 k3 c5")
 
 ; an enemy winds up its move: a little growl rising
 (tune.effect growl "l2 m3 n14 v11 c3 d#3 m1 f#3 l4 k2 a3")
 
-; the dog's turn: two notes up; her turn over: two down
+; the hero's turn: two notes up; her turn over: two down
 (tune.effect turn_on "l3 v10 k1 e5 l8 a5")
 (tune.effect turn_off "l3 v10 k1 a5 l8 e5")
 

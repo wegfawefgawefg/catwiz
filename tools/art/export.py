@@ -36,7 +36,7 @@ SHOTS = os.path.join(ROOT, "shots", "art")
 GROUND = scenes.GROUND
 
 # the engine's Mood enum, in order
-MOODS = ["idle", "angry", "worried", "hurt", "bark", "happy", "ko"]
+MOODS = ["idle", "angry", "worried", "hurt", "attack", "happy", "ko"]
 
 
 def outlined(draw):
@@ -175,14 +175,14 @@ def diff_box(a, b):
 # the actor kinds: name, how to draw a mood (and flap), shadow width; drawn where the mockup
 # put them. A mood that is not here falls back to the drawing named in FALLBACK
 KINDS = [
-    ("CAT", lambda c, mood, flap: hero.cat(c, 70, GROUND + 2, mood), 14, {"angry": "bark"}),
+    ("CAT", lambda c, mood, flap: hero.cat(c, 70, GROUND + 2, mood), 14, {"angry": "attack"}),
     ("CAP_BIG", lambda c, mood, flap: actors.cap(c, 158, GROUND, 1.15, mood), 12,
-     {"bark": "angry", "happy": "idle", "ko": "stunned"}),
+     {"attack": "angry", "happy": "idle", "ko": "stunned"}),
     ("CAP_SMALL", lambda c, mood, flap: actors.cap(c, 193, GROUND - 2, 0.85, mood), 9,
-     {"bark": "angry", "happy": "idle", "ko": "stunned"}),
+     {"attack": "angry", "happy": "idle", "ko": "stunned"}),
     ("BAT", lambda c, mood, flap: actors.bat(c, 232, 66, mood, flap), 11,
-     {"idle": "angry", "bark": "angry", "happy": "angry", "ko": "hurt"}),
-    ("BOSS_DOG", lambda c, mood, flap: boss.boss_dog(c, 196, GROUND, mood), 24, {"bark": "angry", "happy": "idle"}),
+     {"idle": "angry", "attack": "angry", "happy": "angry", "ko": "hurt"}),
+    ("BOSS_DOG", lambda c, mood, flap: boss.boss_dog(c, 196, GROUND, mood), 24, {"attack": "angry", "happy": "idle"}),
 ]
 FLAPS = {"BAT"}
 # kinds drawn but left out of the game for now, for the memory: the boss's pictures (1,803
@@ -292,7 +292,7 @@ def export_digits(sheet):
 
 def export_tiles(sheet):
     first = None
-    for name, draw in icons.TILES + icons.OLD_TILES:
+    for name, draw in icons.TILES:
         c = Canvas("K")
         draw(c, 28, scenes.DIE_TOP)
         n = sheet.add("TILE_" + name, c, 4, 3, scenes.DIE_TOP, icons.TILE_H)

@@ -9,7 +9,7 @@
 (const CAT_ANGRY u8 2) ; 5 x 40
 (const CAT_WORRIED u8 3) ; 3 x 14
 (const CAT_HURT u8 4) ; 6 x 37
-(const CAT_BARK u8 5) ; 5 x 40
+(const CAT_ATTACK u8 5) ; 5 x 40
 (const CAT_HAPPY u8 6) ; 5 x 40
 (const CAT_KO u8 7) ; 6 x 37
 (const CAP_BIG u8 8) ; 6 x 28
@@ -17,7 +17,7 @@
 (const CAP_BIG_ANGRY u8 10) ; 2 x 12
 (const CAP_BIG_WORRIED u8 11) ; 2 x 12
 (const CAP_BIG_HURT u8 12) ; 2 x 8
-(const CAP_BIG_BARK u8 13) ; 2 x 12
+(const CAP_BIG_ATTACK u8 13) ; 2 x 12
 (const CAP_BIG_HAPPY u8 14) ; 2 x 12
 (const CAP_BIG_KO u8 15) ; 2 x 8
 (const CAP_SMALL u8 16) ; 5 x 21
@@ -25,7 +25,7 @@
 (const CAP_SMALL_ANGRY u8 18) ; 2 x 10
 (const CAP_SMALL_WORRIED u8 19) ; 2 x 10
 (const CAP_SMALL_HURT u8 20) ; 2 x 10
-(const CAP_SMALL_BARK u8 21) ; 2 x 10
+(const CAP_SMALL_ATTACK u8 21) ; 2 x 10
 (const CAP_SMALL_HAPPY u8 22) ; 2 x 10
 (const CAP_SMALL_KO u8 23) ; 2 x 10
 (const BAT u8 24) ; 10 x 37
@@ -34,7 +34,7 @@
 (const BAT_ANGRY u8 27) ; 3 x 13
 (const BAT_WORRIED u8 28) ; 3 x 13
 (const BAT_HURT u8 29) ; 3 x 13
-(const BAT_BARK u8 30) ; 3 x 13
+(const BAT_ATTACK u8 30) ; 3 x 13
 (const BAT_HAPPY u8 31) ; 3 x 13
 (const BAT_KO u8 32) ; 3 x 13
 (const CAT_SHADOW u8 33) ; 5 x 5
@@ -116,7 +116,7 @@
 (const KIND_CAP_SMALL u8 2)
 (const KIND_BAT u8 3)
 (const KIND_COUNT u8 4)
-(const MOOD_COUNT u8 7) ; idle angry worried hurt bark happy ko
+(const MOOD_COUNT u8 7) ; idle angry worried hurt attack happy ko
 (const KIND_BODY (array u8 4)
     (make (array u8 4)
         0 8 16 24))

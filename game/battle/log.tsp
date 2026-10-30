@@ -17,7 +17,7 @@
 
 ; who's name: the hero's, or the enemy kind's
 (fn name ((who u8)) (ptr u8)
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         (return enc.HERO.name))
     (at en.ENEMIES (at state.actors who kind) name))
 

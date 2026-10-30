@@ -33,11 +33,11 @@
     (set state.act_done false)
     (set state.phase state.Phase.acting)
     (let hop bool (= (action_motion) state.Motion.hop))
-    (if (= by state.DOG)
+    (if (= by state.HERO)
         (look.show_mood by
             (if hop
                 state.Mood.happy
-                state.Mood.bark)
+                state.Mood.attack)
             24)
         (look.show_mood by
             (if hop

@@ -35,7 +35,7 @@
 ; the hero's turn begins: her shield from last turn is gone, the dice come back and roll
 (fn start_round () void
     (set state.turn (+ state.turn 1))
-    (st.turn_start state.DOG)
+    (st.turn_start state.HERO)
     (set state.rerolls 2)
     (set state.hud_rerolls true)
     (set state.selected state.NOTHING)
@@ -125,8 +125,8 @@
 ; M: the hero meows and hops, just for fun: no effect on the fight, as often as you like
 (fn meow () void
     (sound.cue sound.Cue.meow)
-    (log.who state.DOG ": MEOW!" 0)
-    (act.begin state.Source.meow 0 state.DOG state.DOG))
+    (log.who state.HERO ": MEOW!" 0)
+    (act.begin state.Source.meow 0 state.HERO state.HERO))
 
 (fn player_key ((key u8)) void
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
@@ -193,10 +193,10 @@
     (set (at state.played d) true)
     (mark_slot d)
     (let target u8 (if (= face.aim state.Aim.self)
-        state.DOG
+        state.HERO
         state.target))
-    (log.uses state.DOG face.name 0)
-    (act.begin state.Source.face row state.DOG target))
+    (log.uses state.HERO face.name 0)
+    (act.begin state.Source.face row state.HERO target))
 
 (fn reroll () void
     (if (= state.rerolls 0)
@@ -218,7 +218,7 @@
 
 ; after an action is over: the battle may be over, else back to whose turn it is
 (fn after_action () void
-    (if (not (at state.actors state.DOG alive))
+    (if (not (at state.actors state.HERO alive))
         (do
             (end_battle state.Phase.lost)
             (return)))
@@ -236,7 +236,7 @@
 (fn end_battle ((how state.Phase)) void
     (set state.phase how)
     (set state.timer 0)
-    (look.show_mood state.DOG
+    (look.show_mood state.HERO
         (if (= how state.Phase.won)
             state.Mood.happy
             state.Mood.ko)
@@ -252,8 +252,8 @@
 (fn end_turn () void
     (deselect)
     (sound.cue sound.Cue.turn_off)
-    (turn_end state.DOG)
-    (if (not (at state.actors state.DOG alive))
+    (turn_end state.HERO)
+    (if (not (at state.actors state.HERO alive))
         (do
             (end_battle state.Phase.lost)
             (return)))

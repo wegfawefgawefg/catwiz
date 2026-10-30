@@ -19,16 +19,16 @@
     (let cols u8 (at art.KIND_COLS (at state.actors who figure)))
     (+ (* (as u16 (at state.actors who home)) 7) (as u16 (/ (* cols 7) 2))))
 
-; which way who faces: +1 for the dog, looking right at the enemies; -1 for them
+; which way who faces: +1 for the hero, looking right at the enemies; -1 for them
 (fn facing ((who u8)) i8
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         1
         -1))
 
 ; the byte column just in front of who, where a thrown bolt starts (the bolt is 4 wide)
 (fn front ((who u8)) u8
     (let home u8 (at state.actors who home))
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         (return (+ (+ home (at art.KIND_COLS (at state.actors who figure))) 2)))
     (- home 2))
 

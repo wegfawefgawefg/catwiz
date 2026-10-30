@@ -48,7 +48,7 @@
     (set (at state.actors who mood_time) HURT_FRAMES)
     (set state.hitstop HITSTOP_FRAMES)
     (float_number who n false)
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         (sound.cue sound.Cue.yelp)
         (sound.cue sound.Cue.thump))
     (if (= (- hp n) 0)
@@ -56,7 +56,7 @@
 
 (fn die ((who u8)) void
     (set (at state.actors who alive) false)
-    (if (!= who state.DOG)
+    (if (!= who state.HERO)
         (set (at state.actors who dying) DEATH_FRAMES))
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
@@ -106,7 +106,7 @@
             (set first art.BIG_PLUS)
             (set second (+ art.DIGIT_0 n))))
     ; enemies: above the intent over the head, low enough to rise without leaving the screen.
-    ; The dog: beside her face, clear of the tall hat, so the number never has to be drawn
+    ; The hero: beside her face, clear of the tall hat, so the number never has to be drawn
     ; over her
     (let col u8 (- (place.middle who) 1))
     (if (!= second state.NOTHING)
@@ -115,7 +115,7 @@
     (set top (if (> top 54)
         (- top 34)
         20))
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         (do
             (set col (+ (at state.actors who home) (at art.KIND_COLS (at state.actors who figure))))
             (set top 44)))

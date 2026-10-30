@@ -1,8 +1,8 @@
 ; the one game state: game. Everything that changes while the game runs is in it, from whose
 ; turn it is to what each page of the screen shows.
 
-(const ACTORS u8 4) ; the dog, then up to three enemies
-(const DOG u8 0)
+(const ACTORS u8 4) ; the hero, then up to three enemies
+(const HERO u8 0)
 (const STATUS_SLOTS u8 16)
 (const HAND u8 5) ; dice in the hand
 (const DIE_FACES u8 6)
@@ -25,7 +25,7 @@
 (enum Pick (offer remove upgrade_die upgrade_face))
 
 ; the face an actor shows; the same order as the art's moods
-(enum Mood (idle angry worried hurt bark happy ko))
+(enum Mood (idle angry worried hurt attack happy ko))
 
 ; how an action looks on screen: a jump at the target, a bolt thrown at it, or a hop in place
 (enum Motion (lunge throw hop))
@@ -39,7 +39,7 @@
 (enum Source (face move meow))
 
 (struct Actor ((alive bool)
-        (kind u8)   ; the enemy's row in content/enemies, or NOTHING for the dog
+        (kind u8)   ; the enemy's row in content/enemies, or NOTHING for the hero
         (figure u8) ; the art kind that draws it
         (hp u8)
         (max_hp u8)
@@ -82,7 +82,7 @@
 (let screen Screen)
 (let ticks u16) ; every pass of the main loop, for measuring frame costs
 (let frame u8)  ; counts up every frame but in hit-stop
-(let idle u8)   ; counts up while the dog's turn waits for a key: idle bobs and wing flaps
+(let idle u8)   ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)

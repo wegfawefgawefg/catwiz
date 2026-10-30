@@ -47,8 +47,8 @@
     (bag.gather)
     (for i u8 0 state.FLOATERS
         (set (at state.floaters i time) 0))
-    (set_dog)
-    (st.start state.DOG state.NOTHING)
+    (set_hero)
+    (st.start state.HERO state.NOTHING)
     (for i u8 1 state.ACTORS
         (set_enemy i)
         (if (!= (at state.actors i kind) state.NOTHING)
@@ -67,8 +67,8 @@
     (sound.song sound.Song.battle)
     (turn.start_round))
 
-(fn set_dog () void
-    (set (at state.actors state.DOG)
+(fn set_hero () void
+    (set (at state.actors state.HERO)
         (make state.Actor
             :alive true
             :kind state.NOTHING
@@ -118,7 +118,7 @@
 ; shadows on the ground under everyone, part of the backdrop
 (fn draw_shadows () void
     (for i u8 0 state.ACTORS
-        (if (or (= i state.DOG) (!= (at state.actors i kind) state.NOTHING))
+        (if (or (= i state.HERO) (!= (at state.actors i kind) state.NOTHING))
             (do
                 (let a u8 (at state.actors i figure))
                 (let col u8 (as u8 (+ (as i8 (at state.actors i home)) (at art.KIND_SHADOW_DX a))))
@@ -172,7 +172,7 @@
         (do
             (if (and won (not (last_fight)))
                 (do
-                    (set state.hero_hp (at state.actors state.DOG hp))
+                    (set state.hero_hp (at state.actors state.HERO hp))
                     (reward.start)
                     (return state.Screen.battle)))
             (words.ending won)

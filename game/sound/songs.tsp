@@ -1,9 +1,9 @@
-; Witchdog's music for the Mockingboard, in lib/mockingboard_song's text: loops of different
+; Catwiz's music for the Mockingboard, in lib/mockingboard_song's text: loops of different
 ; lengths that drift against each other, no lead tune on top. The songs live in aux memory;
 ; game/sound/sound.tsp copies the one starting into main memory to play it.
 ;
 ; Voices: 0-2 the first chip (left), 3-5 the second (right). The battle lends voice 2 to the
-; dog's effects and voice 5 to the enemies', so those two carry the parts least missed: the
+; hero's effects and voice 5 to the enemies', so those two carry the parts least missed: the
 ; pad and the shaker. Each voice comes in after a rest of 0-4 ticks so that voices which share
 ; a pulse start their notes on different ticks: a note start is the player's dearest work.
 ;
@@ -61,7 +61,7 @@
 ; mallet_a 10 pulses (3+3+2+2), left, from pulse 12
 ; mallet_b  9 pulses, right, from pulse 24: with mallet_a, back in step every 90 pulses
 ; sparkle   7 pulses, high and quiet, from pulse 48
-; pad      a chord tone every 12 pulses (voice 2, lent to the dog's effects)
+; pad      a chord tone every 12 pulses (voice 2, lent to the hero's effects)
 ; shaker    3 pulses, written out 5 times so it reads a new pattern less often, and not on
 ;          the bass's ticks (voice 5, lent to the enemies' effects). It sets its noise again
 ;          each time round: an effect on the chip leaves its own

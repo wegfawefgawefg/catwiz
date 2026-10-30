@@ -6,7 +6,7 @@
 # the calm and worried faces differ inside the head only, so they swap as one small patch.
 #
 # moods, in the engine's order, as the battle uses them for the hero: idle; angry (not used:
-# the export draws it as bark); worried (low health); hurt; bark (the attack: a hiss, fangs
+# the export draws it as attack); worried (low health); hurt; attack (a hiss, fangs
 # bared); happy (the meow, a hop, and the win: ^ ^ and an open mouth); ko.
 
 import math
@@ -68,7 +68,7 @@ def cat_eyes(c, f, hy, mood):
         c.ellipse(ex, hy - 2, r, r, "W")
         if mood == "idle":
             c.ellipse(ex + 1, hy - 2, 1.6, r - 0.5, "K")          # tall cat's pupils
-        elif mood == "bark":
+        elif mood == "attack":
             c.rect(ex, hy - 2, ex + 2, hy - 1 + r, "K")           # lids down: a glare
             lid = [(ex - r, hy - r - 2), (ex + r, hy - r - 2)]
             lid.append((ex + r, hy - 1) if ex < f else (ex - r, hy - 1))
@@ -91,7 +91,7 @@ def cat_eyes(c, f, hy, mood):
 
 
 def cat_mouth(c, f, hy, mood):
-    if mood == "bark":
+    if mood == "attack":
         c.ellipse(f + 3, hy + 7, 4, 3, "K")                       # the hiss: fangs bared
         c.rect(f + 1, hy + 8, f + 6, hy + 10, "V")
         c.poly([(f, hy + 5), (f + 2, hy + 5), (f + 1, hy + 8)], "W")
@@ -137,7 +137,7 @@ def ears(c, turn, mood):
     # like a cat's: black with pink insides, a dark shape against the pale sky. calm: half out;
     # popped: long; folded: the tip flopped over outwards, only the black back showing. the near
     # ear is on the left and bigger
-    pop = mood in ("bark", "happy")
+    pop = mood in ("attack", "happy")
     fold = mood in ("hurt", "ko")
     for side, size in ((-1, 1.0), (1, 0.85)):
         b0 = (side * 15, 0)

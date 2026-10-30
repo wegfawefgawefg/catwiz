@@ -4,7 +4,7 @@
 # face sits inside the head, so the moods swap as one patch.
 #
 # moods, in the engine's order: idle (smug), angry (the snarl before it hits), worried (low
-# health), hurt, bark (falls back to angry), happy (a laugh), ko.
+# health), hurt, attack (falls back to angry), happy (a laugh), ko.
 
 
 def boss_dog(c, x, feet, mood="idle"):
@@ -66,7 +66,7 @@ def face(c, x, hy, mood):
         for fx in (jaw[0] - 4, jaw[0] + 3):
             c.poly([(fx, y), (fx + 2, y), (fx + 1, y - 4)], "W")
 
-    if mood in ("idle", "angry", "bark"):
+    if mood in ("idle", "angry", "attack"):
         for ex, ey, r in eyes:
             c.ellipse(ex, ey, r, r - 1, "W")
             c.rect(ex - 2, ey - 1, ex, ey + r - 1, "K")          # pupils, looking left

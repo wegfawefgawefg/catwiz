@@ -87,7 +87,7 @@
 
 ; on the enemies' turn: the hero's own state
 (fn their_turn () void
-    (actor_row state.DOG)
+    (actor_row state.HERO)
     (line_row 1 "THEIR TURN"))
 
 (fn refresh () void
@@ -99,13 +99,13 @@
     (match state.phase
         (state.Phase.enemies (their_turn))
         (state.Phase.rolling
-            (actor_row state.DOG)
+            (actor_row state.HERO)
             (line_row 1 "ROLLING"))
         (state.Phase.won
             (line_row 0 WOODS_QUIET)
             (line_row 1 ""))
         (state.Phase.lost
-            (actor_row state.DOG)
+            (actor_row state.HERO)
             (line_row 1 ""))
         (state.Phase.reward)
         (_
@@ -127,7 +127,7 @@
             (text.add WOODS_QUIET)
             (text.add " TO BE CONTINUED..."))
         (do
-            (text.add (log.name state.DOG))
+            (text.add (log.name state.HERO))
             (text.add " IS DOWN. THE RUN IS OVER.")))
     (text.show 0)
     (line_row 1 "PRESS RETURN"))

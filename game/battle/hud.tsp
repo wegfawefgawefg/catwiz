@@ -102,7 +102,7 @@
     (set (at pill_bottom who) PILL_TOP)
     (set (at pill_half who) 0)
     ; a beaten enemy's hud goes; the hero's stays, at 0
-    (if (and (not (at state.actors who alive)) (!= who state.DOG))
+    (if (and (not (at state.actors who alive)) (!= who state.HERO))
         (return))
     ; a heart and the hit points, then a glyph for each stack of the pip statuses
     (start_glyphs)
@@ -201,11 +201,11 @@
         (set state.hud_rerolls true))
     (for i u8 0 state.ACTORS
         (let bit u8 (<< 1 i))
-        (if (or (= i state.DOG) (!= (at state.actors i kind) state.NOTHING))
+        (if (or (= i state.HERO) (!= (at state.actors i kind) state.NOTHING))
             (do
                 (if (!= (& state.hud_pills bit) 0)
                     (pill i))
-                (if (and (!= i state.DOG) (!= (& state.hud_intents bit) 0))
+                (if (and (!= i state.HERO) (!= (& state.hud_intents bit) 0))
                     (intent i)))))
     (set state.hud_pills 0)
     (set state.hud_intents 0)

@@ -208,6 +208,3 @@ def puff(c, x, y):
 TILES = [("WAND", wand), ("BONE", bone), ("KIBBLE", kibble), ("GEM", gem), ("BOOK", book),
          ("LINT", lint), ("FLEAS", fleas), ("WET", wet), ("HISS", hiss), ("BATH", bath),
          ("PLUS1", plus_one), ("TIMES2", times_two)]
-
-# the witch dog's faces: nothing names them any more
-OLD_TILES = []

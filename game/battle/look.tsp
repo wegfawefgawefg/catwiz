@@ -49,7 +49,7 @@
 (fn resting_mood ((who u8)) state.Mood
     (let low bool
         (<= (* (as u16 (at state.actors who hp)) 3) (as u16 (at state.actors who max_hp))))
-    (if (= who state.DOG)
+    (if (= who state.HERO)
         (do
             (if (= state.phase state.Phase.won)
                 (return state.Mood.happy))
@@ -60,7 +60,7 @@
             (return state.Mood.idle)))
     (if low
         (return state.Mood.worried))
-    ; an enemy glares while it means to hit the dog, and is calm while it means to guard
+    ; an enemy glares while it means to hit the hero, and is calm while it means to guard
     (if (= (at en.MOVES (at state.actors who move) aim) state.Aim.foe)
         (return state.Mood.angry))
     state.Mood.idle)
@@ -98,11 +98,11 @@
             :swaps false
             :face_on_body false)))
 
-; the bob, 0 or 1 pixel (more for flyers), each actor on its own beat; the dog, the biggest
+; the bob, 0 or 1 pixel (more for flyers), each actor on its own beat; the hero, the biggest
 ; to redraw, breathes slowest
 (fn bob ((i u8)) u8
     (let beat u8 (+ state.idle (* i 11)))
-    (if (= i state.DOG)
+    (if (= i state.HERO)
         (return (& (>> beat 5) 1)))
     (if (!= (at art.KIND_FLAP (at state.actors i figure)) art.NONE)
         (do
@@ -116,8 +116,8 @@
 (fn show_actor ((i u8)) void
     (let figure u8 (at state.actors i figure))
     (let dying u8 (at state.actors i dying))
-    ; a beaten enemy is gone once it has puffed away; the dog stays down
-    (if (and (and (not (at state.actors i alive)) (= dying 0)) (!= i state.DOG))
+    ; a beaten enemy is gone once it has puffed away; the hero stays down
+    (if (and (and (not (at state.actors i alive)) (= dying 0)) (!= i state.HERO))
         (do
             (hide i)
             (return)))
@@ -177,7 +177,7 @@
             (return)))
     (let bob u8 (& (>> state.idle 3) 2))
     (match (at faces.FACES (at state.hand state.selected) aim)
-        (state.Aim.self (marker 0 state.DOG bob))
+        (state.Aim.self (marker 0 state.HERO bob))
         (state.Aim.all
             (let k u8 0)
             (for i u8 1 state.ACTORS

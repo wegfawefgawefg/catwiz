@@ -1,4 +1,4 @@
-; the title: WITCHDOG glowing over the night clouds, a jingle, and Press Return. The glow is
+; the title: CATWIZ glowing over the night clouds, a jingle, and Press Return. The glow is
 ; four pictures in aux memory, faint to full, each copied onto the back page in turn and shown.
 
 (import apple2 a2)

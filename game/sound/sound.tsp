@@ -31,9 +31,9 @@
         wobble    ; spooked
         puff      ; a die that does nothing
         squeak    ; someone beaten
-        yelp      ; the dog hurt
+        yelp      ; the hero hurt
         growl     ; an enemy starts its move
-        turn_on   ; the dog's turn begins
+        turn_on   ; the hero's turn begins
         turn_off  ; and ends
         blip      ; the target moves
         confirm   ; RETURN on the title
@@ -42,8 +42,8 @@
 
 (enum Song (title battle won lost))
 
-; the voice each cue borrows: 2, the pad on the left chip, for the dog's side, and 5, the
-; shaker on the right chip, for the enemies'. The dog stands on the left of the screen.
+; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
+; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
 (const CUE_VOICE (array u8 18) (make (array u8 18) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2))
 
 ; whether a cue waits in line while another effect plays; false: dropped

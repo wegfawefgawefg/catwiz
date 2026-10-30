@@ -1,4 +1,4 @@
-; Witchdog: a witch dog's dice battle in the forest, for the Apple IIe in hi-res.
+; Catwiz: a cat wizard's dice battle in the forest, for the Apple IIe in hi-res.
 ; The title, then a battle, then back to the title. See AGENTS.md and docs/plan.md.
 
 (import keys)
