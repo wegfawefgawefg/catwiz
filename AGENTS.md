@@ -63,6 +63,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   stylized silhouettes with depth, faces that carry state. NTSC artifact colour is the real
   target; check the clean look for readability. Actors sit on even byte columns so their
   colours hold (a 1-byte move swaps violet and green).
+- Double hi-res (the art for the engine port, 2026-10-30): `tools/dhgr/`, run
+  `python3 tools/dhgr/make.py`. Drawn at 140 x 192 wide pixels (a pixel is 4 dots, 1.83 rows
+  wide); byte tables to `art/dhgr/` (formats in `tools/dhgr/export.py`), previews to
+  `shots/dhgr/`, memory per fight in `art/dhgr/memory.txt`. Sprites sit on 7-pixel steps (4
+  bytes) so their colours hold. Fighters are drawn once in materials and lit per zone (day,
+  dusk, night: `tools/dhgr/light.py`, a palette swap plus rims by code). In NTSC every colour
+  but black, white and grey shows fine stripes, the dark ones worst: keep big areas light
+  (light blue, aqua, yellow, pink) or black, darks in small pieces, gradients by whole rows.
+  Text drawn in dots (40 columns) turns violet and green in the flat colour look; the
+  35-column font in whole pixels (`fonts.F35`) stays white in every look.
 
 ## Sound
 

@@ -1,0 +1,51 @@
+Catwiz double hi-res art: memory per day fight (python3 tools/dhgr/make.py memory)
+raw = bytes as the game uses them; packed = zlib -9 of those bytes (a stand-in packer)
+
+shared by all fights
+  12 card pictures (pic+mask)           2880 raw     618 packed  
+  40-column font (95 glyphs)            1520 raw     475 packed  inverse is the same XOR $7F
+    or the 35-column font                760 raw     289 packed  3 pixels a row, shifted into place
+  tray picture, rows 124-159            2880 raw     548 packed  card blanks, buttons; icons go on top
+  shared total                          7280 raw    1621 packed
+
+fight 1 (clearing, day light): cat, puffcap, sporelet
+  screen, whole 16 KB page             16384 raw    1813 packed  
+  screen, stage rows 0-123              9920 raw    1207 packed  
+  fighters, lit, pic+mask              27636 raw    3587 packed  every frame whole
+    trimmed, frames over idle          19356 raw          rows trimmed to their bytes; a frame that is idle moved
+                                                          plus a patch (the hop, a new face) stored as that
+    stored unlit (materials)           11567 raw    3622 packed  one copy for every zone
+  fight total                          37556 raw    4829 packed  (stage + lit sprites raw; best screen + materials packed)
+
+fight 2 (path, day light): cat, puffcap, sporelet, nightflap
+  screen, whole 16 KB page             16384 raw    1964 packed  
+  screen, stage rows 0-123              9920 raw    1335 packed  
+    or as patches over fight 1          1233 raw     292 packed  3 boxes
+  fighters, lit, pic+mask              34252 raw    4605 packed  every frame whole
+    trimmed, frames over idle          23030 raw          rows trimmed to their bytes; a frame that is idle moved
+                                                          plus a patch (the hop, a new face) stored as that
+    stored unlit (materials)           14405 raw    4735 packed  one copy for every zone
+  fight total                          44172 raw    5027 packed  (stage + lit sprites raw; best screen + materials packed)
+
+fight 3 (brook, day light): cat, sporelet, nightflap
+  screen, whole 16 KB page             16384 raw    2033 packed  
+  screen, stage rows 0-123              9920 raw    1354 packed  
+    or as patches over fight 1          1445 raw     381 packed  1 boxes
+  fighters, lit, pic+mask              29104 raw    3870 packed  every frame whole
+    trimmed, frames over idle          19446 raw          rows trimmed to their bytes; a frame that is idle moved
+                                                          plus a patch (the hop, a new face) stored as that
+    stored unlit (materials)           12646 raw    3806 packed  one copy for every zone
+  fight total                          39024 raw    4187 packed  (stage + lit sprites raw; best screen + materials packed)
+
+fight 4 (thicket, day light): cat, puffcap, sporelet, nightflap
+  screen, whole 16 KB page             16384 raw    2624 packed  
+  screen, stage rows 0-123              9920 raw    1885 packed  
+    or as patches over fight 1          8289 raw    1719 packed  6 boxes
+  fighters, lit, pic+mask              34252 raw    4605 packed  every frame whole
+    trimmed, frames over idle          23030 raw          rows trimmed to their bytes; a frame that is idle moved
+                                                          plus a patch (the hop, a new face) stored as that
+    stored unlit (materials)           14405 raw    4735 packed  one copy for every zone
+  fight total                          44172 raw    6454 packed  (stage + lit sprites raw; best screen + materials packed)
+
+in memory while a fight runs (not stored): two 16 KB pages to flip, and a clean copy of
+the stage (rows 0-123: 9,920 bytes, half main half aux) to restore under moving sprites.
