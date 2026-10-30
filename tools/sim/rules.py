@@ -9,6 +9,7 @@ start_round() after end_turn() when the fight goes on. Actor 0 is the hero, 1-3 
 """
 
 import bagfx
+import foes
 import items
 
 NOTHING = 255
@@ -87,6 +88,8 @@ class Battle:
     def clone(self):
         b = Battle.__new__(Battle)
         b.__dict__.update(self.__dict__)
+        b.__dict__.pop("play", None)  # validate.plan_turn's recorders stay on its own copy
+        b.__dict__.pop("reroll", None)
         for name in ("dice", "hp", "maxhp", "alive", "kind", "move", "made", "in_draw", "held",
                      "tray", "hand", "face_of", "played"):
             setattr(b, name, getattr(self, name)[:])
@@ -325,7 +328,7 @@ class Battle:
                 if i != by and self.alive[i]:
                     self.heal(i, n)
         elif effect == "summon":
-            self.summon(by, n)
+            foes.summon(self, by, n)
         elif effect == "steal":
             d = self.last_played
             if d != NOTHING and self.held[d] == NOTHING:
@@ -378,16 +381,6 @@ class Battle:
             st[LASER] = 1
         else:
             st[SHIELD] = 0
-
-    def summon(self, by, n):
-        """PROPOSAL: n of by's kind's calls into empty spots; they wait for the next round"""
-        k = self.R.kinds[self.kind[by]].calls
-        for _ in range(n):
-            for i in range(1, ACTORS):
-                if not self.alive[i]:
-                    self.set_enemy(i, k)
-                    self.st[i][FRESH] = 1
-                    break
 
     # ---- battle/hit.tsp
 
@@ -480,111 +473,9 @@ class Battle:
         st = self.st[who]
         st[status] = min(st[status] + n, 99)
 
-    # ---- the enemies' turn: turn.end_turn, enemies_step, end_enemies
+    # ---- the enemies' turn: foes.py
 
     def end_turn(self):
-        """the hero's statuses tick, every enemy makes its move, theirs tick; the next
-        round is start_round's, for the caller (a search may stop here and look)"""
-        st = self.st[HERO]
-        items.turn_end(self)
-        if self.result is not None:
-            return
-        bite = self.status_end(HERO)
-        st[CATNIP] = 0
-        st[SPOOK] = 0
-        if bite:
-            self.lose(HERO, bite)
-        if not self.alive[HERO]:
-            self.result = "lost"
-            return
-        for i in range(1, ACTORS):
-            self.st[i][MARK] = 0
-            if self.alive[i]:
-                self.st[i][SHIELD] = 0
-                self.st[i][BOX] = 0
-                self.st[i][REFLECT] = 0
-        hp_before = self.hp[HERO]
-        for i in range(1, ACTORS):
-            if not self.alive[i]:
-                continue
-            si = self.st[i]
-            if si[FRESH]:
-                continue
-            if si[HISS]:
-                si[HISS] = 0
-                continue
-            kind = self.R.kinds[self.kind[i]]
-            if kind.stall and si[HURT] >= kind.stall:
-                self.say("  %s STALLS" % kind.name)
-                continue
-            row = self.move[i]
-            self.land_move(row, i, self.move_target(i, row))
-            self.after_action()
-            if self.result is not None:
-                return
-        for i in range(1, ACTORS):
-            if self.alive[i]:
-                bite = self.status_end(i)
-                if bite:
-                    self.lose(i, bite)
-            if self.alive[i]:
-                si = self.st[i]
-                si[HURT] = 0
-                if si[FRESH]:
-                    si[FRESH] = 0
-                else:
-                    self.next_move(i)
-        items.enemies_done(self, self.hp[HERO] >= hp_before)
-        if not any(self.alive[1:]):
-            self.result = "won"
-
-    def status_end(self, who):
-        """statuses.turn_end: wet dries, fleas bite (the damage given back)"""
-        st = self.st[who]
-        st[WET] = max(0, st[WET] - 1)  # the game's wet is 1: dried
-        st[TANGLE] = 0
-        turns = st[FLEA_TURNS]
-        if turns == 0:
-            return 0
-        bite = st[POISON]
-        st[FLEA_TURNS] = turns - 1
-        if turns == 1:
-            st[POISON] = 0
-        return bite
-
-    def move_target(self, by, row):
-        move = self.R.moves[row]
-        if move.aim == "self":
-            return by
-        lasered = self.st[by][LASER] and move.effect in ("hit", "hit2")
-        if lasered:
-            # PROPOSAL: its hit goes to a friend; with no friend standing it comes at you
-            self.st[by][LASER] = 0
-            for i in range(1, ACTORS):
-                if i != by and self.alive[i]:
-                    return i
-            if self.R.model == "bag":
-                return by  # the bag proposal's laser: alone, it hits itself
-            return HERO
-        if move.aim == "friend":
-            for i in range(1, ACTORS):
-                if i != by and self.alive[i]:
-                    return i
-            return by
-        return HERO
-
-    def land_move(self, row, by, target):
-        move = self.R.moves[row]
-        self.say("  %s: %s" % (self.R.kinds[self.kind[by]].name,
-                               move.text.replace("#", str(move.amount))))
-        if move.aim == "all" and target == HERO and self.st[HERO][BOX] > 0:
-            return
-        self.apply(move.effect, by, target, move.amount)
-
-    def next_move(self, i):
-        kind = self.R.kinds[self.kind[i]]
-        made = self.made[i] + 1
-        if made >= kind.count:
-            made = 0
-        self.made[i] = made
-        self.move[i] = kind.first + made
+        """the hero's statuses tick, every enemy makes its move, theirs tick; the next round is
+        start_round's, for the caller (a search may stop here and look)"""
+        foes.end_turn(self)
