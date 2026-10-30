@@ -1,4 +1,4 @@
-# a small numpy z-buffer rasteriser for prefab parts (tools/unity_assets.py Part objects).
+# a small numpy z-buffer rasteriser for prefab parts (unity_assets.py Part objects).
 #
 # view: the object turns by yaw about its vertical axis, then a camera looks at it from pitch
 # degrees above, with a vertical field of view fov (0 = orthographic). the picture is fitted to a

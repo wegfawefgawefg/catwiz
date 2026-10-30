@@ -3,10 +3,10 @@
 # silhouette/ID mask (one colour per part, black outline), at the pixel sizes a 280x192 screen
 # would use. also a whole forest battle from a camera like the game's.
 #
-# run:  tools/.venv/bin/python tools/prefab_render.py            all targets + contact sheet
-#       tools/.venv/bin/python tools/prefab_render.py musho dog   just those
-#       tools/.venv/bin/python tools/prefab_render.py --describe Musho   print a prefab's tree
-#       tools/.venv/bin/python tools/prefab_render.py --yaws Musho      turn strip, to pick yaw
+# run:  tools/.venv/bin/python tools/reference/prefab_render.py            all targets + contact sheet
+#       tools/.venv/bin/python tools/reference/prefab_render.py musho dog   just those
+#       tools/.venv/bin/python tools/reference/prefab_render.py --describe Musho   print a prefab's tree
+#       tools/.venv/bin/python tools/reference/prefab_render.py --yaws Musho      turn strip, to pick yaw
 # writes mockup/out/prefabs/*.png and mockup/out/prefab_sheet.png (gitignored: derived art).
 
 import os
@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import raster  # noqa: E402
 import unity_assets as ua  # noqa: E402
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
+ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "mockup", "out", "prefabs")
 SHEET = os.path.join(ROOT, "mockup", "out", "prefab_sheet.png")
 REFERENCE = os.path.expanduser("~/Coding/Ideas/dogwitch-reference")

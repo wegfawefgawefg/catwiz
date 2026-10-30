@@ -14,7 +14,8 @@ import subprocess
 
 W, H = 280, 192
 TISPLE = os.environ.get("TISPLE", os.path.expanduser("~/Coding/LangDev/tisple/build/tisple"))
-FONT_CPP = os.path.expanduser("~/Coding/LangDev/tisple/src/machine/font.cpp")
+# the hud font is Tisple's own 5x7 set, read from the source next to the compiler's build
+FONT_CPP = os.path.join(os.path.dirname(os.path.dirname(TISPLE)), "src", "machine", "font.cpp")
 PALETTE_1 = {"B", "O"}
 COLOURED = {"V", "G", "B", "O"}
 

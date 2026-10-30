@@ -1,8 +1,14 @@
-.venv/
-data/extracted/
-mockup/out/
-__pycache__/
+# build outputs
 build/
+# derived art and data from the reference scripts and the mockups
+data/
+mockup/out/
+# Python
+.venv/
+__pycache__/
+*.pyc
+# scratch from runs
 shots/**/*.bin
 shots/scratch*
 shots/t_*
+*.wav

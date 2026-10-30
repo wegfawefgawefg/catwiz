@@ -1,5 +1,6 @@
 # dumps the readable string fields of every MonoBehaviour in the owner's Dog Witch install:
-# one line per object, its Unity length-prefixed strings in order. reference only, kept out of git.
+# one line per object, its Unity length-prefixed strings in order. Reference only; the output
+# is never committed.
 import struct, UnityPy
 root = "/media/vega/mdot2b/SteamLibrary/steamapps/common/DOG WITCH/DOG WITCH_Data"
 
