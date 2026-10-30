@@ -25,7 +25,7 @@ STATUSES = [
     "strength",
     # PROPOSAL, the item model (items.py)
     "kittens", "nipped", "tangle", "brand", "knead_fluff", "knead_wand", "nip", "mult", "keep",
-    "freebook", "wish",
+    "freebook", "wish", "plus_left",
 ]
 for _i, _name in enumerate(STATUSES):
     globals()[_name.upper()] = _i
@@ -62,7 +62,7 @@ class Battle:
         n = len(dice)
         self.in_draw = [True] * n  # bag.gather
         self.held = [NOTHING] * n  # PROPOSAL: the enemy holding the die (a squirrel)
-        self.hand_n = rules.hand + charms.count("toe")  # the sixth toe charm rolls 6
+        self.hand_n = rules.hand + charms.count("toe")  # the sixth toe charm: a die more
         self.tray = [NOTHING] * self.hand_n
         self.hand = [0] * self.hand_n
         self.face_of = [0] * self.hand_n  # which face of its die each slot rolled

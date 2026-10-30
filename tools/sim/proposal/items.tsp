@@ -399,7 +399,7 @@
             :icon art.TILE_BATH)
         (make ac.Item
             :name "PLUS ONE"
-            :text "NEXT DIE +#: EACH HIT, STACK, STAR"
+            :text "NEXT 2 DICE +#, EACH HIT AND STAR"
             :slot Slot.trick
             :effect ac.Effect.plus
             :amount 1
@@ -411,7 +411,7 @@
             :icon art.TILE_PLUS1)
         (make ac.Item
             :name "TIMES TWO"
-            :text "NEXT DIE TIMES #; IT COUNTS AS #"
+            :text "NEXT WAND, FLUFF, BOOK X#: COUNTS #"
             :slot Slot.trick
             :effect ac.Effect.double
             :amount 2

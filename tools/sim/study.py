@@ -81,7 +81,7 @@ def tricks(runs):
         won = [r for r in results if r["won"]] or results
         end = Counter()
         for r in won:
-            trick = r["kit"].split(", ")[5].rstrip("+")
+            trick = r["kit"].split(";")[0].split(", ")[5].rstrip("+")
             end[trick] += 1
         print("%s: %d runs, %d won; the trick at the end: %s" % (
             pname, len(results), len([r for r in results if r["won"]]),

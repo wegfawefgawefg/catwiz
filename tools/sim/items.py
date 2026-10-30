@@ -5,8 +5,9 @@ its effect, and the combo when it is the third fluff (or twig wand) this turn; t
 the hairball that clogs a slot; and the charms (which the bag variants use too). The game has
 none of this yet; docs/balance.md lists what the engine would need.
 
-Boosts on a played face, in this order: a pending times (its number times m, and it counts m
-towards its slot's three), then a pending plus (each hit, each stack, each star), catnip's +1,
+Boosts on a played face, in this order: a pending times (a wand, fluff or book only: its number
+times m, and it counts m towards its slot's three), then a pending plus (the next two dice,
+any slot: each hit, each stack, each star), catnip's +1,
 knead (the next fluff x2, the next wand +n), bad milk (wands +1), a wishing star (the next wand
 x2), then a spook takes away.
 """
@@ -20,6 +21,17 @@ def ru():
 
 KITTENS_MOST = 5
 COMBO_AT = 3
+PLUS_DICE = 2  # plus one: how many dice it boosts
+MULT_SLOTS = ("wand", "fluff", "book")  # what a pending times takes
+
+
+def amount(b, kind, default):
+    """a charm's amount from the content's charm table (the bag variants' charms: default),
+    times how many of it the run holds"""
+    for c in getattr(b.R, "charm_table", ()):
+        if c["kind"] == kind:
+            return c["amount"] * b.charms.count(kind)
+    return default * b.charms.count(kind)
 
 
 def fight_start(b):
@@ -28,10 +40,10 @@ def fight_start(b):
     c = b.charms
     if not c:
         return
-    b.maxhp[r.HERO] += 5 * c.count("fishbone")
+    b.maxhp[r.HERO] += amount(b, "fishbone", 5)
     st[r.MANA] = 2 * c.count("nightlight")
     st[r.WARD] = c.count("bell")
-    st[r.KITTENS] = c.count("mother")
+    st[r.KITTENS] = amount(b, "mother", 1)
     if "badmilk" in c:
         st[r.POISON] = 2
         st[r.FLEA_TURNS] = b.R.fx["FLEA_TURNS"]
@@ -52,7 +64,7 @@ def round_start(b):
         return
     if "tail" in c:
         st[r.SHIELD] = max(st[r.SHIELD], b.old_shield // 2)
-    b.rerolls += c.count("pocket") - c.count("toe")
+    b.rerolls += amount(b, "pocket", 1) - amount(b, "toe", 1)
     if "pillow" in c:
         st[r.SHIELD] += 2
 
@@ -67,12 +79,15 @@ def land(b, row, target, again=False):
         trick(b, face, n)
         return
     counts = 1
-    if st[r.MULT]:
+    if st[r.MULT] and face.slot in MULT_SLOTS:
         n *= st[r.MULT]
         counts = st[r.MULT]
         st[r.MULT] = 0
-    n += st[r.PLUS]
-    st[r.PLUS] = 0
+    if st[r.PLUS_LEFT]:
+        n += st[r.PLUS]
+        st[r.PLUS_LEFT] -= 1
+        if not st[r.PLUS_LEFT]:
+            st[r.PLUS] = 0
     if st[r.NIP]:
         n += 1
         st[r.NIP] -= 1
@@ -80,7 +95,7 @@ def land(b, row, target, again=False):
         n *= 2
         st[r.KNEAD_FLUFF] = 0
     if face.slot == "wand":
-        n += st[r.KNEAD_WAND] + b.charms.count("badmilk")
+        n += st[r.KNEAD_WAND] + amount(b, "badmilk", 1)
         st[r.KNEAD_WAND] = 0
         if st[r.WISH]:
             n *= 2  # a wishing star: the next wand times 2
@@ -106,7 +121,7 @@ def land(b, row, target, again=False):
         if "trio" in b.charms:
             for i in range(1, r.ACTORS):
                 if b.alive[i]:
-                    b.strike_plain(i, 1)
+                    b.strike_plain(i, amount(b, "trio", 1))
 
 
 def trick(b, face, n):
@@ -114,13 +129,19 @@ def trick(b, face, n):
     st = b.st[r.HERO]
     e = face.effect
     if e == "plus":
-        b.add(r.HERO, r.PLUS, n)
+        # +1 is wide: the next two dice get it, each hit and stack of them
+        st[r.PLUS] = max(st[r.PLUS], n)
+        st[r.PLUS_LEFT] = PLUS_DICE
     elif e == "double":
+        # x2 is tall: the next wand, fluff or book (a star or curse leaves it waiting), and it
+        # counts as two towards a three; played after a +1 it doubles that too
         st[r.PLUS] *= n
         st[r.MULT] = max(st[r.MULT], 1) * n
     elif e == "copy":
         if b.last_face != r.NOTHING:
-            b.add(r.HERO, r.PLUS, n)
+            if n:
+                st[r.PLUS] += n
+                st[r.PLUS_LEFT] = max(st[r.PLUS_LEFT], 1)
             on = b.last_on if b.alive[b.last_on] else b.target
             land(b, b.last_face, on, again=True)
     elif e == "catnip2":
@@ -225,7 +246,7 @@ def combo(b, c, k, t, n):
 def pounce(b, t, times):
     """every kitten pounces on t, times times: 1 each, more with mittens and marks"""
     r = ru()
-    hit = 1 + b.charms.count("mittens")
+    hit = 1 + amount(b, "mittens", 1)
     for _ in range(b.st[r.HERO][r.KITTENS] * times):
         if not b.alive[t]:
             return
@@ -238,7 +259,7 @@ def turn_end(b):
     r = ru()
     st = b.st[r.HERO]
     if "still" in b.charms and not b.rerolled:
-        b.apply("mana", r.HERO, r.HERO, 2)
+        b.apply("mana", r.HERO, r.HERO, amount(b, "still", 2))
     k = st[r.KITTENS]
     times = 2 if st[r.NIPPED] else 1
     st[r.NIPPED] = 0
@@ -268,14 +289,14 @@ def hero_hurt(b):
     if st[r.KITTENS]:
         st[r.KITTENS] -= 1
     if "grumpy" in b.charms:
-        st[r.MANA] = min(b.R.most_mana, st[r.MANA] + 1)
+        st[r.MANA] = min(b.R.most_mana, st[r.MANA] + amount(b, "grumpy", 1))
 
 
 def ward_blocked(b):
     """a ward pip took a curse (hers or an enemy's): rubber duck's shield"""
     r = ru()
     if "duck" in b.charms:
-        b.add(r.HERO, r.SHIELD, 3)
+        b.add(r.HERO, r.SHIELD, amount(b, "duck", 3))
 
 
 def enemy_beaten(b, who):
