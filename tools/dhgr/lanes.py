@@ -21,6 +21,9 @@
 #     screen (look.tsp keeps it there otherwise)
 #   - the hit point badges as wide as BADGE_MOST of the widest glyph; intents 3 glyphs
 #
+# Between fights battle/kit.tsp draws her six slots where the enemies stood (pixels 77-139,
+# rows 62-109), not a look: the next fight's picture covers them, so they need no lane.
+#
 # Boxes are in byte columns (0-39, 3.5 pixels each; always even here, so 7-pixel groups) and
 # rows: (col, top, cols, rows).
 
