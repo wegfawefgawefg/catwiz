@@ -1,7 +1,7 @@
 ; the title: CATWIZ with a glowing rim over the night, the cat against the moon, a jingle, and
 ; PRESS RETURN (any key or tap starts). One picture (art/title_*, packed), unpacked onto both
 ; pages; the glow is the letters' rim drawn again in turn in each of its
-; colours (art KIND_GLOW: the rim's sprites), on the page not shown, then shown.
+; colours (art KIND_GLOW: the rim's sprites), straight onto the page on screen.
 
 (import apple2 a2)
 (import dhgr)
@@ -46,13 +46,10 @@
 
 (fn draw () void
     (if (< state.glow_time GLOW_FRAMES)
-        (do
-            (screen.wait_frame)
-            (return)))
+        (return))
     (set state.glow_time 0)
     (set state.glow (+ state.glow 1))
     (if (= state.glow GLOW_STEPS)
         (set state.glow 0))
     (let rim u8 (+ art.GLOW0 state.glow))
-    (blit.sprite screen.back (at art.KIND_COL art.KIND_GLOW) (at art.KIND_TOP art.KIND_GLOW) rim)
-    (screen.flip))
+    (blit.sprite screen.PAGE (at art.KIND_COL art.KIND_GLOW) (at art.KIND_TOP art.KIND_GLOW) rim))

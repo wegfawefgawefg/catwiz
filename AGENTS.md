@@ -166,10 +166,13 @@ $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --nts
 ## Memory
 
 Self-booting disk, origin `$8000`. Double hi-res: page 1 `$2000` and page 2 `$4000`, each in
-both main and aux memory, reserved (32 KB). There is no backdrop page (2026-10-31): what a look
-leaves is filled black (the lanes), and the hud is drawn onto the page being drawn and copied
-from it onto the other at that page's next frame (`draw/scene.tsp`: mark, sync, copy_all); the
-looks keep to rows 0-120, the hud to rows 121-191. Code and data fill `$8000-$BEFF`, `$6000-$7FFF`,
+both main and aux memory, reserved (32 KB). One page is drawn and shown (2026-10-31, page 1):
+every change goes straight onto the screen once, with no flip to wait for (a big pose may tear
+for a frame); page 2 is only where a fight's picture is unpacked before it is copied over.
+There is no backdrop page: what a look leaves is filled black (the lanes). The looks keep to
+rows 0-120, the hud to rows 121-191. Fighters whose boxes meet are drawn with lib/dhgr's
+CUTOUT (their black not drawn); a lunge with another fighter in the way is a shot instead
+(`battle/act.tsp` blocked), so no one passes through anyone. Code and data fill `$8000-$BEFF`, `$6000-$7FFF`,
 then `$0BE0-$1BFF`, then the language card. Tisple's libraries keep `$1C00-$1D89` (lib/unpack,
 both memories), `$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1F32` (lib/dhgr's runs, both). The packed art and the
 songs live in aux memory; a screen's sprites in the aux language card and `blit.sprite_aux`.

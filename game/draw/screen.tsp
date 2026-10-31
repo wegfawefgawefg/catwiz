@@ -1,35 +1,27 @@
-; the double hi-res pages (lib/dhgr): page 1 at $2000 and page 2 at $4000 take turns on screen,
-; the whole screen graphics. Each is 8 KB of main memory and 8 KB of aux memory at the same
-; addresses; a page is named by its high byte (dhgr.PAGE1, dhgr.PAGE2), so row y of it is
-; (at dhgr.ROW y) plus that many pages less $20. There is no backdrop page (the midnight stage:
-; what a look leaves is black, and the hud is drawn onto the page being drawn and copied from
-; it onto the other, draw/scene.tsp).
+; the double hi-res pages (lib/dhgr), the whole screen graphics: page 1 at $2000 shown and drawn
+; on, page 2 at $4000 where pictures are unpacked. Each is 8 KB of main memory and 8 KB of aux
+; memory at the same addresses; a page is named by its high byte (dhgr.PAGE1, dhgr.PAGE2), so
+; row y of it is (at dhgr.ROW y) plus that many pages less $20. There is no backdrop page (the
+; midnight stage: what a look leaves is black, draw/scene.tsp).
 
 (import apple2 a2)
 (import dhgr)
 (import unpack)
 
-; the page being drawn, which is not the one on screen, and its number (0 or 1)
-(let back u8 dhgr.PAGE2)
-(let back_index u8 1)
-
-; the page on screen
-(fn front () u8
-    (if (= back dhgr.PAGE2)
-        dhgr.PAGE1
-        dhgr.PAGE2))
+; the one page drawn and shown: every change goes straight onto the screen (draw/scene), drawn
+; once, with nothing to wait for. A picture is unpacked onto SPARE and copied over, so it never
+; shows half made
+(const PAGE u8 dhgr.PAGE1)
+(const SPARE u8 dhgr.PAGE2)
 
 ; the address of byte column col of row y on page, in the memory it is read from
 (fn row_at ((page u8) (y u8) (col u8)) u16
     (+ (+ (at dhgr.ROW y) (<< (as u16 (- page dhgr.PAGE1)) 8)) (as u16 col)))
 
-; graphics, the whole screen, page 1 on, page 2 drawn next (the title turns it on once its
-; picture is on both pages)
+; graphics, the whole screen, the page on (the title turns it on once its picture is there)
 (fn on () void
-    (dhgr.show dhgr.PAGE1)
-    (dhgr.on false)
-    (set back dhgr.PAGE2)
-    (set back_index 1))
+    (dhgr.show PAGE)
+    (dhgr.on false))
 
 ; false only to measure frame costs: frames then run as fast as they can
 (const WAIT_FOR_BLANK bool true)
@@ -40,15 +32,6 @@
         (return))
     (while (< (io_read u8 a2.RDVBLBAR) 0x80))
     (while (>= (io_read u8 a2.RDVBLBAR) 0x80)))
-
-; at the next vertical blank, show the page just drawn
-(fn flip () void
-    (wait_frame)
-    (dhgr.show back)
-    (set back (dhgr.hidden))
-    (set back_index (if (= back dhgr.PAGE2)
-        1
-        0)))
 
 ; a box of page from copied onto page, both memories
 (fn copy_box ((page u8) (col u8) (top u8) (cols u8) (rows u8) (from u8)) void

@@ -92,7 +92,7 @@
     (for i u8 i0 (+ i0 (* n 7))
         (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
         (set (at cells i) (^ bits (at flip i))))
-    (dhgr_pixels.cells screen.back (<< b0 3) y n (addr_of (at cells i0))))
+    (dhgr_pixels.cells screen.PAGE (<< b0 3) y n (addr_of (at cells i0))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte
 (fn row40 ((r u8) (y u8)) void
@@ -108,7 +108,7 @@
         (let at u16 (+ (* (as u16 (- c 32)) 16) (as u16 (<< r 1))))
         (set (at pix.aux_bytes i) (^ (at font40.FONT40 at) flip))
         (set (at pix.main_bytes i) (^ (at font40.FONT40 (+ at 1)) flip)))
-    (let p (ptr u8) (as (ptr u8) (screen.row_at screen.back y 0)))
+    (let p (ptr u8) (as (ptr u8) (screen.row_at screen.PAGE y 0)))
     (for i u8 0 40
         (store (+ p i) (at pix.main_bytes i)))
     (auxmem.write p (addr_of (at pix.aux_bytes 0)) 40))

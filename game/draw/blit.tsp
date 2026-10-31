@@ -119,20 +119,23 @@
 (fn card_runs ((id u8)) (ptr u8)
     (as (ptr u8) (+ (at card_at (at art.KIND_OF id)) (at art.MAIN_AT id))))
 
-; the sprite drawn over what the page has, or its shape in white (the hit flash): its first rows
-; rows (as many as it has at most), the rest left as they are
-(fn draw ((page u8) (col u8) (top u8) (id u8) (white bool) (rows u8)) void
+; the sprite drawn over what the page has, or its shape in white (the hit flash), cut: a solid
+; frame without its black (over another sprite): its first rows rows (as many as it has at
+; most), the rest left as they are
+(fn draw ((page u8) (col u8) (top u8) (id u8) (white bool) (cut bool) (rows u8)) void
     (if (> rows (at art.ROWS id))
         (set rows (at art.ROWS id)))
     (let kind u8 (at art.KIND_OF id))
     (let flags u8 (if white
         dhgr.AS_WHITE
         0))
+    (if cut
+        (set flags (| flags dhgr.CUTOUT)))
     (dhgr.runs page dhgr.AUX col top rows (aux_runs id) (| flags (at aux_flags kind)))
     (dhgr.runs page dhgr.MAIN col top rows (card_runs id) (| flags (at card_flags kind))))
 
 (fn sprite ((page u8) (col u8) (top u8) (id u8)) void
-    (draw page col top id false 255))
+    (draw page col top id false false 255))
 
 ; what a look leaves: black (the midnight stage keeps every pixel a look can cover black,
 ; tools/dhgr/lanes.py), cols byte columns from col, rows from top

@@ -1,12 +1,10 @@
-; drawing a frame on the back page, over the fight's picture on the midnight stage: the looks
-; (actors, badges, bolt, markers, floating numbers) move only over black (tools/dhgr/lanes.py),
-; rows 0-120; the hud (the tray, the text) is drawn from row 121 down. Each page remembers what
-; it shows (state.drawn), so a frame only touches what changed since that page was last drawn,
-; two frames ago:
-;   0. (sync, before the hud draws) the boxes the hud drew on the other page since (mark) are
-;      copied from it, the page on screen; after a new picture (copy_all), the whole page;
+; drawing a frame straight onto the page on screen (screen.PAGE: one page, no flipping, each
+; change drawn once), over the fight's picture on the midnight stage: the looks (actors,
+; badges, bolt, markers, floating numbers) move only over black (tools/dhgr/lanes.py), rows
+; 0-120; the hud (the tray, the text) is drawn from row 121 down. The page remembers what it
+; shows (state.drawn), so a frame only touches what changed:
 ;   1. the old boxes of the looks that changed are filled black (a solid fighter's only where
-;      its new box does not cover);
+;      its new box does not cover: it is drawn whole over its old pose, so it never blinks);
 ;   2. every look that changed, met a filled box or sits on top of one being drawn, is drawn
 ;      again over the page, in order.
 
@@ -25,62 +23,24 @@
 (let redo (array u8 19) :address 0x055F) ; rows to draw again from the top, 0 for none
 (let restored (array state.Rect 30) :address 0x0480)
 (let restored_count u8 0)
+(let cut (array bool 4)) ; an actor whose box meets another's: drawn without its black
 (const MOST_RESTORED u8 30)
 
-; the hud drew a box onto the back page: the page is to be shown (fresh), and the other page
-; copies the box from it at its next frame (sync)
+; the hud drew onto the page (fresh: the frame has something new, whatever the looks do)
 (let fresh bool false)
 
 (fn mark ((col u8) (top u8) (cols u8) (rows u8)) void
-    (set fresh true)
-    (let page u8 (- 1 screen.back_index))
-    (let n u8 (at state.rect_count page))
-    (if (= n state.RECTS)
-        (set (at state.full_redraw page) true)
-        (do
-            (let slot u8 (+ (* page state.RECTS) n))
-            (set (at state.rects slot) (make state.Rect :col col :top top :cols cols :rows rows))
-            (set (at state.rect_count page) (+ n 1)))))
+    (set fresh true))
 
-; a new picture on the back page (a fight's backdrop, unpacked): no look is on it, and the other
-; page copies all of it at its next frame
-(fn copy_all () void
+; a new picture on the page (a fight's backdrop): no look is on it
+(fn forget () void
     (set fresh true)
-    (let first u8 (* screen.back_index state.LOOKS))
     (for i u8 0 state.LOOKS
-        (set (at state.drawn (+ first i) sprite) state.NOTHING))
-    (set (at state.rect_count screen.back_index) 0)
-    (set (at state.full_redraw screen.back_index) false)
-    (set (at state.full_redraw (- 1 screen.back_index)) true))
+        (set (at state.drawn i sprite) state.NOTHING)))
 
-; the back page brought up to the page on screen where the hud drew since it was last drawn,
-; before the hud draws on it again (step 0): the boxes copied from the page on screen, or the
-; whole page, which then shows the looks the page on screen does
-(fn sync () void
-    (set restored_count 0)
-    (let pi u8 screen.back_index)
-    (let from u8 (screen.front))
-    (if (at state.full_redraw pi)
-        (do
-            (screen.copy_page from screen.back)
-            (let first u8 (* pi state.LOOKS))
-            (let other u8 (* (- 1 pi) state.LOOKS))
-            (for i u8 0 state.LOOKS
-                (set (at state.drawn (+ first i)) (at state.drawn (+ other i))))
-            (set (at state.full_redraw pi) false)
-            (set (at state.rect_count pi) 0)
-            (set fresh true)
-            (return)))
-    (for n u8 0 (at state.rect_count pi)
-        (let r u8 (+ (* pi state.RECTS) n))
-        (screen.copy_box screen.back
-            (at state.rects r col)
-            (at state.rects r top)
-            (at state.rects r cols)
-            (at state.rects r rows)
-            from)
-        (set fresh true))
-    (set (at state.rect_count pi) 0))
+; a frame starts: nothing filled yet (before the hud draws)
+(fn begin () void
+    (set restored_count 0))
 
 ; the box a look covers, given what it shows, into the_box
 (let the_box state.Rect)
@@ -165,9 +125,8 @@
 
 ; whether any look differs from what the page on screen shows
 (fn differs () bool
-    (let first u8 (* (- 1 screen.back_index) state.LOOKS))
     (for i u8 0 state.LOOKS
-        (if (not (same i (+ first i)))
+        (if (not (same i i))
             (return true)))
     false)
 
@@ -203,10 +162,11 @@
         (do
             (badge.draw page (- i state.LOOK_HP) col top (at state.looks i wide) rows)
             (return)))
-    (blit.draw page col top sprite (at state.looks i white) rows)
+    (let cut_out bool (and (< i state.ACTORS) (at cut i)))
+    (blit.draw page col top sprite (at state.looks i white) cut_out rows)
     (let second u8 (at state.looks i second))
     (if (!= second state.NOTHING)
-        (blit.draw page (+ col 2) top second false rows)))
+        (blit.draw page (+ col 2) top second false false rows)))
 
 ; the old box of the look page shows as d, filled black
 (fn restore_drawn ((page u8) (d u8)) void
@@ -265,11 +225,10 @@
     (if (> o_right n_right)
         (restore_box page n_right mid_top (- o_right n_right) mid_rows)))
 
-; the frame on the back page; false when that page shows it already (nothing to draw or show)
-(fn draw_frame () bool
-    (let page u8 screen.back)
-    (let pi u8 screen.back_index)
-    (let first_drawn u8 (* pi state.LOOKS))
+; the frame onto the page, when anything changed
+(fn draw_frame () void
+    (let page u8 screen.PAGE)
+    (let first_drawn u8 0)
     (let any bool fresh)
     (set fresh false)
     (for i u8 0 state.LOOKS
@@ -277,16 +236,25 @@
         (if (at changed i)
             (set any true)))
     (if (not any)
-        (return false))
+        (return))
     (for i u8 0 state.LOOKS
         (if (!= (at state.looks i sprite) state.NOTHING)
             (find_box i)))
+    ; actors near enough to meet are drawn without their black, over each other, and leave
+    ; their whole old box (a solid one drawn over its old pose would blot the other)
+    (for i u8 0 state.ACTORS
+        (set (at cut i) false)
+        (if (!= (at state.looks i sprite) state.NOTHING)
+            (for j u8 0 state.ACTORS
+                (if (and (!= i j) (!= (at state.looks j sprite) state.NOTHING))
+                    (if (box_meets_box i j)
+                        (set (at cut i) true))))))
     ; 1. what the looks that changed leave, filled black
     (for i u8 0 state.LOOKS
         (let d u8 (+ first_drawn i))
         (if (and (and (at changed i) (!= (at state.drawn d sprite) state.NOTHING))
                 (not (flash_only i d)))
-            (if (solid_over i d)
+            (if (and (solid_over i d) (not (and (< i state.ACTORS) (at cut i))))
                 (rest_of page d i)
                 (restore_drawn page d))))
     ; 2. what to draw, and how many of its rows from its top: a changed look whole, one a
@@ -313,5 +281,4 @@
             (draw_look page i (at redo i)))
         ; what the page shows now: only a changed look shows something new
         (if (at changed i)
-            (set (at state.drawn (+ first_drawn i)) (at state.looks i))))
-    true)
+            (set (at state.drawn (+ first_drawn i)) (at state.looks i)))))

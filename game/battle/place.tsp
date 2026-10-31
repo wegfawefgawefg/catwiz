@@ -39,8 +39,11 @@
         (return (+ home (at art.KIND_REACH kind))))
     (- (- home (at art.KIND_LEFT kind)) 2))
 
-; the row a thrown bolt starts at: a little above who's middle, so it clears the heads of
-; whoever stands in front
+; the row a thrown bolt starts at: for the hero a little above her middle, so it clears the
+; heads of whoever stands in front; for an enemy over its own head, so its shot (act.tsp, a
+; lunge with someone in the way) arcs over the one in front
 (fn hand_y ((who u8)) u8
+    (if (!= who state.HERO)
+        (return (- (top who) 14)))
     (let rows u8 (- (feet who) (top who)))
     (- (+ (top who) (>> rows 1)) 6))

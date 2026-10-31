@@ -19,7 +19,6 @@
 (const LOOK_FLOATER u8 15)
 (const BADGES u8 7)     ; the badges: 4 hit point ones, then 3 intents
 (const BADGE_MOST u8 8) ; glyphs in a badge at most
-(const RECTS u8 12)     ; backdrop boxes waiting to be copied onto each page
 (const NOTHING u8 255)
 (const BADGE u8 254) ; a look's sprite when it is a badge
 
@@ -148,10 +147,7 @@
 (let badge_x (array u8 7) :address 0x076A) ; the pill's first pixel
 ; drawing: what each look should show, and what each page shows now
 (let looks (array Look 19) :address 0x0580)
-(let drawn (array Look 38) :address 0x0200) ; page * LOOKS + look
-(let rects (array Rect 24) :address 0x0400) ; page * RECTS + n
-(let rect_count (array u8 2))
-(let full_redraw (array bool 2))
+(let drawn (array Look 19) :address 0x0200) ; what the page shows, by look
 ; the title
 (let glow u8) ; which step of the glow cycle it shows
 (let glow_time u8)

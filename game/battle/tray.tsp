@@ -104,45 +104,46 @@
 
 ; ---- picking: a card's columns moved
 
-; the card rows of slot columns col to col + 4 in the backdrop moved LIFT rows up, or down, in
-; one memory (aux: with aux memory switched in for reading and writing)
-(fn shift ((col u8) (up bool) (aux bool)) void
-    (let page u8 screen.back)
-    (with_aux aux aux
-        (let y u8 (if up
-            hud.CARD_TOP
-            (- hud.CARD_BOTTOM 1)))
-        ; up: row y onto y - LIFT, from the top; down: row y - LIFT onto y, from the bottom
-        (for k u8 0 (- hud.CARD_BOTTOM hud.CARD_TOP)
-            (let from u8 (if up
-                y
-                (- y hud.LIFT)))
-            (let to u8 (if up
-                (- y hud.LIFT)
-                y))
-            (let src (ptr u8) (as (ptr u8) (screen.row_at page from col)))
-            (let dst (ptr u8) (as (ptr u8) (screen.row_at page to col)))
+; the card rows of slot columns col to col + 4 on the page moved LIFT rows up, or down, a row at
+; a time in both memories (aux with aux memory switched in), so a lift half done shows a card
+; partway up, never its two memories apart
+(fn shift ((col u8) (up bool)) void
+    (let page u8 screen.PAGE)
+    (let y u8 (if up
+        hud.CARD_TOP
+        (- hud.CARD_BOTTOM 1)))
+    ; up: row y onto y - LIFT, from the top; down: row y - LIFT onto y, from the bottom
+    (for k u8 0 (- hud.CARD_BOTTOM hud.CARD_TOP)
+        (let from u8 (if up
+            y
+            (- y hud.LIFT)))
+        (let to u8 (if up
+            (- y hud.LIFT)
+            y))
+        (let src (ptr u8) (as (ptr u8) (screen.row_at page from col)))
+        (let dst (ptr u8) (as (ptr u8) (screen.row_at page to col)))
+        (for i u8 0 hud.SLOT_COLS
+            (store (+ dst i) (load (+ src i))))
+        (with_aux true true
             (for i u8 0 hud.SLOT_COLS
-                (store (+ dst i) (load (+ src i))))
-            (set y (if up
-                (+ y 1)
-                (- y 1))))))
+                (store (+ dst i) (load (+ src i)))))
+        (set y (if up
+            (+ y 1)
+            (- y 1)))))
 
 (fn lift ((n u8)) void
     (let col u8 (* n hud.SLOT_COLS))
-    (shift col true false)
-    (shift col true true)
+    (shift col true)
     (let left u8 (- hud.CARD_BOTTOM hud.LIFT))
-    (dhgr.box screen.back col left hud.SLOT_COLS hud.LIFT BLACK)
-    (dhgr.box screen.back (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
+    (dhgr.box screen.PAGE col left hud.SLOT_COLS hud.LIFT BLACK)
+    (dhgr.box screen.PAGE (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
     (set (at lifted n) true)
     (mark_slot col))
 
 (fn drop ((n u8)) void
     (let col u8 (* n hud.SLOT_COLS))
-    (shift col false false)
-    (shift col false true)
-    (dhgr.box screen.back col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
+    (shift col false)
+    (dhgr.box screen.PAGE col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
     (set (at lifted n) false)
     (mark_slot col))
 
@@ -215,7 +216,7 @@
                 (do
                     (card_row n y)
                     (face_row n y))))
-        (pix.write screen.back y))
+        (pix.write screen.PAGE y))
     (scene.mark (<< g0 1) y0 (<< gn 1) (- y1 y0)))
 
 ; ---- the buttons and the mana, right of the cards
@@ -294,7 +295,7 @@
     (pix.begin SIDE_G0 SIDE_GN)
     (for y u8 y0 y1
         (side_row y rerolls mana most)
-        (pix.write screen.back y))
+        (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
 ; the buttons off, for the reward: its sixth slot goes there
@@ -303,5 +304,5 @@
     (pix.begin SIDE_G0 SIDE_GN)
     (pix.fill BLACK)
     (for y u8 HUD_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
-        (pix.write screen.back y))
+        (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) HUD_TOP (<< SIDE_GN 1) (- (+ hud.TRAY_TOP hud.TRAY_ROWS) HUD_TOP)))

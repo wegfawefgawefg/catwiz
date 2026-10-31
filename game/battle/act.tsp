@@ -49,12 +49,33 @@
                 state.Mood.angry)
             24)))
 
-; the action in flight's motion, from its table
+; the action in flight's motion, from its table; a lunge with another fighter standing between
+; the two is thrown instead, so no one is ever drawn through another (their frames are solid)
 (fn action_motion () state.Motion
-    (match state.act_source
+    (let m state.Motion (match state.act_source
         (state.Source.face (at faces.FACES state.act_row motion))
         (state.Source.move (at en.MOVES state.act_row motion))
         (state.Source.meow state.Motion.hop)))
+    (if (and (= m state.Motion.lunge) (blocked state.act_by state.act_on))
+        state.Motion.throw
+        m))
+
+; whether a fighter still standing is between by and target
+(fn blocked ((by u8) (target u8)) bool
+    (let a u8 (at state.actors by home))
+    (let b u8 (at state.actors target home))
+    (if (> a b)
+        (do
+            (let swap u8 a)
+            (set a b)
+            (set b swap)))
+    (for k u8 0 state.ACTORS
+        (if (and (and (!= k by) (!= k target)) (at state.actors k alive))
+            (do
+                (let h u8 (at state.actors k home))
+                (if (and (> h a) (< h b))
+                    (return true)))))
+    false)
 
 (fn land () void
     (match state.act_source

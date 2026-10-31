@@ -9,6 +9,7 @@
 (import battle/battle)
 (import sound/sound)
 (import mockingboard mb)
+(import draw/screen)
 
 (fn wants_key () bool
     (match state.screen
@@ -63,8 +64,12 @@
 (let owed i8 0)
 
 (fn steps_due () u8
+    ; at least a frame a pass: drawing goes straight onto the screen, with no flip to wait for
     (if (not mb.found)
-        (return 1))
+        (do
+            (screen.wait_frame)
+            (return 1)))
+    (while (= state.clock counted))
     (let now u8 state.clock)
     (let gone u8 (- now counted))
     (set counted now)

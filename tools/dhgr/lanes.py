@@ -9,7 +9,8 @@
 #   look.tsp    show_actor (knockback 2 columns, lift, bob 0-2 for flyers, DCOL/DTOP per
 #               frame), marker (8 for the hero, else top - 25; bob 0 or 2), the poofs
 #   act.tsp     reach (lunges in 2-column steps), HOP (lift 2-6), lunge lift 4, throw_step's
-#               bolt (front to the target's middle, ARC over it)
+#               bolt (front to the target's middle, ARC over it); an enemy with another in
+#               front shoots it instead (place.tsp hand_y: from 14 rows over its head)
 #   hit.tsp     float_number (where a number starts, and its rise: 20 rows over 26 frames)
 #   hud.tsp     the badges (HP_TOP 112, or the feet + 2 for a flyer; intents 12 over the top)
 #   badge.tsp   9 rows; a badge's box is the 7-pixel groups its pill covers
@@ -176,6 +177,21 @@ def boxes(n):
         sx = sy = 0
         tx = middle(e, home)
         ty = kinds[e].top + 8
+        for k in range(len(ARC)):
+            col = x0 + (sx >> 3)
+            top = y0 + (sy >> 3)
+            sx += tx - x0
+            sy += ty - y0
+            out.append((col & 0xFE, top - ARC[k], w, h, "bolt"))
+    # each enemy's shot at the hero (act.tsp, a lunge with someone in the way): from in front
+    # of it, 14 rows over its head, to the hero's middle
+    tx = middle("cat", HERO_COL)
+    ty = hero.top + 8
+    for e, home in SPOTS[n]:
+        K = kinds[e]
+        x0 = home - K.left - 2
+        y0 = K.top - 14
+        sx = sy = 0
         for k in range(len(ARC)):
             col = x0 + (sx >> 3)
             top = y0 + (sy >> 3)
