@@ -264,8 +264,9 @@ def nap(rules, pol, kit, hp, f, prng):
     """after an elite, a nap: NAP_HEAL hit points back, or a level (the item model: a slot;
     the bag model: the upgrade the reward would give)"""
     heal = min(kit.max_hp(), hp + rules.nap_heal)
-    if rules.rest_heal is not None:  # a share of what she is missing, rounded up
-        heal = hp + ((kit.max_hp() - hp) * rules.rest_heal + 99) // 100
+    if rules.rest_heal is not None:  # what she is missing >> NAP_HEAL_SHIFT, rounded up
+        s = rules.rest_heal
+        heal = hp + ((kit.max_hp() - hp + (1 << s) - 1) >> s)
     if kit.items is not None:
         ups = [("level", s) for s in range(6) if kit.level(s) < rules.item_most]
         def applied(o):

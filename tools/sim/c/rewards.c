@@ -291,7 +291,8 @@ static void add_pick(RunResult *out, const Pick *o, int f) {
 
 /* after an elite, a rest: REST_HEAL percent of the missing hit points, or dream a level */
 static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
-    int heal = *hp + ((HERO_HP - *hp) * REST_HEAL + 99) / 100; /* a share of what she misses */
+    int miss = HERO_HP - *hp;
+    int heal = *hp + ((miss + (1 << NAP_HEAL_SHIFT) - 1) >> NAP_HEAL_SHIFT); /* rounded up */
     Pick ups[6];
     int n = 0;
     for (int s = 0; s < 6; s++) {

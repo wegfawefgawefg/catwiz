@@ -4,9 +4,8 @@
 ; fights: the woods (1-3), the garden (4-6), the yard (7-9), each two fights and an elite,
 ; then the bulldog king. After each won fight: three cards drawn at random from OFFERS (by weight, those whose
 ; from is at most the number of fights won, three different ones that still give the kit
-; something), pick one. A fight with charm then offers three charms drawn the same way from
-; CHARM_OFFERS (not ones she has); a fight with rest (the elites) is followed by a rest
-; first: REST_HEAL percent of the missing hit points back, or dream (a level on a slot).
+; something), pick one. An elite then offers three charms drawn the same way from
+; OFFER_CHARMS (not ones she has) after an elite, then the nap (NAP_HEAL_SHIFT) or a level.
 
 (import state)
 (import content/enemies en)
@@ -21,11 +20,12 @@
 
 (struct Spot ((enemy u8) (col u8)))
 
-(struct Fight ((zone Zone) (count u8) (spots (array Spot 3)) (rest bool) (charm bool) (other u8)))
+(struct Fight ((zone Zone) (count u8) (spots (array Spot 3)) (elite bool) (other u8)))
 
-; after the fights with rest (the elites): a rest, REST_HEAL percent of the hit points she is
-; missing back (100: all), or dream instead (a level on a slot of her choice); then a charm
-(const REST_HEAL u8 100)
+; after an elite: the card pick, a charm (three drawn from OFFER_CHARMS), then the nap (the
+; hit points she is missing >> NAP_HEAL_SHIFT back, rounded up: 0 all, 1 half) or a bonus
+; level on a slot of her choice instead
+(const NAP_HEAL_SHIFT u8 0)
 
 (const FIGHT_COUNT u8 10)
 
@@ -38,8 +38,7 @@
                 (make Spot :enemy en.PUFFCAP :col 16)
                 (make Spot :enemy en.SPORELET :col 24)
                 (make Spot :enemy en.PUFFCAP :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.woods
@@ -48,8 +47,7 @@
                 (make Spot :enemy en.SQUIRREL :col 16)
                 (make Spot :enemy en.POSSUM :col 24)
                 (make Spot :enemy en.SQUIRREL :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.woods
@@ -58,8 +56,7 @@
                 (make Spot :enemy en.SHROOM :col 16)
                 (make Spot :enemy en.SHROOM :col 24)
                 (make Spot :enemy en.SHROOM :col 30))
-            :rest true
-            :charm true
+            :elite true
             :other state.NOTHING)
         (make Fight
             :zone Zone.garden
@@ -68,8 +65,7 @@
                 (make Spot :enemy en.DUST_BUNNY :col 16)
                 (make Spot :enemy en.ROOMBA :col 24)
                 (make Spot :enemy en.DUST_BUNNY :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.garden
@@ -78,8 +74,7 @@
                 (make Spot :enemy en.CUCUMBER :col 16)
                 (make Spot :enemy en.GNOME :col 24)
                 (make Spot :enemy en.SPRINKLER :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.garden
@@ -88,8 +83,7 @@
                 (make Spot :enemy en.MAILMAN :col 16)
                 (make Spot :enemy en.MAILMAN :col 24)
                 (make Spot :enemy en.MAILMAN :col 30))
-            :rest true
-            :charm true
+            :elite true
             :other state.NOTHING)
         (make Fight
             :zone Zone.yard
@@ -98,8 +92,7 @@
                 (make Spot :enemy en.HOOVER :col 16)
                 (make Spot :enemy en.DUST_BUNNY :col 24)
                 (make Spot :enemy en.HOOVER :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.yard
@@ -108,8 +101,7 @@
                 (make Spot :enemy en.SPRINKLER :col 16)
                 (make Spot :enemy en.MOWER :col 24)
                 (make Spot :enemy en.SPRINKLER :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.yard
@@ -118,8 +110,7 @@
                 (make Spot :enemy en.VET :col 16)
                 (make Spot :enemy en.VET :col 24)
                 (make Spot :enemy en.VET :col 30))
-            :rest true
-            :charm true
+            :elite true
             :other 10)
         (make Fight
             :zone Zone.yard
@@ -128,8 +119,7 @@
                 (make Spot :enemy en.KING :col 16)
                 (make Spot :enemy en.KING :col 24)
                 (make Spot :enemy en.KING :col 30))
-            :rest false
-            :charm false
+            :elite false
             :other state.NOTHING)
         (make Fight
             :zone Zone.yard
@@ -138,8 +128,7 @@
                 (make Spot :enemy en.BATH :col 16)
                 (make Spot :enemy en.BATH :col 24)
                 (make Spot :enemy en.BATH :col 30))
-            :rest true
-            :charm true
+            :elite true
             :other state.NOTHING)))
 
 ; a card is an item (a row of items.ITEMS: a new item for its slot, or a level when you hold
@@ -222,13 +211,13 @@
             :amount 2)))
 
 ; the reward pool: card (an item row: a new item for its slot, or a level when she holds it; or
-; UP_ and a slot: a level on that slot), weight (its share of the draw), from (it can come after
-; this many fights won: the plainer pieces from the start, the engines later)
+; UP_ and a slot: a level on that slot), weight (its share of the draw, 0 never), from (the
+; first fight it can follow: the plainer pieces from the start, the engines later)
 (struct Offer ((card u8) (weight u8) (from u8)))
 
-(const OFFER_COUNT u8 32)
+(const OFFER_CARD_COUNT u8 32)
 
-(const OFFERS (array Offer 32)
+(const OFFER_CARDS (array Offer 32)
     (make (array Offer 32)
         (make Offer :card items.YARN_WAND :weight 4 :from 1)
         (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
@@ -263,20 +252,18 @@
         (make Offer :card items.KNEAD :weight 2 :from 4)
         (make Offer :card UP_TRICK :weight 2 :from 5)))
 
-; the charm pool, drawn the same way at the fights with charm (charm: a row of CHARMS)
-(struct CharmOffer ((charm u8) (weight u8) (from u8)))
+; the charm pool, drawn the same way after the elites (card: a row of CHARMS)
+(const OFFER_CHARM_COUNT u8 10)
 
-(const CHARM_OFFER_COUNT u8 10)
-
-(const CHARM_OFFERS (array CharmOffer 10)
-    (make (array CharmOffer 10)
-        (make CharmOffer :charm CHARM_SCRATCH_POST :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_SIXTH_TOE :weight 1 :from 6)
-        (make CharmOffer :charm CHARM_STILL_WATER :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_TRIO :weight 1 :from 6)
-        (make CharmOffer :charm CHARM_MITTENS :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_MOTHER_CAT :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_FLUFFY_TAIL :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_GRUMPY :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_RUBBER_DUCK :weight 2 :from 1)
-        (make CharmOffer :charm CHARM_BAD_MILK :weight 2 :from 1)))
+(const OFFER_CHARMS (array Offer 10)
+    (make (array Offer 10)
+        (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
+        (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
+        (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
+        (make Offer :card CHARM_TRIO :weight 1 :from 6)
+        (make Offer :card CHARM_MITTENS :weight 2 :from 1)
+        (make Offer :card CHARM_MOTHER_CAT :weight 2 :from 1)
+        (make Offer :card CHARM_FLUFFY_TAIL :weight 2 :from 1)
+        (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
+        (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
+        (make Offer :card CHARM_BAD_MILK :weight 2 :from 1)))

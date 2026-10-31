@@ -167,7 +167,7 @@
             :stall 0)
         (make Enemy
             :name "LAWNMOWER"
-            :hp 44
+            :hp 60
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 26
@@ -177,7 +177,7 @@
             :stall 16)
         (make Enemy
             :name "THE MAILMAN"
-            :hp 62
+            :hp 76
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 28
@@ -187,7 +187,7 @@
             :stall 0)
         (make Enemy
             :name "THE VET"
-            :hp 46
+            :hp 72
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 32
@@ -197,7 +197,7 @@
             :stall 0)
         (make Enemy
             :name "THE BIG BATH"
-            :hp 54
+            :hp 66
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 37
@@ -207,7 +207,7 @@
             :stall 0)
         (make Enemy
             :name "DRAIN GREMLIN"
-            :hp 34
+            :hp 40
             :ward 1
             :figure art.KIND_CAP_SMALL
             :first_move 40
@@ -217,7 +217,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING"
-            :hp 54
+            :hp 86
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 42
@@ -227,7 +227,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, CROSS"
-            :hp 54
+            :hp 86
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 45
@@ -237,7 +237,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, FURIOUS"
-            :hp 54
+            :hp 86
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 49
@@ -247,7 +247,7 @@
             :stall 0)
         (make Enemy
             :name "ROYAL PUG"
-            :hp 6
+            :hp 8
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 53
@@ -259,7 +259,7 @@
         ; groups in mind: zoomies, screaming, the twig's sweep; knock it off takes the cheer)
         (make Enemy
             :name "THE OLD SHROOM"
-            :hp 40
+            :hp 46
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 55

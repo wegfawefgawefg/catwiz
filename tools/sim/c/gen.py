@@ -65,7 +65,7 @@ def main():
         ("FIGHT_COUNT", R.fight_count),
         ("CHARM_COUNT", len(R.charm_table)),
         ("HERO_HP", R.hero_hp),
-        ("REST_HEAL", R.rest_heal if R.rest_heal is not None else 100),
+        ("NAP_HEAL_SHIFT", R.rest_heal if R.rest_heal is not None else 0),
         ("ITEM_MOST", R.item_most),
         ("MOST_MANA", R.most_mana),
         ("FLEA_TURNS", R.fx["FLEA_TURNS"]),
@@ -116,7 +116,7 @@ def main():
     out.append("};")
     # the reward pools: a card or charm, its weight, the fights won before it can come
     out.append("typedef struct { unsigned char what, weight, from; } OfferRow;")
-    out.append("#define OFFER_COUNT %d" % len(R.offers))
+    out.append("#define OFFER_COUNT %d" % len(R.offers))  # OFFER_CARDS
     out.append("static const OfferRow OFFERS[OFFER_COUNT] = {%s};" % ", ".join(
         "{%d, %d, %d}" % o for o in R.offers))
     out.append("#define CHARM_OFFER_COUNT %d" % len(R.charm_offers))
