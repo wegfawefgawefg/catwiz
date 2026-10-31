@@ -52,6 +52,7 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
 
 void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
     memset(out, 0, sizeof *out);
+    memset(out->offer, NOTHING, sizeof out->offer);
     Mt prng, rng;
     mt_seed(&prng, seed ^ 0x5EED);
     mt_seed(&rng, seed);

@@ -25,7 +25,7 @@ KITTENS_MOST = 5  # the old cap; the proposal's effects.tsp has its own (kittens
 def kittens_most(b):
     return b.R.fx.get("KITTENS_MOST", KITTENS_MOST)
 COMBO_AT = 3
-PLUS_DICE = 2  # plus one: how many dice it boosts
+PLUS_DICE = 1  # plus one: how many dice it boosts (the owner, 2026-10-31: the next die; was 2)
 # what a pending times takes: the next die of any slot but a trick (the owner, 2026-10-31;
 # it was wands, fluff and books)
 MULT_SLOTS = ("wand", "fluff", "star", "book", "curse", "food")
@@ -115,11 +115,10 @@ def land(b, row, target, again=False):
         b.last_face = row
         b.last_on = target
     if face.slot == "book":
-        # with too little mana a book gives 1 mana instead (she studies it); a copycat's
-        # book is paid again; bad milk: books cost 1 more
+        # a book is paid (a copycat's book again; bad milk: 1 more); a copy without the mana
+        # does nothing (a book die without it cannot be played: rules.can_play)
         cost = face.cost + (b.charms.count("badmilk") if "BADMILK_FLEAS" not in b.R.fx else 0)
         if st[r.MANA] < cost:
-            b.apply("mana", r.HERO, r.HERO, 1)
             return
         st[r.MANA] -= cost
     effect(b, face.effect, target, n)
@@ -136,7 +135,7 @@ def trick(b, face, n):
     st = b.st[r.HERO]
     e = face.effect
     if e == "plus":
-        # +1 is wide: the next two dice get it, each hit and stack of them
+        # +1: the next die gets it, each hit and stack of it
         st[r.PLUS] = min(99, st[r.PLUS] + n)  # +1s stack (the owner, 2026-10-31; was max)
         st[r.PLUS_LEFT] = PLUS_DICE
     elif e == "double":

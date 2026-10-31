@@ -38,6 +38,7 @@ typedef struct {
     Kit kit;                       /* at the end */
     Kit kit_at[FIGHT_COUNT];       /* walking into each fight */
     uint32_t seen[ITEM_COUNT], played[ITEM_COUNT]; /* faces shown at a turn's end, played */
+    uint8_t offer[FIGHT_COUNT][3]; /* the cards offered after each fight (NOTHING: none) */
     TurnRec turns[MAX_TURNS];
     int nturns;
     char *log;                     /* the readable log, when asked for (malloc'd) */

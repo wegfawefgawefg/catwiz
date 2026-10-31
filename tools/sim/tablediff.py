@@ -88,13 +88,28 @@ def main():
     diff_rows("charm", rows_by(old["encounters"].consts["CHARMS"], "name"),
               rows_by(new["encounters"].consts["CHARMS"], "name"))
     oc, nc = old["encounters"].consts, new["encounters"].consts
-    for i, (a, b) in enumerate(zip(oc["FIGHT_CARDS"], nc["FIGHT_CARDS"])):
-        if names(old, a) != names(new, b):
-            print("cards after fight row %d: %s -> %s" % (i, ", ".join(names(old, a)),
-                                                         ", ".join(names(new, b))))
-    for i, (a, b) in enumerate(zip(oc["FIGHT_CHARMS"], nc["FIGHT_CHARMS"])):
-        if a != b:
-            print("charms after fight row %d: %s -> %s" % (i, a, b))
+    kinds = new["enemies"].consts["ENEMIES"]
+    if "FIGHT_CARDS" in oc and "FIGHT_CARDS" in nc:
+        for i, (a, b) in enumerate(zip(oc["FIGHT_CARDS"], nc["FIGHT_CARDS"])):
+            if names(old, a) != names(new, b):
+                print("cards after fight row %d: %s -> %s" % (i, ", ".join(names(old, a)),
+                                                             ", ".join(names(new, b))))
+    if "OFFER_CARDS" in nc and "OFFER_CARDS" not in oc:
+        charms = nc["CHARMS"]
+        print("the card pool (card, weight, from fight), new:")
+        for o in nc["OFFER_CARDS"]:
+            print("  %s %d %d" % (names(new, [o["card"]])[0], o["weight"], o["from"]))
+        print("the charm pool, new:")
+        for o in nc["OFFER_CHARMS"]:
+            print("  %s %d %d" % (charms[o["card"]]["name"], o["weight"], o["from"]))
+    if len(oc["FIGHTS"]) != len(nc["FIGHTS"]) or "OFFER_CARDS" not in oc:
+        print("the fights, new (row: enemies, elite, other door):")
+        for i, b in enumerate(nc["FIGHTS"]):
+            eb = [kinds[s["enemy"]]["name"] for s in b["spots"][: b["count"]]]
+            print("  %d %s: %s%s%s" % (i, b.get("zone"), ", ".join(eb),
+                                       ", elite" if b.get("elite") else "",
+                                       ", other door %d" % b["other"] if b.get("other") != 255 else ""))
+        return
     for i, (a, b) in enumerate(zip(oc["FIGHTS"], nc["FIGHTS"])):
         ea = [s["enemy"] for s in a["spots"][: a["count"]]]
         eb = [s["enemy"] for s in b["spots"][: b["count"]]]

@@ -199,7 +199,10 @@ class Battle:
         if face.slot == "junk":
             return False  # a hairball: only a re-roll coughs it up
         if face.slot == "book":
-            return True  # the item model: a book with too little mana gives 1 mana
+            # the item model: a book needs its mana (bad milk: 1 more); without it the die is
+            # a dud till a re-roll or a star (the owner, 2026-10-31: no more studying)
+            milk = self.charms.count("badmilk") if "BADMILK_FLEAS" not in self.R.fx else 0
+            return face.cost + milk <= self.st[HERO][MANA]
         return face.cost <= self.st[HERO][MANA]
 
     def playable(self):

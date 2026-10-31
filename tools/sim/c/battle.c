@@ -158,8 +158,8 @@ int b_can_play(const Battle *b, int s) {
     const ItemRow *face = &ITEMS[b->hand[s]];
     if (face->slot == S_junk)
         return 0; /* a hairball: only a re-roll coughs it up */
-    if (face->slot == S_book)
-        return 1; /* a book with too little mana gives 1 mana */
+    if (face->slot == S_book) /* a book needs its mana (bad milk: 1 more); else a dud die */
+        return face->cost + (BADMILK_FLEAS ? 0 : b->k->charm_n[K_badmilk]) <= b->st[HERO][ST_MANA];
     return face->cost <= b->st[HERO][ST_MANA];
 }
 

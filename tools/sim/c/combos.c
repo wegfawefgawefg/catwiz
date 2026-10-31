@@ -20,6 +20,7 @@ int study_picks(int player, int runs, uint64_t seed, int jobs);
 extern FILE *STUDY_OUT;
 extern int STUDY_ONLY;
 int study_swings(int player, int runs, uint64_t seed, int jobs, int show);
+int study_luck(int player, int runs, uint64_t seed, int jobs);
 
 int combo_parts(Part *out) {
     int n = 0;
@@ -201,6 +202,8 @@ int combos_main(int argc, char **argv) {
     }
     if (!strcmp(what, "lift"))
         return study_lift(player, runs, seed, jobs, top);
+    if (!strcmp(what, "luck"))
+        return study_luck(player, runs, seed, jobs);
     if (!strcmp(what, "swings"))
         return study_swings(player, runs, seed, jobs, top);
     fprintf(stderr, "studies: picks, lift, swings\n");

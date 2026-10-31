@@ -332,7 +332,10 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
     } else if (p->kind == P_GREEDY) {
         take_heal = heal - *hp >= 5; /* a rest worth 5 or more */
     } else if (p->kind == P_SEARCH && DRAFT.ahead > 0) {
-        take_heal = search_nap(p, kit, *hp, heal, &ups[best], f);
+        best = search_nap(p, kit, *hp, heal, ups, n, f); /* every level, not the table's one */
+        take_heal = best < 0;
+        if (best < 0)
+            best = 0;
     } else {
         uint32_t seeds[ROLLOUTS];
         for (int i = 0; i < ROLLOUTS; i++)
@@ -440,6 +443,8 @@ int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out,
             nh = slip_in(FORCE_CHARM, f, charms, nh, may);
         }
     }
+    if (out && f >= 1 && f <= FIGHT_COUNT)
+        memcpy(out->offer[f - 1], cards, 3);
     Pick opts[8];
     int card[8];
     int n = card_options(kit, cards, opts, card);

@@ -8,6 +8,7 @@
      ./catwiz-sim --study picks --player search --runs 256 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "combos.h"
 #include "report.h"
@@ -135,5 +136,51 @@ int study_picks(int player, int runs, uint64_t seed, int jobs) {
     }
     FORCE.on = 0;
     free(base);
+    return 0;
+}
+
+/* offer luck (--study luck): how the runs did by what the offers brought them. Engines: the
+   trick and wishing cards (times two, copycat, knead, wishing star, +1 trick) */
+static int is_engine(int c) {
+    if (c == UP_CARD + 5)
+        return 1;
+    if (c >= ITEM_COUNT)
+        return 0;
+    const char *n = ITEMS[c].name;
+    return !strcmp(n, "TIMES TWO") || !strcmp(n, "COPYCAT") || !strcmp(n, "KNEAD") ||
+           !strcmp(n, "WISHING STAR");
+}
+
+int study_luck(int player, int runs, uint64_t seed, int jobs) {
+    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
+    int won[8] = {0}, n[8] = {0}, all = 0;
+    for (int i = 0; i < runs; i++) {
+        int e = 0;
+        for (int f = 0; f < 6; f++)
+            for (int k = 0; k < 3; k++)
+                e += r[i].offer[f][k] != NOTHING && is_engine(r[i].offer[f][k]);
+        if (e > 4)
+            e = 4;
+        n[e]++;
+        won[e] += r[i].won;
+        all += r[i].won;
+    }
+    printf("luck: %s, %d runs, won %.1f%%\n", PLAYER_NAME[player], runs, 100.0 * all / runs);
+    printf("  engine cards offered in the first six picks: runs, won\n");
+    for (int e = 0; e <= 4; e++)
+        if (n[e])
+            printf("    %d%s: %4.1f%% of runs, won %.1f%%\n", e, e == 4 ? " or more" : "",
+                   100.0 * n[e] / runs, 100.0 * won[e] / n[e]);
+    /* batches of 100 runs: how far a small sample's win rate swings */
+    double lo = 1, hi = 0;
+    for (int b = 0; b + 100 <= runs; b += 100) {
+        int w = 0;
+        for (int i = b; i < b + 100; i++)
+            w += r[i].won;
+        lo = w / 100.0 < lo ? w / 100.0 : lo;
+        hi = w / 100.0 > hi ? w / 100.0 : hi;
+    }
+    printf("  batches of 100 runs won %.0f%% to %.0f%%\n", 100 * lo, 100 * hi);
+    free(r);
     return 0;
 }

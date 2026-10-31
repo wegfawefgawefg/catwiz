@@ -114,8 +114,14 @@ double value_of(const Battle *b) {
     double v = W->hp * b->hp[HERO];
     if (b->result == R_WON)
         return v + 1000.0;
+    /* mana up to what her book costs is worth more than mana past it: a bank for a cast (a
+       book without its mana is a dud) */
     int mana = h[ST_MANA] < MOST_MANA ? h[ST_MANA] : MOST_MANA;
-    v += W->mana * mana;
+    int cost = ITEMS[b->k->items[S_book]].cost + (BADMILK_FLEAS ? 0 : b->k->charm_n[K_badmilk]);
+    if (mana <= cost)
+        v += 1.5 * W->mana * mana;
+    else
+        v += 1.5 * W->mana * cost + 0.5 * W->mana * (mana - cost);
     if (h[ST_PLUS_LEFT])
         v += W->plus * h[ST_PLUS] * h[ST_PLUS_LEFT];
     if (h[ST_MULT] > 1)

@@ -129,16 +129,28 @@ int search_choose(Player *p, const Kit *kit, int hp, int f, const Pick *opts, in
     return best;
 }
 
-int search_nap(Player *p, const Kit *kit, int hp, int heal, const Pick *up, int f) {
+/* the nap: -1 for the heal, else the index of the level in ups to dream instead */
+int search_nap(Player *p, const Kit *kit, int hp, int heal, const Pick *ups, int n, int f) {
     uint32_t seeds[64];
     make_seeds(p, seeds);
-    Kit k2 = *kit;
-    pick_apply(&k2, up);
-    int what[2] = {NOTHING, up->a};
-    double add[2];
-    bonus(FORCE_NAP, f, what, 2, add);
-    return worth_of(p, kit, heal, f, NOTHING, seeds) + add[0] >=
-           worth_of(p, &k2, hp, f, NOTHING, seeds) + add[1];
+    int what[8];
+    double add[8];
+    what[0] = NOTHING;
+    for (int i = 0; i < n; i++)
+        what[i + 1] = ups[i].a;
+    bonus(FORCE_NAP, f, what, n + 1, add);
+    int best = -1;
+    double bv = worth_of(p, kit, heal, f, NOTHING, seeds) + add[0];
+    for (int i = 0; i < n; i++) {
+        Kit k2 = *kit;
+        pick_apply(&k2, &ups[i]);
+        double v = worth_of(p, &k2, hp, f, NOTHING, seeds) + add[i + 1];
+        if (v > bv) {
+            bv = v;
+            best = i;
+        }
+    }
+    return best;
 }
 
 int search_door(Player *p, const Kit *kit, int hp, int f, int other) {

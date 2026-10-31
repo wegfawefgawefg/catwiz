@@ -17,7 +17,7 @@
 #define MAX_HAND 7
 #define TURN_CAP 60 /* a fight this long counts as lost: the player is stuck */
 #define COMBO_AT 3
-#define PLUS_DICE 2
+#define PLUS_DICE 1 /* plus one boosts the next die (the owner, 2026-10-31; was 2) */
 
 /* statuses an actor has (rules.py STATUSES, the ones the item model uses) */
 enum {

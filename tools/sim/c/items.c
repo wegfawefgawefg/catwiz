@@ -60,7 +60,7 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     int32_t *st = b->st[HERO];
     switch (face->effect) {
     case E_plus:
-        /* +1 is wide: the next two dice get it, each hit and stack of them */
+        /* +1: the next die gets it, each hit and stack of it */
         st[ST_PLUS] = st[ST_PLUS] + n < 99 ? st[ST_PLUS] + n : 99; /* +1s stack (the owner) */
         st[ST_PLUS_LEFT] = PLUS_DICE;
         break;
@@ -158,13 +158,12 @@ void items_land(Battle *b, int row, int target, int again) {
     if (b->tell)
         tell_number(b, n);
     if (face->slot == S_book) {
-        /* with too little mana a book gives 1 mana instead (she studies it); a copycat's
-           book is paid again; bad milk: books cost 1 more */
+        /* a book is paid (a copycat's book again; bad milk: 1 more); a copy without the mana
+           does nothing (a book die without it cannot be played: b_can_play) */
         int cost = face->cost + (BADMILK_FLEAS ? 0 : b->k->charm_n[K_badmilk]);
         if (st[ST_MANA] < cost) {
             if (b->tell)
-                tell_line(b, "too little mana: she studies it, +1 mana");
-            b_apply(b, E_mana, HERO, HERO, 1);
+                tell_line(b, "too little mana: the copy does nothing");
             return;
         }
         st[ST_MANA] = (int32_t)(st[ST_MANA] - cost);
