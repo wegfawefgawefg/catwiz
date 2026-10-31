@@ -148,6 +148,7 @@ void tell_play(Battle *b, int row, int target) {
     int slot = ITEMS[row].slot;
     t->row = row;
     t->target = target;
+    t->target_kind = target == HERO ? NOTHING : b->kind[target];
     t->n = -1;
     t->nhits = 0;
     t->copied = -1;
@@ -262,7 +263,7 @@ void tell_play_done(Battle *b) {
     hits_words(t, hits);
     char on[64] = "";
     if (it->aim == A_foe && t->target != HERO)
-        sprintf(on, " on %s", who(b, t->target));
+        sprintf(on, " on %s", KINDS[t->target_kind].name);
     char num[24] = "";
     if (t->n >= 0 && it->slot != S_trick)
         sprintf(num, " = %d", t->n);

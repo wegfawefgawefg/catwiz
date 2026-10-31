@@ -60,6 +60,8 @@ static void land_move(Battle *b, int row, int by, int target) {
         tell_move(b, by, row, target);
     if (move->aim == A_all && target == HERO && b->st[HERO][ST_BOX] > 0)
         return; /* a cardboard box: hit-alls miss */
+    if (move->aim == A_all && target == HERO && RULES.kitten_rule == 1 && b->st[HERO][ST_KITTENS])
+        b->st[HERO][ST_KITTENS]--; /* a hit-all scares a kitten off */
     b_apply(b, move->effect, by, target, move->amount);
 }
 

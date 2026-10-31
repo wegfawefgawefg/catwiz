@@ -19,7 +19,11 @@ def ru():
     return rules
 
 
-KITTENS_MOST = 5
+KITTENS_MOST = 5  # the old cap; the proposal's effects.tsp has its own (kittens_most)
+
+
+def kittens_most(b):
+    return b.R.fx.get("KITTENS_MOST", KITTENS_MOST)
 COMBO_AT = 3
 PLUS_DICE = 2  # plus one: how many dice it boosts
 MULT_SLOTS = ("wand", "fluff", "book")  # what a pending times takes
@@ -110,8 +114,8 @@ def land(b, row, target, again=False):
         b.last_on = target
     if face.slot == "book":
         # with too little mana a book gives 1 mana instead (she studies it); a copycat's
-        # book is paid again; bad milk: books cost its amount more
-        cost = face.cost + (amount(b, "badmilk", 1) if "BADMILK_FLEAS" not in b.R.fx else 0)
+        # book is paid again; bad milk: books cost 1 more
+        cost = face.cost + (b.charms.count("badmilk") if "BADMILK_FLEAS" not in b.R.fx else 0)
         if st[r.MANA] < cost:
             b.apply("mana", r.HERO, r.HERO, 1)
             return
@@ -192,7 +196,7 @@ def effect(b, e, t, n):
     elif e == "litter":
         b.apply("mana", H, H, n + st[H][r.KITTENS])
     elif e == "kittens":
-        st[H][r.KITTENS] = min(KITTENS_MOST, st[H][r.KITTENS] + n)
+        st[H][r.KITTENS] = min(kittens_most(b), st[H][r.KITTENS] + n)
     elif e == "laserall":
         for i in range(1, r.ACTORS):
             if b.alive[i]:
@@ -235,7 +239,7 @@ def combo(b, c, k, t, n):
         st[H][r.THORNS] = max(st[H][r.THORNS], k)
     elif c == "box":
         st[H][r.BOX] = 1
-        st[H][r.KITTENS] = min(KITTENS_MOST, st[H][r.KITTENS] + k)
+        st[H][r.KITTENS] = min(kittens_most(b), st[H][r.KITTENS] + k)
     elif c == "heal":
         b.heal(H, k)
     elif c == "static":

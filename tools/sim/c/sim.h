@@ -16,7 +16,6 @@
 #define ACTORS 4
 #define MAX_HAND 7
 #define TURN_CAP 60 /* a fight this long counts as lost: the player is stuck */
-#define KITTENS_MOST 5
 #define COMBO_AT 3
 #define PLUS_DICE 2
 
@@ -125,8 +124,10 @@ int kit_has(const Kit *kit, int kind);
 
 /* the rule switches, for comparing (main.c sets them from the command line) */
 typedef struct {
-    int toe_fix;  /* the sixth toe gives a sixth die (the Python sim's bag kept 5) */
-    int mult_cap; /* a waiting times stacks to this at most (0: no end) */
+    int toe_fix;  /* the sixth toe gives a sixth die (the Python sim's bag kept 5); on */
+    int mult_cap; /* a waiting times stacks to this at most (0: no end); 4 */
+    int kitten_rule; /* 0: a kitten runs off each time she loses hit points; 1: when a
+                        hit-all lands on her */
 } Rules;
 extern Rules RULES;
 

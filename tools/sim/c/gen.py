@@ -72,6 +72,7 @@ def main():
         ("ZOOMIES_HITS", R.fx["ZOOMIES_HITS"]),
         ("SCREAM_SELF", R.fx["SCREAM_SELF"]),
         ("KITTEN_HIT", R.fx.get("KITTEN_HIT", 1)),
+        ("KITTENS_MOST", R.fx.get("KITTENS_MOST", 5)),
         ("BADMILK_FLEAS", R.fx.get("BADMILK_FLEAS", 0)),
         ("REROLLS", R.rerolls),
         ("HAND", R.hand),

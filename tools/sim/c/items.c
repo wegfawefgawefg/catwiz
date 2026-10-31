@@ -160,8 +160,8 @@ void items_land(Battle *b, int row, int target, int again) {
         tell_number(b, n);
     if (face->slot == S_book) {
         /* with too little mana a book gives 1 mana instead (she studies it); a copycat's
-           book is paid again; bad milk: books cost its amount more */
-        int cost = face->cost + (BADMILK_FLEAS ? 0 : charm_amount(b, K_badmilk));
+           book is paid again; bad milk: books cost 1 more */
+        int cost = face->cost + (BADMILK_FLEAS ? 0 : b->k->charm_n[K_badmilk]);
         if (st[ST_MANA] < cost) {
             if (b->tell)
                 tell_line(b, "too little mana: she studies it, +1 mana");
@@ -372,7 +372,7 @@ void items_turn_end(Battle *b) {
 /* she lost hit points: a kitten runs off; grumpy face gives a mana */
 void items_hero_hurt(Battle *b) {
     int32_t *st = b->st[HERO];
-    if (st[ST_KITTENS])
+    if (st[ST_KITTENS] && RULES.kitten_rule == 0)
         st[ST_KITTENS]--;
     if (has(b, K_grumpy)) {
         int m = st[ST_MANA] + charm_amount(b, K_grumpy);

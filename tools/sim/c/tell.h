@@ -10,7 +10,7 @@ typedef struct Tell {
     char text[TELL_MAX];
     int len;
     /* the play being told */
-    int row, target, n, nhits, hit_target[16], hit_damage[16], copied;
+    int row, target, target_kind, n, nhits, hit_target[16], hit_damage[16], copied;
     char boosts[64], after[160];
 } Tell;
 

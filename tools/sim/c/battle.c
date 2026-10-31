@@ -4,7 +4,7 @@
 #include "sim.h"
 #include "tell.h"
 
-Rules RULES = {0};
+Rules RULES = {1, 4, 0}; /* the sixth toe's die, a waiting times x4 at most (main.c) */
 
 void b_set_enemy(Battle *b, int i, int k) {
     const KindRow *kind = &KINDS[k];

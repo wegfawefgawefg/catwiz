@@ -7,7 +7,9 @@
      ./catwiz-sim --player greedy --runs 50 --dump      a line a run (tools/sim/c/check.py)
      ./catwiz-sim --combos ...                          the combos study (combos.c)
 
-   Seeds: run n of --seed s is seed s * 100000 + n, as the Python sim. --jobs (8 at most). */
+   Seeds: run n of --seed s is seed s * 100000 + n, as the Python sim. --jobs (8 at most).
+   Rules: the sixth toe rolls a sixth die and a waiting times stacks to x4 at most (the rule
+   changes in docs/balance.md); --no-toe-fix --mult-cap 0 plays the Python sim's old rules. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -95,6 +97,11 @@ int main(int argc, char **argv) {
             picks = 1;
         } else if (!strcmp(a, "--toe-fix")) {
             RULES.toe_fix = 1;
+        } else if (!strcmp(a, "--kitten-rule")) {
+            RULES.kitten_rule = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--no-toe-fix")) {
+            RULES.toe_fix = 0; /* the Python sim's old bag of five: the toe only a re-roll less */
         } else if (!strcmp(a, "--ahead")) {
             DRAFT.ahead = atoi(v); /* 0: the strong player's draft */
             i++;

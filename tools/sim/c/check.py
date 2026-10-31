@@ -44,12 +44,12 @@ def main():
     ap.add_argument("--mult-cap", type=int, default=0)
     a = ap.parse_args()
     cmd = [os.path.join(HERE, "catwiz-sim"), "--player", a.player, "--runs", str(a.runs),
-           "--seed", str(a.seed), "--dump"] + (["--toe-fix"] if a.toe_fix else [])
+           "--seed", str(a.seed), "--dump", "--mult-cap", str(a.mult_cap)]
+    cmd += [] if a.toe_fix else ["--no-toe-fix"]
     variant = []
     if a.toe_fix:
         variant.append("toefix")
     if a.mult_cap:
-        cmd += ["--mult-cap", str(a.mult_cap)]
         variant.append("multcap=%d" % a.mult_cap)
     c_lines = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.split("\n")
     seeds = [a.seed * 100000 + n for n in range(a.runs)]
