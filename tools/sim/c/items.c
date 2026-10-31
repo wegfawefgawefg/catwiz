@@ -106,6 +106,8 @@ void items_land(Battle *b, int row, int target, int again) {
     int32_t *st = b->st[HERO];
     int n = face->amount + b->k->level_of[row] * face->step;
     b->t_played |= 1ull << row;
+    if (st[ST_KITTENS] > b->kitten_peak) /* before a cannon can launch them */
+        b->kitten_peak = (uint8_t)(st[ST_KITTENS] < 255 ? st[ST_KITTENS] : 255);
     if (face->slot == S_trick) {
         trick(b, face, n);
         return;
@@ -278,9 +280,21 @@ static void effect(Battle *b, int e, int t, int n) {
         strip(b, t);
         b_strike(b, HERO, t, n, 0);
         break;
-    case E_cannon:
-        b_strike(b, HERO, t, n * sh[ST_KITTENS], 0);
+    case E_cannon: { /* every kitten launched at it for n (the next enemy when it falls), gone */
+        int k = sh[ST_KITTENS];
+        sh[ST_KITTENS] = 0;
+        if (b->tell && k)
+            tell_line(b, "%d kittens launched", k);
+        for (int i = 0; i < k; i++) {
+            if (!b->alive[t]) {
+                t = b_next_standing(b, t);
+                if (t == NOTHING || t == HERO)
+                    break;
+            }
+            b_strike(b, HERO, t, n, 0);
+        }
         break;
+    }
     case E_pile:
         b_add(b, HERO, ST_SHIELD, n + 2 * sh[ST_KITTENS]);
         break;
@@ -342,6 +356,8 @@ static void combo(Battle *b, int c, int k, int t, int n) {
    first, else the leftmost), twice in a turn with catnip */
 void items_turn_end(Battle *b) {
     int32_t *st = b->st[HERO];
+    if (st[ST_KITTENS] > b->kitten_peak)
+        b->kitten_peak = (uint8_t)(st[ST_KITTENS] < 255 ? st[ST_KITTENS] : 255);
     if (has(b, K_still) && !b->rerolled) {
         add_mana(b, charm_amount(b, K_still));
         b->t_sys |= SYS_CHARM;

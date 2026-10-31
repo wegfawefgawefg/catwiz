@@ -99,7 +99,8 @@ class Rules:
         enc = c.module("content/encounters")
         state = c.module("state")
         self.die_names = {}
-        self.hand = state.consts["HAND"]
+        # the game renamed these (2026-10-31): DICE, DICE_MOST, SLOTS
+        self.hand = state.consts.get("HAND", state.consts.get("DICE"))
         if self.model == "items":
             items = c.module("content/items")
             self.faces = [Face(i, d) for i, d in enumerate(items.consts["ITEMS"])]
@@ -157,12 +158,17 @@ class Rules:
         self.type_most = enc.consts.get("TYPE_MOST", 3)
         self.fx = effects.consts
         self.most_mana = effects.consts["MOST_MANA"]
-        self.bag_most = state.consts["BAG_MOST"]
-        self.die_faces = state.consts["DIE_FACES"]
-        # engine literals, read from the engine source so they are not retyped
-        self.rerolls = tsp.number_after(
-            os.path.join(GAME, "battle/turn.tsp"), r"\(set state\.rerolls (\d+)\)"
-        )
+        self.bag_most = state.consts.get("BAG_MOST", state.consts.get("DICE_MOST"))
+        self.die_faces = state.consts.get("DIE_FACES", state.consts.get("SLOTS"))
+        # engine literals, read from the engine source so they are not retyped: the re-rolls a
+        # turn (battle/turn.tsp in the bag game, content/charms.tsp's round_start now)
+        try:
+            self.rerolls = tsp.number_after(
+                os.path.join(GAME, "battle/turn.tsp"), r"\(set state\.rerolls (\d+)\)")
+        except AttributeError:
+            self.rerolls = tsp.number_after(
+                os.path.join(GAME, "content/charms.tsp"),
+                r"\(- \(\+ (\d+) \(amount enc\.CharmKind\.pocket\)\)")
         self.proposal = len(dirs) > 1  # a proposal over the game's content
         self.swap = self.proposal  # the bag model: a new die into a full bag takes a die's place
         self.upgrade = "type" if self.proposal else "single"  # see rewards.upgrade_options
@@ -188,6 +194,8 @@ def load(which, variant=""):
 def check_engine(rules):
     """The engine rules the sim copies by hand (rules.py), checked against the source where a
     grep can: if one of these fails the engine changed and rules.py needs a look."""
+    if not os.path.exists(os.path.join(GAME, "battle/bag.tsp")):
+        return []  # the item model is in the game now: no bag to check
     with open(os.path.join(GAME, "battle/bag.tsp")) as f:
         bag = f.read()
     with open(os.path.join(GAME, "content/statuses.tsp")) as f:

@@ -46,6 +46,8 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
     }
     if (b->result == R_NONE)
         b->result = R_LOST;
+    if (use && b->kitten_peak > use->kitten_peak)
+        use->kitten_peak = b->kitten_peak;
     if (use)
         for (int r = 0; r < ITEM_COUNT; r++) {
             use->boosts[r] += b->boosts[r];

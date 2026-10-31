@@ -75,8 +75,14 @@ static int by_dmg(const void *x, const void *y) {
     return b->dmg - a->dmg;
 }
 
+extern const char *SWING_FACE;
+
 static void swing_turns(int player, const RunResult *r, int runs, uint64_t seed, int show) {
     uint64_t base = start_mask();
+    int face = -1; /* --face: only turns that played it, at any number of systems */
+    for (int q = 0; SWING_FACE && q < ITEM_COUNT; q++)
+        if (!strcmp(ITEMS[q].name, SWING_FACE))
+            face = q;
     long nt = 0, dsum = 0;
     int ns = 0, cap = 1 << 16;
     Swing *sw = malloc(sizeof(Swing) * cap);
@@ -85,7 +91,8 @@ static void swing_turns(int player, const RunResult *r, int runs, uint64_t seed,
             const TurnRec *t = &r[i].turns[j];
             nt++;
             dsum += t->dmg;
-            if (popcount(t->sys) >= 3 && ns < cap) {
+            int pick = face >= 0 ? (int)(t->played >> face & 1) : popcount(t->sys) >= 3;
+            if (pick && ns < cap) {
                 Swing *s = &sw[ns++];
                 s->run = i;
                 s->idx = j;
