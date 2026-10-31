@@ -46,6 +46,11 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
     }
     if (b->result == R_NONE)
         b->result = R_LOST;
+    if (use)
+        for (int r = 0; r < ITEM_COUNT; r++) {
+            use->boosts[r] += b->boosts[r];
+            use->boost_gain[r] += b->boost_gain[r];
+        }
     b->k = NULL; /* k was this function's */
     return b->result == R_WON;
 }

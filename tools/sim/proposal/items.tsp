@@ -209,7 +209,7 @@
             :text "+# MANA"
             :slot Slot.star
             :effect ac.Effect.mana
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none
@@ -269,7 +269,7 @@
             :text "2 MANA: # TO FOES 5 TIMES, L TO R"
             :slot Slot.book
             :effect ac.Effect.zoomies
-            :amount 1
+            :amount 2
             :step 1
             :cost 2
             :combo Combo.none
@@ -290,12 +290,12 @@
             :icon art.TILE_BOOK)
         (make ac.Item
             :name "LASER POINTER"
-            :text "2 MANA: # TO ALL; THEY HIT FRIENDS"
+            :text "3 MANA: # TO ALL; THEY HIT FRIENDS"
             :slot Slot.book
             :effect ac.Effect.laserall
-            :amount 4
+            :amount 6
             :step 1
-            :cost 2
+            :cost 3
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.all
@@ -305,7 +305,7 @@
             :text "3 MANA: # TO ALL FOES, 1 TO YOU"
             :slot Slot.book
             :effect ac.Effect.scream
-            :amount 7
+            :amount 9
             :step 1
             :cost 3
             :combo Combo.none
@@ -314,12 +314,12 @@
             :icon art.TILE_BOOK)
         (make ac.Item
             :name "KNOCK IT OFF"
-            :text "2 MANA: IT DROPS SHIELD, BUFFS; #"
+            :text "3 MANA: IT DROPS SHIELD, BUFFS; #"
             :slot Slot.book
             :effect ac.Effect.knock
-            :amount 8
+            :amount 12
             :step 1
-            :cost 2
+            :cost 3
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.foe
@@ -329,7 +329,7 @@
             :text "2 MANA: SHIELD #, +2 A KITTEN"
             :slot Slot.book
             :effect ac.Effect.pile
-            :amount 5
+            :amount 8
             :step 1
             :cost 2
             :combo Combo.none
@@ -386,10 +386,10 @@
             :icon art.TILE_BATH)
         (make ac.Item
             :name "PLUS ONE"
-            :text "NEXT 2 DICE +#, EACH HIT AND STAR"
+            :text "NEXT DIE +#, EACH HIT AND STAR"
             :slot Slot.trick
             :effect ac.Effect.plus
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none

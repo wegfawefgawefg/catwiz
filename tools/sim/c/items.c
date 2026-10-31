@@ -112,6 +112,7 @@ void items_land(Battle *b, int row, int target, int again) {
     }
     int counts = 1;
     int base = n;
+    int took = (st[ST_MULT] && face->slot != S_trick) || st[ST_PLUS_LEFT];
     if (st[ST_MULT] && face->slot != S_trick) { /* the next die of any slot (the owner) */
         n = fold((int64_t)n * st[ST_MULT]);
         counts = st[ST_MULT];
@@ -141,6 +142,10 @@ void items_land(Battle *b, int row, int target, int again) {
     }
     if (n > base || again)
         b->t_sys |= SYS_TRICK; /* a boost used, or a copycat's copy */
+    if (took) {
+        b->boosts[row]++;
+        b->boost_gain[row] = (uint16_t)(b->boost_gain[row] + (n > base ? n - base : 0));
+    }
     if (face->slot == S_wand && charm_amount(b, K_badmilk))
         b->t_sys |= SYS_CHARM;
     if (st[ST_SPOOK]) {

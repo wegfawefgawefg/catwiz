@@ -177,7 +177,7 @@
             :stall 16)
         (make Enemy
             :name "THE MAILMAN"
-            :hp 76
+            :hp 80
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 28
@@ -187,7 +187,7 @@
             :stall 0)
         (make Enemy
             :name "THE VET"
-            :hp 72
+            :hp 76
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 32
@@ -197,7 +197,7 @@
             :stall 0)
         (make Enemy
             :name "THE BIG BATH"
-            :hp 66
+            :hp 70
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 37
@@ -217,7 +217,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING"
-            :hp 86
+            :hp 98
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 42
@@ -227,7 +227,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, CROSS"
-            :hp 86
+            :hp 98
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 45
@@ -237,7 +237,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, FURIOUS"
-            :hp 86
+            :hp 98
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 49

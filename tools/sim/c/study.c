@@ -184,3 +184,47 @@ int study_luck(int player, int runs, uint64_t seed, int jobs) {
     free(r);
     return 0;
 }
+
+/* boost targets (--study boosts): which faces take the waiting +1 and x2, what a boost adds to
+   them, and how the runs do whose main target a face was */
+int study_boosts(int player, int runs, uint64_t seed, int jobs) {
+    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
+    double total = 0;
+    long n[ITEM_COUNT] = {0}, gain[ITEM_COUNT] = {0}, top[ITEM_COUNT] = {0}, topwon[ITEM_COUNT] = {0};
+    int none = 0, nonewon = 0;
+    for (int i = 0; i < runs; i++) {
+        int best = -1;
+        for (int row = 0; row < ITEM_COUNT; row++) {
+            n[row] += r[i].boosts[row];
+            gain[row] += r[i].boost_gain[row];
+            total += r[i].boosts[row];
+            if (r[i].boosts[row] && (best < 0 || r[i].boosts[row] > r[i].boosts[best]))
+                best = row;
+        }
+        if (best < 0) {
+            none++;
+            nonewon += r[i].won;
+        } else {
+            top[best]++;
+            topwon[best] += r[i].won;
+        }
+    }
+    printf("boosts: %s, %d runs, %.1f boosts a run\n", PLAYER_NAME[player], runs, total / runs);
+    printf("  face: share of the boosts, what a boost added, runs whose main target it was (won)\n");
+    for (int k = 0; k < ITEM_COUNT; k++) {
+        int row = -1;
+        for (int j = 0; j < ITEM_COUNT; j++) /* the next most boosted, a simple pick */
+            if (n[j] >= 0 && (row < 0 || n[j] > n[row]))
+                row = j;
+        if (row < 0 || n[row] <= 0)
+            break;
+        printf("    %-16s %5.1f%%  +%4.1f  %5.1f%% of runs (won %5.1f%%)\n", ITEMS[row].name,
+               100.0 * n[row] / total, (double)gain[row] / n[row], 100.0 * top[row] / runs,
+               top[row] ? 100.0 * topwon[row] / top[row] : 0);
+        n[row] = -1;
+    }
+    printf("    no boost taken: %.1f%% of runs (won %.1f%%)\n", 100.0 * none / runs,
+           none ? 100.0 * nonewon / none : 0);
+    free(r);
+    return 0;
+}

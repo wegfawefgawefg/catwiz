@@ -62,6 +62,9 @@ typedef struct Battle {
     int t_dmg;
     uint8_t t_sys, in_turn;
     uint64_t t_played;
+    /* the boosts this fight: how many a face row took (a waiting +1 or times) and what they
+       added to its number */
+    uint16_t boosts[ITEM_COUNT], boost_gain[ITEM_COUNT];
 } Battle;
 
 /* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a

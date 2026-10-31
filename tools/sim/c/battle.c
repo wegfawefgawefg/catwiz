@@ -342,13 +342,9 @@ void b_curse(Battle *b, int effect, int target, int n) {
         b_add(b, target, ST_POISON, n);
         st[ST_FLEA_TURNS] = FLEA_TURNS;
         break;
-    case E_wet: {
-        int w = st[ST_WET];
-        if (n > w)
-            w = n;
-        if (w < 1)
-            w = 1;
-        st[ST_WET] = (int32_t)w;
+    case E_wet: { /* adds its turns, at least 1 (the owner; was the longer of the two) */
+        int w = st[ST_WET] + (n > 1 ? n : 1);
+        st[ST_WET] = (int32_t)(w < 99 ? w : 99);
         break;
     }
     case E_spook:
