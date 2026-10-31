@@ -1,5 +1,5 @@
 # the hud's data for the game: the tray's card shapes (a white span per row for each slot's
-# tilted card; the picked card upright, lifted, in three rectangles), the twelve card
+# tilted card, each inside its slot's 5 byte columns; a picked card is the same lifted), the twelve card
 # pictures as pixels, the 3 x 5 hud font with its icons, and the 35-column font. The game
 # draws the hud itself from these (game/draw/pix.tsp and game/battle/tray.tsp), the same
 # shapes hud.py draws for the previews.
@@ -11,9 +11,8 @@ from canvas import Canvas
 from dhgr import BLACK, WHITE, YELLOW, PINK, MAGENTA, GREY, LBLUE, MBLUE, BROWN, ORANGE, PURPLE, AQUA
 
 TRAY_TOP, TRAY_BOTTOM = 118, hud.TEXT_TOP   # from the stage's black gutter: a picked card rises into it
-CARD_CX = list(hud.CARD_CX) + [95]       # the reward's sixth slot where the buttons are
+CARD_CX = list(hud.CARD_CX) + [8.75 + 17.5 * 5]   # the reward's sixth slot where the buttons are
 CARD_TILT = list(hud.CARD_TILT) + [3]
-PICK_LIFT = hud.LIFT
 
 
 def spans(c, col):
@@ -32,33 +31,20 @@ def card_spans(slot):
     return spans(c, WHITE)
 
 
-def rect_of(c, col):
-    xs = [x for y in range(192) for x in range(140) if c.px[y][x] == col]
-    ys = [y for y in range(192) for x in range(140) if c.px[y][x] == col]
-    return min(xs), max(xs) + 1, min(ys), max(ys) + 1
+def icon_at(slot):
+    return int(round(CARD_CX[slot])) - 5, int(round(hud.CARD_CY)) - 13
 
 
-def picked_rects(slot):
-    # the picked card: the focus rim, the black edge, the white card; each (x0, x1, y0, y1)
-    cx, cy = CARD_CX[slot], hud.CARD_CY - PICK_LIFT
-    out = []
-    for hw, hh, col in ((hud.CARD_HW + 2, hud.CARD_HH + 3, YELLOW), (hud.CARD_HW + 1, hud.CARD_HH + 1, BLACK),
-                        (hud.CARD_HW, hud.CARD_HH, WHITE)):
-        c = Canvas()
-        c.poly(hud.card_poly(cx, cy, 0, hw, hh), 15 if col == BLACK else col)
-        x0, x1, y0, y1 = rect_of(c, 15 if col == BLACK else col)
-        out.append((x0, x1, max(y0, TRAY_TOP), min(y1, TRAY_BOTTOM), col))
-    return out
+def caption_y():
+    return int(round(hud.CARD_CY)) + 6
 
 
-def icon_at(slot, picked):
-    cx = CARD_CX[slot]
-    cy = hud.CARD_CY - (PICK_LIFT if picked else 0)
-    return int(round(cx)) - 5, int(round(cy)) - 13
-
-
-def caption_y(picked):
-    return int(round(hud.CARD_CY - (PICK_LIFT if picked else 0))) + 6
+def card_rows():
+    # the rows any slot's card covers (its outline too), first and last + 1
+    ys = []
+    for s in range(len(CARD_CX)):
+        ys += [TRAY_TOP + i for i, (a, b) in enumerate(card_spans(s)) if b > a]
+    return min(ys) - 1, max(ys) + 2
 
 
 # the icons in the game's order (content/faces' TILE numbers): 11 x 15 pixels, '.' the card

@@ -155,8 +155,8 @@
         (at faces.FACES face caption)
         (= state.selected d)))
 
-; whatever changed since the last frame
-(fn refresh () void
+; whatever changed since the last frame; gives whether the tray drew anything
+(fn refresh () bool
     ; the hero's stacks hold her mana, by the tray
     (if (!= (& state.hud_pills 1) 0)
         (set state.hud_rerolls true))
@@ -171,15 +171,14 @@
     (set state.hud_pills 0)
     (set state.hud_intents 0)
     (if (= state.phase state.Phase.reward)
-        (do
-            (tray.flush)
-            (return)))
+        (return (tray.flush)))
     (for d u8 0 state.HAND
         (if (!= (& state.hud_dice (<< 1 d)) 0)
             (die d)))
     (set state.hud_dice 0)
-    (tray.flush)
+    (let drew bool (tray.flush))
     (if state.hud_rerolls
         (do
             (tray.side state.rerolls (fx.mana) fx.MOST_MANA)
-            (set state.hud_rerolls false))))
+            (set state.hud_rerolls false)))
+    drew)

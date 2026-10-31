@@ -87,13 +87,17 @@
     (actor_row state.HERO)
     (line_row 1 "Their turn"))
 
-(fn refresh () void
+; whether the rows are to be drawn again (refresh draws them)
+(fn due () bool
     ; while her own action plays, the rows keep showing the die she played: drawn again once it
     ; is over (the phase changes)
     (if (and (= state.phase state.Phase.acting) (!= state.act_source state.Source.move))
-        (return))
-    (if (and (and (not state.hud_words) (= shown_phase state.phase))
-            (and (= state.hud_pills 0) (= state.hud_intents 0)))
+        (return false))
+    (or (or state.hud_words (!= shown_phase state.phase))
+        (or (!= state.hud_pills 0) (!= state.hud_intents 0))))
+
+(fn refresh () void
+    (if (not (due))
         (return))
     (set state.hud_words false)
     (set shown_phase state.phase)

@@ -15,11 +15,15 @@ import icons
 
 TRAY_TOP = 124
 TEXT_TOP = 160
-CARD_CX = (10, 27, 44, 61, 78)
+# each card owns 5 byte columns (17.5 pixels; slot n is columns 5n to 5n + 4) and never reaches
+# out of them, so the game lifts a picked card by moving its columns' bytes up (battle/tray.tsp)
+SLOT_COLS = 5
+CARD_CX = tuple(8.75 + 17.5 * n for n in range(5))
 CARD_TILT = (-5, 3, -2, 4, -4)
 CARD_CY = 142
 CARD_HW, CARD_HH = 7.5, 15          # half width in pixels, half height in rows
 LIFT = 5
+GLOW_ROWS = 2                       # the picked card's glow: a bar under it, its middle 3 columns
 
 U_DAY = dict(focus=YELLOW, button=MAGENTA, button_hi=PINK, badge=BLACK, badge_ink=WHITE,
              heart=PINK, sword=WHITE, shield=LBLUE, mana=YELLOW, mana_off=GREY, card=WHITE,
@@ -72,9 +76,13 @@ def card_poly(cx, cy, deg, hw, hh):
 
 
 def card(c, U, cx, cy, deg, icon, caption, picked=False):
-    # a white card on its black outline; picked: upright, lifted, a focus rim round it
+    # a white card on its black outline; picked: lifted, a glow bar under it (as the game makes
+    # it: the card's columns moved up LIFT rows, the bar filled into the rows it left)
     if picked:
-        c.poly(card_poly(cx, cy, 0, CARD_HW + 2, CARD_HH + 3), U["focus"])
+        bottom = int(round(cy + LIFT + CARD_HH)) + 1
+        col0 = int((cx - 8.75) / 17.5 + 0.5) * SLOT_COLS + 1
+        x0, x1 = int(col0 * 3.5 + 0.5), int((col0 + 3) * 3.5)
+        c.rect(x0, bottom - GLOW_ROWS, x1, bottom, U["focus"])
     c.poly(card_poly(cx, cy, deg, CARD_HW + 1, CARD_HH + 1), BLACK)
     c.poly(card_poly(cx, cy, deg, CARD_HW, CARD_HH), U["card"])
     icons.draw(c, int(round(cx)) - 5, int(round(cy)) - 13, icon)
@@ -90,7 +98,7 @@ def tray(c, U, hand, picked=None, rerolls=2, mana=2):
     for i, ((icon, cap), cx, deg) in enumerate(zip(hand, CARD_CX, CARD_TILT)):
         sel = i == picked
         cy = CARD_CY - (LIFT if sel else 0)
-        card(c, U, cx, cy, 0 if sel else deg, icon, cap, sel)
+        card(c, U, cx, cy, deg, icon, cap, sel)
     # the re-roll button: a die and how many re-rolls are left
     rx, ry = 92, 128
     pill(c, rx, ry, rx + 7, ry + 12, WHITE)

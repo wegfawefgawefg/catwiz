@@ -1,11 +1,13 @@
 ; the dice tray at the foot of the stage, drawn into the backdrop page in whole pixels
 ; (draw/pix) and marked for both pages: a tilted white card for each slot (art/hud_data's spans
-; per row), a die's picture on it (art/icons) and its number under it, the picked one upright,
-; lifted and rimmed in yellow; at the right the re-roll button, the mana stars and END TURN
-; (side). The reward uses a sixth slot where the buttons are.
+; per row), a die's picture on it (art/icons) and its number under it; at the right the re-roll
+; button, the mana stars and END TURN (side). The reward uses a sixth slot where the buttons are.
 ;
 ; a slot is drawn again with the groups of pixels its card covers, every card there composed
-; anew from black, so neighbours that reach in stay right.
+; anew from black, so neighbours that reach in stay right. Each card stays inside its slot's 5
+; byte columns, so picking one is only bytes moved: its columns' rows go up LIFT rows and a
+; glow bar fills in under it (lift), and back down when it is put back (drop), a pick on screen
+; in about a frame where composing the slot again took ten.
 
 (import state)
 (import art/hud_data hud)
@@ -13,12 +15,15 @@
 (import draw/screen)
 (import draw/pix)
 (import draw/scene)
+(import dhgr)
+(import auxmem)
 
 (const BLACK u8 0)
 (const GREY u8 5)
 (const PINK u8 11)
 (const MAGENTA u8 1)
 (const WHITE u8 15)
+(const FOCUS u8 13) ; yellow
 (const ICON_W u8 11)
 (const ICON_H u8 15)
 (const SIDE_G0 u8 13) ; the buttons' groups: pixels 91-139
@@ -32,6 +37,7 @@
 (let caption_len (array u8 6))
 (let caption_x (array u8 6))
 (let picked (array bool 6))
+(let lifted (array bool 6)) ; what the backdrop shows
 (let side_on bool false)
 ; the groups of pixels to draw again at the next flush, and whether only the faces changed
 (let dirty_g0 u8 255)
@@ -41,14 +47,17 @@
 (const FACE_TOP u8 124) ; the rows a face (picture and caption) may change, picked or not
 (const FACE_END u8 153)
 
-; a slot's card and what is on it; drawn at the next flush
+; a slot's card and what is on it; drawn at the next flush, composed again only when the card
+; or what is on it changed
 (fn slot ((n u8) (has_card bool) (tile u8) (text (ptr u8)) (is_picked bool)) void
-    (if (or (!= (at card n) has_card) (!= (at picked n) is_picked))
+    (set (at picked n) is_picked)
+    (if (and (and (= (at card n) has_card) (= (at icon n) tile)) (= (at caption n) text))
+        (return))
+    (if (!= (at card n) has_card)
         (set faces_only false))
     (set (at card n) has_card)
     (set (at icon n) tile)
     (set (at caption n) text)
-    (set (at picked n) is_picked)
     (let len u8 0)
     (while (!= (load (+ text len)) 0)
         (set len (+ len 1)))
@@ -61,39 +70,87 @@
     (if (> g1 dirty_g1)
         (set dirty_g1 g1)))
 
-; what changed since the last flush drawn into the backdrop, all at once
-(fn flush () void
-    (if (= dirty_g0 255)
-        (return))
-    (if faces_only
-        (draw_groups dirty_g0 (- dirty_g1 dirty_g0) FACE_TOP FACE_END)
-        (draw_groups dirty_g0 (- dirty_g1 dirty_g0) hud.TRAY_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)))
-    (set dirty_g0 255)
-    (set dirty_g1 0)
-    (set faces_only true))
+; what changed since the last flush drawn into the backdrop, all at once: lifted cards that are
+; no longer picked, or that the groups composed again reach, dropped first; the groups
+; composed; then the picked cards lifted. Gives whether anything was drawn
+(fn flush () bool
+    (let compose bool (!= dirty_g0 255))
+    (let any bool compose)
+    (for n u8 0 hud.SLOTS
+        (if (at lifted n)
+            (if (or (not (at picked n)) (and compose (reaches n)))
+                (do
+                    (drop n)
+                    (set any true)))))
+    (if compose
+        (do
+            (if faces_only
+                (draw_groups dirty_g0 (- dirty_g1 dirty_g0) FACE_TOP FACE_END)
+                (draw_groups dirty_g0 (- dirty_g1 dirty_g0) hud.TRAY_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)))
+            (set dirty_g0 255)
+            (set dirty_g1 0)
+            (set faces_only true)))
+    (for n u8 0 hud.SLOTS
+        (if (and (and (at picked n) (at card n)) (not (at lifted n)))
+            (do
+                (lift n)
+                (set any true))))
+    any)
+
+; whether slot n's groups meet the ones to compose
+(fn reaches ((n u8)) bool
+    (let g0 u8 (at hud.SLOT_G0 n))
+    (and (< g0 dirty_g1) (> (+ g0 (at hud.SLOT_GN n)) dirty_g0)))
+
+; ---- picking: a card's columns moved
+
+; row from's bytes of slot columns col to col + 4 onto row to, in the backdrop, both memories
+(fn move_row ((col u8) (from u8) (to u8)) void
+    (let src (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP from col)))
+    (let dst (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP to col)))
+    (for i u8 0 hud.SLOT_COLS
+        (store (+ dst i) (load (+ src i))))
+    (auxmem.copy dst src (as u16 hud.SLOT_COLS)))
+
+(fn lift ((n u8)) void
+    (let col u8 (* n hud.SLOT_COLS))
+    (for y u8 hud.CARD_TOP hud.CARD_BOTTOM
+        (move_row col y (- y hud.LIFT)))
+    (let left u8 (- hud.CARD_BOTTOM hud.LIFT))
+    (dhgr.box screen.BACKDROP col left hud.SLOT_COLS hud.LIFT BLACK)
+    (dhgr.box screen.BACKDROP (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
+    (set (at lifted n) true)
+    (mark_slot col))
+
+(fn drop ((n u8)) void
+    (let col u8 (* n hud.SLOT_COLS))
+    (let y u8 hud.CARD_BOTTOM)
+    (while (> y hud.CARD_TOP)
+        (set y (- y 1))
+        (move_row col (- y hud.LIFT) y))
+    (dhgr.box screen.BACKDROP col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
+    (set (at lifted n) false)
+    (mark_slot col))
+
+(fn mark_slot ((col u8)) void
+    (scene.mark col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS (+ (- hud.CARD_BOTTOM hud.CARD_TOP) hud.LIFT)))
 
 ; no cards at all, nothing drawn (a new backdrop's tray is black)
 (fn forget () void
     (for n u8 0 hud.SLOTS
         (set (at card n) false)
         (set (at icon n) state.NOTHING)
-        (set (at picked n) false))
+        (set (at picked n) false)
+        (set (at lifted n) false))
     (set dirty_g0 255)
     (set dirty_g1 0)
     (set faces_only true)
     (set side_on false))
 
-; row y of slot n's card: its white, or picked its rim, edge and white
+; row y of slot n's card: its white
 (fn card_row ((n u8) (y u8)) void
-    (if (not (at picked n))
-        (do
-            (let at u8 (+ (* n hud.TRAY_ROWS) (- y hud.TRAY_TOP)))
-            (pix.span (at hud.CARD_FIRST at) (at hud.CARD_END at) WHITE)
-            (return)))
-    (for k u8 0 3
-        (let at u8 (+ (* n 15) (* k 5)))
-        (if (and (>= y (at hud.PICKED (+ at 2))) (< y (at hud.PICKED (+ at 3))))
-            (pix.span (at hud.PICKED at) (at hud.PICKED (+ at 1)) (at hud.PICKED (+ at 4))))))
+    (let at u8 (+ (* n hud.TRAY_ROWS) (- y hud.TRAY_TOP)))
+    (pix.span (at hud.CARD_FIRST at) (at hud.CARD_END at) WHITE))
 
 ; row y of slot n's picture and caption
 (fn face_row ((n u8) (y u8)) void
@@ -103,11 +160,6 @@
     (let x u8 (at hud.ICON_X n))
     (let top u8 (at hud.ICON_Y n))
     (let cap_y u8 hud.CAPTION_Y)
-    (if (at picked n)
-        (do
-            (set x (at hud.PICKED_ICON_X n))
-            (set top (at hud.PICKED_ICON_Y n))
-            (set cap_y hud.PICKED_CAPTION_Y)))
     (if (and (>= y top) (< y (+ top ICON_H)))
         (do
             (let at u16 (+ (* (as u16 tile) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
@@ -133,8 +185,8 @@
     (if (and (>= y cap_y) (< y (+ cap_y 5)))
         (pix.glyphs (at caption_x n) (at caption n) (at caption_len n) (- y cap_y) BLACK)))
 
-; groups g0 to g0 + gn - 1 of the tray's rows composed anew: the cards not picked, then the
-; picked one over them
+; groups g0 to g0 + gn - 1 of the tray's rows composed anew, every card down (flush lifts the
+; picked one after)
 (let near (array bool 6)) ; the slots with a card that reaches into the groups drawn
 
 (fn draw_groups ((g0 u8) (gn u8) (y0 u8) (y1 u8)) void
@@ -145,12 +197,7 @@
     (for y u8 y0 y1
         (pix.fill BLACK)
         (for n u8 0 hud.SLOTS
-            (if (and (at near n) (not (at picked n)))
-                (do
-                    (card_row n y)
-                    (face_row n y))))
-        (for n u8 0 hud.SLOTS
-            (if (and (at near n) (at picked n))
+            (if (at near n)
                 (do
                     (card_row n y)
                     (face_row n y))))
