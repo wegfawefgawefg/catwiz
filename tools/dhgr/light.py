@@ -7,8 +7,11 @@
 #   day    fights 1-4: the sun from the upper left, no rims: the fighters are the page's darks
 #   dusk   fights 5-7: the low sun's orange on the left edge of every figure, a magenta
 #          bounce on the right, pinker whites
-#   night  fights 8-10 and the boss: moonlight (light blue) on the left and top edges, the
-#          glowing mushrooms' pink on the right edge, the caps themselves glowing
+#   night  the whole game since 2026-10-31 (midnight: the fighters stand on pure black):
+#          moonlight (light blue) on the left edge and the whole top, the glowing mushrooms'
+#          pink on the right edge from a fifth down, the caps themselves glowing. On black the
+#          outline is gone, so the rims are the figure's edge: they go all the way round but
+#          the feet
 #
 # a rim recolours the outermost pixel of a figure on one side, row by row (that pixel is the
 # black outline), or on the top, column by column: a line of light where the outline was.
@@ -46,15 +49,16 @@ NIGHT = dict(DAY)
 NIGHT.update({"sheen": BLACK, "trim": BLACK, "robe": BLACK, "robe_hi": BLACK, "robe_star": DBLUE,
               "band": PURPLE, "wand": GREY,
               "puff_hi": WHITE, "spore": AQUA, "spore_sh": DBLUE, "spore_hi": WHITE,
-              "spore_spot": WHITE, "bat": BLACK, "bat_sh": BLACK, "bone": DBLUE, "bat_hi": PURPLE,
+              "spore_spot": WHITE, "bat": BLACK, "bat_sh": BLACK, "bone": MBLUE, "bat_hi": PURPLE,
               "bat_eye": YELLOW})
 
 # rims: (side, colour, first row from the figure's top as a share of its height); side is
-# "left", "right" or "top" (the top edge, on the figure's left half only)
+# "left", "right", "top" (the top edge, on the figure's left half only) or "top_all" (the
+# whole top edge)
 RIMS = {
     "day": [],
     "dusk": [("left", ORANGE, 0.0), ("top", ORANGE, 0.0), ("right", MAGENTA, 0.45)],
-    "night": [("left", LBLUE, 0.35), ("top", LBLUE, 0.0), ("right", PINK, 0.5)],
+    "night": [("left", LBLUE, 0.0), ("top_all", LBLUE, 0.0), ("right", PINK, 0.2)],
 }
 ZONES = {"day": DAY, "dusk": DUSK, "night": NIGHT}
 
@@ -99,7 +103,7 @@ def rims(c, zone, src=None):
                     if c.px[y][x] == BLACK:
                         c.px[y][x] = col
         else:
-            for x in range(x0, (x0 + x1) // 2 + 2):
+            for x in range(x0, x1 if side == "top_all" else (x0 + x1) // 2 + 2):
                 ys = [y for y in range(y0, y1) if src.px[y][x] is not None]
                 if ys and c.px[ys[0]][x] == BLACK:
                     c.px[ys[0]][x] = col

@@ -1,6 +1,8 @@
 # each fight's palette: the backdrop's roles to colours, its zone (the fighters' lighting,
-# light.py), its variant of the forest and who is in it. Fights 1-4 are the day: a small
-# palette each, high key, the darks kept to small pieces.
+# light.py), its variant of the forest and who is in it. Fights 1 and 2, the build's, are
+# night since 2026-10-31 (the whole game goes midnight: night.py draws them, P unused); fights
+# 3 and 4 are still the day of the old plan: a small palette each, high key, the darks kept
+# to small pieces.
 #
 # three tiers: the paper (white, the light blue band and far wood), the ground (aqua, one
 # flat colour), and the fighters' darks. Yellow is the sun and the hud's focus only. The
@@ -19,8 +21,8 @@ DAY = dict(band=LBLUE, paper=WHITE, sun=YELLOW, sun_rim=WHITE, cloud=LBLUE, far=
 AFTERNOON = dict(DAY, band=PINK, cloud=PINK, sun_rim=ORANGE, flower=(YELLOW, PINK))
 
 FIGHTS = [
-    dict(n=1, variant="clearing", P=DAY, zone="day", foes=["puffcap", "sporelet"]),
-    dict(n=2, variant="path", P=DAY, zone="day", foes=["puffcap", "sporelet", "nightflap"]),
+    dict(n=1, variant="clearing", P=DAY, zone="night", foes=["puffcap", "sporelet"]),
+    dict(n=2, variant="path", P=DAY, zone="night", foes=["puffcap", "sporelet", "nightflap"]),
     dict(n=3, variant="brook", P=DAY, zone="day", foes=["sporelet", "nightflap"]),
     dict(n=4, variant="thicket", P=AFTERNOON, zone="day", foes=["puffcap", "sporelet", "nightflap"]),
 ]

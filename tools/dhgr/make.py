@@ -2,8 +2,8 @@
 # tables in art/dhgr/, the previews in shots/dhgr/, and the memory each fight needs.
 #
 # run: python3 tools/dhgr/make.py            (everything)
-#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, palettes, memory,
-#                                            game: the game's tables in game/art/, game.py)
+#      python3 tools/dhgr/make.py fights     (or: cast, icons, font, light, palettes, lanes,
+#                                            memory, game: the game's tables in game/art/)
 #
 # TISPLE=path picks the emulator (default: the Tisple build next to this repo's siblings).
 
@@ -21,6 +21,7 @@ import export  # noqa: E402
 import fonts  # noqa: E402
 import foes  # noqa: E402
 import forest  # noqa: E402
+import hud  # noqa: E402
 import icons  # noqa: E402
 import light  # noqa: E402
 import night  # noqa: E402
@@ -40,18 +41,38 @@ def day_shadow(P):
 
 
 def fights():
-    # the four day fights, each in both looks, a luma check, and one contact sheet
+    # the fights: the build's two at night (night.py, the fighters solid on black), the day
+    # ones of the old plan after them; each in both looks, a luma check, one contact sheet
     cells = []
     for F in palettes.FIGHTS:
         P = F["P"]
-        bd = forest.picture(P, F["variant"])
-        c, lines = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
+        if F["zone"] == "night":
+            bd = night.picture(F["variant"])
+            c, lines = screen.build(bd, "night", F["foes"], night.no_shadow, U=hud.U_NIGHT)
+        else:
+            bd = forest.picture(P, F["variant"])
+            c, lines = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
         name = "fight%d_%s" % (F["n"], F["variant"])
         p = emu.show(c.px, SHOTS, name, lines=lines)
         emu.grey_of(p["color"], os.path.join(SHOTS, name + "_grey.png"))
         cells += [("fight %d %s - NTSC" % (F["n"], F["variant"]), p["ntsc"]),
                   ("fight %d %s - colour" % (F["n"], F["variant"]), p["color"])]
-    print(emu.sheet(cells, 2, os.path.join(SHOTS, "day_fights.png")))
+    print(emu.sheet(cells, 2, os.path.join(SHOTS, "fights.png")))
+
+
+def lane_pictures():
+    # each build fight's backdrop with its lanes tinted by what they are for (lanes.py), and
+    # a check that every lane is black
+    import lanes
+    for F in palettes.FIGHTS:
+        if F["n"] not in lanes.SPOTS:
+            continue
+        bd = night.picture(F["variant"])
+        bad = lanes.check(F["n"], bd.px)
+        print(lanes.debug_image(F["n"], bd.px, os.path.join(SHOTS, "lanes_fight%d_%s.png" % (F["n"], F["variant"]))),
+              "pixels not black in a lane: %d" % bad)
+        if bad:
+            raise SystemExit("make.py: fight %d has scenery in a lane" % F["n"])
 
 
 def frames_of(kind):
@@ -139,8 +160,9 @@ def lighting():
         elif zone == "dusk":
             bd, sh, li = night.dusk(), night.dusk_shadow, None
         else:
-            bd, sh, li = night.night(), night.no_shadow, night.night_lights(["cat", "puffcap"])
-        c, lines = screen.build(bd, zone, ["puffcap"], sh, lights=li)
+            bd, sh, li = night.picture("clearing"), night.no_shadow, None
+        c, lines = screen.build(bd, zone, ["puffcap"], sh, lights=li,
+                                U=hud.U_NIGHT if zone == "night" else None)
         p = emu.show(c.px, SHOTS, "light_" + zone, lines=lines)
         cells += [(zone + " - NTSC", p["ntsc"]), (zone + " - colour", p["color"])]
     print(emu.sheet(cells, 2, os.path.join(SHOTS, "lighting.png")))
@@ -158,8 +180,12 @@ def palette_sheet():
     rows = []
     for F in palettes.FIGHTS:
         P = F["P"]
-        bd = forest.picture(P, F["variant"])
-        c, _ = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
+        if F["zone"] == "night":
+            bd = night.picture(F["variant"])
+            c, _ = screen.build(bd, "night", F["foes"], night.no_shadow, U=hud.U_NIGHT)
+        else:
+            bd = forest.picture(P, F["variant"])
+            c, _ = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
         n = {}
         back = set()
         for y in range(forest.STAGE):
@@ -188,7 +214,7 @@ def palette_sheet():
 
 
 def main():
-    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "memory", "game"]
+    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "lanes", "memory", "game"]
     os.makedirs(SHOTS, exist_ok=True)
     for w in what:
         if w == "fights":
@@ -203,6 +229,8 @@ def main():
             lighting()
         elif w == "palettes":
             palette_sheet()
+        elif w == "lanes":
+            lane_pictures()
         elif w == "memory":
             import memory
             memory.run(ART)
