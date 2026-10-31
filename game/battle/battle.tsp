@@ -200,7 +200,22 @@
         (return state.Screen.title))
     state.Screen.battle)
 
+; whether drawing now would change the picture: the hud has something to draw, the phase
+; changed, or a look is not what the screen shows. The main loop runs the frames a long drawing
+; took up to the first one that does, so every change is shown
+(let drawn_phase state.Phase state.Phase.won)
+
+(fn will_change () bool
+    (if (or (or (!= state.hud_pills 0) (!= state.hud_intents 0))
+            (or (!= state.hud_dice 0) (or state.hud_rerolls state.hud_words)))
+        (return true))
+    (if (or log.unshown (!= drawn_phase state.phase))
+        (return true))
+    (look.update (turn.picked_aim))
+    (scene.differs))
+
 (fn draw () void
+    (set drawn_phase state.phase)
     (words.refresh)
     (log.flush)
     (hud.refresh)

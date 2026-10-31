@@ -32,9 +32,6 @@
     (set state.act_time 0)
     (set state.act_done false)
     (set state.phase state.Phase.acting)
-    ; a throw's wind-up is a pose to see; a lunge shows its first jump instead (one change of
-    ; the sprite fewer, each a redraw on both pages)
-    (set state.pose (= (action_motion) state.Motion.throw))
     (let hop bool (= (action_motion) state.Motion.hop))
     (if (= by state.HERO)
         (look.show_mood by
@@ -61,8 +58,7 @@
         (state.Source.move (fx.land_move state.act_row state.act_by state.act_on))
         (state.Source.meow))
     (set state.act_done true)
-    (set state.act_time 0)
-    (set state.pose true))
+    (set state.act_time 0))
 
 ; one frame of the action; true once it is over
 (fn step () bool
@@ -146,8 +142,7 @@
     (if (= k 0)
         (do
             (set state.bolt_sx 0)
-            (set state.bolt_sy 0)
-            (set state.pose true)))
+            (set state.bolt_sy 0)))
     (let col i16 (+ x0 (>> state.bolt_sx 3)))
     (let top i16 (+ y0 (>> state.bolt_sy 3)))
     (set state.bolt_sx (+ state.bolt_sx (- (as i16 (place.middle target)) x0)))

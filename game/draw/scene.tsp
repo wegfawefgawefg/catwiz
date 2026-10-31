@@ -122,6 +122,14 @@
         (return false))
     (= (at state.looks i white) (at state.drawn d white)))
 
+; whether any look differs from what the page on screen shows
+(fn differs () bool
+    (let first u8 (* (- 1 screen.back_index) state.LOOKS))
+    (for i u8 0 state.LOOKS
+        (if (not (same i (+ first i)))
+            (return true)))
+    false)
+
 ; look i to be drawn again down to row bottom (as far as its box goes)
 (fn cover ((i u8) (bottom u8)) void
     (let top u8 (at box i top))

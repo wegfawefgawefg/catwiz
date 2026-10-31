@@ -53,8 +53,9 @@
     k)
 
 ; the battle steps once for every frame that went by since the last pass, so its animations
-; keep their time however long a frame takes to draw (a pass with sprites moving takes a few),
-; but never past a pose worth seeing (state.pose): that is drawn first.
+; keep their time while nothing changes on screen, but never past a change: the first step that
+; changes the picture is drawn before the next (battle.will_change). Nothing is skipped; a change
+; that takes longer to draw than the frames until the next one slows the animation down.
 ; The card's tick counts the frames; with no card, one step a pass. owed carries what one pass
 ; took more or less than its steps, a frame or two at most, so a long load is not caught up
 (const MOST_STEPS i8 20)
@@ -98,11 +99,10 @@
             0))
         ; step the screen we are on, and change screens when it asks
         (let steps u8 (steps_due))
-        (set state.pose false)
         (let next state.Screen (match state.screen
             (state.Screen.title (title.step key))
             (state.Screen.battle (battle.step key))))
-        (while (and (and (> steps 1) (not state.pose))
+        (while (and (and (> steps 1) (not (battle.will_change)))
                 (and (= state.screen state.Screen.battle) (= next state.screen)))
             (set next (battle.step (if (battle.wants_key)
                 (next_key)
