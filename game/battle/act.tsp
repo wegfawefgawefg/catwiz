@@ -36,6 +36,7 @@
     (set state.act_on target)
     (set state.act_time 0)
     (set state.act_done false)
+    (set state.act_studies (and (= source state.Source.face) (fx.studies row)))
     (set state.phase state.Phase.acting)
     (let hop bool (= (action_motion) state.Motion.hop))
     (if (= by state.HERO)
@@ -51,12 +52,12 @@
             24)))
 
 ; the action in flight's motion: a move's from its table, a face thrown at an enemy (or a hop
-; when it is for her); a lunge with another fighter standing between the two is thrown instead,
+; when it is for her, or a book she studies); a lunge with another fighter standing between the two is thrown instead,
 ; so no one is ever drawn through another (their frames are solid)
 (fn action_motion () state.Motion
     (let m state.Motion (match state.act_source
         (state.Source.face
-            (if (= (at items.ITEMS state.act_row aim) state.Aim.self)
+            (if (or state.act_studies (= (at items.ITEMS state.act_row aim) state.Aim.self))
                 state.Motion.hop
                 state.Motion.throw))
         (state.Source.move (mv.motion state.act_row))

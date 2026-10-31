@@ -32,6 +32,10 @@
 (fn mana () u8
     (hero st.Status.mana))
 
+; whether item row is a book she has too little mana for: she studies it instead (1 mana)
+(fn studies ((row u8)) bool
+    (and (= (at items.ITEMS row slot) ac.Slot.book) (< (mana) (at items.ITEMS row cost))))
+
 ; whether the hero can play item row: not a hairball (a re-roll coughs it up); a book always,
 ; since with too little mana she studies it (1 mana)
 (fn can_play ((row u8)) bool
@@ -137,14 +141,13 @@
             (set state.last_on target)))
     (if (= slot ac.Slot.book)
         (do
-            (let cost u8 (at items.ITEMS row cost))
-            (if (< (mana) cost)
+            (if (studies row)
                 (do
                     (sound.cue sound.Cue.chime)
                     (st.gain_mana 1)
                     (log.line (at said.SAY said.SAY_TOO_LITTLE_MANA) 0)
                     (return)))
-            (set_hero st.Status.mana (- (mana) cost))))
+            (set_hero st.Status.mana (- (mana) (at items.ITEMS row cost)))))
     (effect (at items.ITEMS row effect) target n)
     (if (and three (!= (at items.ITEMS row combo) ac.Combo.none))
         (combo row target n)))

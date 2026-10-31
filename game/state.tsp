@@ -143,6 +143,7 @@
 (let act_on u8)
 (let act_time u8)
 (let act_done bool) ; its effect has landed
+(let act_studies bool) ; a book with too little mana: she studies it (1 mana), a hop
 (let hitstop u8)    ; frames everything holds still after a hit
 (let bolt_col u8)
 (let bolt_top u8)
