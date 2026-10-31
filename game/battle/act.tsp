@@ -16,12 +16,17 @@
 (const TRAVEL u8 8)
 (const HOLD u8 6)
 (const SETTLE u8 8)
+(const LUNGE_STEP u8 4) ; byte columns a jump, the last one shorter
+
+; every change of the picture is drawn before the next (main.tsp), so motions change it every
+; few frames, each change worth seeing: a jump of 4 columns, the bolt every other frame, the
+; hop in three heights
 
 ; how high the bolt rides over the straight line, by step of its flight
 (const ARC (array u8 9) (make (array u8 9) 0 7 11 13 14 13 11 7 0))
 
-; up 2, 4, 6, 6, 4, 2, then down to land
-(const HOP (array u8 6) (make (array u8 6) 2 4 6 6 4 2))
+; up 3, 6, 3 (two frames each), then down to land
+(const HOP (array u8 6) (make (array u8 6) 3 3 6 6 3 3))
 
 ; by starts the action in row row of source's table, aimed at target
 (fn begin ((source state.Source) (row u8) (by u8) (target u8)) void
@@ -100,13 +105,17 @@
     (let moved u8 (if (> col home)
         (- col home)
         (- home col)))
-    (let step i8 (* (place.facing by) 2))
+    (let facing i8 (place.facing by))
     (if (not state.act_done)
         (do
-            (if (< moved (reach by state.act_on))
+            (let far u8 (reach by state.act_on))
+            (if (< moved far)
                 (do
                     ; a jump: up off the ground on the way, down on contact
-                    (set (at state.actors by col) (as u8 (+ (as i8 col) step)))
+                    (let n u8 (- far moved))
+                    (if (> n LUNGE_STEP)
+                        (set n LUNGE_STEP))
+                    (set (at state.actors by col) (as u8 (+ (as i8 col) (* facing (as i8 n)))))
                     (set (at state.actors by lift) 4)
                     (return false)))
             (set (at state.actors by lift) 0)
@@ -117,7 +126,10 @@
         (return false))
     (if (> moved 0)
         (do
-            (set (at state.actors by col) (as u8 (- (as i8 col) step)))
+            (let n u8 moved)
+            (if (> n LUNGE_STEP)
+                (set n LUNGE_STEP))
+            (set (at state.actors by col) (as u8 (- (as i8 col) (* facing (as i8 n)))))
             (return false)))
     (>= t (+ HOLD SETTLE)))
 
@@ -147,8 +159,11 @@
     (let top i16 (+ y0 (>> state.bolt_sy 3)))
     (set state.bolt_sx (+ state.bolt_sx (- (as i16 (place.middle target)) x0)))
     (set state.bolt_sy (+ state.bolt_sy (- (as i16 (+ (place.top target) 8)) y0)))
-    (set state.bolt_col (& (as u8 col) 0xFE))
-    (set state.bolt_top (- (as u8 top) (at ARC k)))
+    ; it moves on every other step: 4 hops along the arc
+    (if (= (& k 1) 0)
+        (do
+            (set state.bolt_col (& (as u8 col) 0xFE))
+            (set state.bolt_top (- (as u8 top) (at ARC k)))))
     (set state.bolt_on true)
     false)
 

@@ -38,9 +38,12 @@
         (if (> time 0)
             (do
                 (set (at state.floaters i time) (- time 1))
-                ; rise fast, then slow down near the end
-                (if (or (> time 12) (= (& time 1) 0))
-                    (set (at state.floaters i top) (- (at state.floaters i top) 1)))))))
+                ; rise fast, then slow down near the end: 2 rows every other frame, then every
+                ; fourth (each a change drawn)
+                (if (if (> time 12)
+                        (= (& time 1) 0)
+                        (= (& time 3) 0))
+                    (set (at state.floaters i top) (- (at state.floaters i top) 2)))))))
 
 (fn tick_actor ((i u8)) void
     (if (> (at state.actors i flash) 0)

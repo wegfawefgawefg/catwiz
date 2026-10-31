@@ -3,6 +3,7 @@
 # never returns does not read again); boots it with the keys given and prints the passes between two frames.
 #
 # run: python3 tools/passlog/passlog.py "700f:RETURN,1300f:1,1310f:Z" 1290 1500
+# SEED=n deals the same dice whatever the build's timing (to compare builds).
 # columns: the pass, its frames (by the card's clock: the card is in), the phase (and the
 # action's source), bytes restored (each memory), sprite rows drawn, hud pixel rows written,
 # text lines drawn, whole pages copied; LOOKS=1 the sprite rows by look instead
@@ -15,6 +16,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TISPLE = os.environ.get("TISPLE", "tisple")
 BUILD = os.path.join(ROOT, "build", "passlog")
 LOOKS = os.environ.get("LOOKS") is not None  # LOOKS=1: sprite rows by look instead
+SEED = int(os.environ["SEED"]) if "SEED" in os.environ else None  # SEED=n: the dice the same every build
 RING = 0xBF20  # 7 rings of 32 bytes, by pass & 31, and the pass (its low byte) at $BF00: the zero page save, which the game never reads back
 
 COUNT = """    (let lp_{n} (ptr u8) (as (ptr u8) (+ 0x{addr:X} (as u16 (& (load (as (ptr u8) 0xBF00)) 31)))))
@@ -68,6 +70,10 @@ def build():
               "    (let y u8 (+ TOP (<< r 3)))\n" + count("t", 5, "1"))
         patch(g("draw/screen.tsp"), "(fn copy_page ((from u8) (to u8)) void\n",
               "(fn copy_page ((from u8) (to u8)) void\n" + count("p", 6, "1"))
+    if SEED is not None:
+        # the same dice whatever the build's timing: the title's count to the key press left out
+        patch(g("title/title.tsp"), "    (set random.seed (+ random.seed 1))\n",
+              "    (set random.seed %d)\n" % SEED)
     disk = os.path.join(BUILD, "passlog.dsk")
     listing = subprocess.run([TISPLE, "build", "main.tsp", "--origin", "0x8000", "--disk", disk, "--asm"],
                              cwd=src, capture_output=True, text=True, check=True).stdout
