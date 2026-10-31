@@ -198,6 +198,7 @@
 
 (fn draw () void
     (words.refresh)
+    (log.flush)
     (hud.refresh)
     (look.update (turn.picked_aim))
     (if (scene.draw_frame)

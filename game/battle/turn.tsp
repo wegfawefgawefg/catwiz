@@ -25,10 +25,10 @@
 (import sound/sound)
 
 (const ROLL_FRAMES u8 16)
-(const ROLL_EVERY u8 4) ; a power of 2: (& t 3) is the test
-(const ENEMY_PAUSE u8 14)
+(const ROLL_EVERY u8 8) ; a power of 2: (& t 7) is the test; each tumble redraws the faces (a few frames)
+(const ENEMY_PAUSE u8 10)
 (const KEY_1 u8 '1')
-(const END_BEAT u8 30) ; frames from the last play to a turn that ends by itself
+(const END_BEAT u8 20) ; frames from the last play to a turn that ends by itself
 
 (fn any_enemy_alive () bool
     (for i u8 1 state.ACTORS

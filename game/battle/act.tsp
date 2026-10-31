@@ -15,7 +15,7 @@
 (const WINDUP u8 6)
 (const TRAVEL u8 8)
 (const HOLD u8 6)
-(const SETTLE u8 12)
+(const SETTLE u8 8)
 
 ; how high the bolt rides over the straight line, by step of its flight
 (const ARC (array u8 9) (make (array u8 9) 0 7 11 13 14 13 11 7 0))

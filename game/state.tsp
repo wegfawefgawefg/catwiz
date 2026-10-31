@@ -89,6 +89,9 @@
 ; every pass of the main loop, for measuring frame costs (tools/measure.py reads it with --peek:
 ; outside zero page, which reads as aux memory's while code with the aux language card in runs)
 (let ticks u16 :address 0x06E2)
+; the Mockingboard's ticks, one a frame (main.irq): the frames that really went by, however
+; long drawing one took
+(let clock u8)
 (let frame u8) ; counts up every frame but in hit-stop
 (let idle u8)  ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)

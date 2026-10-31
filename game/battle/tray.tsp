@@ -211,13 +211,30 @@
             (if (and (>= y 148) (< y 153))
                 (pix.glyphs 99 "END TURN" 8 (- y 148) WHITE)))))
 
+; the side as it shows: drawn whole the first time, then only the rows of the re-roll button
+; and the stars, and only when what they show changed (the hero's badge changing asks too)
+(let side_rerolls u8 0)
+(let side_mana u8 0)
+(const COUNTS_TOP u8 128)
+(const COUNTS_END u8 140)
+
 (fn side ((rerolls u8) (mana u8) (most u8)) void
+    (let y0 u8 hud.TRAY_TOP)
+    (let y1 u8 (+ hud.TRAY_TOP hud.TRAY_ROWS))
+    (if side_on
+        (do
+            (if (and (= rerolls side_rerolls) (= mana side_mana))
+                (return))
+            (set y0 COUNTS_TOP)
+            (set y1 COUNTS_END)))
     (set side_on true)
+    (set side_rerolls rerolls)
+    (set side_mana mana)
     (pix.begin SIDE_G0 SIDE_GN)
-    (for y u8 hud.TRAY_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
+    (for y u8 y0 y1
         (side_row y rerolls mana most)
         (pix.write screen.BACKDROP y))
-    (scene.mark (<< SIDE_G0 1) hud.TRAY_TOP (<< SIDE_GN 1) hud.TRAY_ROWS))
+    (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
 ; the buttons off, for the reward: its sixth slot goes there
 (fn clear_side () void

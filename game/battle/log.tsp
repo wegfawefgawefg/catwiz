@@ -9,7 +9,7 @@
 
 (const ROW_OLDER u8 2)
 (const ROW_NEWER u8 3)
-(const HOLD_FRAMES u8 40)
+(const HOLD_FRAMES u8 30)
 
 ; one-time hints for a new player, in the log: a bit each, set once it has shown (once a boot)
 (const HINT_TURN u8 1)    ; the first turn: how to play a die and end the turn
@@ -34,15 +34,26 @@
     (text.show ROW_OLDER)
     (text.show ROW_NEWER))
 
-; the line text.line holds now, under the one before
+; the line text.line holds now, under the one before; the rows are drawn at the next frame
+; (flush), once however many lines came in the steps before it
+(let unshown bool false)
+
 (fn push () void
     (for i u8 0 text.COLUMNS
         (set (at older i) (at newer i)))
     (text.save (addr_of (at newer 0)))
+    (set unshown true)
+    (set state.log_hold HOLD_FRAMES))
+
+; the two rows drawn again, if a line came since they were
+(fn flush () void
+    (if (not unshown)
+        (return))
+    (set unshown false)
+    (text.load_line (addr_of (at newer 0)))
     (text.show ROW_NEWER)
     (text.load_line (addr_of (at older 0)))
-    (text.show ROW_OLDER)
-    (set state.log_hold HOLD_FRAMES))
+    (text.show ROW_OLDER))
 
 ; a sentence: s with n for its #
 (fn line ((s (ptr u8)) (n u8)) void
