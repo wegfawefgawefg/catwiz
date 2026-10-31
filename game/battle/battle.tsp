@@ -164,6 +164,10 @@
             (page.step key)
             (return state.Screen.battle)))
     (look.tick)
+    (if (> state.mana_shake 0)
+        (do
+            (set state.mana_shake (- state.mana_shake 1))
+            (set state.hud_rerolls true)))
     (if (> state.log_hold 0)
         (set state.log_hold (- state.log_hold 1)))
     (if (> state.hitstop 0)

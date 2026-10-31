@@ -3,7 +3,7 @@
 ; its face does. Each slot varies its own way. Wands: damage, and a rider on the hit (the twig
 ; wand has a combo instead). Fluff: shield, and a combo: what the third fluff played in a turn
 ; adds (combo, combo_n). Stars: mana, each its own way. Books: spells paid in mana (with too
-; little mana a book gives 1 mana: she studies it). Curses: amount of a status on an enemy.
+; little mana a book can't be played). Curses: amount of a status on an enemy.
 ; Tricks: a rule for the next die (times two counts it twice towards a three). amount is the
 ; number, step more a level.
 ; A reward gives an item for a slot (the old one goes). Levels belong to the slot: an upgrade

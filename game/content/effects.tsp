@@ -32,14 +32,15 @@
 (fn mana () u8
     (hero st.Status.mana))
 
-; whether item row is a book she has too little mana for: she studies it instead (1 mana)
-(fn studies ((row u8)) bool
+; whether item row is a book she has too little mana for: it can't be played (the owner,
+; 2026-10-31: no fizzle; a re-roll, or a star first)
+(fn short_of_mana ((row u8)) bool
     (and (= (at items.ITEMS row slot) ac.Slot.book) (< (mana) (at items.ITEMS row cost))))
 
-; whether the hero can play item row: not a hairball (a re-roll coughs it up); a book always,
-; since with too little mana she studies it (1 mana)
+; whether the hero can play item row: not a hairball (a re-roll coughs it up), not a book she
+; has too little mana for
 (fn can_play ((row u8)) bool
-    (!= (at items.ITEMS row slot) ac.Slot.junk))
+    (and (!= (at items.ITEMS row slot) ac.Slot.junk) (not (short_of_mana row))))
 
 ; n times m, by adding (no multiply routine)
 (fn times ((n u8) (m u8)) u8
@@ -126,8 +127,9 @@
     (land_item row target false))
 
 ; item row (no trick) lands on target: its number, its slot's count towards a three, its mana
-; (a book with too little studies instead: 1 mana), its effect, then its combo when this face
-; makes the third. again: a copy (copycat), which is not what she played last
+; (a book's cost; a copy of a book is free, as she may have spent the mana), its effect, then its
+; combo when this face makes the third. again: a copy (copycat), which is not what she played
+; last
 (fn land_item ((row u8) (target u8) (again bool)) void
     (let slot ac.Slot (at items.ITEMS row slot))
     (let n u8 (boosted row true))
@@ -139,15 +141,8 @@
         (do
             (set state.last_face row)
             (set state.last_on target)))
-    (if (= slot ac.Slot.book)
-        (do
-            (if (studies row)
-                (do
-                    (sound.cue sound.Cue.chime)
-                    (st.gain_mana 1)
-                    (log.line (at said.SAY said.SAY_TOO_LITTLE_MANA) 0)
-                    (return)))
-            (set_hero st.Status.mana (- (mana) (at items.ITEMS row cost)))))
+    (if (and (= slot ac.Slot.book) (not again))
+        (set_hero st.Status.mana (- (mana) (at items.ITEMS row cost))))
     (effect (at items.ITEMS row effect) target n)
     (if (and three (!= (at items.ITEMS row combo) ac.Combo.none))
         (combo row target n)))

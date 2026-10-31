@@ -54,6 +54,7 @@
 (const ENEMY_PAUSE u8 10)
 (const KEY_1 u8 '1')
 (const END_BEAT u8 20) ; frames from the last play to a turn that ends by itself
+(const MANA_SHAKE u8 8) ; steps the mana stars shake, a book played short of mana
 
 (fn any_enemy_alive () bool
     (for i u8 1 state.ACTORS
@@ -255,6 +256,12 @@
             (sound.cue sound.Cue.nope)
             (return)))
     (let row u8 (at state.hand d))
+    (if (fx.short_of_mana row)
+        (do
+            ; a book she can't pay for: the dead-key sound, the mana stars shake (the owner)
+            (sound.cue sound.Cue.nope)
+            (set state.mana_shake MANA_SHAKE)
+            (return)))
     (if (not (fx.can_play row))
         (do
             (sound.cue sound.Cue.nope)

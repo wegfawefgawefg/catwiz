@@ -23,7 +23,7 @@
         "# damage"
         "Shield #"
         "Re-roll it"
-        "Too little mana: +1"
+        "Needs more mana"
         "Pick an enemy"
         "Again: hits all"
         "Again: on you"
@@ -40,7 +40,7 @@
 (const SAY_DAMAGE u8 2)
 (const SAY_SHIELD u8 3)
 (const SAY_REROLL u8 4)
-(const SAY_STUDY u8 5)
+(const SAY_SHORT u8 5)
 (const SAY_PICK_ENEMY u8 6)
 (const SAY_HITS_ALL u8 7)
 (const SAY_ON_YOU u8 8)
@@ -89,9 +89,8 @@
         (ac.Slot.fluff (text.add_aux_n (at SAY SAY_SHIELD) n))
         (ac.Slot.junk (text.add_aux (at SAY SAY_REROLL)))
         (_
-            (if (and (= (at items.ITEMS row slot) ac.Slot.book)
-                    (< (fx.mana) (at items.ITEMS row cost)))
-                (text.add_aux (at SAY SAY_STUDY))
+            (if (fx.short_of_mana row)
+                (text.add_aux (at SAY SAY_SHORT))
                 (match (at items.ITEMS row aim)
                     (state.Aim.foe (text.add_aux (at SAY SAY_PICK_ENEMY)))
                     (state.Aim.all (text.add_aux (at SAY SAY_HITS_ALL)))

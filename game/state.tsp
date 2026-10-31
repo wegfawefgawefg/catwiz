@@ -143,7 +143,6 @@
 (let act_on u8)
 (let act_time u8)
 (let act_done bool) ; its effect has landed
-(let act_studies bool) ; a book with too little mana: she studies it (1 mana), a hop
 (let hitstop u8)    ; frames everything holds still after a hit
 (let bolt_col u8)
 (let bolt_top u8)
@@ -156,6 +155,7 @@
 (let hud_intents u8) ; a bit for each enemy whose intent changed
 (let hud_dice u8)    ; a bit for each die to draw again
 (let hud_rerolls bool)
+(let mana_shake u8) ; steps the mana stars shake for: a book played with too little mana
 (let hud_words bool) ; the bottom text's top two lines
 ; the badges' glyphs (badge * BADGE_MOST + k), how many, and a count of their changes
 (let badge_glyphs (array u8 56) :address 0x0724)

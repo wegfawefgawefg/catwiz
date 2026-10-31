@@ -236,7 +236,7 @@
 ; (B, ?) right of it, the mana stars lit for what the hero has, END TURN, in pixels 105-139
 (let side_glyphs (array u8 8))
 
-(fn side_row ((y u8) (rerolls u8) (mana u8) (most u8)) void
+(fn side_row ((y u8) (rerolls u8) (mana u8) (most u8) (shake u8)) void
     (pix.fill BLACK)
     ; the re-roll button: a white pill with a die's five pips
     (if (and (>= y 124) (< y 136))
@@ -283,14 +283,20 @@
                 WHITE)
             (if (and (>= y 132) (< y 137))
                 (pix.glyphs 130 "?" 1 (- y 132) BLACK))))
-    ; the mana: a star for each, lit while the hero has it
+    ; the mana: a star for each, lit while the hero has it; shaking a pixel left and right
+    ; while shake counts down
     (if (and (>= y 139) (< y 145))
         (do
+            (let x u8 (if (= shake 0)
+                108
+                (if (= (& shake 2) 0)
+                    107
+                    109)))
             (for k u8 0 most
                 (set (at side_glyphs k) (if (< k mana)
                     '\''
                     '$')))
-            (pix.glyphs 108 (addr_of (at side_glyphs 0)) most (- y 139) WHITE)))
+            (pix.glyphs x (addr_of (at side_glyphs 0)) most (- y 139) WHITE)))
     ; END TURN: a magenta pill, a pink shine along its top
     (if (and (>= y 147) (< y 159))
         (do
@@ -307,24 +313,26 @@
 ; and the stars, and only when what they show changed (the hero's badge changing asks too)
 (let side_rerolls u8 0)
 (let side_mana u8 0)
+(let side_shake u8 0)
 (const COUNTS_TOP u8 124)
 (const COUNTS_END u8 145)
 
-(fn side ((rerolls u8) (mana u8) (most u8)) void
+(fn side ((rerolls u8) (mana u8) (most u8) (shake u8)) void
     (let y0 u8 HUD_TOP)
     (let y1 u8 (+ hud.TRAY_TOP hud.TRAY_ROWS))
     (if side_on
         (do
-            (if (and (= rerolls side_rerolls) (= mana side_mana))
+            (if (and (and (= rerolls side_rerolls) (= mana side_mana)) (= shake side_shake))
                 (return))
             (set y0 COUNTS_TOP)
             (set y1 COUNTS_END)))
     (set side_on true)
     (set side_rerolls rerolls)
     (set side_mana mana)
+    (set side_shake shake)
     (pix.begin SIDE_G0 SIDE_GN)
     (for y u8 y0 y1
-        (side_row y rerolls mana most)
+        (side_row y rerolls mana most shake)
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 

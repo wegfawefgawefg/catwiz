@@ -147,14 +147,14 @@ face does. Each slot varies its own way:
 | wand | N damage to the enemy picked | a rider on the hit (the twig wand has a combo instead) |
 | fluff | shield N till your next turn | a combo: what the third fluff played in a turn adds |
 | star | mana (kept all fight, 5 at most) | a mana spell each: how the mana comes, and what else |
-| book | casts its spell for mana | the spell. With too little mana a book gives 1 mana (she studies it) |
+| book | casts its spell for mana | the spell. With too little mana a book can't be played (2026-10-31, the owner: no fizzle; the dead-key sound and the mana stars shake) |
 | curse | N of a status on the enemy picked | the status |
 | trick | a rule for the next die played | the rule |
 
 N starts at 1 for wands and fluff and grows by levels. Levels belong to the slot.
 
 Mana is the resource that ties the slots together: stars make it, books spend it, a book with
-too little mana makes 1, and charms and items feed it (Still Water, Grumpy Face, Litter Star,
+too little mana can't be played (it made 1 until 2026-10-31), and charms and items feed it (Still Water, Grumpy Face, Litter Star,
 Shooting Star, Moon Bowl, Wishing Star). Kittens are the second thread: books, a wand, a fluff, a star, a
 trick and three charms make, feed or use them.
 
@@ -504,7 +504,7 @@ The item model replaces the bag (`battle/bag.tsp`) with the five dice of the six
 7. The hairball: a slot's face is a dud for the fight; re-rolling a die that shows it coughs it
    up (the slot's item is back).
 8. Steal: the die played last is held by the enemy until it is beaten (four dice a turn).
-9. A book with too little mana plays as +1 mana (so a book is never a dead face).
+9. A book with too little mana can't be played (2026-10-31; it played as +1 mana before, and tools/sim/items.py still does until the C sim round).
 10. Encounters: the zone (art only), three cards a fight (items, or 128 + a slot for an
     upgrade card), charms after three fights, the nap, the elite's other door.
 11. The reward screen: three cards (name, the slot's base, the item line, what it replaces) and

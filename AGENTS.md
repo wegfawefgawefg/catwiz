@@ -75,7 +75,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   `:strings aux` (items, the hero, the status names) or wholly `:in aux` (moves, enemies, fights,
   charms, the offers: read through their modules' accessors, `(mv.text row)`, `(en.hp kind)`,
   `(enc.elite f)`, a `with_aux` each). The code's sentences are `SAY` tables, `:strings aux`, one
-  a module with a `SAY_` name for each (`(at SAY SAY_STUDY)`; the hero's faces' in
+  a module with a `SAY_` name for each (`(at SAY SAY_SHORT)`; the hero's faces' in
   `content/effects_said.tsp`). All are read with `text.add_aux` / `add_aux_n` (a copy under
   with_aux, then as `add_n`), and the log takes only aux strings. Strings written in the code
   stay in main memory (`text.add`, `add_n`): only those lib/dhgr_pixels' glyphs read (the tray's

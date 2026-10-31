@@ -207,6 +207,6 @@
     (let drew bool (tray.flush))
     (if state.hud_rerolls
         (do
-            (tray.side state.rerolls (fx.mana) st.MOST_MANA)
+            (tray.side state.rerolls (fx.mana) st.MOST_MANA state.mana_shake)
             (set state.hud_rerolls false)))
     drew)
