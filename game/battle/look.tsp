@@ -93,15 +93,10 @@
 
 ; ---- the looks
 
+; nothing at look i: only its sprite says so (draw/scene reads no more of a look that is not
+; there), one byte a pass, the same in any build
 (fn hide ((i u8)) void
-    (set (at state.looks i)
-        (make state.Look
-            :sprite state.NOTHING
-            :col 0
-            :top 0
-            :second state.NOTHING
-            :white false
-            :wide 0)))
+    (set (at state.looks i sprite) state.NOTHING))
 
 (fn show ((i u8) (sprite u8) (col u8) (top u8)) void
     (set (at state.looks i)
@@ -139,7 +134,7 @@
             (let knocked u8 (as u8 (- (as i8 col) (* (place.facing i) 2))))
             (if (and (< knocked 250) (<= (+ knocked (at art.KIND_COLS kind)) 40))
                 (set col knocked))))
-    (let top u8 (- (- (place.top i) (at state.actors i lift)) (bob i)))
+    (let top u8 (- (- (at art.KIND_TOP kind) (at state.actors i lift)) (bob i)))
     ; dying: blink, then puff away
     (if (and (> dying 0) (<= dying BLINK_UNTIL))
         (do
@@ -165,8 +160,15 @@
             (set r ROLE_FLASH)
             (set white false)))
     (let id u8 (frame kind r))
-    (show i id (as u8 (+ (as i8 col) (at art.DCOL id))) (as u8 (+ (as i8 top) (at art.DTOP id))))
-    (set (at state.looks i white) white))
+    ; show's work written out: every actor, every pass
+    (set (at state.looks i)
+        (make state.Look
+            :sprite id
+            :col (as u8 (+ (as i8 col) (at art.DCOL id)))
+            :top (as u8 (+ (as i8 top) (at art.DTOP id)))
+            :second state.NOTHING
+            :white white
+            :wide 0)))
 
 ; whether kind has a white frame for the flash
 (fn has_flash ((kind u8)) bool
@@ -174,12 +176,15 @@
         (return false))
     (!= (at art.KIND_FRAME (+ (* kind art.ROLE_COUNT) ROLE_FLASH)) art.NONE))
 
-; marker k over who's head (over its intent badge), bob rows down
+; marker k over who's head (over its intent badge), bob rows down (its kind's tables read here
+; rather than through battle/place: this runs every pass)
 (fn marker ((k u8) (who u8) (bob u8)) void
+    (let kind u8 (at state.actors who figure))
     (let top u8 (if (= who state.HERO)
         8
-        (- (place.top who) 25)))
-    (show (+ state.LOOK_MARKER k) art.MARKER (& (- (place.middle who) 2) 0xFE) (+ top bob)))
+        (- (at art.KIND_TOP kind) 25)))
+    (let middle u8 (+ (at state.actors who home) (>> (at art.KIND_COLS kind) 1)))
+    (show (+ state.LOOK_MARKER k) art.MARKER (& (- middle 2) 0xFE) (+ top bob)))
 
 ; on the hero's turn, arrows over whoever the die picked goes to, bobbing: the target, the hero
 ; for her own faces, every enemy for a hit-all. With no die picked, a still arrow over the
@@ -205,16 +210,16 @@
 (fn update ((aim state.Aim)) void
     (for i u8 0 state.ACTORS
         (show_actor i))
-    (hide state.LOOK_BOLT)
+    (set (at state.looks state.LOOK_BOLT sprite) state.NOTHING)
     (if state.bolt_on
         (show state.LOOK_BOLT art.BOLT state.bolt_col state.bolt_top))
     (for k u8 0 state.MARKERS
-        (hide (+ state.LOOK_MARKER k)))
+        (set (at state.looks (+ state.LOOK_MARKER k) sprite) state.NOTHING))
     (if (= state.phase state.Phase.player)
         (markers aim))
     (for i u8 0 state.FLOATERS
         (let look u8 (+ state.LOOK_FLOATER i))
-        (hide look)
+        (set (at state.looks look sprite) state.NOTHING)
         (if (> (at state.floaters i time) 0)
             (do
                 (show look

@@ -11,11 +11,6 @@
 (import mockingboard mb)
 (import draw/screen)
 
-(fn wants_key () bool
-    (match state.screen
-        (state.Screen.title true)
-        (state.Screen.battle (battle.wants_key))))
-
 ; the program's one interrupt handler: the Mockingboard's tick, which plays the music
 (fn irq () void :interrupt
     (set state.clock (+ state.clock 1))
@@ -99,7 +94,7 @@
         ; read keys, only when the screen takes them: a key pressed during her own action or
         ; the dice landing waits in the line (so dice can be played one after another as fast
         ; as they are tapped), one in the enemies' turn is dropped (battle.wants_key)
-        (let key u8 (if (wants_key)
+        (let key u8 (if (or (= state.screen state.Screen.title) (battle.wants_key))
             (next_key)
             0))
         ; step the screen we are on, and change screens when it asks
@@ -109,9 +104,10 @@
             (state.Screen.battle (battle.step key))))
         (while (and (and (> steps 1) (not (battle.will_change)))
                 (and (= state.screen state.Screen.battle) (= next state.screen)))
-            (set next (battle.step (if (battle.wants_key)
-                (next_key)
-                0)))
+            (set next
+                (battle.step (if (battle.wants_key)
+                    (next_key)
+                    0)))
             (set steps (- steps 1)))
         (if (!= next state.screen)
             (match next

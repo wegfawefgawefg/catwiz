@@ -11,6 +11,7 @@
 ; in about a frame where composing the slot again took ten.
 
 (import auxmem)
+(import macros)
 (import state)
 (import art/hud_data hud)
 (import art/icons)
@@ -129,11 +130,11 @@
             y))
         (let src (ptr u8) (as (ptr u8) (screen.row_at page from col)))
         (let dst (ptr u8) (as (ptr u8) (screen.row_at page to col)))
-        (for i u8 0 hud.SLOT_COLS
-            (store (+ dst i) (load (+ src i))))
+        ; the slot's 5 columns, written out: a pick shows within 2 frames however tight the
+        ; build's size budget
+        (macros.unroll i 0 5 (store (+ dst i) (load (+ src i))))
         (with_aux true true
-            (for i u8 0 hud.SLOT_COLS
-                (store (+ dst i) (load (+ src i)))))
+            (macros.unroll i 0 5 (store (+ dst i) (load (+ src i)))))
         (set y (if up
             (+ y 1)
             (- y 1)))))
