@@ -17,73 +17,83 @@
 (const CAT_HIT u8 2) ; 12 x 83
 (const CAT_MEOW u8 3) ; 10 x 87
 (const CAT_EARS u8 4) ; 10 x 102
-(const PUFFCAP_IDLE u8 5) ; 12 x 42
-(const PUFFCAP_ATTACK u8 6) ; 10 x 42
-(const PUFFCAP_HURT u8 7) ; 10 x 36
-(const SPORELET_IDLE u8 8) ; 8 x 42
-(const SPORELET_ATTACK u8 9) ; 8 x 42
-(const SPORELET_HURT u8 10) ; 8 x 35
-(const NIGHTFLAP_IDLE u8 11) ; 14 x 27
-(const NIGHTFLAP_FLAP u8 12) ; 14 x 33
-(const NIGHTFLAP_ATTACK u8 13) ; 16 x 27
-(const NIGHTFLAP_HURT u8 14) ; 14 x 27
-(const MARKER u8 15) ; 4 x 12
-(const BOLT u8 16) ; 2 x 11
-(const POOF0 u8 17) ; 6 x 18
-(const POOF1 u8 18) ; 6 x 15
-(const DIGIT_0 u8 19) ; 2 x 11
-(const DIGIT_1 u8 20) ; 2 x 11
-(const DIGIT_2 u8 21) ; 2 x 11
-(const DIGIT_3 u8 22) ; 2 x 11
-(const DIGIT_4 u8 23) ; 2 x 11
-(const DIGIT_5 u8 24) ; 2 x 11
-(const DIGIT_6 u8 25) ; 2 x 11
-(const DIGIT_7 u8 26) ; 2 x 11
-(const DIGIT_8 u8 27) ; 2 x 11
-(const DIGIT_9 u8 28) ; 2 x 11
-(const DIGIT_PLUS u8 29) ; 2 x 11
-(const GLOW0 u8 30) ; 32 x 32
-(const GLOW1 u8 31) ; 32 x 32
-(const GLOW2 u8 32) ; 32 x 32
-(const GLOW3 u8 33) ; 32 x 32
-(const SPRITE_COUNT u8 34)
+(const CAT_FLASH u8 5) ; 12 x 83
+(const PUFFCAP_IDLE u8 6) ; 12 x 42
+(const PUFFCAP_ATTACK u8 7) ; 10 x 42
+(const PUFFCAP_HURT u8 8) ; 10 x 36
+(const PUFFCAP_FLASH u8 9) ; 10 x 36
+(const SPORELET_IDLE u8 10) ; 8 x 42
+(const SPORELET_ATTACK u8 11) ; 8 x 42
+(const SPORELET_HURT u8 12) ; 8 x 35
+(const SPORELET_FLASH u8 13) ; 8 x 35
+(const NIGHTFLAP_IDLE u8 14) ; 14 x 27
+(const NIGHTFLAP_FLAP u8 15) ; 14 x 33
+(const NIGHTFLAP_ATTACK u8 16) ; 16 x 27
+(const NIGHTFLAP_HURT u8 17) ; 14 x 27
+(const NIGHTFLAP_FLASH u8 18) ; 14 x 27
+(const MARKER u8 19) ; 4 x 12
+(const BOLT u8 20) ; 2 x 11
+(const POOF0 u8 21) ; 6 x 18
+(const POOF1 u8 22) ; 6 x 15
+(const DIGIT_0 u8 23) ; 2 x 11
+(const DIGIT_1 u8 24) ; 2 x 11
+(const DIGIT_2 u8 25) ; 2 x 11
+(const DIGIT_3 u8 26) ; 2 x 11
+(const DIGIT_4 u8 27) ; 2 x 11
+(const DIGIT_5 u8 28) ; 2 x 11
+(const DIGIT_6 u8 29) ; 2 x 11
+(const DIGIT_7 u8 30) ; 2 x 11
+(const DIGIT_8 u8 31) ; 2 x 11
+(const DIGIT_9 u8 32) ; 2 x 11
+(const DIGIT_PLUS u8 33) ; 2 x 11
+(const GLOW0 u8 34) ; 32 x 32
+(const GLOW1 u8 35) ; 32 x 32
+(const GLOW2 u8 36) ; 32 x 32
+(const GLOW3 u8 37) ; 32 x 32
+(const SPRITE_COUNT u8 38)
 
-(const COLS (array u8 34)
-    (make (array u8 34)
-        10 14 12 10 10 12 10 10 8 8 8 14 14 16 14 4 2 6 6 2 2 2 2 2
-        2 2 2 2 2 2 32 32 32 32))
+(const COLS (array u8 38)
+    (make (array u8 38)
+        10 14 12 10 10 12 12 10 10 10 8 8 8 8 14 14 16 14 14 4 2 6 6 2
+        2 2 2 2 2 2 2 2 2 2 32 32 32 32))
 
-(const ROWS (array u8 34)
-    (make (array u8 34)
-        87 87 83 87 102 42 42 36 42 42 35 27 33 27 27 12 11 18 15 11 11 11 11 11
-        11 11 11 11 11 11 32 32 32 32))
+(const ROWS (array u8 38)
+    (make (array u8 38)
+        87 87 83 87 102 83 42 42 36 36 42 42 35 35 27 33 27 27 27 12 11 18 15 11
+        11 11 11 11 11 11 11 11 11 11 32 32 32 32))
 
-(const DCOL (array i8 34)
-    (make (array i8 34)
-        0 0 -2 0 0 0 0 2 0 -2 0 0 0 -2 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0))
+(const DCOL (array i8 38)
+    (make (array i8 38)
+        0 0 -2 0 0 -2 0 0 2 2 0 -2 0 0 0 0 -2 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0))
 
-(const DTOP (array i8 34)
-    (make (array i8 34)
-        0 0 3 -5 -15 0 0 6 0 0 7 0 0 2 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0))
+(const DTOP (array i8 38)
+    (make (array i8 38)
+        0 0 3 -5 -15 3 0 0 6 6 0 0 7 7 0 0 2 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0))
 
-(const AUX_AT (array u16 34)
-    (make (array u16 34)
-        0 1050 2201 3185 4250 0 434 885 0 409 830 0 437 838 1230 0 82 133 283 399 459 518 573 629
-        679 735 791 843 899 953 0 1142 2284 3426))
+(const AUX_AT (array u16 38)
+    (make (array u16 38)
+        0 1044 2436 3598 4642 5866 0 588 1092 1524 0 420 840 1190 0 432 960 1446 1878 0 82 133 283 399
+        459 518 573 629 679 735 791 843 899 953 0 1142 2284 3426))
 
-(const MAIN_AT (array u16 34)
-    (make (array u16 34)
-        0 994 2086 3075 4074 0 422 850 0 361 726 0 447 857 1286 0 80 128 270 376 434 479 533 585
-        639 692 744 793 847 900 0 1436 2872 4308))
+(const MAIN_AT (array u16 38)
+    (make (array u16 38)
+        0 1044 2436 3598 4642 5866 0 588 1092 1524 0 420 840 1190 0 432 960 1446 1878 0 80 128 270 376
+        434 479 533 585 639 692 744 793 847 900 0 1436 2872 4308))
 
-(const KIND_OF (array u8 34)
-    (make (array u8 34)
-        0 0 0 0 0 1 1 1 2 2 2 3 3 3 3 4 4 4 4 4 4 4 4 4
-        4 4 4 4 4 4 5 5 5 5))
+(const KIND_OF (array u8 38)
+    (make (array u8 38)
+        0 0 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 3 4 4 4 4 4
+        4 4 4 4 4 4 4 4 4 4 5 5 5 5))
 
-(const ROLE_COUNT u8 6) ; idle attack hurt happy surprised flap
+; 1: a solid frame (only opaque runs over its whole box, the figure on black); 0: masked
+(const SOLID (array u8 38)
+    (make (array u8 38)
+        1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+
+(const ROLE_COUNT u8 7) ; idle attack hurt happy surprised flap flash
 (const KIND_COL (array u8 6)
     (make (array u8 6)
         4 20 32 26 0 4))
@@ -111,14 +121,14 @@
 
 (const KIND_AUX_SIZE (array u16 6)
     (make (array u16 6)
-        5356 1251 1175 1667 993 4568))
+        7028 1956 1540 2310 993 4568))
 
 (const KIND_MAIN_SIZE (array u16 6)
     (make (array u16 6)
-        5186 1203 1039 1733 936 5744))
+        7028 1956 1540 2310 936 5744))
 
 ; kind * ROLE_COUNT + role
-(const KIND_FRAME (array u8 36)
-    (make (array u8 36)
-        0 1 2 3 4 255 5 6 7 255 255 255 8 9 10 255 255 255 11 13 14 255 255 12
-        255 255 255 255 255 255 255 255 255 255 255 255))
+(const KIND_FRAME (array u8 42)
+    (make (array u8 42)
+        0 1 2 3 4 255 5 6 7 8 255 255 255 9 10 11 12 255 255 255 13 14 16 17
+        255 255 15 18 255 255 255 255 255 255 255 255 255 255 255 255 255 255))
