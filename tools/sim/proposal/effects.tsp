@@ -7,6 +7,8 @@
 (const HAIRBALL_FLEAS u8 2)
 (const ZOOMIES_HITS u8 5)
 (const SCREAM_SELF u8 1)
+(const KITTEN_HIT u8 2)
+(const KITTENS_MOST u8 4) ; kittens at most ; what a kitten's pounce does (kitten mittens add theirs)
 (const TRAP_BACK u8 3)  ; belly rub trap: what whoever hits you takes back
 (const SPIKY_BACK u8 1) ; spiky fluff: the same
 (const YARN_FLEAS u8 1) ; yarn wand: the fleas it leaves

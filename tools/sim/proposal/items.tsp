@@ -46,21 +46,20 @@
 (const SCREAM u8 20)
 (const KNOCK u8 21)
 (const FITS u8 22)
-(const CANNON u8 23)
-(const FLEAS u8 24)
-(const WET u8 25)
-(const TANGLE u8 26)
-(const MARK u8 27)
-(const PLUS u8 28)
-(const TIMES u8 29)
-(const COPYCAT u8 30)
-(const CATNIP u8 31)
-(const KNEAD u8 32)
-(const HAIRBALL u8 33)
-(const ITEM_COUNT u8 34)
+(const FLEAS u8 23)
+(const WET u8 24)
+(const TANGLE u8 25)
+(const MARK u8 26)
+(const PLUS u8 27)
+(const TIMES u8 28)
+(const COPYCAT u8 29)
+(const CATNIP u8 30)
+(const KNEAD u8 31)
+(const HAIRBALL u8 32)
+(const ITEM_COUNT u8 33)
 
-(const ITEMS (array ac.Item 34)
-    (make (array ac.Item 34)
+(const ITEMS (array ac.Item 33)
+    (make (array ac.Item 33)
         (make ac.Item
             :name "TWIG WAND"
             :text "#. 3 IN A TURN: THE 3RD HITS ALL"
@@ -78,7 +77,7 @@
             :text "#, AND IT IS TANGLED 1"
             :slot Slot.wand
             :effect ac.Effect.yarn
-            :amount 1
+            :amount 3
             :step 1
             :cost 0
             :combo Combo.none
@@ -102,7 +101,7 @@
             :text "#, AND YOUR KITTENS POUNCE IT"
             :slot Slot.wand
             :effect ac.Effect.feather
-            :amount 1
+            :amount 4
             :step 1
             :cost 0
             :combo Combo.none
@@ -114,7 +113,7 @@
             :text "#, AND NO SHIELD STOPS IT"
             :slot Slot.wand
             :effect ac.Effect.pierce
-            :amount 1
+            :amount 5
             :step 1
             :cost 0
             :combo Combo.none
@@ -126,7 +125,7 @@
             :text "#, THEN # TO THE NEXT ENEMY"
             :slot Slot.wand
             :effect ac.Effect.string
-            :amount 1
+            :amount 3
             :step 1
             :cost 0
             :combo Combo.none
@@ -147,14 +146,14 @@
             :icon art.TILE_KIBBLE)
         (make ac.Item
             :name "SPIKY FLUFF"
-            :text "3 IN A TURN: WHO HITS YOU TAKES 2"
+            :text "3 IN A TURN: WHO HITS YOU TAKES 3"
             :slot Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.thorns
-            :combo_n 2
+            :combo_n 3
             :aim state.Aim.self
             :icon art.TILE_KIBBLE)
         (make ac.Item
@@ -162,7 +161,7 @@
             :text "3 IN A TURN: HIT-ALLS MISS, +KITTEN"
             :slot Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.box
@@ -183,26 +182,26 @@
             :icon art.TILE_KIBBLE)
         (make ac.Item
             :name "STATIC FUR"
-            :text "3 IN A TURN: 2 TO ALL, 4 IF WET"
+            :text "3 IN A TURN: 5 TO ALL, 10 IF WET"
             :slot Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.static
-            :combo_n 2
+            :combo_n 5
             :aim state.Aim.self
             :icon art.TILE_KIBBLE)
         (make ac.Item
             :name "BELL COLLAR"
-            :text "3 IN A TURN: A WARD PIP"
+            :text "3 IN A TURN: 2 WARD PIPS"
             :slot Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.ward
-            :combo_n 1
+            :combo_n 2
             :aim state.Aim.self
             :icon art.TILE_KIBBLE)
         (make ac.Item
@@ -222,7 +221,7 @@
             :text "+1 MANA, AND # DAMAGE"
             :slot Slot.star
             :effect ac.Effect.shoot
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none
@@ -234,7 +233,7 @@
             :text "+1 MANA, AND SHIELD #"
             :slot Slot.star
             :effect ac.Effect.moon
-            :amount 2
+            :amount 1
             :step 1
             :cost 0
             :combo Combo.none
@@ -258,7 +257,7 @@
             :text "+# MANA, AND 1 MORE A KITTEN"
             :slot Slot.star
             :effect ac.Effect.litter
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none
@@ -282,7 +281,7 @@
             :text "3 MANA: # KITTENS JOIN YOU"
             :slot Slot.book
             :effect ac.Effect.kittens
-            :amount 2
+            :amount 3
             :step 1
             :cost 3
             :combo Combo.none
@@ -291,12 +290,12 @@
             :icon art.TILE_BOOK)
         (make ac.Item
             :name "LASER POINTER"
-            :text "3 MANA: # TO ALL; THEY HIT FRIENDS"
+            :text "2 MANA: # TO ALL; THEY HIT FRIENDS"
             :slot Slot.book
             :effect ac.Effect.laserall
-            :amount 1
+            :amount 4
             :step 1
-            :cost 3
+            :cost 2
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.all
@@ -306,7 +305,7 @@
             :text "3 MANA: # TO ALL FOES, 1 TO YOU"
             :slot Slot.book
             :effect ac.Effect.scream
-            :amount 3
+            :amount 7
             :step 1
             :cost 3
             :combo Combo.none
@@ -318,7 +317,7 @@
             :text "2 MANA: IT DROPS SHIELD, BUFFS; #"
             :slot Slot.book
             :effect ac.Effect.knock
-            :amount 3
+            :amount 8
             :step 1
             :cost 2
             :combo Combo.none
@@ -330,24 +329,12 @@
             :text "2 MANA: SHIELD #, +2 A KITTEN"
             :slot Slot.book
             :effect ac.Effect.pile
-            :amount 2
+            :amount 5
             :step 1
             :cost 2
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.self
-            :icon art.TILE_BOOK)
-        (make ac.Item
-            :name "KITTEN CANNON"
-            :text "2 MANA: # TO IT FOR EACH KITTEN"
-            :slot Slot.book
-            :effect ac.Effect.cannon
-            :amount 2
-            :step 1
-            :cost 2
-            :combo Combo.none
-            :combo_n 0
-            :aim state.Aim.foe
             :icon art.TILE_BOOK)
         (make ac.Item
             :name "FLEAS"
@@ -378,7 +365,7 @@
             :text "TANGLED #: ITS HITS # LESS"
             :slot Slot.curse
             :effect ac.Effect.tangled
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none
@@ -390,7 +377,7 @@
             :text "MARKED #: HITS ON IT # MORE"
             :slot Slot.curse
             :effect ac.Effect.brand
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none
@@ -438,7 +425,7 @@
             :text "NEXT # DICE +1; KITTENS ACT TWICE"
             :slot Slot.trick
             :effect ac.Effect.catnip2
-            :amount 2
+            :amount 4
             :step 1
             :cost 0
             :combo Combo.none
@@ -450,7 +437,7 @@
             :text "NEXT FLUFF TIMES 2, NEXT WAND +#"
             :slot Slot.trick
             :effect ac.Effect.knead
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo Combo.none

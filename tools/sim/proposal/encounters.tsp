@@ -21,7 +21,7 @@
 
 (struct Fight ((zone Zone) (count u8) (spots (array Spot 3)) (nap bool) (other u8)))
 
-(const NAP_HEAL u8 10)
+(const NAP_HEAL u8 8)
 
 (const FIGHT_COUNT u8 11)
 
@@ -148,15 +148,15 @@
 (const FIGHT_CARDS (array (array u8 3) 12)
     (make (array (array u8 3) 12)
         (make (array u8 3) UP_WAND items.YARN_WAND items.TIMES)
-        (make (array u8 3) items.SPRAY_BOTTLE items.SPIKY_FLUFF UP_STAR)
+        (make (array u8 3) items.WET items.SPIKY_FLUFF UP_STAR)
         (make (array u8 3) items.MEOW_BOOK items.LITTER_STAR items.TANGLE)
-        (make (array u8 3) UP_FLUFF items.FEATHER_TOY items.MARK)
-        (make (array u8 3) items.BOX items.CANNON items.COPYCAT)
-        (make (array u8 3) items.STATIC_FUR items.SHOOTING_STAR items.WET)
+        (make (array u8 3) UP_FLUFF items.MOUSE_STRING items.MOON_BOWL)
+        (make (array u8 3) items.BOX UP_CURSE items.COPYCAT)
+        (make (array u8 3) items.STATIC_FUR items.SCREAM items.SPRAY_BOTTLE)
         (make (array u8 3) items.WISHING_STAR items.KNOCK items.CATNIP)
-        (make (array u8 3) items.MOON_BOWL items.LASER items.MOUSE_STRING)
+        (make (array u8 3) items.MARK items.LASER items.FEATHER_TOY)
         (make (array u8 3) items.FISHBONE_WAND items.BELL_COLLAR items.KNEAD)
-        (make (array u8 3) UP_BOOK items.WARM_BLANKET items.SCREAM)
+        (make (array u8 3) UP_BOOK items.WARM_BLANKET items.SHOOTING_STAR)
         (make (array u8 3) UP_WAND UP_FLUFF UP_STAR)
         (make (array u8 3) UP_CURSE items.FITS UP_TRICK)))
 
@@ -181,9 +181,9 @@
     (make (array Charm 10)
         (make Charm
             :name "SCRATCH POST"
-            :text "ONE MORE RE-ROLL EVERY TURN"
+            :text "TWO MORE RE-ROLLS EVERY TURN"
             :kind CharmKind.pocket
-            :amount 1)
+            :amount 2)
         (make Charm
             :name "SIXTH TOE"
             :text "ROLL 6 DICE, BUT 1 RE-ROLL LESS"
@@ -226,9 +226,9 @@
             :amount 3)
         (make Charm
             :name "BAD MILK"
-            :text "WANDS +1; FIGHTS START WITH FLEAS 2"
+            :text "WANDS +2; BOOKS COST 1 MORE"
             :kind CharmKind.badmilk
-            :amount 1)))
+            :amount 2)))
 
 (const FIGHT_CHARMS (array (array u8 3) 12)
     (make (array (array u8 3) 12)

@@ -46,7 +46,7 @@
     (make (array Enemy 21)
         (make Enemy
             :name "PUFFCAP"
-            :hp 6
+            :hp 15
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 0
@@ -56,7 +56,7 @@
             :stall 0)
         (make Enemy
             :name "SPORELET"
-            :hp 4
+            :hp 7
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 2
@@ -66,7 +66,7 @@
             :stall 0)
         (make Enemy
             :name "NIGHTFLAP"
-            :hp 5
+            :hp 7
             :ward 1
             :figure art.KIND_BAT
             :first_move 4
@@ -76,7 +76,7 @@
             :stall 0)
         (make Enemy
             :name "GARDEN GNOME"
-            :hp 11
+            :hp 14
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 7
@@ -86,7 +86,7 @@
             :stall 0)
         (make Enemy
             :name "POSSUM"
-            :hp 9
+            :hp 12
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 9
@@ -106,7 +106,7 @@
             :stall 0)
         (make Enemy
             :name "SQUIRREL"
-            :hp 5
+            :hp 7
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 12
@@ -116,7 +116,7 @@
             :stall 0)
         (make Enemy
             :name "ROOMBA"
-            :hp 18
+            :hp 34
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 14
@@ -126,7 +126,7 @@
             :stall 0)
         (make Enemy
             :name "DUST BUNNY"
-            :hp 3
+            :hp 4
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 17
@@ -136,7 +136,7 @@
             :stall 0)
         (make Enemy
             :name "CUCUMBER"
-            :hp 8
+            :hp 14
             :ward 1
             :figure art.KIND_CAP_SMALL
             :first_move 19
@@ -146,7 +146,7 @@
             :stall 0)
         (make Enemy
             :name "SPRINKLER"
-            :hp 10
+            :hp 16
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 21
@@ -156,8 +156,8 @@
             :stall 0)
         (make Enemy
             :name "HOOVER JR."
-            :hp 28
-            :ward 1
+            :hp 50
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 23
             :move_count 3
@@ -166,18 +166,18 @@
             :stall 0)
         (make Enemy
             :name "LAWNMOWER"
-            :hp 32
+            :hp 48
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 26
             :move_count 2
             :calls state.NOTHING
             :then state.NOTHING
-            :stall 12)
+            :stall 16)
         (make Enemy
             :name "THE MAILMAN"
-            :hp 42
-            :ward 2
+            :hp 74
+            :ward 3
             :figure art.KIND_CAP_BIG
             :first_move 28
             :move_count 4
@@ -186,8 +186,8 @@
             :stall 0)
         (make Enemy
             :name "THE VET"
-            :hp 48
-            :ward 2
+            :hp 46
+            :ward 3
             :figure art.KIND_CAP_BIG
             :first_move 32
             :move_count 5
@@ -196,8 +196,8 @@
             :stall 0)
         (make Enemy
             :name "THE BIG BATH"
-            :hp 30
-            :ward 2
+            :hp 54
+            :ward 3
             :figure art.KIND_CAP_BIG
             :first_move 37
             :move_count 3
@@ -206,8 +206,8 @@
             :stall 0)
         (make Enemy
             :name "DRAIN GREMLIN"
-            :hp 22
-            :ward 0
+            :hp 34
+            :ward 1
             :figure art.KIND_CAP_SMALL
             :first_move 40
             :move_count 2
@@ -216,8 +216,8 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING"
-            :hp 26
-            :ward 2
+            :hp 54
+            :ward 3
             :figure art.KIND_CAP_BIG
             :first_move 42
             :move_count 3
@@ -226,8 +226,8 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, CROSS"
-            :hp 26
-            :ward 1
+            :hp 54
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 45
             :move_count 4
@@ -236,8 +236,8 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, FURIOUS"
-            :hp 26
-            :ward 0
+            :hp 54
+            :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 49
             :move_count 4
