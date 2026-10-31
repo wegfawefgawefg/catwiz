@@ -214,11 +214,18 @@
     (look.update (turn.picked_aim))
     (scene.differs))
 
+; the tray first: a pick shows a pass before the rows of words it changes (each a few frames
+; to draw), which wait for the next
 (fn draw () void
     (set drawn_phase state.phase)
-    (words.refresh)
-    (log.flush)
-    (hud.refresh)
+    (let words_due bool (words.due))
+    (let tray_drew bool (hud.refresh))
+    (if words_due
+        (set state.hud_words true))
+    (if (not tray_drew)
+        (do
+            (words.refresh)
+            (log.flush)))
     (look.update (turn.picked_aim))
     (if (scene.draw_frame)
         (screen.flip)

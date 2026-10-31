@@ -19,6 +19,7 @@
 (const ROLE_HAPPY u8 3)
 (const ROLE_SURPRISED u8 4)
 (const ROLE_FLAP u8 5)
+(const ROLE_FLASH u8 6) ; a solid kind's white shape, for the hit flash
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void
@@ -153,9 +154,22 @@
     (let r u8 (role (at state.actors i mood)))
     (if (and (= r ROLE_IDLE) (= (& (>> (+ state.idle (* i 11)) 4) 1) 1))
         (set r ROLE_FLAP))
+    ; the flash: a solid kind shows its white frame (a solid frame drawn white would be a white
+    ; box), the others their frame drawn white
+    (let white bool (> (at state.actors i flash) 0))
+    (if (and white (has_flash kind))
+        (do
+            (set r ROLE_FLASH)
+            (set white false)))
     (let id u8 (frame kind r))
     (show i id (as u8 (+ (as i8 col) (at art.DCOL id))) (as u8 (+ (as i8 top) (at art.DTOP id))))
-    (set (at state.looks i white) (> (at state.actors i flash) 0)))
+    (set (at state.looks i white) white))
+
+; whether kind has a white frame for the flash
+(fn has_flash ((kind u8)) bool
+    (if (<= art.ROLE_COUNT ROLE_FLASH)
+        (return false))
+    (!= (at art.KIND_FRAME (+ (* kind art.ROLE_COUNT) ROLE_FLASH)) art.NONE))
 
 ; marker k over who's head (over its intent badge), bob rows down
 (fn marker ((k u8) (who u8) (bob u8)) void

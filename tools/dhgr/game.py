@@ -203,34 +203,29 @@ def hud_module():
             last.append(b)
     lines.append(table("CARD_FIRST", "u8", first, "slot * TRAY_ROWS + row: the white of the tilted card, pixels"))
     lines.append(table("CARD_END", "u8", last))
-    rects = []
+    ix, iy = [], []
     for s in range(len(H.CARD_CX)):
-        for x0, x1, y0, y1, col in H.picked_rects(s):
-            rects += [x0, x1, y0, y1, col]
-    lines.append(table("PICKED", "u8", rects, "slot * 15: the picked card's rim, edge and white, each x0 x1 y0 y1 colour"))
-    ix, iy, px_, py_ = [], [], [], []
-    for s in range(len(H.CARD_CX)):
-        x, y = H.icon_at(s, False)
+        x, y = H.icon_at(s)
         ix.append(x)
         iy.append(y)
-        x, y = H.icon_at(s, True)
-        px_.append(x)
-        py_.append(y)
-    lines.append(table("ICON_X", "u8", ix, "where each slot's picture goes, and picked"))
+    lines.append(table("ICON_X", "u8", ix, "where each slot's picture goes"))
     lines.append(table("ICON_Y", "u8", iy))
-    lines.append(table("PICKED_ICON_X", "u8", px_))
-    lines.append(table("PICKED_ICON_Y", "u8", py_))
     lines.append(table("CARD_X", "u8", [int(round(x)) for x in H.CARD_CX], "the cards' middles"))
     g0s, gns = [], []
     for s_ in range(len(H.CARD_CX)):
-        xs = [a for a, b in H.card_spans(s_) if b > a] + [r[0] for r in H.picked_rects(s_)]
-        xe = [b for a, b in H.card_spans(s_) if b > a] + [r[1] for r in H.picked_rects(s_)]
+        xs = [a for a, b in H.card_spans(s_) if b > a]
+        xe = [b for a, b in H.card_spans(s_) if b > a]
         g0 = min(xs) // 7
         g0s.append(g0)
         gns.append((max(xe) + 6) // 7 - g0)
-    lines.append(table("SLOT_G0", "u8", g0s, "the 7-pixel groups each slot's card covers, picked or not"))
+    lines.append(table("SLOT_G0", "u8", g0s, "the 7-pixel groups each slot's card covers"))
     lines.append(table("SLOT_GN", "u8", gns))
-    lines.append("(const CAPTION_Y u8 %d)\n(const PICKED_CAPTION_Y u8 %d)" % (H.caption_y(False), H.caption_y(True)))
+    top, bottom = H.card_rows()
+    lines.append("; each slot is byte columns SLOT_COLS * n on; its card covers rows CARD_TOP to CARD_BOTTOM - 1,\n"
+                 "; picked lifted LIFT rows with a glow of GLOW_ROWS rows under it\n"
+                 "(const SLOT_COLS u8 %d)\n(const CARD_TOP u8 %d)\n(const CARD_BOTTOM u8 %d)\n"
+                 "(const LIFT u8 %d)\n(const GLOW_ROWS u8 %d)" % (H.hud.SLOT_COLS, top, bottom, H.hud.LIFT, H.hud.GLOW_ROWS))
+    lines.append("(const CAPTION_Y u8 %d)" % H.caption_y())
     lines.append(table("HUD_FONT", "u8", H.hud_font(), "from ' ' to '_': width, colour (0: the ink's), 6 rows of bits"))
     lines.append(table("FONT35", "u8", H.font35(), "95 glyphs from ' ': 8 rows of 3 pixels, a byte a row, bit 0 the leftmost"))
     return "\n".join(lines)
