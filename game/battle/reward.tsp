@@ -212,8 +212,9 @@
 
 ; one frame of the reward; true when it is done and the next fight can start
 (fn step ((key u8)) bool
-    ; the tap box over the sixth slot's top is the battle's re-roll button, R
-    (if (= (& key 0xDF) 'R')
+    ; the sixth slot is where the battle's buttons are: their tap boxes (R over its top, E over
+    ; its foot) pick it
+    (if (or (= (& key 0xDF) 'R') (= (& key 0xDF) 'E'))
         (set key '6'))
     (if (and (>= key '1') (< key (+ '1' (slots))))
         (return (pick_slot (- key '1'))))
