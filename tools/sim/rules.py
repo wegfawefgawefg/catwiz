@@ -199,7 +199,10 @@ class Battle:
         if face.slot == "junk":
             return False  # a hairball: only a re-roll coughs it up
         if face.slot == "book":
-            return True  # the item model: a book with too little mana gives 1 mana
+            # the item model: a book needs its mana (bad milk: 1 more); without it the die is
+            # a dud till a re-roll or a star (the owner, 2026-10-31: no more studying)
+            milk = self.charms.count("badmilk") if "BADMILK_FLEAS" not in self.R.fx else 0
+            return face.cost + milk <= self.st[HERO][MANA]
         return face.cost <= self.st[HERO][MANA]
 
     def playable(self):
@@ -368,7 +371,9 @@ class Battle:
             self.add(target, POISON, n)
             st[FLEA_TURNS] = self.R.fx["FLEA_TURNS"]
         elif effect == "wet":
-            st[WET] = max(st[WET], n, 1)  # the item model's wet lasts n turns; the game's 1
+            # the item model's wet adds n turns (at least 1) to what it has (the owner,
+            # 2026-10-31; was the longer of the two)
+            st[WET] = min(99, st[WET] + max(n, 1))
         elif effect == "hiss":
             st[HISS] = 1
         elif effect == "spook":

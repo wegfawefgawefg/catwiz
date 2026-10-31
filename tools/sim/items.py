@@ -5,7 +5,7 @@ its effect, and the combo when it is the third fluff (or twig wand) this turn; t
 the hairball that clogs a slot; and the charms (which the bag variants use too). The game has
 none of this yet; docs/balance.md lists what the engine would need.
 
-Boosts on a played face, in this order: a pending times (a wand, fluff or book only: its number
+Boosts on a played face, in this order: a pending times (any die but a trick: its number
 times m, and it counts m towards its slot's three), then a pending plus (the next two dice,
 any slot: each hit, each stack, each star), catnip's +1,
 knead (the next fluff x2, the next wand +n), bad milk (wands +1), a wishing star (the next wand
@@ -19,10 +19,16 @@ def ru():
     return rules
 
 
-KITTENS_MOST = 5
+KITTENS_MOST = 5  # the old cap; the proposal's effects.tsp has its own (kittens_most)
+
+
+def kittens_most(b):
+    return b.R.fx.get("KITTENS_MOST", KITTENS_MOST)
 COMBO_AT = 3
-PLUS_DICE = 2  # plus one: how many dice it boosts
-MULT_SLOTS = ("wand", "fluff", "book")  # what a pending times takes
+PLUS_DICE = 1  # plus one: how many dice it boosts (the owner, 2026-10-31: the next die; was 2)
+# what a pending times takes: the next die of any slot but a trick (the owner, 2026-10-31;
+# it was wands, fluff and books)
+MULT_SLOTS = ("wand", "fluff", "star", "book", "curse", "food")
 
 
 def amount(b, kind, default):
@@ -44,8 +50,8 @@ def fight_start(b):
     st[r.MANA] = 2 * c.count("nightlight")
     st[r.WARD] = c.count("bell")
     st[r.KITTENS] = amount(b, "mother", 1)
-    if "badmilk" in c:
-        st[r.POISON] = 2
+    if "badmilk" in c and "BADMILK_FLEAS" in b.R.fx:
+        st[r.POISON] = b.R.fx["BADMILK_FLEAS"]  # the old bad milk: fights start with fleas
         st[r.FLEA_TURNS] = b.R.fx["FLEA_TURNS"]
 
 
@@ -109,12 +115,12 @@ def land(b, row, target, again=False):
         b.last_face = row
         b.last_on = target
     if face.slot == "book":
-        # with too little mana a book gives 1 mana instead (she studies it); a copycat's
-        # book is paid again
-        if st[r.MANA] < face.cost:
-            b.apply("mana", r.HERO, r.HERO, 1)
+        # a book is paid (a copycat's book again; bad milk: 1 more); a copy without the mana
+        # does nothing (a book die without it cannot be played: rules.can_play)
+        cost = face.cost + (b.charms.count("badmilk") if "BADMILK_FLEAS" not in b.R.fx else 0)
+        if st[r.MANA] < cost:
             return
-        st[r.MANA] -= face.cost
+        st[r.MANA] -= cost
     effect(b, face.effect, target, n)
     if three and face.combo and face.combo != "none":
         combo(b, face.combo, face.combo_n, target, n)
@@ -129,14 +135,17 @@ def trick(b, face, n):
     st = b.st[r.HERO]
     e = face.effect
     if e == "plus":
-        # +1 is wide: the next two dice get it, each hit and stack of them
-        st[r.PLUS] = max(st[r.PLUS], n)
+        # +1: the next die gets it, each hit and stack of it
+        st[r.PLUS] = min(99, st[r.PLUS] + n)  # +1s stack (the owner, 2026-10-31; was max)
         st[r.PLUS_LEFT] = PLUS_DICE
     elif e == "double":
-        # x2 is tall: the next wand, fluff or book (a star or curse leaves it waiting), and it
+        # x2 is tall: the next die of any slot but a trick (a trick leaves it waiting), and it
         # counts as two towards a three; played after a +1 it doubles that too
         st[r.PLUS] *= n
         st[r.MULT] = max(st[r.MULT], 1) * n
+        cap = b.R.variant.get("multcap")
+        if cap:
+            st[r.MULT] = min(st[r.MULT], int(cap))  # a waiting times stacks this far at most
     elif e == "copy":
         if b.last_face != r.NOTHING:
             if n:
@@ -188,7 +197,7 @@ def effect(b, e, t, n):
     elif e == "litter":
         b.apply("mana", H, H, n + st[H][r.KITTENS])
     elif e == "kittens":
-        st[H][r.KITTENS] = min(KITTENS_MOST, st[H][r.KITTENS] + n)
+        st[H][r.KITTENS] = min(kittens_most(b), st[H][r.KITTENS] + n)
     elif e == "laserall":
         for i in range(1, r.ACTORS):
             if b.alive[i]:
@@ -231,7 +240,7 @@ def combo(b, c, k, t, n):
         st[H][r.THORNS] = max(st[H][r.THORNS], k)
     elif c == "box":
         st[H][r.BOX] = 1
-        st[H][r.KITTENS] = min(KITTENS_MOST, st[H][r.KITTENS] + k)
+        st[H][r.KITTENS] = min(kittens_most(b), st[H][r.KITTENS] + k)
     elif c == "heal":
         b.heal(H, k)
     elif c == "static":
@@ -246,7 +255,7 @@ def combo(b, c, k, t, n):
 def pounce(b, t, times):
     """every kitten pounces on t, times times: 1 each, more with mittens and marks"""
     r = ru()
-    hit = 1 + amount(b, "mittens", 1)
+    hit = b.R.fx.get("KITTEN_HIT", 1) + amount(b, "mittens", 1)
     for _ in range(b.st[r.HERO][r.KITTENS] * times):
         if not b.alive[t]:
             return

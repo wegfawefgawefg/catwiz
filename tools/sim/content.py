@@ -76,17 +76,18 @@ class Fight:
     cards), whether a nap follows it, the fight the player may take instead (the elite doors),
     the type upgrade it offers (the bag proposal) and the charms it offers (the item model)."""
 
-    __slots__ = ("enemies", "offers", "nap", "other", "zone", "upgrade", "cards", "charms")
+    __slots__ = ("enemies", "offers", "nap", "other", "zone", "upgrade", "cards", "charms", "charm")
 
     def __init__(self, d):
         self.enemies = [s["enemy"] for s in d["spots"][: d["count"]]]
         self.offers = []
-        self.nap = d.get("nap", False)
+        self.nap = d.get("nap", d.get("elite", False))  # the proposal's nap after an elite
         self.other = d.get("other", tsp.NOTHING)
         self.zone = d.get("zone", "")
         self.upgrade = None
         self.cards = []
         self.charms = []
+        self.charm = False
 
 
 class Rules:
@@ -121,13 +122,22 @@ class Rules:
         self.fights = [Fight(f) for f in enc.consts["FIGHTS"]]
         self.fight_count = enc.consts["FIGHT_COUNT"]
         self.nap_heal = enc.consts.get("NAP_HEAL", 0)
+        self.rest_heal = enc.consts.get("NAP_HEAL_SHIFT")  # missing >> shift, rounded up
         self.junk_die = None
         if self.model == "items":
             self.charm_table = enc.consts["CHARMS"]
             self.charm_row = {k[6:]: v for k, v in enc.consts.items() if k.startswith("CHARM_")}
+            # the reward pools (cards and charms drawn at random by weight, from a fight on);
+            # older tables had fixed cards and charms a fight
+            self.offers = [(o["card"], o["weight"], o["from"])
+                           for o in enc.consts.get("OFFER_CARDS", [])]
+            self.charm_offers = [(o["card"], o["weight"], o["from"])
+                                 for o in enc.consts.get("OFFER_CHARMS", [])]
             for i, f in enumerate(self.fights):
-                f.cards = list(enc.consts["FIGHT_CARDS"][i])
-                f.charms = [k for k in enc.consts["FIGHT_CHARMS"][i] if k != tsp.NOTHING]
+                if "FIGHT_CARDS" in enc.consts:
+                    f.cards = list(enc.consts["FIGHT_CARDS"][i])
+                    f.charms = [k for k in enc.consts["FIGHT_CHARMS"][i] if k != tsp.NOTHING]
+                f.charm = enc.consts["FIGHTS"][i].get("elite", False)
             self.die_names[tuple(self.start_items)] = "ITEM DIE"
         else:
             # the game: one pair of dice for every fight (OFFER_DICE); the bag proposal a

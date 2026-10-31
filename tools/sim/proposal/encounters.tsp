@@ -1,10 +1,11 @@
 ; PROPOSAL (tools/sim, docs/balance.md): game/content/encounters.tsp for fights 1-10 and the
 ; boss, the item-slot model. The run is FIGHT_COUNT fights in order; a fight with an other is a
 ; choice of two doors (both shown: the vet or the big bath), the other listed after the run's
-; fights. After each won fight: pick one of the fight's three cards (FIGHT_CARDS); a fight with
-; charms (the end of the day, the elites) then offers one of three charms (FIGHT_CHARMS; NOTHING
-; for none); a fight with nap is followed by a nap: NAP_HEAL hit points back, or a level on a
-; slot.
+; fights: the woods (1-3), the garden (4-6), the yard (7-9), each two fights and an elite,
+; then the bulldog king. After each won fight: three cards drawn at random from OFFERS (by weight, those whose
+; from is at most the number of fights won, three different ones that still give the kit
+; something), pick one. An elite then offers three charms drawn the same way from
+; OFFER_CHARMS (not ones she has) after an elite, then the nap (NAP_HEAL_SHIFT) or a level.
 
 (import state)
 (import content/enemies en)
@@ -15,125 +16,119 @@
 
 (const HERO Hero (make Hero :name "CATWIZ" :hp 30 :figure art.KIND_CAT :col 6))
 
-(enum Zone (day dusk night))
+(enum Zone (woods garden yard)) ; places, all at night: art only
 
 (struct Spot ((enemy u8) (col u8)))
 
-(struct Fight ((zone Zone) (count u8) (spots (array Spot 3)) (nap bool) (other u8)))
+(struct Fight ((zone Zone) (count u8) (spots (array Spot 3)) (elite bool) (other u8)))
 
-(const NAP_HEAL u8 10)
+; after an elite: the card pick, a charm (three drawn from OFFER_CHARMS), then the nap (the
+; hit points she is missing >> NAP_HEAL_SHIFT back, rounded up: 0 all, 1 half) or a bonus
+; level on a slot of her choice instead
+(const NAP_HEAL_SHIFT u8 0)
 
-(const FIGHT_COUNT u8 11)
+(const FIGHT_COUNT u8 10)
 
-(const FIGHTS (array Fight 12)
-    (make (array Fight 12)
+(const FIGHTS (array Fight 11)
+    (make (array Fight 11)
         (make Fight
-            :zone Zone.day
+            :zone Zone.woods
             :count 2
             :spots (make (array Spot 3)
                 (make Spot :enemy en.PUFFCAP :col 16)
                 (make Spot :enemy en.SPORELET :col 24)
                 (make Spot :enemy en.PUFFCAP :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.day
-            :count 3
-            :spots (make (array Spot 3)
-                (make Spot :enemy en.PUFFCAP :col 16)
-                (make Spot :enemy en.SPORELET :col 24)
-                (make Spot :enemy en.NIGHTFLAP :col 30))
-            :nap false
-            :other state.NOTHING)
-        (make Fight
-            :zone Zone.day
-            :count 3
-            :spots (make (array Spot 3)
-                (make Spot :enemy en.GNOME :col 16)
-                (make Spot :enemy en.SPORELET :col 24)
-                (make Spot :enemy en.SPORELET :col 30))
-            :nap false
-            :other state.NOTHING)
-        (make Fight
-            :zone Zone.day
+            :zone Zone.woods
             :count 3
             :spots (make (array Spot 3)
                 (make Spot :enemy en.SQUIRREL :col 16)
                 (make Spot :enemy en.POSSUM :col 24)
                 (make Spot :enemy en.SQUIRREL :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.dusk
+            :zone Zone.woods
+            :count 1
+            :spots (make (array Spot 3)
+                (make Spot :enemy en.SHROOM :col 16)
+                (make Spot :enemy en.SHROOM :col 24)
+                (make Spot :enemy en.SHROOM :col 30))
+            :elite true
+            :other state.NOTHING)
+        (make Fight
+            :zone Zone.garden
             :count 3
             :spots (make (array Spot 3)
                 (make Spot :enemy en.DUST_BUNNY :col 16)
                 (make Spot :enemy en.ROOMBA :col 24)
                 (make Spot :enemy en.DUST_BUNNY :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.dusk
+            :zone Zone.garden
             :count 3
             :spots (make (array Spot 3)
                 (make Spot :enemy en.CUCUMBER :col 16)
                 (make Spot :enemy en.GNOME :col 24)
                 (make Spot :enemy en.SPRINKLER :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.dusk
+            :zone Zone.garden
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.MAILMAN :col 16)
                 (make Spot :enemy en.MAILMAN :col 24)
                 (make Spot :enemy en.MAILMAN :col 30))
-            :nap true
+            :elite true
             :other state.NOTHING)
         (make Fight
-            :zone Zone.night
+            :zone Zone.yard
             :count 2
             :spots (make (array Spot 3)
                 (make Spot :enemy en.HOOVER :col 16)
                 (make Spot :enemy en.DUST_BUNNY :col 24)
                 (make Spot :enemy en.HOOVER :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.night
+            :zone Zone.yard
             :count 2
             :spots (make (array Spot 3)
                 (make Spot :enemy en.SPRINKLER :col 16)
                 (make Spot :enemy en.MOWER :col 24)
                 (make Spot :enemy en.SPRINKLER :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.night
+            :zone Zone.yard
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.VET :col 16)
                 (make Spot :enemy en.VET :col 24)
                 (make Spot :enemy en.VET :col 30))
-            :nap false
-            :other 11)
+            :elite true
+            :other 10)
         (make Fight
-            :zone Zone.night
+            :zone Zone.yard
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.KING :col 16)
                 (make Spot :enemy en.KING :col 24)
                 (make Spot :enemy en.KING :col 30))
-            :nap false
+            :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.night
+            :zone Zone.yard
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.BATH :col 16)
                 (make Spot :enemy en.BATH :col 24)
                 (make Spot :enemy en.BATH :col 30))
-            :nap false
+            :elite true
             :other state.NOTHING)))
 
 ; a card is an item (a row of items.ITEMS: a new item for its slot, or a level when you hold
@@ -144,21 +139,6 @@
 (const UP_BOOK u8 131)
 (const UP_CURSE u8 132)
 (const UP_TRICK u8 133)
-
-(const FIGHT_CARDS (array (array u8 3) 12)
-    (make (array (array u8 3) 12)
-        (make (array u8 3) UP_WAND items.YARN_WAND items.TIMES)
-        (make (array u8 3) items.SPRAY_BOTTLE items.SPIKY_FLUFF UP_STAR)
-        (make (array u8 3) items.MEOW_BOOK items.LITTER_STAR items.TANGLE)
-        (make (array u8 3) UP_FLUFF items.FEATHER_TOY items.MARK)
-        (make (array u8 3) items.BOX items.CANNON items.COPYCAT)
-        (make (array u8 3) items.STATIC_FUR items.SHOOTING_STAR items.WET)
-        (make (array u8 3) items.WISHING_STAR items.KNOCK items.CATNIP)
-        (make (array u8 3) items.MOON_BOWL items.LASER items.MOUSE_STRING)
-        (make (array u8 3) items.FISHBONE_WAND items.BELL_COLLAR items.KNEAD)
-        (make (array u8 3) UP_BOOK items.WARM_BLANKET items.SCREAM)
-        (make (array u8 3) UP_WAND UP_FLUFF UP_STAR)
-        (make (array u8 3) UP_CURSE items.FITS UP_TRICK)))
 
 ; charms: passives kept all run. kind says what it does (the sim's rules.py has each), amount
 ; how much
@@ -181,9 +161,9 @@
     (make (array Charm 10)
         (make Charm
             :name "SCRATCH POST"
-            :text "ONE MORE RE-ROLL EVERY TURN"
+            :text "TWO MORE RE-ROLLS EVERY TURN"
             :kind CharmKind.pocket
-            :amount 1)
+            :amount 2)
         (make Charm
             :name "SIXTH TOE"
             :text "ROLL 6 DICE, BUT 1 RE-ROLL LESS"
@@ -226,21 +206,64 @@
             :amount 3)
         (make Charm
             :name "BAD MILK"
-            :text "WANDS +1; FIGHTS START WITH FLEAS 2"
+            :text "WANDS +2; BOOKS COST 1 MORE"
             :kind CharmKind.badmilk
-            :amount 1)))
+            :amount 2)))
 
-(const FIGHT_CHARMS (array (array u8 3) 12)
-    (make (array (array u8 3) 12)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) CHARM_MOTHER_CAT CHARM_SCRATCH_POST CHARM_BAD_MILK)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) CHARM_FLUFFY_TAIL CHARM_STILL_WATER CHARM_MITTENS)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) CHARM_TRIO CHARM_GRUMPY CHARM_SIXTH_TOE)
-        (make (array u8 3) state.NOTHING state.NOTHING state.NOTHING)
-        (make (array u8 3) CHARM_TRIO CHARM_RUBBER_DUCK CHARM_SIXTH_TOE)))
+; the reward pool: card (an item row: a new item for its slot, or a level when she holds it; or
+; UP_ and a slot: a level on that slot), weight (its share of the draw, 0 never), from (the
+; first fight it can follow: the plainer pieces from the start, the engines later)
+(struct Offer ((card u8) (weight u8) (from u8)))
+
+(const OFFER_CARD_COUNT u8 32)
+
+(const OFFER_CARDS (array Offer 32)
+    (make (array Offer 32)
+        (make Offer :card items.YARN_WAND :weight 4 :from 1)
+        (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
+        (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
+        (make Offer :card items.FISHBONE_WAND :weight 3 :from 1)
+        (make Offer :card items.FEATHER_TOY :weight 3 :from 1)
+        (make Offer :card items.SPIKY_FLUFF :weight 4 :from 1)
+        (make Offer :card items.BOX :weight 4 :from 1)
+        (make Offer :card items.BELL_COLLAR :weight 3 :from 1)
+        (make Offer :card items.SHOOTING_STAR :weight 4 :from 1)
+        (make Offer :card items.MOON_BOWL :weight 4 :from 1)
+        (make Offer :card items.LITTER_STAR :weight 4 :from 1)
+        (make Offer :card items.WET :weight 4 :from 1)
+        (make Offer :card items.TANGLE :weight 4 :from 1)
+        (make Offer :card UP_WAND :weight 3 :from 1)
+        (make Offer :card UP_FLUFF :weight 3 :from 1)
+        (make Offer :card UP_STAR :weight 3 :from 1)
+        (make Offer :card items.MEOW_BOOK :weight 3 :from 3)
+        (make Offer :card items.MARK :weight 3 :from 3)
+        (make Offer :card items.STATIC_FUR :weight 3 :from 3)
+        (make Offer :card items.WARM_BLANKET :weight 2 :from 3)
+        (make Offer :card items.LASER :weight 3 :from 3)
+        (make Offer :card items.KNOCK :weight 3 :from 3)
+        (make Offer :card items.SCREAM :weight 3 :from 3)
+        (make Offer :card items.FITS :weight 2 :from 3)
+        (make Offer :card items.CATNIP :weight 3 :from 3)
+        (make Offer :card UP_BOOK :weight 2 :from 3)
+        (make Offer :card UP_CURSE :weight 2 :from 3)
+        (make Offer :card items.TIMES :weight 2 :from 3)
+        (make Offer :card items.COPYCAT :weight 2 :from 4)
+        (make Offer :card items.WISHING_STAR :weight 2 :from 5)
+        (make Offer :card items.KNEAD :weight 2 :from 4)
+        (make Offer :card UP_TRICK :weight 2 :from 5)))
+
+; the charm pool, drawn the same way after the elites (card: a row of CHARMS)
+(const OFFER_CHARM_COUNT u8 10)
+
+(const OFFER_CHARMS (array Offer 10)
+    (make (array Offer 10)
+        (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
+        (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
+        (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
+        (make Offer :card CHARM_TRIO :weight 1 :from 6)
+        (make Offer :card CHARM_MITTENS :weight 2 :from 1)
+        (make Offer :card CHARM_MOTHER_CAT :weight 2 :from 1)
+        (make Offer :card CHARM_FLUFFY_TAIL :weight 2 :from 1)
+        (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
+        (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
+        (make Offer :card CHARM_BAD_MILK :weight 2 :from 1)))

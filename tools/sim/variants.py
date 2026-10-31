@@ -20,6 +20,8 @@ the item model (--content proposal):
     start=NAME       the sixth slot starts with item NAME (TIMES, ...)
     base=N           every item's number starts N more (the owner's base of 1, against 2)
     nocharms         no charms after the day's end and the elites
+    toefix           the sixth toe's sixth die is in the bag (the sim's bag kept five dice)
+    multcap=N        a waiting times (times two played while one waits) stacks to xN at most
 
 The extra dice and the food items are the sim's own experiment content, named from the
 content's face constants.
@@ -127,6 +129,8 @@ def apply(rules, spec):
             for f in rules.faces:
                 if f.slot in ("wand", "fluff", "star", "curse") and f.amount:
                     f.amount += int(value)
+        elif key in ("toefix", "multcap"):
+            pass  # rewards.Kit.dice, items.trick
         elif key == "nocharms":
             for fight in rules.fights:
                 fight.charms = []
