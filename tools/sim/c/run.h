@@ -33,10 +33,12 @@ typedef struct {
 
 /* the reward chooser's knobs (rewards.c) */
 typedef struct {
-    int rollouts;    /* seeds a rollout */
+    int rollouts;    /* seeds an option is tried with */
     int ahead;       /* fights a rollout plays */
     int roll_player; /* the player in rollouts */
+    double kit;      /* the kit's worth at the window's end counts this much */
 } Draft;
+extern Draft DRAFT;
 
 void run_one(int player, uint64_t seed, RunResult *out, int want_log);
 int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,

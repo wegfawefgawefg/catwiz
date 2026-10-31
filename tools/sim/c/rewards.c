@@ -213,7 +213,7 @@ static int choose(Player *p, const Kit *kit, int hp, int f, const Pick *opts, in
     }
     if (p->kind == P_GREEDY)
         return scored[0];
-    if (p->kind == P_SEARCH)
+    if (p->kind == P_SEARCH && DRAFT.ahead > 0)
         return search_choose(p, kit, hp, f, opts, n);
     uint32_t seeds[ROLLOUTS];
     for (int i = 0; i < ROLLOUTS; i++)
@@ -276,7 +276,7 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
         take_heal = mt_random(p->rng) < 0.5;
     } else if (p->kind == P_GREEDY) {
         take_heal = heal - *hp >= NAP_HEAL * 0.7;
-    } else if (p->kind == P_SEARCH) {
+    } else if (p->kind == P_SEARCH && DRAFT.ahead > 0) {
         take_heal = search_nap(p, kit, *hp, heal, &ups[best], f);
     } else {
         uint32_t seeds[ROLLOUTS];
@@ -333,7 +333,7 @@ int pick_door(Player *p, const Kit *kit, int hp, int f, int other) {
             b += KINDS[FIGHTS[other].enemies[i]].hp;
         return a <= b ? f : other;
     }
-    if (p->kind == P_SEARCH)
+    if (p->kind == P_SEARCH && DRAFT.ahead > 0)
         return search_door(p, kit, hp, f, other);
     uint32_t seeds[ROLLOUTS];
     for (int i = 0; i < ROLLOUTS; i++)

@@ -15,6 +15,7 @@
 #include "combos.h"
 #include "pool.h"
 #include "report.h"
+#include "value.h"
 
 typedef struct {
     int player, want_log;
@@ -94,6 +95,21 @@ int main(int argc, char **argv) {
             picks = 1;
         } else if (!strcmp(a, "--toe-fix")) {
             RULES.toe_fix = 1;
+        } else if (!strcmp(a, "--ahead")) {
+            DRAFT.ahead = atoi(v); /* 0: the strong player's draft */
+            i++;
+        } else if (!strcmp(a, "--rollouts")) {
+            DRAFT.rollouts = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--roll-player")) {
+            DRAFT.roll_player = player_by_name(v);
+            i++;
+        } else if (!strcmp(a, "--draft-kit")) {
+            DRAFT.kit = atof(v);
+            i++;
+        } else if (!strcmp(a, "--weights")) {
+            weights_load(v);
+            i++;
         } else if (!strcmp(a, "--mult-cap")) {
             RULES.mult_cap = atoi(v);
             i++;

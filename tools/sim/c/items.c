@@ -157,7 +157,7 @@ void items_land(Battle *b, int row, int target, int again) {
            book is paid again */
         if (st[ST_MANA] < face->cost) {
             if (b->tell)
-                tell_line(b, "    (too little mana: she studies it, +1 mana)");
+                tell_line(b, "too little mana: she studies it, +1 mana");
             b_apply(b, E_mana, HERO, HERO, 1);
             return;
         }

@@ -30,12 +30,28 @@ static void vline(Tell *t, const char *fmt, va_list ap) {
     t->text[t->len] = 0;
 }
 
+static void after(Tell *t, const char *fmt, ...);
+
+/* a line of the log; during a play (a possum getting up, a book studied) a note on its line */
 void tell_line(Battle *b, const char *fmt, ...) {
-    if (!b->tell)
+    Tell *t = b->tell;
+    if (!t)
         return;
     va_list ap;
     va_start(ap, fmt);
-    vline(b->tell, fmt, ap);
+    if (t->row >= 0) {
+        char note[160];
+        vsnprintf(note, sizeof note, fmt, ap);
+        const char *p = note;
+        while (*p == ' ' || *p == '(')
+            p++;
+        after(t, "; %s", p);
+        int len = (int)strlen(t->after);
+        if (len && t->after[len - 1] == ')')
+            t->after[len - 1] = 0;
+    } else {
+        vline(t, fmt, ap);
+    }
     va_end(ap);
 }
 
@@ -253,8 +269,8 @@ void tell_play_done(Battle *b) {
     char cp[48] = "";
     if (t->copied >= 0)
         sprintf(cp, " (copies %s)", ITEMS[t->copied].name);
-    tell_line(b, "  %s%s%s%s%s%s%s", it->name, cp, t->boosts, num, on, hits, t->after);
     t->row = -1;
+    tell_line(b, "  %s%s%s%s%s%s%s", it->name, cp, t->boosts, num, on, hits, t->after);
 }
 
 void tell_move(Battle *b, int by, int row, int target) {
