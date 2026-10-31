@@ -416,4 +416,4 @@
             :amount 2
             :aim state.Aim.friend
             :motion state.Motion.hop
-            :icon '<')))
+            :icon '<')) :strings aux)

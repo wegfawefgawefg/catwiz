@@ -21,7 +21,7 @@
 (let older (array u8 35) :address 0x0990) ; scratch: see AGENTS.md, Memory
 (let newer (array u8 35) :address 0x09B8)
 
-; who's name: the hero's, or the enemy kind's
+; who's name: the hero's, or the enemy kind's (in aux memory: text.add_aux)
 (fn name ((who u8)) (ptr u8)
     (if (= who state.HERO)
         (return enc.HERO.name))
@@ -83,10 +83,13 @@
         (text.start)
         (let kind u8 (at w_kind k))
         (if (!= kind LINE)
-            (text.add (at w_name k)))
+            (text.add_aux (at w_name k)))
         (if (= kind USES)
             (text.add ": "))
-        (text.add_n (at w_text k) (at w_n k))
+        ; a move's text is the content's, in aux memory; the other sentences are the code's
+        (if (= kind USES)
+            (text.add_aux_n (at w_text k) (at w_n k))
+            (text.add_n (at w_text k) (at w_n k)))
         (if (= kind USES)
             (text.char '.'))
         (push))
@@ -104,7 +107,8 @@
 (fn who ((w u8) (s (ptr u8)) (n u8)) void
     (wait WHO (name w) s n))
 
-; who starts an action: "Catwiz: WAND 2.", "Puffcap: Headbutt for 2." (s with n for its #)
+; who starts an action: "Puffcap: Headbutt for 2." (s, a move's text in aux memory, with n for
+; its #)
 (fn uses ((w u8) (s (ptr u8)) (n u8)) void
     (wait USES (name w) s n))
 

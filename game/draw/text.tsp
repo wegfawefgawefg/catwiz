@@ -64,6 +64,24 @@
 (fn add ((s (ptr u8))) void
     (add_n s 0))
 
+; a string of a const table in aux memory (the content's text: tables marked :strings aux), copied
+; here with aux memory switched in for reading, then added as add_n does. Strings written in the
+; code are in main memory: add and add_n
+(let aux_text (array u8 36) :address 0x0400) ; scratch: see AGENTS.md, Memory
+
+(fn add_aux_n ((s (ptr u8)) (n u8)) void
+    (let to (ptr u8) (addr_of (at aux_text 0)))
+    (with_aux true false
+        (let i u8 0)
+        (while (and (< i 35) (!= (load (+ s i)) 0))
+            (store (+ to i) (load (+ s i)))
+            (set i (+ i 1)))
+        (store (+ to i) 0))
+    (add_n to n))
+
+(fn add_aux ((s (ptr u8))) void
+    (add_aux_n s 0))
+
 ; the next character at column c
 (fn tab ((c u8)) void
     (if (> c col)

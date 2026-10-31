@@ -23,11 +23,11 @@
 ; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
 ; each fits. The fighters are solid (on black, fills of 8 or more): fight 2 needs 10,202 bytes
 ; of sprite_aux (art/dhgr/memory.txt); the 8 KB of aux memory the backdrop page had pays for it
-(const AUX_BYTES u16 10752)
+(const AUX_BYTES u16 10240)
 (const CARD_START u16 0xD000)
 (const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
 (const CARD1_END u16 0xE000)
-(let sprite_aux (array u8 10752) :in aux)
+(let sprite_aux (array u8 10240) :in aux)
 
 ; where each kind's runs are now (an address, and dhgr.runs' flags saying in which memory)
 (let aux_at (array u16 6))

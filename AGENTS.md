@@ -53,6 +53,15 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ## Text
 
+- Strings: every const table of strings (the content's items, moves, enemies, charms, the hero,
+  the status names, the reward's slot names and bases) is marked `:strings aux`, so its text
+  lives in aux memory (Tisple 9eeaa80), and is read with `text.add_aux` / `add_aux_n` (a copy
+  under with_aux, then as `add_n`). Strings written in the code stay in main memory: `text.add`
+  and `add_n`. A pointer cannot tell which, so a function that takes one takes one kind (the
+  log keeps names and move texts as aux, its other sentences as code strings). The tray's
+  caption tables (`battle/hud.tsp` DIGITS...) stay in main memory: lib/dhgr_pixels' glyphs read
+  them.
+
 - The screen is all graphics (double hi-res, no mixed text window). The four text lines at the
   foot (rows 160-191) are drawn onto the page being drawn by `draw/text.tsp`, only the blocks of
   7 characters that changed, and copied onto the other page like any hud part. The font is the 35-column one in whole colour pixels (`FONT35`, a

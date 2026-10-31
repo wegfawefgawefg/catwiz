@@ -30,10 +30,10 @@
 (const BASE (array (ptr u8) 6)
     (make (array (ptr u8) 6)
         "Wand: # damage" "Fluff: shield #" "Star: makes mana" "Book: a spell for mana"
-        "Curse: on an enemy" "Trick: for the next dice"))
+        "Curse: on an enemy" "Trick: for the next dice") :strings aux)
 
 (const SLOT_NAME (array (ptr u8) 6)
-    (make (array (ptr u8) 6) "WAND" "FLUFF" "STAR" "BOOK" "CURSE" "TRICK"))
+    (make (array (ptr u8) 6) "WAND" "FLUFF" "STAR" "BOOK" "CURSE" "TRICK") :strings aux)
 
 (fn start () void
     (set state.phase state.Phase.reward)
@@ -137,6 +137,12 @@
     (text.add_n s n)
     (show r))
 
+; the same with s a content string, in aux memory
+(fn row_aux ((r u8) (s (ptr u8)) (n u8)) void
+    (text.start)
+    (text.add_aux_n s n)
+    (show r))
+
 ; the step's prompt, nothing picked: rows 0 to 3
 (fn prompt () void
     (match state.pick
@@ -150,8 +156,8 @@
                 (if (>= c UP)
                     (do
                         (text.add "+1 ")
-                        (text.add (at SLOT_NAME (card_slot c))))
-                    (text.add (at items.ITEMS c name)))
+                        (text.add_aux (at SLOT_NAME (card_slot c))))
+                    (text.add_aux (at items.ITEMS c name)))
                 (show (+ k 1))))
         (state.Pick.charms
             (row 0 "A charm! Pick one (1-3)." 0)
@@ -159,7 +165,7 @@
                 (text.start)
                 (text.char (+ '1' k))
                 (text.char ' ')
-                (text.add (at enc.CHARMS (at choice k) name))
+                (text.add_aux (at enc.CHARMS (at choice k) name))
                 (show (+ k 1))))
         (state.Pick.nap
             (row 0 "A nap. Pick one (1-2)." 0)
@@ -175,17 +181,17 @@
                 (text.char (+ '1' k))
                 (text.char ' ')
                 (let fight enc.Fight (at enc.FIGHTS (at choice k)))
-                (text.add (at en.ENEMIES (at fight.spots 0 enemy) name))
+                (text.add_aux (at en.ENEMIES (at fight.spots 0 enemy) name))
                 (show (+ k 1)))))
     (rest))
 
-; row 0: the name, inverse, and how to take it
+; row 0: the name (a content string, in aux memory), inverse, and how to take it
 (fn title ((name (ptr u8)) (up bool)) void
     (text.start)
     (set text.inverse true)
     (if up
         (text.add "+1 "))
-    (text.add name)
+    (text.add_aux name)
     (set text.inverse false)
     (text.tab 24)
     (text.add "Again: take")
@@ -194,7 +200,7 @@
 ; row 1: slot's base with item row at level, and the level
 (fn base_row ((slot u8) (item u8) (level u8)) void
     (text.start)
-    (text.add_n (at BASE slot) (fx.number_at item level))
+    (text.add_aux_n (at BASE slot) (fx.number_at item level))
     (if (> level 0)
         (text.add_n " (+#)" level))
     (show 1))
@@ -215,27 +221,27 @@
             (if (not (card_ok c))
                 (do
                     (base_row slot old level)
-                    (row 2 (at items.ITEMS old text) (fx.number_at old level))
+                    (row_aux 2 (at items.ITEMS old text) (fx.number_at old level))
                     (text.start)
-                    (text.add (at SLOT_NAME slot))
+                    (text.add_aux (at SLOT_NAME slot))
                     (text.add " is at its most.")
                     (show 3)
                     (return)))
             (base_row slot old (+ level 1))
-            (row 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
+            (row_aux 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
             (text.start)
             (text.add (if (>= c UP)
                 "+1 on the slot: "
                 "You have it: +1 on "))
-            (text.add (at items.ITEMS old name))
+            (text.add_aux (at items.ITEMS old name))
             (show 3)
             (return)))
     (title (at items.ITEMS c name) false)
     (base_row slot c level)
-    (row 2 (at items.ITEMS c text) (fx.number_at c level))
+    (row_aux 2 (at items.ITEMS c text) (fx.number_at c level))
     (text.start)
     (text.add "Replaces: ")
-    (text.add (at items.ITEMS old name))
+    (text.add_aux (at items.ITEMS old name))
     (show 3))
 
 ; choice n's text, picked: rows 0 to 3
@@ -246,7 +252,7 @@
         (state.Pick.nap_slot (describe_card (+ UP c)))
         (state.Pick.charms
             (title (at enc.CHARMS c name) false)
-            (row 1 (at enc.CHARMS c text) 0)
+            (row_aux 1 (at enc.CHARMS c text) 0)
             (row 2 "A charm works all run." 0))
         (state.Pick.nap
             (if (= c 0)

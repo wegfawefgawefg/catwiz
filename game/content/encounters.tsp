@@ -16,7 +16,7 @@
 
 (struct Hero ((name (ptr u8)) (hp u8) (figure u8) (col u8)))
 
-(const HERO Hero (make Hero :name "Catwiz" :hp 30 :figure art.KIND_CAT :col 4))
+(const HERO Hero (make Hero :name "Catwiz" :hp 30 :figure art.KIND_CAT :col 4) :strings aux)
 
 (enum Zone (day dusk night))
 
@@ -243,7 +243,7 @@
             :name "BAD MILK"
             :text "Wands +1; fights start with fleas 2"
             :kind CharmKind.badmilk
-            :amount 1)))
+            :amount 1)) :strings aux)
 
 (const FIGHT_CHARMS (array (array u8 3) 12)
     (make (array (array u8 3) 12)

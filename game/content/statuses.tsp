@@ -63,7 +63,7 @@
     (make (array (ptr u8) 27)
         "Shield " "Fleas " "" "Wet " "Cheered +" "Ward " "In a box" "" "Next +" "" "Next x"
         "Spooked -" "Sends back " "Lasered" "Spiky " "Strength +" "Kittens " "Tangled " "Marked "
-        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" ""))
+        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "") :strings aux)
 
 ; a new fight: no stacks, and the ward its kind has (the hero: kind NOTHING)
 (fn start ((who u8) (kind u8)) void

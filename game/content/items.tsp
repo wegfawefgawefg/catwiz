@@ -463,7 +463,7 @@
             :combo ac.Combo.none
             :combo_n 0
             :aim state.Aim.self
-            :icon icons.TILE_HAIRBALL)))
+            :icon icons.TILE_HAIRBALL)) :strings aux)
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))

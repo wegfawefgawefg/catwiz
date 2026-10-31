@@ -22,7 +22,7 @@
 ; who's name, hit points and statuses on one row
 (fn actor_row ((who u8)) void
     (text.start)
-    (text.add (log.name who))
+    (text.add_aux (log.name who))
     (text.char ' ')
     (text.number (at state.actors who hp))
     (text.char '/')
@@ -34,7 +34,7 @@
         (if (and (> n 0) (!= show st.Show.hidden))
             (do
                 (text.char ' ')
-                (text.add (at st.NAME s))
+                (text.add_aux (at st.NAME s))
                 (if (!= show st.Show.flag)
                     (text.number n)))))
     (text.show 0))
@@ -46,7 +46,7 @@
     (let n u8 (fx.boosted row false))
     (text.start)
     (set text.inverse true)
-    (text.add (at items.ITEMS row name))
+    (text.add_aux (at items.ITEMS row name))
     (set text.inverse false)
     (text.tab PROMPT_COL)
     (match (at items.ITEMS row slot)
@@ -63,7 +63,7 @@
                     (_ (text.add "Again: on you"))))))
     (text.show 0)
     (text.start)
-    (text.add_n (at items.ITEMS row text) n)
+    (text.add_aux_n (at items.ITEMS row text) n)
     (text.show 1))
 
 ; the target's next move
@@ -73,7 +73,7 @@
         (do
             (let row u8 (at state.actors who move))
             (text.add "Next: ")
-            (text.add_n (foes.intent_text who row) (foes.intent_amount who row))))
+            (text.add_aux_n (foes.intent_text who row) (foes.intent_amount who row))))
     (text.show 1))
 
 (fn line_row ((r u8) (s (ptr u8))) void
@@ -132,7 +132,7 @@
             (text.show 0)
             (line_row 1 "To be continued..."))
         (do
-            (text.add (log.name state.HERO))
+            (text.add_aux (log.name state.HERO))
             (text.add " is down. The run is over.")
             (text.show 0)
             (line_row 1 "")))

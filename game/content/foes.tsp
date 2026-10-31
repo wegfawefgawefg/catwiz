@@ -66,12 +66,15 @@
         (return SKIP_ICON))
     (at mv.MOVES row icon))
 
-; what the bottom text says an enemy will do next: its move's text, or that it will skip it
+; what the bottom text says an enemy will do next: its move's text, or that it will skip it (in
+; aux memory, as the moves' are: text.add_aux)
+(const QUIET (array (ptr u8) 2) (make (array (ptr u8) 2) "Finds its feet" "Stalls") :strings aux)
+
 (fn intent_text ((who u8) (row u8)) (ptr u8)
     (if (st.skips who)
-        (return "Finds its feet"))
+        (return (at QUIET 0)))
     (if (stalls who)
-        (return "Stalls"))
+        (return (at QUIET 1)))
     (at mv.MOVES row text))
 
 ; an enemy's move lands. Hit-all moves miss a hero in a box

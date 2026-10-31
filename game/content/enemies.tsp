@@ -251,4 +251,4 @@
             :move_count 2
             :calls state.NOTHING
             :then state.NOTHING
-            :stall 0)))
+            :stall 0)) :strings aux)
