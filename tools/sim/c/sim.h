@@ -65,6 +65,7 @@ typedef struct Battle {
     /* the boosts this fight: how many a face row took (a waiting +1 or times) and what they
        added to its number */
     uint16_t boosts[ITEM_COUNT], boost_gain[ITEM_COUNT];
+    uint8_t kitten_peak; /* the most kittens she had at once this fight */
 } Battle;
 
 /* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a

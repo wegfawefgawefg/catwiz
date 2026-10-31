@@ -24,7 +24,7 @@
         scream ; spell: amount damage to every enemy, 1 to you
         knock ; spell: the enemy drops its shield and buffs, then amount damage
         pile ; spell: amount shield, and 2 more for each kitten
-        cannon ; spell: amount damage for each kitten
+        cannon ; spell: every kitten launched for amount (the next enemy when one falls); all gone
         yarn ; wand: amount damage, and tangled 1
         spray ; wand: amount damage, and wet 1
         feather ; wand: amount damage, and the kittens pounce it

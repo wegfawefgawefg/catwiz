@@ -27,7 +27,8 @@ typedef struct {
    fight (the number, 1-based) and turn, the damage it did, the systems it touched */
 typedef struct {
     uint64_t played;
-    uint8_t fight, turn, dmg, sys;
+    uint16_t dmg;
+    uint8_t fight, turn, sys;
 } TurnRec;
 
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
     uint32_t seen[ITEM_COUNT], played[ITEM_COUNT]; /* faces shown at a turn's end, played */
     uint8_t offer[FIGHT_COUNT][3]; /* the cards offered after each fight (NOTHING: none) */
     uint32_t boosts[ITEM_COUNT], boost_gain[ITEM_COUNT]; /* the faces that took +1 or x2 */
+    uint8_t kitten_peak; /* the most kittens at once in the run (at a turn's end) */
     TurnRec turns[MAX_TURNS];
     int nturns;
     char *log;                     /* the readable log, when asked for (malloc'd) */

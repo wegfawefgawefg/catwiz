@@ -208,7 +208,15 @@ def effect(b, e, t, n):
         strip(b, t)
         b.strike(H, t, n)
     elif e == "cannon":
-        b.strike(H, t, n * st[H][r.KITTENS])
+        # every kitten is launched at it for n (the next enemy when it falls) and is gone
+        k = st[H][r.KITTENS]
+        st[H][r.KITTENS] = 0
+        for _ in range(k):
+            if not b.alive[t]:
+                t = b.next_standing(t)
+                if t == r.NOTHING or t == H:
+                    break
+            b.strike(H, t, n)
     elif e == "pile":
         b.add(H, r.SHIELD, n + 2 * st[H][r.KITTENS])
     elif e in ("wet", "tangled", "brand"):

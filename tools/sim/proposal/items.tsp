@@ -56,10 +56,11 @@
 (const CATNIP u8 30)
 (const KNEAD u8 31)
 (const HAIRBALL u8 32)
-(const ITEM_COUNT u8 33)
+(const CANNON u8 33) ; after the hairball, so the other rows keep their numbers
+(const ITEM_COUNT u8 34)
 
-(const ITEMS (array ac.Item 33)
-    (make (array ac.Item 33)
+(const ITEMS (array ac.Item 34)
+    (make (array ac.Item 34)
         (make ac.Item
             :name "TWIG WAND"
             :text "#. 3 IN A TURN: THE 3RD HITS ALL"
@@ -455,7 +456,19 @@
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.self
-            :icon art.TILE_LINT)))
+            :icon art.TILE_LINT)
+        (make ac.Item
+            :name "KITTEN CANNON"
+            :text "3 MANA: LAUNCH ALL KITTENS, # EACH"
+            :slot Slot.book
+            :effect ac.Effect.cannon
+            :amount 3
+            :step 1
+            :cost 3
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_BOOK)))
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))

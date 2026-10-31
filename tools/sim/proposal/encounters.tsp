@@ -215,10 +215,10 @@
 ; first fight it can follow: the plainer pieces from the start, the engines later)
 (struct Offer ((card u8) (weight u8) (from u8)))
 
-(const OFFER_CARD_COUNT u8 32)
+(const OFFER_CARD_COUNT u8 33)
 
-(const OFFER_CARDS (array Offer 32)
-    (make (array Offer 32)
+(const OFFER_CARDS (array Offer 33)
+    (make (array Offer 33)
         (make Offer :card items.YARN_WAND :weight 4 :from 1)
         (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
         (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
@@ -244,6 +244,7 @@
         (make Offer :card items.SCREAM :weight 3 :from 3)
         (make Offer :card items.FITS :weight 2 :from 3)
         (make Offer :card items.CATNIP :weight 3 :from 3)
+        (make Offer :card items.CANNON :weight 3 :from 3)
         (make Offer :card UP_BOOK :weight 2 :from 3)
         (make Offer :card UP_CURSE :weight 2 :from 3)
         (make Offer :card items.TIMES :weight 2 :from 3)

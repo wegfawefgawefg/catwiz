@@ -91,6 +91,8 @@ int study_picks(int player, int runs, uint64_t seed, int jobs) {
             continue;
         printf("  cards after fights %d-%d:\n", third[t][0], third[t][1]);
         for (int i = 0; i < OFFER_COUNT; i++) {
+            if (!OFFERS[i].weight)
+                continue; /* not in the pool */
             int at = OFFERS[i].from > third[t][0] ? OFFERS[i].from : third[t][0];
             if (at > third[t][1])
                 continue;
@@ -225,6 +227,90 @@ int study_boosts(int player, int runs, uint64_t seed, int jobs) {
     }
     printf("    no boost taken: %.1f%% of runs (won %.1f%%)\n", 100.0 * none / runs,
            none ? 100.0 * nonewon / none : 0);
+    free(r);
+    return 0;
+}
+
+/* kittens (--study kittens): the most kittens a run had at once (median, top tenth, top
+   hundredth), the win rate by that, and the runs that held each kitten piece */
+static int by_int(const void *a, const void *b) {
+    return *(const int *)a - *(const int *)b;
+}
+
+int study_kittens(int player, int runs, uint64_t seed, int jobs) {
+    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
+    int *peak = malloc(sizeof(int) * runs), won = 0;
+    static const int edge[] = {0, 1, 5, 10, 20, 40, 1000};
+    int bn[6] = {0}, bw[6] = {0};
+    for (int i = 0; i < runs; i++) {
+        peak[i] = r[i].kitten_peak;
+        won += r[i].won;
+        for (int k = 0; k < 6; k++)
+            if (peak[i] >= edge[k] && peak[i] < edge[k + 1]) {
+                bn[k]++;
+                bw[k] += r[i].won;
+            }
+    }
+    qsort(peak, runs, sizeof(int), by_int);
+    printf("kittens: %s, %d runs, won %.1f%%; KITTEN_HIT %d, KITTENS_MOST %d\n",
+           PLAYER_NAME[player], runs, 100.0 * won / runs, KITTEN_HIT, KITTENS_MOST);
+    printf("  most kittens at once in a run: median %d, top tenth %d, top hundredth %d, most %d\n",
+           peak[runs / 2], peak[runs * 9 / 10], peak[runs * 99 / 100], peak[runs - 1]);
+    for (int k = 0; k < 6; k++)
+        if (bn[k])
+            printf("    %d-%d kittens: %5.1f%% of runs, won %5.1f%%\n", edge[k], edge[k + 1] - 1,
+                   100.0 * bn[k] / runs, 100.0 * bw[k] / bn[k]);
+    static const char *const piece[] = {"MEOWCRONOMICON", "KITTEN CANNON", "FEATHER TOY", "CATNIP",
+                                         "CARDBOARD BOX", "LITTER STAR", "IF IT FITS"};
+    for (int p = 0; p < 7; p++) {
+        int row = -1;
+        for (int q = 0; q < ITEM_COUNT; q++)
+            if (!strcmp(ITEMS[q].name, piece[p]))
+                row = q;
+        if (row < 0)
+            continue;
+        int held = 0, hw = 0;
+        for (int i = 0; i < runs; i++) {
+            int h = 0;
+            for (int f = 0; f < r[i].nfights; f++)
+                h |= r[i].kit_at[f].items[ITEMS[row].slot] == row;
+            held += h;
+            hw += h && r[i].won;
+        }
+        int offered = 0, taken = 0;
+        for (int i = 0; i < runs; i++)
+            for (int j = 0; j < r[i].npicks; j++) {
+                const Pick *pk = &r[i].picks[j];
+                if (pk->what != PK_ITEM && pk->what != PK_LEVEL)
+                    continue;
+                int f = pk->after;
+                if (f < 1 || f > FIGHT_COUNT)
+                    continue;
+                int in = 0;
+                for (int k = 0; k < 3; k++)
+                    in |= r[i].offer[f - 1][k] == row;
+                offered += in;
+                taken += in && pk->card == row;
+            }
+        printf("  runs that held %s: %.1f%%, won %.1f%%; taken %.0f%% of the %d times offered\n",
+               piece[p], 100.0 * held / runs, held ? 100.0 * hw / held : 0,
+               offered ? 100.0 * taken / offered : 0, offered);
+    }
+    for (int c = 0; c < CHARM_COUNT; c++) {
+        if (CHARMS[c].kind != K_mother && CHARMS[c].kind != K_mittens)
+            continue;
+        int held = 0, hw = 0;
+        for (int i = 0; i < runs; i++) {
+            int h = 0;
+            for (int j = 0; j < r[i].kit.ncharms; j++)
+                h |= r[i].kit.charms[j] == c;
+            held += h;
+            hw += h && r[i].won;
+        }
+        printf("  runs that took %s: %.1f%%, won %.1f%%\n", CHARMS[c].name, 100.0 * held / runs,
+               held ? 100.0 * hw / held : 0);
+    }
+    free(peak);
     free(r);
     return 0;
 }
