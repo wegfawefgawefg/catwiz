@@ -16,7 +16,6 @@
 (import draw/pix)
 (import draw/scene)
 (import dhgr)
-(import auxmem)
 
 (const BLACK u8 0)
 (const GREY u8 5)
@@ -104,18 +103,33 @@
 
 ; ---- picking: a card's columns moved
 
-; row from's bytes of slot columns col to col + 4 onto row to, in the backdrop, both memories
-(fn move_row ((col u8) (from u8) (to u8)) void
-    (let src (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP from col)))
-    (let dst (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP to col)))
-    (for i u8 0 hud.SLOT_COLS
-        (store (+ dst i) (load (+ src i))))
-    (auxmem.copy dst src (as u16 hud.SLOT_COLS)))
+; the card rows of slot columns col to col + 4 in the backdrop moved LIFT rows up, or down, in
+; one memory (aux: with aux memory switched in for reading and writing)
+(fn shift ((col u8) (up bool) (aux bool)) void
+    (with_aux aux aux
+        (let y u8 (if up
+            hud.CARD_TOP
+            (- hud.CARD_BOTTOM 1)))
+        ; up: row y onto y - LIFT, from the top; down: row y - LIFT onto y, from the bottom
+        (for k u8 0 (- hud.CARD_BOTTOM hud.CARD_TOP)
+            (let from u8 (if up
+                y
+                (- y hud.LIFT)))
+            (let to u8 (if up
+                (- y hud.LIFT)
+                y))
+            (let src (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP from col)))
+            (let dst (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP to col)))
+            (for i u8 0 hud.SLOT_COLS
+                (store (+ dst i) (load (+ src i))))
+            (set y (if up
+                (+ y 1)
+                (- y 1))))))
 
 (fn lift ((n u8)) void
     (let col u8 (* n hud.SLOT_COLS))
-    (for y u8 hud.CARD_TOP hud.CARD_BOTTOM
-        (move_row col y (- y hud.LIFT)))
+    (shift col true false)
+    (shift col true true)
     (let left u8 (- hud.CARD_BOTTOM hud.LIFT))
     (dhgr.box screen.BACKDROP col left hud.SLOT_COLS hud.LIFT BLACK)
     (dhgr.box screen.BACKDROP (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
@@ -124,10 +138,8 @@
 
 (fn drop ((n u8)) void
     (let col u8 (* n hud.SLOT_COLS))
-    (let y u8 hud.CARD_BOTTOM)
-    (while (> y hud.CARD_TOP)
-        (set y (- y 1))
-        (move_row col (- y hud.LIFT) y))
+    (shift col false false)
+    (shift col false true)
     (dhgr.box screen.BACKDROP col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
     (set (at lifted n) false)
     (mark_slot col))

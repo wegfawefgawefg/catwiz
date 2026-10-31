@@ -86,12 +86,13 @@
                 (set c (& c 0x7F))))
         (set (at glyph_at i) (<< (as u16 (- c 32)) 3))))
 
-; its first blocks blocks of 7 characters
-(fn row35 ((r u8) (y u8) (blocks u8)) void
-    (for i u8 0 (* blocks 7)
+; its blocks of 7 characters from block b0, n of them
+(fn row35 ((r u8) (y u8) (b0 u8) (n u8)) void
+    (let i0 u8 (* b0 7))
+    (for i u8 i0 (+ i0 (* n 7))
         (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
         (set (at cells i) (^ bits (at flip i))))
-    (dhgr_pixels.cells screen.BACKDROP 0 y blocks (addr_of (at cells 0))))
+    (dhgr_pixels.cells screen.BACKDROP (<< b0 3) y n (addr_of (at cells i0))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte
 (fn row40 ((r u8) (y u8)) void
@@ -129,35 +130,35 @@
     n)
 
 ; the line onto text row r (0 to 3): into the backdrop, marked for both pages; in the 35-column
-; font only as far as the line or what the row showed reaches, in blocks of 7 characters (8
-; byte columns), so a short line costs less to draw and to copy onto the pages
+; font only the blocks of 7 characters (8 byte columns) from the first that changed to the last,
+; so a number changing costs a block, not the line, to draw and to copy onto the pages
 (fn show ((r u8)) void
-    (if (same r)
-        (return))
     (let at u8 (* r COLUMNS))
-    (let n u8 (reach (addr_of (at line 0))))
-    (let was u8 (reach (addr_of (at shown at))))
-    (if (> was n)
-        (set n was))
-    (let blocks u8 0)
-    (let reached u8 0)
-    (while (< reached n)
-        (set reached (+ reached 7))
-        (set blocks (+ blocks 1)))
-    (if (= blocks 0)
-        (set blocks 1))
+    (let first u8 COLUMNS)
+    (let last u8 0)
+    (for i u8 0 COLUMNS
+        (if (!= (at shown (+ at i)) (at line i))
+            (do
+                (if (= first COLUMNS)
+                    (set first i))
+                (set last (+ i 1)))))
+    (if (= first COLUMNS)
+        (return))
     (for i u8 0 COLUMNS
         (set (at shown (+ at i)) (at line i)))
     (let y u8 (+ TOP (<< r 3)))
     (if (not FONT_35)
-        (set blocks 5))
-    (if FONT_35
-        (glyphs35))
+        (do
+            (for k u8 0 8
+                (row40 k (+ y k)))
+            (scene.mark 0 y 40 8)
+            (return)))
+    (let b0 u8 (/ first 7))
+    (let b1 u8 (/ (+ last 6) 7))
+    (glyphs35)
     (for k u8 0 8
-        (if FONT_35
-            (row35 k (+ y k) blocks)
-            (row40 k (+ y k))))
-    (scene.mark 0 y (<< blocks 3) 8))
+        (row35 k (+ y k) b0 (- b1 b0)))
+    (scene.mark (<< b0 3) y (<< (- b1 b0) 3) 8))
 
 ; the line kept elsewhere (the log), and back
 (fn save ((to (ptr u8))) void
