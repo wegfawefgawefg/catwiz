@@ -12,6 +12,7 @@
 (import content/items)
 (import content/statuses st)
 (import sound/sound)
+(import content/effects_said said)
 
 (const FLEA_TURNS u8 3)
 (const ZOOMIES_HITS u8 5)
@@ -141,7 +142,7 @@
                 (do
                     (sound.cue sound.Cue.chime)
                     (st.gain_mana 1)
-                    (log.line "Too little mana: she studies. +1" 0)
+                    (log.line (at said.SAY said.SAY_TOO_LITTLE_MANA) 0)
                     (return)))
             (set_hero st.Status.mana (- (mana) cost))))
     (effect (at items.ITEMS row effect) target n)
@@ -158,7 +159,7 @@
             ; second +1 only starting the two again "doesnt seem right")
             (add_hero st.Status.plus n)
             (set_hero st.Status.plus_left PLUS_DICE)
-            (log.line "The next 2 dice get +#." (hero st.Status.plus)))
+            (log.line (at said.SAY said.SAY_NEXT_2_DICE) (hero st.Status.plus)))
         (ac.Effect.double
             ; played after a plus it doubles that too
             (set_hero st.Status.plus (times (hero st.Status.plus) n))
@@ -166,11 +167,11 @@
             (if (= mult 0)
                 (set mult 1))
             (set_hero st.Status.mult (times mult n))
-            (log.line "The next wand, fluff or book: x#." (hero st.Status.mult)))
+            (log.line (at said.SAY said.SAY_TIMES_NEXT) (hero st.Status.mult)))
         (ac.Effect.copy
             (if (= state.last_face state.NOTHING)
                 (do
-                    (log.line "Nothing to copy yet." 0)
+                    (log.line (at said.SAY said.SAY_NOTHING_COPY_YET) 0)
                     (return)))
             (if (> n 0)
                 (do
@@ -180,16 +181,16 @@
             (let on u8 state.last_on)
             (if (not (at state.actors on alive))
                 (set on target))
-            (log.line "Copycat!" 0)
+            (log.line (at said.SAY said.SAY_COPYCAT) 0)
             (land_item state.last_face on true))
         (ac.Effect.catnip2
             (add_hero st.Status.nip n)
             (set_hero st.Status.nipped 1)
-            (log.line "Catnip! The next # dice +1." n))
+            (log.line (at said.SAY said.SAY_CATNIP_NEXT_DICE) n))
         (ac.Effect.knead
             (set_hero st.Status.knead_fluff 1)
             (add_hero st.Status.knead_wand n)
-            (log.line "Knead: next fluff x2, wand +#." n))
+            (log.line (at said.SAY said.SAY_KNEAD_NEXT_FLUFF) n))
         (_)))
 
 (fn strike ((t u8) (n u8)) void
@@ -206,11 +207,11 @@
         (ac.Effect.shield
             (sound.cue sound.Cue.ping)
             (add_hero st.Status.shield n)
-            (log.who state.HERO " shields #." n))
+            (log.who state.HERO (at said.SAY said.SAY_SHIELDS) n))
         (ac.Effect.mana
             (sound.cue sound.Cue.chime)
             (st.gain_mana n)
-            (log.line "Mana is now #." (mana)))
+            (log.line (at said.SAY said.SAY_MANA_NOW) (mana)))
         (ac.Effect.yarn
             (sound.cue sound.Cue.zap)
             (strike t n)
@@ -242,20 +243,20 @@
             (sound.cue sound.Cue.ping)
             (st.gain_mana 1)
             (add_hero st.Status.shield n)
-            (log.who state.HERO " shields #, +1 mana." n))
+            (log.who state.HERO (at said.SAY said.SAY_SHIELDS_1_MANA) n))
         (ac.Effect.wish
             (sound.cue sound.Cue.chime)
             (st.gain_mana n)
             (set_hero st.Status.wish 1)
-            (log.line "A wish: the next wand x2." 0))
+            (log.line (at said.SAY said.SAY_WISH_NEXT_WAND) 0))
         (ac.Effect.litter
             (sound.cue sound.Cue.chime)
             (st.gain_mana (+ n (hero st.Status.kittens)))
-            (log.line "Mana is now #." (mana)))
+            (log.line (at said.SAY said.SAY_MANA_NOW) (mana)))
         (ac.Effect.kittens
             (sound.cue sound.Cue.meow)
             (add_kittens n)
-            (log.line "Kittens join you: # now." (hero st.Status.kittens)))
+            (log.line (at said.SAY said.SAY_KITTENS_JOIN_YOU) (hero st.Status.kittens)))
         (ac.Effect.laserall
             (sound.cue sound.Cue.zap)
             (for i u8 1 state.ACTORS
@@ -275,7 +276,7 @@
             (sound.cue sound.Cue.ping)
             (let shield u8 (+ n (<< (hero st.Status.kittens) 1)))
             (add_hero st.Status.shield shield)
-            (log.who state.HERO " shields #." shield))
+            (log.who state.HERO (at said.SAY said.SAY_SHIELDS) shield))
         (ac.Effect.zoomies
             (sound.cue sound.Cue.zap)
             (let at u8 0)
@@ -289,10 +290,10 @@
                 (if (alive i)
                     (strike i n)))
             (hit.lose state.HERO SCREAM_SELF)
-            (log.who state.HERO " takes # from screaming." SCREAM_SELF))
+            (log.who state.HERO (at said.SAY said.SAY_TAKES_FROM_SCREAMING) SCREAM_SELF))
         (ac.Effect.nothing
             (sound.cue sound.Cue.puff)
-            (log.line "A hairball. Nothing happens." 0))
+            (log.line (at said.SAY said.SAY_HAIRBALL_NOTHING_HAPPENS) 0))
         (ac.Effect.fleas (curse e t n))
         (ac.Effect.wet (curse e t n))
         (ac.Effect.tangled (curse e t n))
@@ -305,7 +306,7 @@
     (state.set_stack t (as u8 st.Status.cheer) 0)
     (state.set_stack t (as u8 st.Status.strength) 0)
     (state.set_stack t (as u8 st.Status.reflect) 0)
-    (log.who t " drops its shield and buffs." 0))
+    (log.who t (at said.SAY said.SAY_DROPS_ITS_SHIELD) 0))
 
 ; what the third face of a slot in a turn adds (the item's combo, combo_n), n the face's number
 (fn combo ((row u8) (t u8) (n u8)) void
@@ -313,26 +314,26 @@
     (sound.cue sound.Cue.chime)
     (match (at items.ITEMS row combo)
         (ac.Combo.sweep ; the third hits every other enemy too
-            (log.line "3 in a turn: it hits all!" 0)
+            (log.line (at said.SAY said.SAY_THREE_HITS_ALL) 0)
             (for i u8 1 state.ACTORS
                 (if (and (alive i) (!= i t))
                     (strike i n))))
         (ac.Combo.keep ; the shield stays through her next turn's start
             (set_hero st.Status.keep 1)
-            (log.line "3 in a turn: your shield stays." 0))
+            (log.line (at said.SAY said.SAY_THREE_SHIELD_STAYS) 0))
         (ac.Combo.thorns
             (if (> k (hero st.Status.thorns))
                 (set_hero st.Status.thorns k))
-            (log.line "3 in a turn: spiky! # back." k))
+            (log.line (at said.SAY said.SAY_THREE_SPIKY) k))
         (ac.Combo.box ; hit-alls miss, and a kitten
             (set_hero st.Status.box 1)
             (add_kittens k)
-            (log.line "3 in a turn: a box, and a kitten." 0))
+            (log.line (at said.SAY said.SAY_THREE_BOX) 0))
         (ac.Combo.heal
-            (log.line "3 in a turn: warm." 0)
+            (log.line (at said.SAY said.SAY_THREE_WARM) 0)
             (hit.heal state.HERO k))
         (ac.Combo.static ; k to every enemy, twice that to a wet one
-            (log.line "3 in a turn: static!" 0)
+            (log.line (at said.SAY said.SAY_THREE_STATIC) 0)
             (for i u8 1 state.ACTORS
                 (if (alive i)
                     (strike i (if (> (state.stack i (as u8 st.Status.wet)) 0)
@@ -340,7 +341,7 @@
                         k)))))
         (ac.Combo.ward
             (add_hero st.Status.ward k)
-            (log.line "3 in a turn: a ward pip." 0))
+            (log.line (at said.SAY said.SAY_THREE_WARD) 0))
         (_))
     ; a purrfect trio: each three hits every enemy too
     (let trio u8 (charms.amount enc.CharmKind.trio))
@@ -387,7 +388,7 @@
                     (set t i))))
         (if (!= t state.NOTHING)
             (do
-                (log.line "Your kittens pounce!" 0)
+                (log.line (at said.SAY said.SAY_KITTENS_POUNCE) 0)
                 (pounce t)))))
 
 ; the next enemy standing after t, left to right and round again; NOTHING when none is
@@ -411,14 +412,16 @@
     (if (> ward 0)
         (do
             (state.set_stack target (as u8 st.Status.ward) (- ward 1))
-            (log.who target ": ward broken, no curse." 0)
+            (log.who target (at said.SAY said.SAY_WARD_BROKEN_NO) 0)
             (charms.ward_blocked)
             (return)))
     (match e
         (ac.Effect.fleas
             (hit.add_stacks target (as u8 st.Status.poison) n)
             (state.set_stack target (as u8 st.Status.flea_turns) FLEA_TURNS)
-            (log.who target " gets fleas: # a turn." (state.stack target (as u8 st.Status.poison))))
+            (log.who target
+                (at said.SAY said.SAY_GETS_FLEAS_TURN)
+                (state.stack target (as u8 st.Status.poison))))
         (ac.Effect.wet
             (let turns u8 (state.stack target (as u8 st.Status.wet)))
             (if (< turns n)
@@ -426,14 +429,18 @@
             (if (= turns 0)
                 (set turns 1))
             (state.set_stack target (as u8 st.Status.wet) turns)
-            (log.who target " is wet: half hits, # turns." turns))
+            (log.who target (at said.SAY said.SAY_WET_HALF_HITS) turns))
         (ac.Effect.spook
             (hit.add_stacks target (as u8 st.Status.spook) n)
-            (log.who target " is spooked: dice -#." n))
+            (log.who target (at said.SAY said.SAY_SPOOKED_DICE) n))
         (ac.Effect.brand
             (hit.add_stacks target (as u8 st.Status.brand) n)
-            (log.who target " is marked: hits +#." (state.stack target (as u8 st.Status.brand))))
+            (log.who target
+                (at said.SAY said.SAY_MARKED_HITS)
+                (state.stack target (as u8 st.Status.brand))))
         (ac.Effect.tangled
             (hit.add_stacks target (as u8 st.Status.tangle) n)
-            (log.who target " is tangled: hits -#." (state.stack target (as u8 st.Status.tangle))))
+            (log.who target
+                (at said.SAY said.SAY_TANGLED_HITS)
+                (state.stack target (as u8 st.Status.tangle))))
         (_)))

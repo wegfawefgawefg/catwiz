@@ -9,20 +9,20 @@
 ; actor i becomes a fresh enemy of kind, standing at its spot, on its first move; fresh: it
 ; waits a round before its first move (a summon, a then)
 (fn enemy ((i u8) (kind u8) (fresh bool)) void
-    (let fight enc.Fight (at enc.FIGHTS state.fight))
-    (let col u8 (at fight.spots (- i 1) col))
-    (let k en.Enemy (at en.ENEMIES kind))
+    (let col u8 (enc.spot_col state.fight (- i 1)))
+    (let hp u8 (en.hp kind))
+    (let first u8 (en.first_move kind))
     (set (at state.actors i)
         (make state.Actor
             :alive true
             :kind kind
-            :figure k.figure
-            :hp k.hp
-            :max_hp k.hp
+            :figure (en.figure kind)
+            :hp hp
+            :max_hp hp
             :col col
             :home col
             :lift 0
-            :move k.first_move
+            :move first
             :moves_made 0
             :mood state.Mood.angry
             :mood_time 0

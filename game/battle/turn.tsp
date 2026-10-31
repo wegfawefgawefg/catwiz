@@ -26,6 +26,28 @@
 (import battle/words)
 (import sound/sound)
 
+; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
+(const SAY (array (ptr u8) 8)
+    (make (array (ptr u8) 8)
+        "Pick a die 1-5, then an enemy ZXC."
+        "E ends the turn. B: kit. ?: rules."
+        "Your turn: pick a die (1-5)."
+        "R re-roll or E end turn."
+        "No playable dice."
+        ": meow!"
+        "A hairball: re-roll it to cough it up."
+        "Stars fill your mana; spells spend.")
+    :strings aux)
+
+(const SAY_PICK_DIE_1 u8 0)
+(const SAY_E_ENDS_TURN u8 1)
+(const SAY_TURN_PICK_DIE u8 2)
+(const SAY_R_RE_ROLL u8 3)
+(const SAY_NO_PLAYABLE_DICE u8 4)
+(const SAY_MEOW u8 5)
+(const SAY_HAIRBALL_RE_ROLL u8 6)
+(const SAY_STARS_FILL_MANA u8 7)
+
 (const HURT_LEFT u8 8)  ; frames of a held hurt face left once the enemies' turn ends
 (const DEAL_EVERY u8 4) ; frames from one die landing to the next: a power of 2
 (const DEAL_SHIFT u8 2)
@@ -53,9 +75,9 @@
     (sound.cue sound.Cue.turn_on)
     (if (log.once log.HINT_TURN)
         (do
-            (log.line "Pick a die 1-5, then an enemy ZXC." 0)
-            (log.line "Done? E (or tap END) ends the turn." 0))
-        (log.line "Your turn: pick a die (1-5)." 0))
+            (log.line (at SAY SAY_PICK_DIE_1) 0)
+            (log.line (at SAY SAY_E_ENDS_TURN) 0))
+        (log.line (at SAY SAY_TURN_PICK_DIE) 0))
     (dice.deal)
     (start_roll))
 
@@ -99,9 +121,9 @@
             (return)))
     (if (> state.rerolls 0)
         (do
-            (log.line "R re-roll or E end turn." 0)
+            (log.line (at SAY SAY_R_RE_ROLL) 0)
             (return)))
-    (log.line "No playable dice." 0)
+    (log.line (at SAY SAY_NO_PLAYABLE_DICE) 0)
     (set state.end_wait END_BEAT))
 
 ; the next living enemy one way or the other from the target (step 1 or 255)
@@ -160,7 +182,7 @@
             (play_selected)
             (return)))
     (sound.cue sound.Cue.meow)
-    (log.who state.HERO ": meow!" 0)
+    (log.who state.HERO (at SAY SAY_MEOW) 0)
     (act.begin state.Source.meow 0 state.HERO state.HERO))
 
 (fn player_key ((key u8)) void
@@ -190,6 +212,7 @@
                 (a2.KEY_RIGHT (pick_target 1))
                 (a2.KEY_RETURN (play_selected))
                 (a2.KEY_ESC (deselect))
+                ('.' (deselect)) ; a tap on the stage where nobody stands
                 (_ (sound.cue sound.Cue.nope))))))
 
 ; die d of the tray to draw again (none for NOTHING)
@@ -235,7 +258,7 @@
     (if (not (fx.can_play row))
         (do
             (sound.cue sound.Cue.nope)
-            (log.line "A hairball: re-roll it to cough it up." 0)
+            (log.line (at SAY SAY_HAIRBALL_RE_ROLL) 0)
             (return)))
     (sound.cue sound.Cue.tok)
     (deselect)
@@ -285,7 +308,7 @@
             (return)))
     (if (> (fx.mana) 0)
         (if (log.once log.HINT_MANA)
-            (log.line "Stars fill your mana; spells spend." 0)))
+            (log.line (at SAY SAY_STARS_FILL_MANA) 0)))
     (start_player))
 
 (fn end_battle ((how state.Phase)) void
@@ -347,7 +370,7 @@
             (return)))
     (let row u8 (at state.actors i move))
     (sound.cue sound.Cue.growl)
-    (log.uses i (at mv.MOVES row text) (foes.intent_amount i row))
+    (log.uses i (mv.text row) (foes.intent_amount i row))
     (act.begin state.Source.move row i (foes.move_target i row true)))
 
 ; the enemies' statuses tick and each takes up its next move; then the hero's turn (and her

@@ -90,9 +90,9 @@
 ; row r of the line in the 35-column font onto row y of the backdrop: a 4-pixel cell a
 ; character, the glyph's 3 pixels then a gap (lib/dhgr_pixels' cells), inverse the cell's bits
 ; flipped; glyph_at and flip are the line's, worked out once
-(let glyph_at (array u16 35))
-(let flip (array u8 35))
-(let cells (array u8 35))
+(let glyph_at (array u16 35) :address 0x0600) ; scratch: see AGENTS.md, Memory
+(let flip (array u8 35) :address 0x0646)
+(let cells (array u8 35) :address 0x0424)
 
 (fn glyphs35 () void
     (for i u8 0 COLUMNS
@@ -177,6 +177,29 @@
     (for k u8 0 8
         (row35 k (+ y k) b0 (- b1 b0)))
     (scene.mark (<< b0 3) y (<< (- b1 b0) 3) 8))
+
+; the line onto row y of the page, its first blocks of 7 characters (5 the whole width), not
+; kept as one of the four rows: the pages over the stage (battle/bag, rules)
+(const BLOCKS u8 5)
+
+(fn draw_at ((y u8) (blocks u8)) void
+    (if (= blocks 0)
+        (return))
+    (glyphs35)
+    (for k u8 0 8
+        (row35 k (+ y k) 0 blocks))
+    (scene.mark 0 y (<< blocks 3) 8))
+
+; the blocks of 7 characters the line reaches
+(fn blocks () u8
+    (let n u8 (reach (addr_of (at line 0))))
+    (let b u8 0)
+    (while (> n 0)
+        (set b (+ b 1))
+        (set n (if (> n 7)
+            (- n 7)
+            0)))
+    b)
 
 ; the line kept elsewhere (the log), and back
 (fn save ((to (ptr u8))) void

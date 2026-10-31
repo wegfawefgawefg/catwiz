@@ -416,4 +416,31 @@
             :amount 2
             :aim state.Aim.friend
             :motion state.Motion.hop
-            :icon '<')) :strings aux)
+            :icon '<'))
+    :in aux)
+
+; MOVES is in aux memory (:in aux, with its text: main memory is full): its fields are read here,
+; one at a time
+(fn effect ((row u8)) ac.Effect
+    (with_aux true false
+        (at MOVES row effect)))
+
+(fn amount ((row u8)) u8
+    (with_aux true false
+        (at MOVES row amount)))
+
+(fn aim ((row u8)) state.Aim
+    (with_aux true false
+        (at MOVES row aim)))
+
+(fn motion ((row u8)) state.Motion
+    (with_aux true false
+        (at MOVES row motion)))
+
+(fn icon ((row u8)) u8
+    (with_aux true false
+        (at MOVES row icon)))
+
+(fn text ((row u8)) (ptr u8)
+    (with_aux true false
+        (at MOVES row text)))

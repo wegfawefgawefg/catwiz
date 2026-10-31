@@ -12,6 +12,26 @@
 (import battle/log)
 (import sound/sound)
 
+; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
+(const SAY (array (ptr u8) 7)
+    (make (array (ptr u8) 7)
+        " sends # back."
+        " takes #."
+        "'s shield takes it all."
+        " gets up!"
+        " is beaten."
+        " is at full hp already."
+        " heals #.")
+    :strings aux)
+
+(const SAY_SENDS_BACK u8 0)
+(const SAY_TAKES u8 1)
+(const SAY_SHIELD_TAKES_ALL u8 2)
+(const SAY_GETS_UP u8 3)
+(const SAY_BEATEN u8 4)
+(const SAY_AT_FULL_HP u8 5)
+(const SAY_HEALS u8 6)
+
 ; the flash and the knockback end on the same frame: each change of a sprite costs a redraw
 ; of it on both pages (the hero's about 50,000 cycles), so a hit is three changes (hurt, white
 ; and knocked back; back in colour and place; the face again), not five
@@ -40,12 +60,12 @@
                         (as u8 st.Status.reflect)
                         (- (state.stack target (as u8 st.Status.reflect)) back))
                     (set damage (- damage back))
-                    (log.who target " sends # back." back)
+                    (log.who target (at SAY SAY_SENDS_BACK) back)
                     (plain state.HERO back)))))
     (if pierce
         (do
             (set state.hud_pills (| state.hud_pills (<< 1 target)))
-            (log.who target " takes #." damage)
+            (log.who target (at SAY SAY_TAKES) damage)
             (lose target damage))
         (plain target damage))
     (if (and (= target state.HERO) (!= by state.HERO))
@@ -60,12 +80,12 @@
     (set state.hud_pills (| state.hud_pills (<< 1 target)))
     (if (= damage 0)
         (do
-            (log.who target "'s shield takes it all." 0)
+            (log.who target (at SAY SAY_SHIELD_TAKES_ALL) 0)
             (sound.cue sound.Cue.ping)
             (set (at state.actors target flash) 1)
             (float_number target 0 false)
             (return)))
-    (log.who target " takes #." damage)
+    (log.who target (at SAY SAY_TAKES) damage)
     (lose target damage))
 
 ; n hit points off who, with all the feel of a hit; at 0 it starts dying
@@ -109,14 +129,14 @@
             (set (at state.held d) state.NOTHING)))
     (if (!= who state.HERO)
         (do
-            (let next u8 (at en.ENEMIES (at state.actors who kind) then))
+            (let next u8 (en.then (at state.actors who kind)))
             (if (!= next state.NOTHING)
                 (do
                     (spawn.enemy who next true)
                     (set (at state.actors who mood) state.Mood.hurt)
                     (set (at state.actors who mood_time) HURT_FRAMES)
                     (set state.hud_intents (| state.hud_intents (<< 1 who)))
-                    (log.who who " gets up!" 0)
+                    (log.who who (at SAY SAY_GETS_UP) 0)
                     (sound.cue sound.Cue.wobble)
                     (return)))))
     (set (at state.actors who alive) false)
@@ -125,7 +145,7 @@
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
     (set state.hud_intents (| state.hud_intents (<< 1 who)))
-    (log.who who " is beaten." 0)
+    (log.who who (at SAY SAY_BEATEN) 0)
     (sound.cue sound.Cue.squeak))
 
 (fn heal ((who u8) (n u8)) void
@@ -136,10 +156,10 @@
     ; nothing to mend: no +0 floats up
     (if (= n 0)
         (do
-            (log.who who " is at full hp already." 0)
+            (log.who who (at SAY SAY_AT_FULL_HP) 0)
             (return)))
     (set (at state.actors who hp) (+ hp n))
-    (log.who who " heals #." n)
+    (log.who who (at SAY SAY_HEALS) n)
     (set (at state.actors who mood) state.Mood.happy)
     (set (at state.actors who mood_time) HURT_FRAMES)
     (set state.hud_pills (| state.hud_pills (<< 1 who)))

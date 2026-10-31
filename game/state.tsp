@@ -26,9 +26,12 @@
 
 (enum Phase (rolling player acting enemies won lost reward))
 
-; the steps between fights (battle/reward): one of the fight's three cards, one of three charms,
-; the nap (sleep or dream), the slot a dream levels, one of two doors
+; the steps between fights (battle/reward): one of three cards, one of three charms, the rest
+; after an elite (the nap or a bonus upgrade), the slot the upgrade levels, one of two doors
 (enum Pick (cards charms nap nap_slot door))
+
+; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules)
+(enum Page (none bag rules))
 
 ; the face an actor shows (battle/look turns it into a frame of the art)
 (enum Mood (idle angry worried hurt attack happy ko surprised))
@@ -127,6 +130,7 @@
 (let selected u8)    ; the die picked to play next, or NOTHING
 (let target u8)      ; the enemy the dice go to
 (let log_hold u8)    ; frames the enemies wait, so the last log line can be read
+(let page Page)      ; the page open over the stage, none for the fight itself
 ; the reward screen
 (let pick Pick)
 (let picked u8)     ; the card picked, or NOTHING

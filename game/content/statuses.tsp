@@ -6,6 +6,11 @@
 (import battle/log)
 (import content/enemies en)
 
+; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
+(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) " takes # from fleas.") :strings aux)
+
+(const SAY_TAKES_FROM_FLEAS u8 0)
+
 (enum Status (shield ; soaks hits until the holder's next turn
         poison       ; fleas: damage at the end of each of its turns
         flea_turns   ; turns of fleas left
@@ -63,14 +68,15 @@
     (make (array (ptr u8) 27)
         "Shield " "Fleas " "" "Wet " "Cheered +" "Ward " "In a box" "" "Next +" "" "Next x"
         "Spooked -" "Sends back " "Lasered" "Spiky " "Strength +" "Kittens " "Tangled " "Marked "
-        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "") :strings aux)
+        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "")
+    :strings aux)
 
 ; a new fight: no stacks, and the ward its kind has (the hero: kind NOTHING)
 (fn start ((who u8) (kind u8)) void
     (for s u8 0 STATUS_COUNT
         (state.set_stack who s 0))
     (if (!= kind state.NOTHING)
-        (state.set_stack who (as u8 Status.ward) (at en.ENEMIES kind ward))))
+        (state.set_stack who (as u8 Status.ward) (en.ward kind))))
 
 ; an enemy's turn starts: last turn's shield and the hits it sends back are gone
 (fn turn_start ((who u8)) void
@@ -92,7 +98,7 @@
     (state.set_stack who (as u8 Status.flea_turns) (- turns 1))
     (if (= turns 1)
         (state.set_stack who (as u8 Status.poison) 0))
-    (log.who who " takes # from fleas." bite)
+    (log.who who (at SAY SAY_TAKES_FROM_FLEAS) bite)
     bite)
 
 ; whether who skips the move it was going to make: it just came in or got up

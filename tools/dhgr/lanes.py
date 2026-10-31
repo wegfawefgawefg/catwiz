@@ -21,6 +21,9 @@
 #     screen (look.tsp keeps it there otherwise)
 #   - the hit point badges as wide as BADGE_MOST of the widest glyph; intents 3 glyphs
 #
+# The map of the run (battle/map.tsp, MAP) is drawn at the top of the stage when a fight starts:
+# its box is kept black like a lane, so the scenery stays out of it.
+#
 # Between fights battle/kit.tsp draws her six slots where the enemies stood (pixels 77-139,
 # rows 62-109), not a look: the next fight's picture covers them, so they need no lane.
 #
@@ -38,6 +41,7 @@ SPOTS = {                        # content/encounters.tsp FIGHTS, by the fight's
     1: [("puffcap", 20), ("sporelet", 32)],
     2: [("puffcap", 20), ("sporelet", 32), ("nightflap", 26)],
 }
+MAP = (22, 0, 8, 12)             # battle/map.tsp: the map of the run, pixels 77-104, rows 0-11
 HOP_MOST = 6                     # act.tsp HOP
 LIFT_MOST = 6
 ARC = [0, 7, 11, 13, 14, 13, 11, 7, 0]
@@ -112,7 +116,7 @@ def reach(by_home, by_kind, t_home, t_kind):
 
 def boxes(n):
     # every lane box of fight n, each with what it is for: [(col, top, cols, rows, why)]
-    out = []
+    out = [MAP + ("map",)]
     misc = misc_sizes()
     cast = [("cat", HERO_COL)] + SPOTS[n]
     kinds = {k: Kind(k) for k, _ in cast}
@@ -216,7 +220,7 @@ def mask(n):
     return m
 
 
-TINT = {"fighter": (255, 60, 60), "poof": (255, 160, 40), "marker": (80, 220, 80),
+TINT = {"map": (255, 255, 255), "fighter": (255, 60, 60), "poof": (255, 160, 40), "marker": (80, 220, 80),
         "number": (60, 200, 255), "badge": (230, 230, 60), "bolt": (220, 80, 255)}
 
 
@@ -228,7 +232,7 @@ def debug_image(n, px, path):
         for x in range(dhgr.W):
             im.putpixel((x, y), dhgr.RGB[px[y][x] or 0])
     over = im.copy()
-    order = ["fighter", "poof", "bolt", "number", "marker", "badge"]
+    order = ["map", "fighter", "poof", "bolt", "number", "marker", "badge"]
     bxs = sorted(boxes(n), key=lambda b: order.index(b[4]))
     for col, top, cols, rows, why in bxs:
         x0, x1 = col * 7 // 2, (col + cols) * 7 // 2

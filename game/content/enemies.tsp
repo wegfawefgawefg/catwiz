@@ -1,4 +1,4 @@
-; the enemies, fights 1-10 and the boss. An enemy makes its moves (content/moves.tsp) in order,
+; the enemies of the run's ten fights, the boss's phases among them. An enemy makes its moves (content/moves.tsp) in order,
 ; round and round, from its first. calls: the kind its summon brings into empty spots (they wait
 ; a round); then: what it becomes when beaten, with that kind's full hit points, after a round to
 ; get up (the possum that faked it, the big bath's gremlin, the boss's phases); stall: it skips
@@ -39,9 +39,10 @@
 (const KING_2 u8 18)
 (const KING_3 u8 19)
 (const PUG u8 20)
+(const OLD_GNOME u8 21) ; the woods' elite: a stand-in, the garden gnome with more hit points
 
-(const ENEMIES (array Enemy 21)
-    (make (array Enemy 21)
+(const ENEMIES (array Enemy 22)
+    (make (array Enemy 22)
         (make Enemy
             :name "Puffcap"
             :hp 6
@@ -251,4 +252,53 @@
             :move_count 2
             :calls state.NOTHING
             :then state.NOTHING
-            :stall 0)) :strings aux)
+            :stall 0)
+        (make Enemy
+            :name "Old gnome"
+            :hp 24
+            :ward 1
+            :figure art.KIND_PUFFCAP
+            :first_move 7
+            :move_count 2
+            :calls state.NOTHING
+            :then state.NOTHING
+            :stall 0))
+    :in aux)
+
+; ENEMIES is in aux memory (:in aux, with its names: main memory is full): its fields are read
+; here, one at a time
+(fn first_move ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind first_move)))
+
+(fn move_count ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind move_count)))
+
+(fn name ((kind u8)) (ptr u8)
+    (with_aux true false
+        (at ENEMIES kind name)))
+
+(fn hp ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind hp)))
+
+(fn ward ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind ward)))
+
+(fn figure ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind figure)))
+
+(fn calls ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind calls)))
+
+(fn then ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind then)))
+
+(fn stall ((kind u8)) u8
+    (with_aux true false
+        (at ENEMIES kind stall)))

@@ -25,7 +25,7 @@
 (fn name ((who u8)) (ptr u8)
     (if (= who state.HERO)
         (return enc.HERO.name))
-    (at en.ENEMIES (at state.actors who kind) name))
+    (en.name (at state.actors who kind)))
 
 (fn clear () void
     (set waiting 0)
@@ -44,10 +44,11 @@
 (const USES u8 2)
 (const WAITING u8 8)
 (let waiting u8 0)
-(let w_kind (array u8 8))
-(let w_name (array (ptr u8) 8))
-(let w_text (array (ptr u8) 8))
-(let w_n (array u8 8))
+; scratch (AGENTS.md, Memory): set before they are read, as waiting counts them
+(let w_kind (array u8 8) :address 0x0447)
+(let w_name (array (ptr u8) 8) :address 0x0457)
+(let w_text (array (ptr u8) 8) :address 0x0467)
+(let w_n (array u8 8) :address 0x044F)
 (let unshown bool false)
 
 ; a line waits for flush; with the line full, the oldest goes (only the last two show anyway)
@@ -86,10 +87,8 @@
             (text.add_aux (at w_name k)))
         (if (= kind USES)
             (text.add ": "))
-        ; a move's text is the content's, in aux memory; the other sentences are the code's
-        (if (= kind USES)
-            (text.add_aux_n (at w_text k) (at w_n k))
-            (text.add_n (at w_text k) (at w_n k)))
+        ; every sentence is in aux memory: a move's text (the content's) or a module's SAY table
+        (text.add_aux_n (at w_text k) (at w_n k))
         (if (= kind USES)
             (text.char '.'))
         (push))
@@ -99,11 +98,18 @@
     (text.load_line (addr_of (at older 0)))
     (text.show ROW_OLDER))
 
-; a sentence: s with n for its #
+; the two rows shown again as they were (a page over the stage wrote over them)
+(fn reshow () void
+    (text.load_line (addr_of (at newer 0)))
+    (text.show ROW_NEWER)
+    (text.load_line (addr_of (at older 0)))
+    (text.show ROW_OLDER))
+
+; a sentence: s (in aux memory: a SAY table's) with n for its #
 (fn line ((s (ptr u8)) (n u8)) void
     (wait LINE "" s n))
 
-; a sentence about who: its name, then s
+; a sentence about who: its name, then s (in aux memory)
 (fn who ((w u8) (s (ptr u8)) (n u8)) void
     (wait WHO (name w) s n))
 

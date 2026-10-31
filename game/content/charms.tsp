@@ -7,15 +7,23 @@
 (import content/statuses st)
 (import battle/log)
 
+; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
+(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) "A kitten runs off.") :strings aux)
+
+(const SAY_KITTEN_RUNS_OFF u8 0)
+
 (const KITTENS_MOST u8 5)
 
 ; how much of charm kind the run holds: its amount, once for each one held
 (fn amount ((kind enc.CharmKind)) u8
     (let n u8 0)
     (for c u8 0 10
-        (if (= (at enc.CHARMS c kind) kind)
-            (for k u8 0 (at state.charms c)
-                (set n (+ n (at enc.CHARMS c amount))))))
+        (let held u8 (at state.charms c))
+        (if (> held 0)
+            (do
+                (if (= (enc.charm_kind c) kind)
+                    (for k u8 0 held
+                        (set n (+ n (enc.charm_amount c))))))))
     n)
 
 (fn held ((kind enc.CharmKind)) bool
@@ -66,7 +74,7 @@
     (if (> kittens 0)
         (do
             (state.set_stack state.HERO (as u8 st.Status.kittens) (- kittens 1))
-            (log.line "A kitten runs off." 0)))
+            (log.line (at SAY SAY_KITTEN_RUNS_OFF) 0)))
     (st.gain_mana (amount enc.CharmKind.grumpy)))
 
 ; a ward pip took a curse (hers or an enemy's): a rubber duck's shield

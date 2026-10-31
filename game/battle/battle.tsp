@@ -4,16 +4,14 @@
 ; a card, a charm, the nap, the doors), then the next fight; after the last, "to be continued".
 
 (import apple2 a2)
+(import dhgr)
 (import state)
-(import art/sprites art)
 (import content/charms)
-(import content/enemies en)
 (import content/encounters enc)
 (import content/items)
 (import content/statuses st)
 (import draw/screen)
 (import draw/scene)
-(import draw/blit)
 (import draw/stage)
 (import draw/text)
 (import battle/place)
@@ -26,23 +24,32 @@
 (import battle/words)
 (import battle/log)
 (import battle/reward)
+(import battle/map)
+(import battle/page)
+(import random)
 (import sound/sound)
 
 (const BANNER_AFTER u8 56) ; frames from the last blow to the end: the poof has finished
 
 ; for test builds, flipped in a copy: the run starts at fight START_STAGE (0 the first; with
 ; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before "to be continued"
-; (fights 3-11 fight on fight 1-2's screens with stand-in figures); START_CHARM is held from
+; (fights 3-10 fight on fight 1-2's screens with stand-in figures); START_CHARM is held from
 ; the start (a row of enc.CHARMS); WIN_AT_ONCE wins every fight as it starts, to walk what
-; comes between fights (the cards, charms, the nap, the doors). The kit: items.STARTING_ITEMS
+; comes between fights (the cards, charms, the rest, the doors); SEED, when not 0, seeds the
+; run's random numbers (the dice and the draws between fights) the same every time, for testing
+; the draws. The kit: items.STARTING_ITEMS
 (const START_STAGE u8 0)
 (const START_FIGHT u8 0)
 (const STOP_STAGE u8 2)
 (const START_CHARM u8 state.NOTHING)
 (const WIN_AT_ONCE bool false)
+(const SEED u16 0)
 
 ; a new run: the starting items, no levels or charms, full hit points, the first fight
 (fn enter () void
+    (if (!= SEED 0)
+        (set random.seed SEED))
+    (set state.page state.Page.none)
     (for k u8 0 state.SLOTS
         (set (at state.items k) (at items.STARTING_ITEMS k))
         (set (at state.levels k) 0))
@@ -57,38 +64,28 @@
     (set state.screen state.Screen.battle)
     (enter_fight))
 
-; enemy kind's figure, and the figures of the kinds it calls and becomes, for load_art
-(fn want_enemy ((kind u8)) void
-    (let k u8 kind)
-    (while (!= k state.NOTHING)
-        (blit.want (at en.ENEMIES k figure))
-        (let calls u8 (at en.ENEMIES k calls))
-        (if (!= calls state.NOTHING)
-            (blit.want (at en.ENEMIES calls figure)))
-        (set k (at en.ENEMIES k then))))
-
-; the fight's art: its backdrop unpacked onto the spare page and copied onto the page (so it
-; never shows half unpacked), the hero's, the small sprites' and its enemies' runs unpacked
-; (draw/blit). The music stops first: the card's half unpacks with interrupts off
+; the fight's art, from the disk (draw/stage): its screen's picture unpacked onto the spare page
+; and shown there (so it never shows half unpacked) while the screen's runs (the hero's, the small
+; sprites', the enemies' figures) are read through the page (draw/blit) and unpacked; then copied
+; onto the page, shown again. The spare page keeps the picture all fight (battle/page puts the
+; stage back from it). The music stops first: the card's half unpacks with interrupts off
 (fn load_art () void
     (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
-    (let fight enc.Fight (at enc.FIGHTS state.fight))
-    (stage.backdrop screen.SPARE fight.backdrop)
+    (let n u8 (enc.backdrop state.fight))
+    (stage.backdrop screen.SPARE n)
+    (dhgr.show screen.SPARE)
+    (stage.fight_runs n)
     (screen.copy_page screen.SPARE screen.PAGE)
+    (dhgr.show screen.PAGE)
     (scene.forget)
-    (blit.start)
-    (blit.want art.KIND_CAT)
-    (blit.want art.KIND_MISC)
-    (for i u8 0 fight.count
-        (want_enemy (at fight.spots i enemy)))
-    (blit.unpack_all)
     (text.forget)
     (hud.forget))
 
 (fn enter_fight () void
     (load_art)
+    (map.draw)
     (set state.turn 0)
     (set state.hitstop 0)
     (set state.bolt_on false)
@@ -104,11 +101,11 @@
     (set_hero)
     (st.start state.HERO state.NOTHING)
     (charms.fight_start)
-    (let fight enc.Fight (at enc.FIGHTS state.fight))
+    (let count u8 (enc.count state.fight))
     (for i u8 1 state.ACTORS
-        (if (> i fight.count)
+        (if (> i count)
             (spawn.nobody i)
-            (spawn.enemy i (at fight.spots (- i 1) enemy) false))
+            (spawn.enemy i (enc.spot_enemy state.fight (- i 1)) false))
         (set (at state.actors i mood) (look.resting_mood i)))
     (text.clear)
     (log.clear)
@@ -161,6 +158,11 @@
 
 ; one frame of the battle; gives the screen to show next
 (fn step ((key u8)) state.Screen
+    ; a page over the stage: the fight waits under it
+    (if (!= state.page state.Page.none)
+        (do
+            (page.step key)
+            (return state.Screen.battle)))
     (look.tick)
     (if (> state.log_hold 0)
         (set state.log_hold (- state.log_hold 1)))
@@ -168,7 +170,9 @@
         (return state.Screen.battle))
     (match state.phase
         (state.Phase.rolling (turn.roll_step))
-        (state.Phase.player (turn.player_key key))
+        (state.Phase.player
+            (if (not (page.opens key))
+                (turn.player_key key)))
         (state.Phase.acting
             (if (act.step)
                 (turn.after_action)))
@@ -214,6 +218,8 @@
 (let drawn_phase state.Phase state.Phase.won)
 
 (fn will_change () bool
+    (if (!= state.page state.Page.none)
+        (return false))
     (if (or (or (!= state.hud_pills 0) (!= state.hud_intents 0))
             (or (!= state.hud_dice 0) (or state.hud_rerolls state.hud_words)))
         (return true))
@@ -225,6 +231,8 @@
 ; the tray first: a pick shows a pass before the rows of words it changes (each a few frames
 ; to draw), which wait for the next
 (fn draw () void
+    (if (!= state.page state.Page.none)
+        (return))
     (scene.begin)
     (set drawn_phase state.phase)
     (let words_due bool (words.due))

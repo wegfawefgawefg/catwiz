@@ -232,8 +232,8 @@
 
 ; ---- the buttons and the mana, right of the cards
 
-; the re-roll button (a die, X and the re-rolls left, grey with none), the mana stars lit for
-; what the hero has, END TURN, in pixels 105-139
+; the re-roll button (a die, X and the re-rolls left, grey with none), the bag and rules buttons
+; (B, ?) right of it, the mana stars lit for what the hero has, END TURN, in pixels 105-139
 (let side_glyphs (array u8 8))
 
 (fn side_row ((y u8) (rerolls u8) (mana u8) (most u8)) void
@@ -244,20 +244,45 @@
             (let inset u8 (if (or (= y 124) (= y 135))
                 1
                 0))
-            (pix.span (+ 107 inset) (- 115 inset) (if (> rerolls 0)
+            (pix.span (+ 105 inset) (- 114 inset) (if (> rerolls 0)
                 WHITE
                 GREY))
             (if (or (or (= y 126) (= y 127)) (or (= y 132) (= y 133)))
                 (do
-                    (pix.dot 108 BLACK)
-                    (pix.dot 112 BLACK)))
+                    (pix.dot 106 BLACK)
+                    (pix.dot 110 BLACK)))
             (if (or (= y 129) (= y 130))
-                (pix.dot 110 BLACK))))
+                (pix.dot 108 BLACK))))
     (if (and (>= y 128) (< y 133))
         (do
             (set (at side_glyphs 0) 'X')
             (set (at side_glyphs 1) (+ '0' rerolls))
-            (pix.glyphs 118 (addr_of (at side_glyphs 0)) 2 (- y 128) WHITE)))
+            (pix.glyphs 115 (addr_of (at side_glyphs 0)) 2 (- y 128) WHITE)))
+    ; the bag (her kit) and the rules: small white pills
+    (if (and (>= y 122) (< y 129))
+        (do
+            (pix.span
+                (if (or (= y 122) (= y 128))
+                    125
+                    124)
+                (if (or (= y 122) (= y 128))
+                    139
+                    140)
+                WHITE)
+            (if (and (>= y 123) (< y 128))
+                (pix.glyphs 127 "BAG" 3 (- y 123) BLACK))))
+    (if (and (>= y 131) (< y 138))
+        (do
+            (pix.span
+                (if (or (= y 131) (= y 137))
+                    125
+                    124)
+                (if (or (= y 131) (= y 137))
+                    139
+                    140)
+                WHITE)
+            (if (and (>= y 132) (< y 137))
+                (pix.glyphs 130 "?" 1 (- y 132) BLACK))))
     ; the mana: a star for each, lit while the hero has it
     (if (and (>= y 139) (< y 145))
         (do

@@ -7,11 +7,11 @@
 #                    (the marker, bolt, poofs, digits, the title's glow). KIND_FRAME by role:
 #                    idle attack hurt happy surprised flap flash (ROLE_COUNT 7); flash is the
 #                    white silhouette of the hurt frame, in its box, for the hit flash
-#   runs_KIND.tsp    a kind's runs, packed while compiling: KIND_aux, KIND_main (both in aux
-#                    memory; the game unpacks the aux halves to aux memory and the main halves
-#                    to the aux language card when a fight starts)
-#   NAME_aux.tsp, NAME_main.tsp   a whole screen's halves (8 KB each, $2000-relative), packed:
-#                    the fights' backdrops with their shadows, the title
+#   screen_NAME.tsp  a screen's art on the disk (draw/packs: packed while compiling, read
+#                    whole when the screen starts): PICTURE, its two halves (8 KB each,
+#                    $2000-relative); RUNS, the runs of its kinds (KINDS), every main half (to the
+#                    aux language card), then every aux half (to aux memory). screen_fight1 (the
+#                    clearing), screen_fight2 (the path), screen_title
 #   hud_data.tsp     the tray's card shapes, the hud font and its icons, the 35-column font
 #   icons.tsp        the card pictures as pixels (in aux memory) and their TILE numbers
 #   font40.tsp       the 40-column font, for when the text is switched to it
@@ -57,10 +57,6 @@ def write(name, text):
     with open(path, "w") as f:
         f.write(text)
     return path
-
-
-def packed(name, data, note):
-    return "; %s: %d bytes\n(tables.packed_bytes %s (\n%s) :in aux)\n" % (note, len(data), name, numbers(data))
 
 
 # ---- sprites
@@ -160,14 +156,9 @@ def sprites_module(kinds):
     return "\n".join(lines)
 
 
-def runs_module(kind, sprites):
-    aux = b"".join(s.aux for s in sprites)
-    main = b"".join(s.main for s in sprites)
-    text = HEAD + "; %s: %d sprites, runs for aux memory (aux) and the aux language card (main)\n\n" % (kind, len(sprites))
-    text += "(import tables)\n\n"
-    text += packed("%s_aux" % kind, aux, "the aux halves") + "\n"
-    text += packed("%s_main" % kind, main, "the main halves")
-    return text, len(aux), len(main)
+def runs_halves(sprites):
+    # a kind's runs: its aux halves and its main halves, sprite after sprite
+    return b"".join(s.aux for s in sprites), b"".join(s.main for s in sprites)
 
 
 # ---- screens
@@ -178,14 +169,22 @@ def fight_picture(F):
     return night.picture(F["variant"])
 
 
-def screen_modules(name, px):
+def screen_module(name, px, kinds, ids):
+    # PICTURE: the screen's aux half, then its main half (8 KB each, $2000-relative); RUNS: its
+    # kinds' runs, every main half in KINDS order, then every aux half (blit.unpack_all's
+    # order). Both draw/packs tables: read whole, unpacked part by part
     main, aux = dhgr.to_pages(px)
-    out = []
-    for half, data in (("aux", aux), ("main", main)):
-        text = HEAD + "; %s, the %s memory half of the screen ($2000-relative)\n\n(import tables)\n\n" % (name, half)
-        text += packed("picture", data, "the half")
-        out.append(("%s_%s.tsp" % (name, half), text))
-    return out
+    text = HEAD + "; %s: the picture and the runs of its kinds (%s), packed, on the disk\n\n" % (
+        name, " ".join(k for k, _ in kinds))
+    text += "(import draw/packs)\n\n"
+    text += table("KINDS", "u8", ids, "the kinds' numbers (art/sprites KIND_), the runs' order")
+    text += "\n; the picture: its aux half, its main half\n(packs.packs PICTURE\n    (\n%s)\n    (\n%s))\n" % (
+        numbers(aux), numbers(main))
+    halves = [runs_halves(sprites) for _, sprites in kinds]
+    text += "\n; the runs: every main half, then every aux half\n(packs.packs RUNS\n"
+    text += "\n".join("    (\n%s)" % numbers(m) for _, m in halves) + "\n"
+    text += "\n".join("    (\n%s)" % numbers(a) for a, _ in halves) + ")\n"
+    return text
 
 
 # ---- the hud
@@ -251,14 +250,20 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     kinds = all_sprites()
     print(write("sprites.tsp", sprites_module(kinds)))
-    for kind, sprites, _ in kinds:
-        text, na, nm = runs_module(kind, sprites)
-        print(write("runs_%s.tsp" % kind, text), na, nm)
+    ids = {kind: i for i, (kind, _, _) in enumerate(kinds)}
+    sprites = {kind: s for kind, s, _ in kinds}
+
+    def cast(names):
+        return [(k, sprites[k]) for k in names], [ids[k] for k in names]
+
+    # the fights' kinds in the order battle.load_art wanted them (the hero, the small sprites,
+    # then the enemies' figures): the order they are placed in (tools/dhgr/memory.py)
     for F in FIGHTS:
-        for name, text in screen_modules("fight%d" % F["n"], fight_picture(F).px):
-            print(write(name, text))
-    for name, text in screen_modules("title", title.picture().px):
-        print(write(name, text))
+        names = ["cat", "misc", "puffcap", "sporelet"] + (["nightflap"] if F["n"] == 2 else [])
+        ks, ns = cast(names)
+        print(write("screen_fight%d.tsp" % F["n"], screen_module("fight %d" % F["n"], fight_picture(F).px, ks, ns)))
+    ks, ns = cast(["glow"])
+    print(write("screen_title.tsp", screen_module("the title", title.picture().px, ks, ns)))
     print(write("hud_data.tsp", hud_module()))
     print(write("icons.tsp", icons_module()))
     print(write("font40.tsp", font40_module()))

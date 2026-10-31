@@ -24,7 +24,7 @@
 (let filling u8 0) ; the badge being filled
 ; what it showed before, so a badge filled the same again is not drawn again (each drawing is
 ; a read and a write of its rows on both pages)
-(let was (array u8 8))
+(let was (array u8 8) :address 0x0700) ; scratch: see AGENTS.md, Memory
 (let was_count u8 0)
 
 (fn start_glyphs ((b u8)) void
@@ -133,7 +133,7 @@
     (let icon u8 (foes.intent_icon who row))
     (start_glyphs (- (+ state.ACTORS who) 1))
     (put icon)
-    (if (and (= icon (at mv.MOVES row icon)) (foes.shows_amount row))
+    (if (and (= icon (mv.icon row)) (foes.shows_amount row))
         (put_number (foes.intent_amount who row)))
     (finish look (place.centre_x who) (- (place.top who) 12)))
 

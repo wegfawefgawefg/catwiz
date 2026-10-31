@@ -1,23 +1,19 @@
 ; sprites onto a page, and the backdrop back over a page.
 ;
 ; a sprite (art/sprites.tsp) is two halves stored as lib/dhgr runs: its aux memory bytes and
-; its main memory bytes. A screen's kinds are unpacked when it starts (want, unpack_all) into
-; the aux language card and aux memory, so neither half takes main memory. Sprites go on the
+; its main memory bytes. A screen's kinds are read from the disk when it starts (unpack_all: its
+; RUNS table, draw/packs, into page 1's aux memory, not shown then: READ_AT), and unpacked from
+; there into the aux language card and aux memory, so neither half takes main memory. Sprites go on the
 ; byte grid: col is an even byte column (7 pixels a step of 2), top a row, both of the sprite's
 ; top-left corner.
 ; Nothing is clipped: callers keep sprites on the screen.
 
 (import auxcard)
+(import disk)
 (import dhgr)
 (import unpack)
 (import art/sprites art)
-(import art/runs_cat)
-(import art/runs_puffcap)
-(import art/runs_sporelet)
-(import art/runs_nightflap)
-(import art/runs_misc)
-(import art/runs_glow)
-(import draw/screen)
+(import draw/packs)
 
 ; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
 ; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
@@ -39,31 +35,8 @@
 (let card2_next u16 0xD000)
 (let card1_next u16 0xD000)
 
-; a new screen's kinds from here on
-(fn start () void
-    (set wanted_count 0)
-    (set aux_next 0)
-    (set card2_next CARD_START)
-    (set card1_next CARD_START))
-
-; one kind's packed runs, the aux halves and the main ones
-(fn kind_aux ((kind u8)) (ptr u8)
-    (match kind
-        (art.KIND_CAT (addr_of (at runs_cat.cat_aux 0)))
-        (art.KIND_PUFFCAP (addr_of (at runs_puffcap.puffcap_aux 0)))
-        (art.KIND_SPORELET (addr_of (at runs_sporelet.sporelet_aux 0)))
-        (art.KIND_NIGHTFLAP (addr_of (at runs_nightflap.nightflap_aux 0)))
-        (art.KIND_MISC (addr_of (at runs_misc.misc_aux 0)))
-        (_ (addr_of (at runs_glow.glow_aux 0)))))
-
-(fn kind_main ((kind u8)) (ptr u8)
-    (match kind
-        (art.KIND_CAT (addr_of (at runs_cat.cat_main 0)))
-        (art.KIND_PUFFCAP (addr_of (at runs_puffcap.puffcap_main 0)))
-        (art.KIND_SPORELET (addr_of (at runs_sporelet.sporelet_main 0)))
-        (art.KIND_NIGHTFLAP (addr_of (at runs_nightflap.nightflap_main 0)))
-        (art.KIND_MISC (addr_of (at runs_misc.misc_main 0)))
-        (_ (addr_of (at runs_glow.glow_main 0)))))
+; where a screen's runs table is read: page 1 in aux memory, not shown while its art loads
+(const READ_AT u16 0x2000)
 
 ; packed runs of size bytes into the card: bank 2 if they fit, else bank 1 (with aux_first,
 ; bank 1 first); gives the flags for where, or 0 for neither
@@ -86,33 +59,30 @@
             (return dhgr.FROM_CARD)))
     0)
 
-; the kinds this screen wants, unpacked together by unpack_all
-(let wanted (array u8 6))
-(let wanted_count u8 0)
-
-(fn want ((kind u8)) void
-    (for i u8 0 wanted_count
-        (if (= (at wanted i) kind)
-            (return)))
-    (set (at wanted wanted_count) kind)
-    (set wanted_count (+ wanted_count 1)))
-
-; the wanted kinds' runs unpacked for this screen, all the main halves first (they must go in
-; the card), then the aux halves (interrupts are off while a half unpacks into the card)
-(fn unpack_all () void
-    (for i u8 0 wanted_count
-        (let kind u8 (at wanted i))
-        (set (at card_flags kind) (into_card (kind_main kind) (at art.KIND_MAIN_SIZE kind) false))
+; a screen's kinds' runs: its RUNS table (art/screen_*) read, then unpacked, all the main halves
+; first (they must go in the card), then the aux halves (interrupts are off while a half unpacks
+; into the card); kinds: the screen's KINDS, n of them, in the table's order
+(fn unpack_all ((table (ptr u8)) (kinds (ptr u8)) (n u8)) void
+    (set aux_next 0)
+    (set card2_next CARD_START)
+    (set card1_next CARD_START)
+    (let read (ptr u8) (as (ptr u8) READ_AT))
+    (disk.read read table disk.AUX)
+    (for i u8 0 n
+        (let kind u8 (load (+ kinds i)))
+        (set (at card_flags kind)
+            (into_card (packs.part read i) (at art.KIND_MAIN_SIZE kind) false))
         (set (at card_at kind) placed_at))
-    (for i u8 0 wanted_count
-        (let kind u8 (at wanted i))
-        (let flags u8 (into_card (kind_aux kind) (at art.KIND_AUX_SIZE kind) true))
+    (for i u8 0 n
+        (let kind u8 (load (+ kinds i)))
+        (let src (ptr u8) (packs.part read (+ n i)))
+        (let flags u8 (into_card src (at art.KIND_AUX_SIZE kind) true))
         (set (at aux_flags kind) flags)
         (set (at aux_at kind) placed_at)
         (if (= flags 0)
             (do
                 (let at (ptr u8) (+ (addr_of (at sprite_aux 0)) aux_next))
-                (unpack.aux_to_aux at (kind_aux kind))
+                (unpack.aux_to_aux at src)
                 (set (at aux_at kind) (as u16 at))
                 (set aux_next (+ aux_next (at art.KIND_AUX_SIZE kind)))))))
 

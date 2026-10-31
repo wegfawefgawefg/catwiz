@@ -218,8 +218,8 @@ def clearing():
 def path():
     N = Night(FIGHT_OF["path"])
     N.stars(23, 22)
-    # a thin crescent in the top band, over the gap between the cat and the enemies
-    crescent(N, 91, 6, 3.6, 5.6)
+    # a thin crescent in the top right corner (the map of the run has the gap over the cat)
+    crescent(N, 132, 5, 3.6, 5.0)
     # the lantern at the left edge: a post, a hood, warm glass, its light on the post
     N.rect(2, 44, 4, forest.STAGE, BROWN)
     N.rect(0, 30, 6, 31, GREY)

@@ -59,7 +59,7 @@
             (if (= (at items.ITEMS state.act_row aim) state.Aim.self)
                 state.Motion.hop
                 state.Motion.throw))
-        (state.Source.move (at mv.MOVES state.act_row motion))
+        (state.Source.move (mv.motion state.act_row))
         (state.Source.meow state.Motion.hop)))
     (if (and (= m state.Motion.lunge) (blocked state.act_by state.act_on))
         state.Motion.throw

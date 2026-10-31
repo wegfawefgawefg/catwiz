@@ -16,15 +16,20 @@
 (const GLOW_STEPS u8 4)   ; the rim's colours in turn (tools/dhgr/title.py, GLOW)
 (const GLOW_FRAMES u8 10) ; frames on each step
 
+(let shown bool false) ; the title has been on the screen
+
 (fn enter () void
     (set state.screen state.Screen.title)
     (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
     (stage.title dhgr.PAGE2)
-    (blit.start)
-    (blit.want art.KIND_GLOW)
-    (blit.unpack_all)
+    ; page 1 is where the runs are read (draw/blit): once the screen is graphics (after the
+    ; first title) the picture shows from page 2 meanwhile
+    (if shown
+        (dhgr.show dhgr.PAGE2))
+    (set shown true)
+    (stage.title_runs)
     (screen.copy_page dhgr.PAGE2 dhgr.PAGE1)
     (screen.on)
     (set state.glow 0)

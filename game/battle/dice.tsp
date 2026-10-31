@@ -8,6 +8,11 @@
 (import content/items)
 (import battle/log)
 
+; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
+(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) "Hack! A hairball coughed up.") :strings aux)
+
+(const SAY_HACK_HAIRBALL_COUGHED u8 0)
+
 ; a fight's start: every die back, no hairball
 (fn gather () void
     (for d u8 0 state.DICE_MOST
@@ -46,4 +51,4 @@
         (if (and (not (at state.played d)) (= (at state.hand d) items.HAIRBALL))
             (do
                 (set (at state.clogged (at state.face_of d)) false)
-                (log.line "Hack! A hairball coughed up." 0)))))
+                (log.line (at SAY SAY_HACK_HAIRBALL_COUGHED) 0)))))
