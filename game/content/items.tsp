@@ -406,7 +406,7 @@
             :icon icons.TILE_PLUS1)
         (make ac.Item
             :name "TIMES TWO"
-            :text "Next wand, fluff, book x#: counts #"
+            :text "Next die x#: counts #"
             :slot ac.Slot.trick
             :effect ac.Effect.double
             :amount 2

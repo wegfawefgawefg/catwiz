@@ -59,7 +59,8 @@
 (let counts u8 1)
 
 ; the number item row lands with: its number, then the boosts in their order (as
-; tools/sim/items.py): a times waiting (a wand, fluff or book only), a plus, catnip's 1, knead (a
+; tools/sim/items.py): a times waiting (the next die, any slot but a trick: the owner,
+; 2026-10-31, a star leaving it waiting was not right), a plus, catnip's 1, knead (a
 ; fluff times 2, a wand more), bad milk (a wand +1), a wish (a wand times 2), then a spook takes
 ; away. use: the boosts are used up (it lands); else only looked at (the bottom text). A trick
 ; takes no boosts
@@ -70,8 +71,7 @@
     (if (= slot ac.Slot.trick)
         (return n))
     (let mult u8 (hero st.Status.mult))
-    (if (and (> mult 0)
-            (or (or (= slot ac.Slot.wand) (= slot ac.Slot.fluff)) (= slot ac.Slot.book)))
+    (if (> mult 0)
         (do
             (set n (times n mult))
             (set counts mult)
@@ -154,8 +154,9 @@
     (sound.cue sound.Cue.chime)
     (match (at items.ITEMS row effect)
         (ac.Effect.plus
-            (if (> n (hero st.Status.plus))
-                (set_hero st.Status.plus n))
+            ; pluses add up: +1 then +1 is +2 on the next two dice (the owner, 2026-10-31: a
+            ; second +1 only starting the two again "doesnt seem right")
+            (add_hero st.Status.plus n)
             (set_hero st.Status.plus_left PLUS_DICE)
             (log.line "The next 2 dice get +#." (hero st.Status.plus)))
         (ac.Effect.double
