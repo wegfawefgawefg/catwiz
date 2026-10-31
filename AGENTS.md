@@ -59,7 +59,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Art
 
 - Double hi-res (2026-10-30): `tools/dhgr/`, run `python3 tools/dhgr/make.py` (previews to
-  `shots/dhgr/`, byte tables to `art/dhgr/`, memory per fight in `art/dhgr/memory.txt`) and
+  `shots/dhgr/`, the lanes checked, memory per fight in `art/dhgr/memory.txt`) and
   `python3 tools/dhgr/game.py` (or `make.py game`) for the game's tables in `game/art/`
   (generated: never edit by hand; formats at the top of `game.py`). Drawn at 140 x 192 wide
   pixels (a pixel is 4 dots, 1.83 rows wide).
@@ -69,22 +69,38 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   memory); a screen's kinds are unpacked when it starts (`draw/blit.tsp`): the main halves into
   the aux language card's bank 2, the aux halves into its bank 1, the rest of bank 2, then
   `sprite_aux` in aux memory, as they fit. Frames are whole (no face patches): a mood shows as a
-  kind's frame by role (idle, attack, hurt, happy, surprised, flap; `battle/look.tsp`), its idle
-  one when it has none.
-- Fighters are drawn once in materials and lit per zone (day, dusk, night: `tools/dhgr/light.py`,
-  a palette swap plus rims by code); the build carries the zone of its fights (day) lit
-  offline. Fights 1-4 are day, 5-7 dusk, 8-10 and the boss night.
-- The backdrops are whole screens with the fighters' shadows (`game.py`, `fight_picture`), the
-  title one picture with its letters' rim in four colours as sprites (the glow).
+  kind's frame by role (idle, attack, hurt, happy, surprised, flap, flash; `battle/look.tsp`),
+  its idle one when it has none.
+- Midnight (2026-10-31): the whole game is night, for speed. The fighters stand on pure black
+  and every fighter frame is solid: the figure flattened onto black over its whole box, only
+  opaque runs (`SOLID` in `art/sprites`). One copy of a frame erases the last pose and draws the
+  new one, with no restore and no mask. The flash role is a solid white silhouette of the hurt
+  frame. The small sprites (marker, bolt, poofs, digits, the title's glow) stay masked.
+- The lane rule: every pixel of the stage that any battle look can ever cover is black (colour
+  0) in the backdrop. `tools/dhgr/lanes.py` works the lanes out from the game's numbers (each
+  frame at home and on its lunge, lifts, the knockback, the flyer's bob, the bolt's arc, the
+  floating numbers' rise, markers, poofs, badges), mirrored from `battle/` and `draw/badge.tsp`:
+  change one of those and the lanes in `lanes.py` with it, then `make.py lanes` (it fails when
+  scenery is in a lane; `shots/dhgr/lanes_*.png` shows them tinted). The lanes take about 80% of
+  the stage (fight 1 79%, fight 2 86%): the scenery is a thin frame round them.
+- Fighters are drawn once in materials and lit per zone (`tools/dhgr/light.py`, a palette swap
+  plus rims by code); the build carries the night, lit offline. On black the outline is gone,
+  so the night rims go round the whole figure but the feet (light blue left and top, pink
+  right).
+- The backdrops are whole screens (`game.py`, `fight_picture`): `tools/dhgr/night.py` draws each
+  fight's night outside its lanes (the clearing: a full moon, an oak, a fairy ring; the path: a
+  crescent, a lantern, flagstones). No shadows: every spot under a fighter is in a lane. The
+  title is one picture with its letters' rim in four colours as sprites (the glow). The day
+  forest (`forest.py`, `palettes.py`) and its previews are the old plan, kept for the record.
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
   from `art/icons`), the buttons, the text.
 - NTSC (the TV look) is the real target and the web player starts in it (`"look": "ntsc"` in
   `tools/phone/catwiz.json`); judge the art and take screenshots there first, colour second. In
   NTSC every colour but black, white and grey shows fine stripes, the dark ones worst: big areas
-  white or black (the day is a white page, the night a black one), then the light tier (light
+  white or black (the night is a black page), then the light tier (light
   blue, aqua), darks in small pieces, flat fills, no dithered areas.
-- Faces that carry state, stylized silhouettes with depth, light backdrops behind dark actors.
+- Faces that carry state, stylized silhouettes with depth, rims that read on black.
 - `tools/art/` is the hi-res art the game had until the port (its export writes to
   `build/art_hires/` now), kept for the record.
 
@@ -183,3 +199,12 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
   waiting for a key: fight 1 4,870 cycles, fight 2 15,915 (its nightflap flaps); with the vertical
   blank fight 1 1.0 frames a pass, fight 2 1.6; during an action (a die thrown, the enemies'
   lunges) about 5 frames a pass.
+- 2026-10-31, the midnight art (solid fighter frames and a flash frame a kind;
+  `art/dhgr/memory.txt`, `make.py memory`, places them as `blit.unpack_all` does): the sprites
+  of fight 1 take 22,977 bytes (was 17,139), fight 2 27,597 (was 20,539), against 21,744 of
+  room (bank 2 12,272, bank 1 4,096, `sprite_aux` 5,376). Neither fits as placed: fight 1 is
+  3,192 short, fight 2 7,458, and the aux halves that do not fit run past `sprite_aux`'s end.
+  Solid frames are bigger than masked ones (the black round the figure is stored), and the
+  flash frames are 4,752 of it. The night backdrops pack smaller (zlib: fight 1 1,034 to 785,
+  fight 2 1,204 to 549); aux memory (Tisple fbc83f2, squeeze 6) 5,107 at `$0800` and 12,680 at
+  `$8000` (3.7 KB left at `$B188-$BFFF`).

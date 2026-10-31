@@ -4,9 +4,19 @@
 # a sprite is cut on the 7-pixel grid (dhgr.cut) and split into its two memories' halves: the
 # aux bytes (even ones of each row) and the main bytes (odd ones). Each half is stored as runs
 # (lib/dhgr's runs, Tisple docs/dhgr.md): per row, control bytes up to a 0: 1-63 skip that many
-# bytes, $40 + n then n picture bytes (opaque), $80 + n then n picture bytes and their n masks.
+# bytes, $40 + n then n picture bytes (opaque), $80 + n then n picture bytes and their n masks,
+# $C0 + n then one byte written n times (Tisple 770a16b: a solid frame's black costs 2 bytes a
+# stretch).
 # A kind's frames go in one block per half; the game unpacks a fight's kinds into its sprite
 # buffers (aux halves in aux memory, main halves in the aux language card).
+#
+# The fighters' frames are solid (2026-10-31, the midnight decision): the figure flattened onto
+# black over its whole box, so each row is only opaque runs, no skips and no masks. The stage
+# is black wherever a look can go (lanes.py), so one copy of a frame erases the last pose and
+# draws the new one. Each fighter kind also has a flash frame: the white silhouette of its hurt
+# frame (its idle one when it has none), solid, in the hurt frame's box, for the hit flash
+# (a masked frame drawn all white would whiten a solid frame's whole box). The small sprites
+# (marker, bolt, poofs, digits, the title's glow) stay masked.
 
 import dhgr
 import light
@@ -21,19 +31,50 @@ KINDS = ["cat", "puffcap", "sporelet", "nightflap", "misc"]
 # what the engine asks each kind for, and the frame that answers: (role, frame)
 ROLES = {
     "cat": [("idle", "idle"), ("attack", "attack"), ("hurt", "hit"), ("happy", "meow"),
-            ("surprised", "ears"), ("flap", None)],
+            ("surprised", "ears"), ("flap", None), ("flash", "flash")],
     "puffcap": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                ("surprised", None), ("flap", None)],
+                ("surprised", None), ("flap", None), ("flash", "flash")],
     "sporelet": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                 ("surprised", None), ("flap", None)],
+                 ("surprised", None), ("flap", None), ("flash", "flash")],
     "nightflap": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                  ("surprised", None), ("flap", "flap")],
+                  ("surprised", None), ("flap", "flap"), ("flash", "flash")],
 }
 ROLE_NAMES = [r for r, _ in ROLES["cat"]]
 
 
 def frames(kind):
+    # the kind's drawn frames (the flash is made from one of them, after them in the tables)
     return cat.FRAMES if kind == "cat" else foes.FRAMES[kind]
+
+
+def hurt_frame(kind):
+    # the frame the flash is the silhouette of: the kind's hurt one, else its idle one
+    for role, frame in ROLES[kind]:
+        if role == "hurt" and frame:
+            return frame
+    return frames(kind)[0]
+
+
+def opaque(out, bytes_):
+    # an opaque stretch as runs: 3 or more of one byte as a fill, the rest copied
+    i, lit = 0, []
+    def flush():
+        if lit:
+            out.append(0x40 + len(lit))
+            out.extend(lit)
+            lit.clear()
+    while i < len(bytes_):
+        k = 1
+        while i + k < len(bytes_) and bytes_[i + k] == bytes_[i]:
+            k += 1
+        if k >= 3:
+            flush()
+            out.append(0xC0 + k)
+            out.append(bytes_[i])
+        else:
+            lit.extend(bytes_[i:i + k])
+        i += k
+    flush()
 
 
 def runs_half(pic, mask, bw, h, half):
@@ -58,8 +99,7 @@ def runs_half(pic, mask, bw, h, half):
             if kind == "t":
                 out.append(n)
             elif kind == "o":
-                out.append(0x40 + n)
-                out += bytes(p for p, _ in row[x:x + n])
+                opaque(out, [p for p, _ in row[x:x + n]])
             else:
                 out.append(0x80 + n)
                 out += bytes(p for p, _ in row[x:x + n])
@@ -70,11 +110,15 @@ def runs_half(pic, mask, bw, h, half):
 
 
 class Sprite:
-    # one frame: its box on the screen and its two halves as runs
-    def __init__(self, name, canvas, box=None):
+    # one frame: its box on the screen and its two halves as runs; solid: flattened onto black
+    # over the whole box (every byte opaque)
+    def __init__(self, name, canvas, box=None, solid=False):
         box = box or canvas.bbox()
         s = dhgr.cut(name, canvas.px, box)
         bw = s.bytes_wide()
+        if solid:
+            s.mask = [0] * len(s.mask)    # the clear pixels' picture bits are 0: black
+        self.solid = solid
         self.name = name
         self.col = s.x0 // 7 * 2     # byte column of its left edge
         self.top = s.y0
@@ -85,7 +129,17 @@ class Sprite:
 
 
 def fighter(kind, frame, zone):
-    return Sprite("%s_%s" % (kind, frame), light.lit(screen.figure(kind, frame), zone))
+    return Sprite("%s_%s" % (kind, frame), light.lit(screen.figure(kind, frame), zone), solid=True)
+
+
+def flash(kind):
+    # the white silhouette of the kind's hurt frame, outline and all, on black in its box
+    c = screen.figure(kind, hurt_frame(kind))
+    for row in c.px:
+        for x, v in enumerate(row):
+            if v is not None:
+                row[x] = WHITE
+    return Sprite("%s_flash" % kind, c, solid=True)
 
 
 # ---- the shared small sprites, drawn here

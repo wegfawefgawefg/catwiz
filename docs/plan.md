@@ -15,7 +15,7 @@ is merged; settings in `tisple.project`).
    page, "a dice battle in the woods", PRESS RETURN. One packed picture and the rim's four
    colours as sprites.
 2. A run: fight 1 in the clearing (puffcap, sporelet), a reward, fight 2 on the path (puffcap,
-   sporelet, nightflap), then "to be continued" and the title. Both day fights. Hit points and
+   sporelet, nightflap), then "to be continued" and the title. Both at night (2026-10-31, midnight: the whole game). Hit points and
    the bag carry between fights; losing ends the run.
 3. Rules (numbers are our own starting tuning; the dice are the only luck):
    - Catwiz has 30 HP and a bag of six-faced dice (five to start, six at most). Each turn five
@@ -53,37 +53,45 @@ is merged; settings in `tisple.project`).
    and over each enemy (its next move: a sword and how much, a shield, a cheer, an orange sword
    for a dive). The tray: a tilted white card for each die with its picture and number, the
    picked one upright, lifted and rimmed in yellow; the re-roll button (a die and X and the re-
-   rolls left), five mana stars, END TURN. Sprites in the day's light.
+   rolls left), five mana stars, END TURN. Sprites in the night's light, solid on a black stage.
 6. Sound: Mockingboard music and effects in any slot; speaker effects and the title jingle
    without one.
 7. Memory: main memory full, the language card about 3 KB left (bank 1 0.5 KB), aux about
-   2.9 KB, the aux language card (a fight's sprites) 0.5 KB in bank 2 and 0.7 KB in bank 1 at
-   fight 2, zero page 172 of 256 (AGENTS.md, Memory).
+   3.7 KB, zero page 172 of 256 (AGENTS.md, Memory). A fight's sprites do not fit since the
+   solid frames (Open 2): fight 1 3.2 KB short, fight 2 7.5 KB.
 8. Speed: waiting for a key a pass is a frame (fight 2 1.6: the nightflap's wings); an action
    (a die thrown, an enemy's lunge) about 5 frames a pass; picking a die shows in a few frames.
 
 ## Open
 
-1. Fights 3-10: more enemies and encounters in `game/content/`, the dusk (5-7) and night (8-10
-   and the boss) zones' art and lighting in `tools/dhgr/` (the fighters lit for the zone; the
-   build carries the day's), and the final fight (the bulldog king, to draw in double hi-res).
-2. Per-fight art from disk: the packed store grows a screen (about 1.2 KB packed) and the new
+1. Fights 3-10: more enemies and encounters in `game/content/`, each fight's night in
+   `tools/dhgr/night.py` outside its lanes (`lanes.py`: add the fight's spots), and the final
+   fight (the bulldog king, to draw in double hi-res). The game is midnight throughout now: the
+   day and dusk zones are not planned any more.
+2. The sprites do not fit (2026-10-31, `art/dhgr/memory.txt`): solid frames and the four flash
+   frames put fight 1 at 22,977 bytes and fight 2 at 27,597 against 21,744 of room (the aux
+   language card and `sprite_aux`). Ways: a fill run in lib/dhgr's runs (n copies of a byte:
+   the black margins and the flash's white; about 5 KB off fight 2's fighters), a bigger
+   `sprite_aux` (aux has 3.7 KB left, and the night backdrops pack smaller), the cat's ears
+   frame left out while nothing shows the surprised mood (2,448 bytes), a flash only for the
+   enemies.
+3. Per-fight art from disk: the packed store grows a screen (about 1.2 KB packed) and the new
    enemies' runs (2-3 KB) a fight, and aux has about 2.9 KB left, so fights 3-10 need their art
    read from the disk when they start (Tisple main 7c3de44's `:on disk` tables and lib/disk,
    which reserves main memory `$1400-$1BFF`: main memory is full, so that needs 2 KB of code
    moved to the language card or bank 1 first, or the reader placed elsewhere), each fight's
    tables into the same aux buffer; and a buffer for a fight's enemies at most (today sized by
    fight 2).
-3. Speed in actions (about 5 frames a pass): a sprite drawn again costs a restore of its box and
+4. Speed in actions (about 5 frames a pass): a sprite drawn again costs a restore of its box and
    its runs (the cat about 110,000 cycles). Ideas: a runs pass over the backdrop for a moving
    sprite (restore and draw in one; lib/dhgr's kit has a byte left and no zero page, so it
    needs room there), clipping a redraw's first rows too (bottom clipping is in), the nightflap
    flapping less often.
-4. A bigger reward picker: the bag stops at six dice because the reward shows the whole bag in
+5. A bigger reward picker: the bag stops at six dice because the reward shows the whole bag in
    the tray's six slots; a picker that pages would lift that.
-5. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
+6. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
    and enemies on a real IIe; today clicks work through the web player and `--taps`.
-6. A balance sim: a greedy simulated player for the run, kept in the repo, to tune by. A one-off
+7. A balance sim: a greedy simulated player for the run, kept in the repo, to tune by. A one-off
    one (2026-10-30) lost about 2.3 HP in fight 1 and 4.2 in fight 2.
 
 Smaller:
@@ -96,7 +104,11 @@ Smaller:
 
 ## Art rules
 
-Double hi-res, `tools/dhgr/` (AGENTS.md, Art): day, dusk and night zones, one sprite set lit
-per zone by palette swap and rims; NTSC (the TV look) the real target, the flat colour look the
-second check; big areas white or black, darks in small pieces, no dithered areas. The hi-res
+Double hi-res, `tools/dhgr/` (AGENTS.md, Art). Midnight (2026-10-31): the whole game is night,
+the fighters solid frames on pure black. The lane rule: every pixel a battle look can cover is
+black in the backdrop (`lanes.py` works them out from the game's numbers; `make.py lanes`
+checks); the scenery only outside them, a thin frame. One sprite set lit by palette swap and
+rims, the rims round the whole figure on black; NTSC (the TV look) the real target, the flat
+colour look the second check; big areas black, the light tier in small shapes, darks in small
+pieces, no dithered areas. The hi-res
 rules came from `mockup/battle_forest_v6.py` and `tools/art/actors.py`.
