@@ -1,202 +1,358 @@
-; the reward after a won fight, in the tray and the bottom text: pick one of four offers (two
-; new dice for the bag, one face upgraded, or a die taken out of the bag). An upgrade asks for
-; the die, then the face; taking a die out asks which. As in battle, a number key picks a slot
-; and shows its text, the same key again (or RETURN) takes it; ESC goes back to the offers.
+; what comes between fights, after a won one: one of the fight's three cards (an item for a
+; slot, or a level on a slot), then one of three charms after the fights that give them, the nap
+; after the one that has it (sleep: hit points back, or dream: a level on a slot of your
+; choice), and the two doors before a fight that has another. The choices are cards in the tray
+; (1-3, the six slots for a dream); the stage shows her six slots (battle/kit), the one a card
+; changes picked out, so she always sees what she is changing. As in battle, a number key picks a
+; card and shows its text, the same key again (or RETURN) takes it; ESC lets go.
 
 (import apple2 a2)
 (import state)
 (import art/icons)
 (import draw/text)
 (import battle/tray)
-(import battle/bag)
+(import battle/kit)
 (import content/action ac)
-(import content/faces)
+(import content/charms)
+(import content/effects fx)
 (import content/encounters enc)
+(import content/enemies en)
+(import content/items)
 (import sound/sound)
 
-(const OFFER_UPGRADE u8 2) ; the third offer; the first two are enc.OFFER_DICE
-(const OFFER_REMOVE u8 3)
+(const UP u8 128) ; a card of 128 + a slot: a level on that slot (enc.UP_WAND ...)
 
-; the six faces the text lists now
-(let six (array u8 6) :address 0x0A08) ; scratch: see AGENTS.md, Memory
+; the step's choices: card codes, charm rows, sleep and dream, slots, or fight rows (doors)
+(let choice (array u8 6))
+(let choices u8 0)
+
+; a slot's base, the card's second line (# its number), and its name
+(const BASE (array (ptr u8) 6)
+    (make (array (ptr u8) 6)
+        "Wand: # damage" "Fluff: shield #" "Star: makes mana" "Book: a spell for mana"
+        "Curse: on an enemy" "Trick: for the next dice"))
+
+(const SLOT_NAME (array (ptr u8) 6)
+    (make (array (ptr u8) 6) "WAND" "FLUFF" "STAR" "BOOK" "CURSE" "TRICK"))
 
 (fn start () void
     (set state.phase state.Phase.reward)
     (set state.selected state.NOTHING)
-    (go state.Pick.offer))
+    (set state.next_fight (+ state.stage 1))
+    (tray.clear_side)
+    (kit.show)
+    (go state.Pick.cards))
 
-; a step of the reward: its slots in the tray, the prompt in the text
+; a step: its choices in the tray, its prompt in the text
 (fn go ((pick state.Pick)) void
     (set state.pick pick)
     (set state.picked state.NOTHING)
-    (draw_slots)
-    (text.clear)
-    (text.start)
-    (text.add_n
-        (match pick
-            (state.Pick.offer "A reward! Pick one (1-4).")
-            (state.Pick.remove "Take which die out of the bag? 1-#")
-            (state.Pick.upgrade_die "Upgrade a face of which die? 1-#")
-            (state.Pick.upgrade_face "Upgrade which face? (1-6)"))
-        state.bag)
-    (text.show 0))
+    (set due state.NOTHING)
+    (set choices 0)
+    (match pick
+        (state.Pick.cards
+            (for k u8 0 3
+                (add (at (at enc.FIGHT_CARDS state.fight) k))))
+        (state.Pick.charms
+            (for k u8 0 3
+                (add (at (at enc.FIGHT_CHARMS state.fight) k))))
+        (state.Pick.nap
+            (add 0)
+            (add 1))
+        (state.Pick.nap_slot
+            (for k u8 0 state.SLOTS
+                (add k)))
+        (state.Pick.door
+            (add state.next_fight)
+            (add (at enc.FIGHTS state.next_fight other))))
+    (kit.preview state.NOTHING state.NOTHING false)
+    (draw_cards)
+    (prompt))
 
-; how many slots this step has
-(fn slots () u8
-    (match state.pick
-        (state.Pick.offer 4)
-        (state.Pick.upgrade_face state.DIE_FACES)
-        (_ state.bag)))
+(fn add ((c u8)) void
+    (set (at choice choices) c)
+    (set choices (+ choices 1)))
 
-; the face row bag die d shows first, its picture in the tray
-(fn first_face ((d u8)) u8
-    (at state.dice (* d state.DIE_FACES)))
+; the slot a card goes to, and whether it is a level (else a new item there)
+(fn card_slot ((c u8)) u8
+    (if (>= c UP)
+        (return (- c UP)))
+    (as u8 (at items.ITEMS c slot)))
 
-(fn draw_slot ((n u8)) void
+(fn card_levels ((c u8)) bool
+    (or (>= c UP) (= (at state.items (card_slot c)) c)))
+
+; whether a card can be taken: a level only below items.ITEM_MOST
+(fn card_ok ((c u8)) bool
+    (if (not (card_levels c))
+        (return true))
+    (< (at state.levels (card_slot c)) items.ITEM_MOST))
+
+; ---- the tray: a card for each choice
+
+(fn draw_card ((n u8)) void
     (let picked bool (= n state.picked))
+    (if (>= n choices)
+        (do
+            (tray.slot n false state.NOTHING "" false)
+            (return)))
+    (let c u8 (at choice n))
     (match state.pick
-        (state.Pick.offer
-            (match n
-                (OFFER_UPGRADE (tray.slot n true icons.TILE_PLUS1 "+" picked))
-                (OFFER_REMOVE (tray.slot n true icons.TILE_LINT "-" picked))
-                (_
-                    (tray.slot n true
-                        (at faces.FACES (at (at enc.OFFER_DICE n faces) 0) icon)
-                        "" picked))))
-        (state.Pick.upgrade_face
-            (let face u8 (at state.dice (+ (* state.upgrade_die state.DIE_FACES) n)))
-            (tray.slot n true (at faces.FACES face icon) (at faces.FACES face caption) picked))
-        (_
-            (let face u8 (first_face n))
-            (tray.slot n true (at faces.FACES face icon) "" picked))))
+        (state.Pick.cards
+            (let slot u8 (card_slot c))
+            (if (>= c UP)
+                (tray.slot n true (at items.ITEMS (at state.items slot) icon) "+1" picked)
+                (tray.slot n true (at items.ITEMS c icon) "" picked)))
+        (state.Pick.charms (tray.slot n true icons.TILE_CHARM "" picked))
+        (state.Pick.nap
+            (if (= c 0)
+                (tray.slot n true icons.TILE_NAP "" picked)
+                (tray.slot n true icons.TILE_PLUS1 "" picked)))
+        (state.Pick.nap_slot (tray.slot n true (at items.ITEMS (at state.items c) icon) "" picked))
+        (state.Pick.door (tray.slot n true icons.TILE_DOOR "" picked))))
 
-; the slots this step has on the tray's cards (the sixth where the buttons were), the other
-; cards empty
-(fn draw_slots () void
-    (tray.clear_side)
-    (for n u8 0 state.BAG_MOST
-        (if (< n (slots))
-            (draw_slot n)
-            (tray.slot n (< n state.HAND) state.NOTHING "" false))))
+(fn draw_cards () void
+    (for n u8 0 state.DICE_MOST
+        (draw_card n)))
 
-; the names of the six faces in six, two to a row on rows 1 to 3
-(fn list_six () void
-    (for r u8 0 3
-        (text.start)
-        (text.add (at faces.FACES (at six (* r 2)) name))
-        (text.tab 18)
-        (text.add (at faces.FACES (at six (+ (* r 2) 1)) name))
-        (text.show (+ r 1))))
+; ---- the text: each step writes its rows over the last ones (only what changed is drawn
+; again, draw/text), and the rows it leaves out are blanked (rest)
 
-(fn hero_die_to_six ((d u8)) void
-    (for f u8 0 state.DIE_FACES
-        (set (at six f) (at state.dice (+ (* d state.DIE_FACES) f)))))
+(let written u8 0) ; a bit for each row written since the step's text started
 
-; how to take it, at the end of row 0
-(fn again () void
+(fn show ((r u8)) void
+    (text.show r)
+    (set written (| written (<< 1 r))))
+
+(fn rest () void
+    (for r u8 0 text.ROWS
+        (if (= (& written (<< 1 r)) 0)
+            (do
+                (text.start)
+                (text.show r))))
+    (set written 0))
+
+(fn row ((r u8) (s (ptr u8)) (n u8)) void
+    (text.start)
+    (text.add_n s n)
+    (show r))
+
+; the step's prompt, nothing picked: rows 0 to 3
+(fn prompt () void
+    (match state.pick
+        (state.Pick.cards
+            (row 0 "A reward! Pick a card (1-3)." 0)
+            (for k u8 0 choices
+                (text.start)
+                (text.char (+ '1' k))
+                (text.char ' ')
+                (let c u8 (at choice k))
+                (if (>= c UP)
+                    (do
+                        (text.add "+1 ")
+                        (text.add (at SLOT_NAME (card_slot c))))
+                    (text.add (at items.ITEMS c name)))
+                (show (+ k 1))))
+        (state.Pick.charms
+            (row 0 "A charm! Pick one (1-3)." 0)
+            (for k u8 0 choices
+                (text.start)
+                (text.char (+ '1' k))
+                (text.char ' ')
+                (text.add (at enc.CHARMS (at choice k) name))
+                (show (+ k 1))))
+        (state.Pick.nap
+            (row 0 "A nap. Pick one (1-2)." 0)
+            (row 1 "1 Sleep: # hit points back" enc.NAP_HEAL)
+            (row 2 "2 Dream: +1 on a slot" 0))
+        (state.Pick.nap_slot
+            (row 0 "Dream: +1 on which slot? (1-6)" 0)
+            (row 1 "ESC: back to the nap" 0))
+        (state.Pick.door
+            (row 0 "Two doors. Pick one (1-2)." 0)
+            (for k u8 0 2
+                (text.start)
+                (text.char (+ '1' k))
+                (text.char ' ')
+                (let fight enc.Fight (at enc.FIGHTS (at choice k)))
+                (text.add (at en.ENEMIES (at fight.spots 0 enemy) name))
+                (show (+ k 1)))))
+    (rest))
+
+; row 0: the name, inverse, and how to take it
+(fn title ((name (ptr u8)) (up bool)) void
+    (text.start)
+    (set text.inverse true)
+    (if up
+        (text.add "+1 "))
+    (text.add name)
+    (set text.inverse false)
     (text.tab 24)
     (text.add "Again: take")
-    (text.show 0))
+    (show 0))
 
-; slot n's text: rows 0 to 3
-(fn describe ((n u8)) void
-    (text.clear)
+; row 1: slot's base with item row at level, and the level
+(fn base_row ((slot u8) (item u8) (level u8)) void
     (text.start)
-    (match state.pick
-        (state.Pick.offer
-            (if (>= n OFFER_UPGRADE)
-                (do
-                    (text.add (if (= n OFFER_UPGRADE)
-                        "Upgrade one face"
-                        "Take a die out"))
-                    (again)
-                    (text.start)
-                    (text.add (if (= n OFFER_UPGRADE)
-                        "Pick the die, then the face."
-                        "Fewer dice: the rest come up more."))
-                    (text.show 1)
-                    (return)))
-            (text.add "New die: ")
-            (text.add (at enc.OFFER_DICE n name))
-            (if (= state.bag state.BAG_MOST)
-                (do
-                    (text.add ". Bag full")
-                    (text.show 0)
-                    (for f u8 0 state.DIE_FACES
-                        (set (at six f) (at (at enc.OFFER_DICE n faces) f)))
-                    (list_six)
-                    (return)))
-            (for f u8 0 state.DIE_FACES
-                (set (at six f) (at (at enc.OFFER_DICE n faces) f))))
-        (state.Pick.upgrade_face
-            (let face ac.Action
-                (at faces.FACES (at state.dice (+ (* state.upgrade_die state.DIE_FACES) n))))
-            (text.add face.name)
-            (if (= face.upgrade state.NOTHING)
-                (do
-                    (text.add ": no upgrade")
-                    (text.show 0)
-                    (return)))
-            (let better ac.Action (at faces.FACES face.upgrade))
-            (text.add " becomes ")
-            (text.add better.name)
-            (text.show 0)
-            (text.start)
-            (text.add_n better.text better.amount)
-            (text.show 1)
-            (return))
-        (_
-            (text.add "Bag die ")
-            (text.char (+ '1' n))
-            (hero_die_to_six n)))
-    (again)
-    (list_six))
+    (text.add_n (at BASE slot) (fx.number_at item level))
+    (if (> level 0)
+        (text.add_n " (+#)" level))
+    (show 1))
 
-; the slot picked is taken. Gives true when the reward is done
-(fn take ((n u8)) bool
+; the card the item or level c makes of its slot, in the balance's four lines: what it is, the
+; slot's base at its level, the item's line, what it replaces (or the level it gives)
+(fn describe_card ((c u8)) void
+    (let slot u8 (card_slot c))
+    (let level u8 (at state.levels slot))
+    (let old u8 (at state.items slot))
+    (if (card_levels c)
+        (do
+            (title
+                (if (>= c UP)
+                    (at SLOT_NAME slot)
+                    (at items.ITEMS c name))
+                (>= c UP))
+            (if (not (card_ok c))
+                (do
+                    (base_row slot old level)
+                    (row 2 (at items.ITEMS old text) (fx.number_at old level))
+                    (text.start)
+                    (text.add (at SLOT_NAME slot))
+                    (text.add " is at its most.")
+                    (show 3)
+                    (return)))
+            (base_row slot old (+ level 1))
+            (row 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
+            (text.start)
+            (text.add (if (>= c UP)
+                "+1 on the slot: "
+                "You have it: +1 on "))
+            (text.add (at items.ITEMS old name))
+            (show 3)
+            (return)))
+    (title (at items.ITEMS c name) false)
+    (base_row slot c level)
+    (row 2 (at items.ITEMS c text) (fx.number_at c level))
+    (text.start)
+    (text.add "Replaces: ")
+    (text.add (at items.ITEMS old name))
+    (show 3))
+
+; choice n's text, picked: rows 0 to 3
+(fn describe ((n u8)) void
+    (let c u8 (at choice n))
     (match state.pick
-        (state.Pick.offer
-            (if (= n OFFER_UPGRADE)
+        (state.Pick.cards (describe_card c))
+        (state.Pick.nap_slot (describe_card (+ UP c)))
+        (state.Pick.charms
+            (title (at enc.CHARMS c name) false)
+            (row 1 (at enc.CHARMS c text) 0)
+            (row 2 "A charm works all run." 0))
+        (state.Pick.nap
+            (if (= c 0)
                 (do
-                    (go state.Pick.upgrade_die)
-                    (return false)))
-            (if (= n OFFER_REMOVE)
+                    (title "SLEEP" false)
+                    (row 1 "# hit points back," (- (healed) state.hero_hp))
+                    (row 2 "up to # of 30." (healed)))
                 (do
-                    (if (<= state.bag 1)
-                        (do
-                            (sound.cue sound.Cue.nope)
-                            (return false)))
-                    (go state.Pick.remove)
-                    (return false)))
-            ; a new die into the bag
-            (if (>= state.bag state.BAG_MOST)
+                    (title "DREAM" false)
+                    (row 1 "+1 on a slot of your choice." 0))))
+        (state.Pick.door
+            (let fight enc.Fight (at enc.FIGHTS c))
+            (let kind u8 (at fight.spots 0 enemy))
+            (title (at en.ENEMIES kind name) false)
+            (row 1 "# hit points" (at en.ENEMIES kind hp))
+            (row 2 "Ward #" (at en.ENEMIES kind ward))))
+    (rest))
+
+; her hit points after a sleep
+(fn healed () u8
+    (let hp u8 (+ state.hero_hp enc.NAP_HEAL))
+    (if (> hp enc.HERO.hp)
+        (set hp enc.HERO.hp))
+    hp)
+
+; the slot choice n changes, shown on the stage: the card's item in it, or its next level
+(fn show_change ((n u8)) void
+    (let c u8 (at choice n))
+    (match state.pick
+        (state.Pick.cards
+            (let slot u8 (card_slot c))
+            (if (card_levels c)
+                (kit.preview slot (at state.items slot) (card_ok c))
+                (kit.preview slot c false)))
+        (state.Pick.nap_slot (kit.preview c (at state.items c) (card_ok (+ UP c))))
+        (_ (kit.preview state.NOTHING state.NOTHING false))))
+
+; ---- taking
+
+; after the cards: a charm, the nap, the doors, as the fight has them; gives true when all is done
+(fn after_cards () bool
+    (if (!= (at (at enc.FIGHT_CHARMS state.fight) 0) state.NOTHING)
+        (do
+            (go state.Pick.charms)
+            (return false)))
+    (after_charms))
+
+(fn after_charms () bool
+    (if (at enc.FIGHTS state.fight nap)
+        (do
+            (go state.Pick.nap)
+            (return false)))
+    (after_nap))
+
+(fn after_nap () bool
+    (if (and (< state.next_fight enc.FIGHT_COUNT)
+            (!= (at enc.FIGHTS state.next_fight other) state.NOTHING))
+        (do
+            (go state.Pick.door)
+            (return false)))
+    true)
+
+; a level on slot
+(fn level_up ((slot u8)) void
+    (set (at state.levels slot) (+ (at state.levels slot) 1)))
+
+; choice n is taken. Gives true when all is done and the next fight can start
+(fn take ((n u8)) bool
+    (let c u8 (at choice n))
+    (match state.pick
+        (state.Pick.cards
+            (if (not (card_ok c))
                 (do
                     (sound.cue sound.Cue.nope)
                     (return false)))
-            (let first u8 (* state.bag state.DIE_FACES))
-            (for f u8 0 state.DIE_FACES
-                (set (at state.dice (+ first f)) (at (at enc.OFFER_DICE n faces) f)))
-            (set state.bag (+ state.bag 1))
-            true)
-        (state.Pick.remove
-            (bag.remove n)
-            true)
-        (state.Pick.upgrade_die
-            (set state.upgrade_die n)
-            (go state.Pick.upgrade_face)
-            false)
-        (state.Pick.upgrade_face
-            (let at_face u8 (+ (* state.upgrade_die state.DIE_FACES) n))
-            (let better u8 (at faces.FACES (at state.dice at_face) upgrade))
-            (if (= better state.NOTHING)
+            (if (card_levels c)
+                (level_up (card_slot c))
+                (set (at state.items (card_slot c)) c))
+            (kit.show)
+            (after_cards))
+        (state.Pick.charms
+            (set (at state.charms c) (+ (at state.charms c) 1))
+            (after_charms))
+        (state.Pick.nap
+            (if (= c 1)
+                (do
+                    (go state.Pick.nap_slot)
+                    (return false)))
+            (set state.hero_hp (healed))
+            (set (at state.actors state.HERO hp) state.hero_hp)
+            (set state.hud_pills (| state.hud_pills 1))
+            (after_nap))
+        (state.Pick.nap_slot
+            (if (not (card_ok (+ UP c)))
                 (do
                     (sound.cue sound.Cue.nope)
                     (return false)))
-            (set (at state.dice at_face) better)
+            (level_up c)
+            (kit.show)
+            (after_nap))
+        (state.Pick.door
+            (set state.next_fight c)
             true)))
 
-; slot n picked: its text; picked again, taken
-(fn pick_slot ((n u8)) bool
+; choice n picked: its text and the slot it changes; picked again, taken
+(fn pick ((n u8)) bool
     (if (= n state.picked)
         (do
             (sound.cue sound.Cue.confirm)
@@ -204,20 +360,27 @@
     (let was u8 state.picked)
     (set state.picked n)
     (if (!= was state.NOTHING)
-        (draw_slot was))
-    (draw_slot n)
-    (describe n)
+        (draw_card was))
+    (draw_card n)
+    (set due n)
     (sound.cue sound.Cue.blip)
     false)
 
-; one frame of the reward; true when it is done and the next fight can start
+; the text and the stage of the choice picked, drawn the frame after its card lifts, so the
+; pick shows at once
+(let due u8 255)
+
+(fn refresh () void
+    (if (= due state.NOTHING)
+        (return))
+    (show_change due)
+    (describe due)
+    (set due state.NOTHING))
+
+; one frame of what comes between fights; true when it is done and the next fight can start
 (fn step ((key u8)) bool
-    ; the sixth slot is where the battle's buttons are: their tap boxes (R over its top, E over
-    ; its foot) pick it
-    (if (or (= (& key 0xDF) 'R') (= (& key 0xDF) 'E'))
-        (set key '6'))
-    (if (and (>= key '1') (< key (+ '1' (slots))))
-        (return (pick_slot (- key '1'))))
+    (if (and (>= key '1') (< key (+ '1' choices)))
+        (return (pick (- key '1'))))
     (match key
         (0 false)
         (a2.KEY_RETURN
@@ -225,9 +388,11 @@
                 (do
                     (sound.cue sound.Cue.nope)
                     (return false)))
-            (pick_slot state.picked))
+            (pick state.picked))
         (a2.KEY_ESC
-            (go state.Pick.offer)
+            (go (if (= state.pick state.Pick.nap_slot)
+                state.Pick.nap
+                state.pick))
             false)
         (_
             (sound.cue sound.Cue.nope)

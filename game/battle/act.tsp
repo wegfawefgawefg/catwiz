@@ -8,8 +8,9 @@
 (import state)
 (import art/sprites art)
 (import content/effects fx)
-(import content/faces)
-(import content/enemies en)
+(import content/foes)
+(import content/items)
+(import content/moves mv)
 (import battle/place)
 (import battle/look)
 
@@ -49,12 +50,16 @@
                 state.Mood.angry)
             24)))
 
-; the action in flight's motion, from its table; a lunge with another fighter standing between
-; the two is thrown instead, so no one is ever drawn through another (their frames are solid)
+; the action in flight's motion: a move's from its table, a face thrown at an enemy (or a hop
+; when it is for her); a lunge with another fighter standing between the two is thrown instead,
+; so no one is ever drawn through another (their frames are solid)
 (fn action_motion () state.Motion
     (let m state.Motion (match state.act_source
-        (state.Source.face (at faces.FACES state.act_row motion))
-        (state.Source.move (at en.MOVES state.act_row motion))
+        (state.Source.face
+            (if (= (at items.ITEMS state.act_row aim) state.Aim.self)
+                state.Motion.hop
+                state.Motion.throw))
+        (state.Source.move (at mv.MOVES state.act_row motion))
         (state.Source.meow state.Motion.hop)))
     (if (and (= m state.Motion.lunge) (blocked state.act_by state.act_on))
         state.Motion.throw
@@ -80,7 +85,7 @@
 (fn land () void
     (match state.act_source
         (state.Source.face (fx.land_face state.act_row state.act_on))
-        (state.Source.move (fx.land_move state.act_row state.act_by state.act_on))
+        (state.Source.move (foes.land_move state.act_row state.act_by state.act_on))
         (state.Source.meow))
     (set state.act_done true)
     (set state.act_time 0))

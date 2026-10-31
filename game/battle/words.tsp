@@ -1,20 +1,19 @@
 ; the top two rows of the bottom text: what the player needs to choose. With a die picked, its
-; name and what it does (with its number after boosts) and how to play it; else the target's
-; name, hit points, statuses and next move in words, and the bag; on the enemies' turn the
-; hero's own. The log (battle/log.tsp) has the two rows under it. Drawn again only when
+; item's name, its slot's base (a wand's damage, a fluff's shield) or how to play it, and its
+; item line (with its number after boosts); else the target's name, hit points, statuses and
+; next move in words; on the enemies' turn the hero's own. The log (battle/log.tsp) has the two rows under it. Drawn again only when
 ; something it shows may have changed.
 
 (import state)
 (import draw/text)
 (import battle/log)
-(import battle/bag)
 (import content/action ac)
-(import content/faces)
+(import content/items)
 (import content/effects fx)
+(import content/foes)
 (import content/statuses st)
 
-(const PROMPT_COL u8 16) ; after the longest face name
-(const BAG_COL u8 23)    ; after "Next: " and the longest move
+(const PROMPT_COL u8 16) ; after the longest item name
 (const WOODS_QUIET (ptr u8) "The woods go quiet.")
 
 ; what the rows were drawn for, so a change of phase draws them again
@@ -40,41 +39,41 @@
                     (text.number n)))))
     (text.show 0))
 
-; the face die d shows, and how to play it
+; the face die d shows: its item's name; a wand's damage or a fluff's shield (their items' lines
+; say the rest), else how to play it; then its item line, its number after the boosts
 (fn die_rows ((d u8)) void
     (let row u8 (at state.hand d))
-    (let face ac.Action (at faces.FACES row))
+    (let n u8 (fx.boosted row false))
     (text.start)
     (set text.inverse true)
-    (text.add face.name)
+    (text.add (at items.ITEMS row name))
     (set text.inverse false)
     (text.tab PROMPT_COL)
-    (if (not (fx.can_play row))
-        (text.add_n "Needs # mana" face.cost)
-        (if (= face.aim state.Aim.foe)
-            (text.add "Pick an enemy")
-            (text.add (if (= face.aim state.Aim.all)
-                "Again: hits all"
-                "Again: on you"))))
+    (match (at items.ITEMS row slot)
+        (ac.Slot.wand (text.add_n "# damage" n))
+        (ac.Slot.fluff (text.add_n "Shield #" n))
+        (ac.Slot.junk (text.add "Re-roll it"))
+        (_
+            (if (and (= (at items.ITEMS row slot) ac.Slot.book)
+                    (< (fx.mana) (at items.ITEMS row cost)))
+                (text.add "Too little mana: +1")
+                (match (at items.ITEMS row aim)
+                    (state.Aim.foe (text.add "Pick an enemy"))
+                    (state.Aim.all (text.add "Again: hits all"))
+                    (_ (text.add "Again: on you"))))))
     (text.show 0)
     (text.start)
-    (let n u8 face.amount)
-    (if (and (!= face.effect ac.Effect.plus) (!= face.effect ac.Effect.double))
-        (set n (fx.boosted n)))
-    (text.add_n face.text n)
+    (text.add_n (at items.ITEMS row text) n)
     (text.show 1))
 
-; the target's next move, and the bag: its dice, and how many are left to draw
+; the target's next move
 (fn intent_row ((who u8)) void
     (text.start)
     (if (at state.actors who alive)
         (do
             (let row u8 (at state.actors who move))
             (text.add "Next: ")
-            (text.add_n (fx.intent_text who row) (fx.intent_amount who row))))
-    (text.tab BAG_COL)
-    (text.add_n "Bag #" state.bag)
-    (text.add_n " draw #" (bag.draw_count))
+            (text.add_n (foes.intent_text who row) (foes.intent_amount who row))))
     (text.show 1))
 
 (fn line_row ((r u8) (s (ptr u8))) void

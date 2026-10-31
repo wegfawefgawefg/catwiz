@@ -13,7 +13,7 @@
 #   NAME_aux.tsp, NAME_main.tsp   a whole screen's halves (8 KB each, $2000-relative), packed:
 #                    the fights' backdrops with their shadows, the title
 #   hud_data.tsp     the tray's card shapes, the hud font and its icons, the 35-column font
-#   icons.tsp        the twelve card pictures as pixels
+#   icons.tsp        the card pictures as pixels (in aux memory) and their TILE numbers
 #   font40.tsp       the 40-column font, for when the text is switched to it
 #
 # Fighters are lit for the zone of the fights in the build (night: the whole game is midnight
@@ -234,11 +234,11 @@ def hud_module():
 def icons_module():
     H = game_hud
     data = b"".join(H.icon_pixels(n) for n in H.ICON_ORDER)
-    text = HEAD + "; the card pictures in content/faces' TILE order, 15 rows of 11 pixels as nibbles (6 bytes a\n; row): %s\n\n" % " ".join(H.ICON_ORDER)
+    text = HEAD + "; the card pictures, 15 rows of 11 pixels as nibbles (6 bytes a row), in aux memory (the\n; tray and the stage copy one out to draw it): %s\n\n" % " ".join(H.ICON_ORDER)
     text += "(const ICON_BYTES u16 90)\n"
     for i, n in enumerate(H.ICON_ORDER):
         text += "(const TILE_%s u8 %d)\n" % (n.upper(), i)
-    text += "(const PIXELS (array u8 %d) (make (array u8 %d)\n%s))\n" % (len(data), len(data), numbers(data))
+    text += "(let pixels (array u8 %d) (make (array u8 %d)\n%s) :in aux)\n" % (len(data), len(data), numbers(data))
     return text
 
 

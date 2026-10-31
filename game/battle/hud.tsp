@@ -11,9 +11,10 @@
 (import battle/place)
 (import battle/tray)
 (import content/action ac)
-(import content/faces)
+(import content/items)
 (import content/effects fx)
-(import content/enemies en)
+(import content/foes)
+(import content/moves mv)
 (import content/statuses st)
 
 (const HP_TOP u8 112) ; a standing actor's hit point badge, under its feet
@@ -129,11 +130,11 @@
             (hide look)
             (return)))
     (let row u8 (at state.actors who move))
-    (let icon u8 (fx.intent_icon who row))
+    (let icon u8 (foes.intent_icon who row))
     (start_glyphs (- (+ state.ACTORS who) 1))
     (put icon)
-    (if (= icon (at en.MOVES row icon))
-        (put_number (fx.intent_amount who row)))
+    (if (and (= icon (at mv.MOVES row icon)) (foes.shows_amount row))
+        (put_number (foes.intent_amount who row)))
     (finish look (place.centre_x who) (- (place.top who) 12)))
 
 ; a fresh fight: no badges yet, the tray empty
@@ -144,16 +145,43 @@
 
 ; ---- the dice tray and the re-rolls
 
+; the number under a face's picture: its number at its slot's level (a plus, a copy, a knead
+; with a +, a times with an X), none for the hairball. The same text the same pointer, so the
+; tray sees a change
+(const DIGITS (array (ptr u8) 10)
+    (make (array (ptr u8) 10) "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
+
+(const PLUSES (array (ptr u8) 10)
+    (make (array (ptr u8) 10) "+0" "+1" "+2" "+3" "+4" "+5" "+6" "+7" "+8" "+9"))
+
+(const TIMESES (array (ptr u8) 10)
+    (make (array (ptr u8) 10) "X0" "X1" "X2" "X3" "X4" "X5" "X6" "X7" "X8" "X9"))
+
+(fn caption ((row u8)) (ptr u8)
+    (let n u8 (fx.number row))
+    (if (> n 9)
+        (set n 9))
+    (match (at items.ITEMS row effect)
+        (ac.Effect.nothing "")
+        (ac.Effect.double (at TIMESES n))
+        (ac.Effect.plus (at PLUSES n))
+        (ac.Effect.copy (at PLUSES n))
+        (ac.Effect.knead (at PLUSES n))
+        (_ (at DIGITS n))))
+
+; die d's card: none past the dice she rolls or while an enemy holds it, a blank card once it
+; is played
 (fn die ((d u8)) void
+    (if (or (>= d state.dice_n) (!= (at state.held d) state.NOTHING))
+        (do
+            (tray.slot d false state.NOTHING "" false)
+            (return)))
     (if (at state.played d)
         (do
             (tray.slot d true state.NOTHING "" false)
             (return)))
-    (let face u8 (at state.hand d))
-    (tray.slot d true
-        (at faces.FACES face icon)
-        (at faces.FACES face caption)
-        (= state.selected d)))
+    (let row u8 (at state.hand d))
+    (tray.slot d true (at items.ITEMS row icon) (caption row) (= state.selected d)))
 
 ; whatever changed since the last frame; gives whether the tray drew anything
 (fn refresh () bool
@@ -172,13 +200,13 @@
     (set state.hud_intents 0)
     (if (= state.phase state.Phase.reward)
         (return (tray.flush)))
-    (for d u8 0 state.HAND
+    (for d u8 0 state.DICE_MOST
         (if (!= (& state.hud_dice (<< 1 d)) 0)
             (die d)))
     (set state.hud_dice 0)
     (let drew bool (tray.flush))
     (if state.hud_rerolls
         (do
-            (tray.side state.rerolls (fx.mana) fx.MOST_MANA)
+            (tray.side state.rerolls (fx.mana) st.MOST_MANA)
             (set state.hud_rerolls false)))
     drew)

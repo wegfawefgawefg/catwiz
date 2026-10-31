@@ -116,7 +116,7 @@ def icon_sheet():
     c = Canvas(dhgr.BLACK)
     names = list(icons.ICONS)
     for i, n in enumerate(names):
-        x, y = 7 + (i % 6) * 21, 8 + (i // 6) * 32
+        x, y = 6 + (i % 7) * 19, 6 + (i // 7) * 26
         c.rect(x - 2, y - 2, x + 13, y + 18, dhgr.WHITE)
         icons.draw(c, x, y, n)
     p = emu.show(c.px, SHOTS, "icons")

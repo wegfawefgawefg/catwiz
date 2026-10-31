@@ -1,4 +1,4 @@
-; the turns of a battle. The hero's turn: five dice from her bag (battle/bag.tsp) roll; she
+; the turns of a battle. The hero's turn: her five dice (battle/dice.tsp) roll; she
 ; picks one (its text shows at the bottom) and plays it: on an enemy picked next (Z X C, or the
 ; arrows and RETURN), or with the same key again (or M, the cat) on herself, or on every enemy
 ; for a hit-all. The same key again on a die for one enemy lets it go, as ESC does. She
@@ -12,19 +12,21 @@
 (import random)
 (import state)
 (import content/action ac)
-(import content/faces)
+(import content/charms)
+(import content/items)
 (import content/effects fx)
-(import content/enemies en)
+(import content/foes)
+(import content/moves mv)
 (import content/statuses st)
 (import battle/act)
-(import battle/bag)
+(import battle/dice)
 (import battle/hit)
 (import battle/log)
 (import battle/look)
 (import battle/words)
 (import sound/sound)
 
-(const HURT_LEFT u8 8) ; frames of a held hurt face left once the enemies' turn ends
+(const HURT_LEFT u8 8)  ; frames of a held hurt face left once the enemies' turn ends
 (const DEAL_EVERY u8 4) ; frames from one die landing to the next: a power of 2
 (const DEAL_SHIFT u8 2)
 (const ENEMY_PAUSE u8 10)
@@ -37,11 +39,15 @@
             (return true)))
     false)
 
-; the hero's turn begins: her shield from last turn is gone, the dice come back and roll
+; the hero's turn begins: her shield from last turn is gone (content/charms says what stays),
+; no face of any slot played yet, the dice come back and roll
 (fn start_round () void
     (set state.turn (+ state.turn 1))
-    (st.turn_start state.HERO)
-    (set state.rerolls 2)
+    (set state.rerolls (charms.round_start))
+    (set state.rerolled false)
+    (set state.last_played state.NOTHING)
+    (for k u8 0 state.SLOTS
+        (set (at state.combo k) 0))
     (set state.hud_rerolls true)
     (set state.selected state.NOTHING)
     (sound.cue sound.Cue.turn_on)
@@ -50,12 +56,8 @@
             (log.line "Pick a die 1-5, then an enemy ZXC." 0)
             (log.line "Done? E (or tap END) ends the turn." 0))
         (log.line "Your turn: pick a die (1-5)." 0))
-    (bag.deal)
+    (dice.deal)
     (start_roll))
-
-; 0 to 5, from a random byte times 6 over 256: no division routine
-(fn random_face () u8
-    (as u8 (>> (* (as u16 (random.byte)) (as u16 state.DIE_FACES)) 8)))
 
 (fn start_roll () void
     (set state.phase state.Phase.rolling)
@@ -69,13 +71,12 @@
     (if (= (& t (- DEAL_EVERY 1)) 0)
         (do
             (let d u8 (>> t DEAL_SHIFT))
-            (if (and (< d state.HAND) (not (at state.played d)))
+            (if (and (< d state.DICE_MOST) (not (at state.played d)))
                 (do
-                    (let first u8 (* (at state.tray_die d) state.DIE_FACES))
-                    (set (at state.hand d) (at state.dice (+ first (random_face))))
+                    (dice.roll d)
                     (set state.hud_dice (| state.hud_dice (<< 1 d)))
                     (sound.cue sound.Cue.rattle)))))
-    (if (< t (<< state.HAND DEAL_SHIFT))
+    (if (< t (<< state.DICE_MOST DEAL_SHIFT))
         (return))
     (start_player))
 
@@ -86,7 +87,7 @@
     (if (not (at state.actors state.target alive))
         (next_target 1))
     (let left bool false)
-    (for d u8 0 state.HAND
+    (for d u8 0 state.DICE_MOST
         (if (not (at state.played d))
             (do
                 (if (fx.can_play (at state.hand d))
@@ -122,7 +123,7 @@
 (fn picked_aim () state.Aim
     (if (= state.selected state.NOTHING)
         (return state.Aim.foe))
-    (at faces.FACES (at state.hand state.selected) aim))
+    (at items.ITEMS (at state.hand state.selected) aim))
 
 ; a target picked with the arrows: a blip when it moves. A die for the hero or for every enemy
 ; has no target to move
@@ -171,7 +172,7 @@
                 (do
                     (end_turn)
                     (return)))))
-    (if (and (>= key KEY_1) (< key (+ KEY_1 state.HAND)))
+    (if (and (>= key KEY_1) (< key (+ KEY_1 state.DICE_MOST)))
         (do
             (select (- key KEY_1))
             (return)))
@@ -193,7 +194,7 @@
 
 ; die d of the tray to draw again (none for NOTHING)
 (fn mark_slot ((d u8)) void
-    (if (< d state.HAND)
+    (if (< d state.DICE_MOST)
         (set state.hud_dice (| state.hud_dice (<< 1 d)))))
 
 ; slot d picked: its text shows; picked again, it plays, or with a die for one enemy it is let
@@ -231,16 +232,17 @@
             (sound.cue sound.Cue.nope)
             (return)))
     (let row u8 (at state.hand d))
-    (let face ac.Action (at faces.FACES row))
     (if (not (fx.can_play row))
         (do
             (sound.cue sound.Cue.nope)
+            (log.line "A hairball: re-roll it to cough it up." 0)
             (return)))
     (sound.cue sound.Cue.tok)
     (deselect)
     (set (at state.played d) true)
+    (set state.last_played d)
     (mark_slot d)
-    (let target u8 (if (= face.aim state.Aim.self)
+    (let target u8 (if (= (at items.ITEMS row aim) state.Aim.self)
         state.HERO
         state.target))
     ; no log line for her own die: the rows above still show it (battle/words), and each line
@@ -253,7 +255,7 @@
             (sound.cue sound.Cue.nope)
             (return)))
     (let any bool false)
-    (for d u8 0 state.HAND
+    (for d u8 0 state.DICE_MOST
         (if (not (at state.played d))
             (set any true)))
     (if (not any)
@@ -263,6 +265,7 @@
     (deselect)
     (set state.rerolls (- state.rerolls 1))
     (set state.hud_rerolls true)
+    (dice.cough)
     (start_roll))
 
 ; after an action is over: the battle may be over, else back to whose turn it is
@@ -300,12 +303,19 @@
     (if (> hurt 0)
         (hit.lose who hurt)))
 
-; the hero's statuses tick, then the enemies' turn begins: their shields from last turn go
+; her turn ends: her kittens pounce (content/effects), her statuses tick, a spook wears off;
+; then the enemies' turn begins: their shields from last turn go
 (fn end_turn () void
     (set state.end_wait 0)
     (deselect)
     (sound.cue sound.Cue.turn_off)
+    (fx.turn_end)
+    (if (not (any_enemy_alive))
+        (do
+            (end_battle state.Phase.won)
+            (return)))
     (turn_end state.HERO)
+    (state.set_stack state.HERO (as u8 st.Status.spook) 0)
     (if (not (at state.actors state.HERO alive))
         (do
             (end_battle state.Phase.lost)
@@ -331,12 +341,14 @@
             (return)))
     (set state.next_enemy (+ i 1))
     (set state.timer 0)
-    (if (st.skips i)
-        (return))
+    (if (foes.skips i)
+        (do
+            (log.uses i (foes.intent_text i (at state.actors i move)) 0)
+            (return)))
     (let row u8 (at state.actors i move))
     (sound.cue sound.Cue.growl)
-    (log.uses i (at en.MOVES row text) (fx.intent_amount i row))
-    (act.begin state.Source.move row i (fx.move_target i row)))
+    (log.uses i (at mv.MOVES row text) (foes.intent_amount i row))
+    (act.begin state.Source.move row i (foes.move_target i row true)))
 
 ; the enemies' statuses tick and each takes up its next move; then the hero's turn (and her
 ; face again, if a hit held it hurt)
@@ -345,9 +357,15 @@
         (set (at state.actors state.HERO mood_time) HURT_LEFT))
     (for i u8 1 state.ACTORS
         (if (at state.actors i alive)
+            (turn_end i))
+        ; still standing: this turn's hurt is forgotten, and it takes up its next move (one
+        ; that came in or got up keeps its first)
+        (if (at state.actors i alive)
             (do
-                (turn_end i)
-                (next_move i)
+                (state.set_stack i (as u8 st.Status.hurt) 0)
+                (if (st.skips i)
+                    (state.set_stack i (as u8 st.Status.fresh) 0)
+                    (foes.next_move i))
                 ; its face follows its new intent, unless it is still showing a hurt
                 (if (= (at state.actors i mood_time) 0)
                     (set (at state.actors i mood) (look.resting_mood i))))))
@@ -357,12 +375,3 @@
             (end_battle state.Phase.won)
             (return)))
     (start_round))
-
-; the next of its moves, round and round (moves_made counts within the round)
-(fn next_move ((i u8)) void
-    (let kind u8 (at state.actors i kind))
-    (let made u8 (+ (at state.actors i moves_made) 1))
-    (if (>= made (at en.ENEMIES kind move_count))
-        (set made 0))
-    (set (at state.actors i moves_made) made)
-    (set (at state.actors i move) (+ (at en.ENEMIES kind first_move) made)))

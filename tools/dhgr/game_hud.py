@@ -1,6 +1,6 @@
 # the hud's data for the game: the tray's card shapes (a white span per row for each slot's
-# tilted card, each inside its slot's 5 byte columns; a picked card is the same lifted), the twelve card
-# pictures as pixels, the 3 x 5 hud font with its icons, and the 35-column font. The game
+# tilted card, each inside its slot's 5 byte columns; a picked card is the same lifted), the card
+# pictures as pixels (icons.py, one an item and the cards between fights), the 3 x 5 hud font with its icons, and the 35-column font. The game
 # draws the hud itself from these (game/draw/pix.tsp and game/battle/tray.tsp), the same
 # shapes hud.py draws for the previews.
 
@@ -8,10 +8,10 @@ import fonts
 import hud
 import icons
 from canvas import Canvas
-from dhgr import BLACK, WHITE, YELLOW, PINK, MAGENTA, GREY, LBLUE, MBLUE, BROWN, ORANGE, PURPLE, AQUA
+from dhgr import BLACK, WHITE, YELLOW, PINK, MAGENTA, GREY, LBLUE, MBLUE, BROWN, ORANGE, PURPLE, AQUA, GREEN
 
 TRAY_TOP, TRAY_BOTTOM = 118, hud.TEXT_TOP   # from the stage's black gutter: a picked card rises into it
-CARD_CX = list(hud.CARD_CX) + [8.75 + 17.5 * 5]   # the reward's sixth slot where the buttons are
+CARD_CX = list(hud.CARD_CX) + [8.75 + 17.5 * 5]   # a sixth die, and a dream's sixth slot
 CARD_TILT = list(hud.CARD_TILT) + [3]
 
 
@@ -47,9 +47,8 @@ def card_rows():
     return min(ys) - 1, max(ys) + 2
 
 
-# the icons in the game's order (content/faces' TILE numbers): 11 x 15 pixels, '.' the card
-ICON_ORDER = ["wand", "tuna", "fluff", "star", "book", "fleas", "wet", "hiss", "bath", "plus1",
-              "times2", "lint"]
+# the icons in the game's order (art/icons' TILE numbers): 11 x 15 pixels, '.' the card
+ICON_ORDER = list(icons.ICONS)
 
 
 def icon_pixels(name):
@@ -67,18 +66,32 @@ def icon_pixels(name):
 # its colour (0: the ink it is drawn in), then rows of bits, bit 0 the leftmost pixel
 
 HUD_ICONS = {
-    # code: (rows, colour)
-    "*": (hud.HEART, PINK),            # hit points
+    # code: (rows, colour). Badges hold the 3-wide ones (tools/dhgr/lanes.py BADGE_GLYPHS); the
+    # statuses' are content/statuses.tsp GLYPH, the moves' content/moves.tsp icon
+    "*": (hud.HEART, PINK),            # hit points; a move that heals
     "!": (hud.SWORD, WHITE),           # an attack
     "#": (hud.SHIELD, LBLUE),          # shield
     ",": (["#.#", ".#.", "###", "#.#"], BROWN),  # fleas
     "%": ([".#.", "###", "###", ".#."], MBLUE),  # wet
-    "@": (["###", "..#", ".#.", "###"], PURPLE), # hissed (a Z)
+    "@": (["###", "..#", ".#.", "###"], PURPLE), # skips its move (a Z)
     "<": ([".#.", "###", ".#.", "..."], PINK),   # cheered: hits harder
     ";": (["###", "###", "###", ".#."], PURPLE), # a ward pip
     "&": (["###", "#.#", "###", "..."], ORANGE), # in a box
-    ">": (["#.#", ".#.", "#.#", "..."], AQUA),   # the next die doubled
-    "^": (hud.SWORD, ORANGE),           # a dive: a big hit
+    ">": (["#.#", ".#.", "#.#", "..."], AQUA),   # times: the next wand, fluff or book; a wish
+    "^": (hud.SWORD, ORANGE),           # strength: hits harder for good; a move that grows
+    ")": (["#.#", "#.#", "#.#", "..."], WHITE),  # a hit-all
+    '"': (["...", ".##", ".##", "..."], PINK),   # lasered: its next hit goes to a friend
+    "(": ([".##", "###", "##.", "#.."], GREEN),  # catnip: the next dice +1
+    "-": ([".#.", "###", ".##", "..."], GREY),   # a hairball on a slot
+    ".": (["#.#", "#.#", "###", "###"], YELLOW), # grabs a die
+    "/": (["#.#", ".#.", "###", "..."], PURPLE), # spiky: who hits her takes some
+    ":": (["#..", "###", "#.#", "..#"], AQUA),   # sends hits back
+    "=": (["###", "...", "###", "..."], LBLUE),  # her shield stays
+    "?": (["##.", "..#", ".#.", "...", ".#."], PURPLE),  # spooked: her dice less
+    "[": ([".#.", "#.#", "###", ".#."], PINK),   # tangled: its hits less
+    "\\": (["#.#", "...", "###", "###"], ORANGE), # knead: a paw
+    "]": (["###", "#.#", "###", "..."], YELLOW), # marked: hits on it more
+    "_": (["#.#", "###", "#.#", "###"], ORANGE), # kittens: a kitten's head
     "'": (hud.STAR, YELLOW),           # mana, lit
     "$": (hud.STAR, GREY),             # mana, not yet
 }

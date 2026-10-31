@@ -1,36 +1,81 @@
-; the row both dice faces (content/faces) and enemy moves (content/enemies) are made of, and
-; the kinds of effect they can have. What each kind does is in content/effects.tsp.
+; the rows the hero's items (content/items) and the enemies' moves (content/moves) are made of,
+; and the kinds of effect they can have. What each kind does is in content/effects.tsp (the
+; hero's faces) and content/foes.tsp (the enemies' moves).
 
 (import state)
 
 (enum Effect (hit ; amount damage
-        shield    ; amount shield, gone at the holder's next turn
-        heal      ; amount hit points back
-        mana      ; amount mana, kept all fight, effects.MOST_MANA at most
-        fleas     ; curse: amount damage at the end of each of its turns, for 3 turns
-        wet       ; curse: it deals half damage next turn
-        hiss      ; curse: it skips its next move
-        bath      ; curse: it loses all its shield
-        plus      ; the next die played gets amount more
-        double    ; the next die played does double
-        hairball  ; spell: amount damage, and fleas
-        zoomies   ; spell: amount damage 5 times, enemies left to right
-        box       ; spell: amount shield, and hit-all attacks miss until your next turn
-        scream    ; spell: amount damage to every enemy, 1 to you
-        cheer     ; an enemy's friend hits amount harder next time
-        nothing)) ; lint
+        shield ; amount shield, gone at the holder's next turn
+        heal ; amount hit points back
+        mana ; amount mana, kept all fight, effects.MOST_MANA at most
+        fleas ; curse: amount damage at the end of each of its turns, for 3 turns; stacks
+        wet ; curse: its hits are halved, for amount turns
+        tangled ; curse: its hits are amount less, till its turn ends
+        brand ; curse: every hit on it does amount more, all fight (marked)
+        plus ; trick: the next 2 dice played get amount more (each hit, each stack, each star)
+        double ; trick: the next wand, fluff or book times amount; it counts amount towards a three
+        copy ; trick: the last face you played again (free), amount more
+        catnip2 ; trick: the next amount dice get 1 more; kittens pounce twice this turn
+        knead ; trick: the next fluff times 2, the next wand amount more
+        zoomies ; spell: amount damage 5 times, enemies left to right
+        kittens ; spell: amount kittens join you (each pounces 1 at your turn's end)
+        laserall ; spell: amount damage to every enemy; each one's next hit goes to a friend
+        scream ; spell: amount damage to every enemy, 1 to you
+        knock ; spell: the enemy drops its shield and buffs, then amount damage
+        pile ; spell: amount shield, and 2 more for each kitten
+        cannon ; spell: amount damage for each kitten
+        yarn ; wand: amount damage, and tangled 1
+        spray ; wand: amount damage, and wet 1
+        feather ; wand: amount damage, and the kittens pounce it
+        pierce ; wand: amount damage that no shield stops
+        string ; wand: amount damage, then amount to the next enemy
+        shoot ; star: 1 mana, and amount damage
+        moon ; star: 1 mana, and amount shield
+        wish ; star: amount mana, and the next wand times 2
+        litter ; star: amount mana, and 1 more for each kitten
+        cheer ; an enemy's friend hits amount harder next time
+        nothing ; does nothing (the hairball)
+        wait ; an enemy move that does nothing (the countdowns)
+        spook ; curse on you: your dice get amount less on your next turn
+        mend ; an enemy heals each of its friends amount
+        summon ; an enemy calls amount of its kind's calls into empty spots
+        steal ; an enemy takes the die you played last; you get it back when it is beaten
+        reflect ; an enemy sends back the next amount damage you deal it, till its next turn
+        hit2 ; amount damage twice
+        grow ; an enemy hits amount harder for the rest of the fight
+        junk)) ; an enemy clogs your slot amount with a hairball for the fight
 
-; name: what the log and the bottom text call it; text: what it does, # standing for the
-; amount (after boosts); caption: under the die in the tray, 2 characters at most; cost: mana;
-; icon: the tile in the tray, or for an enemy move the glyph over its head; upgrade: the face
-; row it becomes when upgraded, state.NOTHING for none
-(struct Action ((name (ptr u8))
+; the six item slots, a face each (wand, fluff, star, book, curse, then the sixth: tricks), and
+; junk: the hairball, on no slot
+(enum Slot (wand fluff star book curse trick junk))
+
+; what the third face of a slot in a turn adds (an item's combo_n: how much): the third hits all
+; (sweep), the shield stays (keep), who hits you takes some (thorns), hit-alls miss and a kitten
+; (box), heal, some to all and twice to the wet (static), a ward pip
+(enum Combo (none sweep keep thorns box heal static ward))
+
+; an item: what a face does (content/items.tsp). name: the log's and the card's name; text: the
+; card's item line (# its number); slot: which face it sits on; effect, amount: what it does,
+; step more a level; cost: mana; combo: what the third face of its slot in a turn adds, combo_n
+; how much; icon: its picture on the card (art/icons). A face for an enemy is thrown at it, one
+; for the hero is a hop (battle/act)
+(struct Item ((name (ptr u8))
         (text (ptr u8))
-        (caption (ptr u8))
+        (slot Slot)
         (effect Effect)
         (amount u8)
+        (step u8)
         (cost u8)
+        (combo Combo)
+        (combo_n u8)
+        (aim state.Aim)
+        (icon u8)))
+
+; an enemy's move: text for the bottom text and the log (no name, # its number, 21 characters
+; at most), icon the hud glyph over its head before it acts
+(struct Move ((text (ptr u8))
+        (effect Effect)
+        (amount u8)
         (aim state.Aim)
         (motion state.Motion)
-        (icon u8)
-        (upgrade u8)))
+        (icon u8)))

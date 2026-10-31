@@ -1,7 +1,8 @@
-; the dice tray at the foot of the stage, drawn into the backdrop page in whole pixels
-; (draw/pix) and marked for both pages: a tilted white card for each slot (art/hud_data's spans
-; per row), a die's picture on it (art/icons) and its number under it; at the right the re-roll
-; button, the mana stars and END TURN (side). The reward uses a sixth slot where the buttons are.
+; the dice tray at the foot of the stage, drawn onto the page in whole pixels (draw/pix): a
+; tilted white card for each slot (art/hud_data's spans per row), a face's picture on it
+; (art/icons, in aux memory: each slot keeps a copy of its picture) and its number under it; at
+; the right the re-roll button, the mana stars and END TURN (side). Six slots: a sixth die (a
+; charm's) and the six choices of a dream between fights use the last.
 ;
 ; a slot is drawn again with the groups of pixels its card covers, every card there composed
 ; anew from black, so neighbours that reach in stay right. Each card stays inside its slot's 5
@@ -9,6 +10,7 @@
 ; glow bar fills in under it (lift), and back down when it is put back (drop), a pick on screen
 ; in about a frame where composing the slot again took ten.
 
+(import auxmem)
 (import state)
 (import art/hud_data hud)
 (import art/icons)
@@ -25,8 +27,8 @@
 (const FOCUS u8 13) ; yellow
 (const ICON_W u8 11)
 (const ICON_H u8 15)
-(const SIDE_G0 u8 13) ; the buttons' groups: pixels 91-139
-(const SIDE_GN u8 7)
+(const SIDE_G0 u8 15) ; the buttons' groups: pixels 105-139
+(const SIDE_GN u8 5)
 
 ; what each slot shows (not game state: the tray's own record): a card or not, its picture
 ; (icons' TILE number or state.NOTHING), its caption and where it starts, whether it is picked
@@ -36,7 +38,8 @@
 (let caption_len (array u8 6))
 (let caption_x (array u8 6))
 (let picked (array bool 6))
-(let lifted (array bool 6)) ; what the backdrop shows
+(let lifted (array bool 6))   ; what the page shows
+(let pictures (array u8 540)) ; each slot's picture, icons.ICON_BYTES a slot
 (let side_on bool false)
 ; the groups of pixels to draw again at the next flush, and whether only the faces changed
 (let dirty_g0 u8 255)
@@ -55,6 +58,10 @@
         (return))
     (if (!= (at card n) has_card)
         (set faces_only false))
+    (if (and (!= (at icon n) tile) (!= tile state.NOTHING))
+        (auxmem.read (addr_of (at pictures (* (as u16 n) icons.ICON_BYTES)))
+            (addr_of (at icons.pixels (* (as u16 tile) icons.ICON_BYTES)))
+            icons.ICON_BYTES))
     (set (at card n) has_card)
     (set (at icon n) tile)
     (set (at caption n) text)
@@ -148,7 +155,10 @@
     (mark_slot col))
 
 (fn mark_slot ((col u8)) void
-    (scene.mark col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS (+ (- hud.CARD_BOTTOM hud.CARD_TOP) hud.LIFT)))
+    (scene.mark col
+        (- hud.CARD_TOP hud.LIFT)
+        hud.SLOT_COLS
+        (+ (- hud.CARD_BOTTOM hud.CARD_TOP) hud.LIFT)))
 
 ; no cards at all, nothing drawn (a new backdrop's tray is black)
 (fn forget () void
@@ -177,7 +187,7 @@
     (let cap_y u8 hud.CAPTION_Y)
     (if (and (>= y top) (< y (+ top ICON_H)))
         (do
-            (let at u16 (+ (* (as u16 tile) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
+            (let at u16 (+ (* (as u16 n) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
             ; the picture's pixels in the stretch: from i0 to i1 of its 11, at px k on
             (let i0 u8 0)
             (if (< x pix.origin)
@@ -190,7 +200,7 @@
                     0)))
             (let k u8 (- (+ x i0) pix.origin))
             (for i u8 i0 i1
-                (let b u8 (at icons.PIXELS (+ at (as u16 (>> i 1)))))
+                (let b u8 (at pictures (+ at (as u16 (>> i 1)))))
                 (let c u8 (if (= (& i 1) 0)
                     (>> b 4)
                     (& b 15)))
@@ -222,63 +232,57 @@
 ; ---- the buttons and the mana, right of the cards
 
 ; the re-roll button (a die, X and the re-rolls left, grey with none), the mana stars lit for
-; what the hero has, END TURN
+; what the hero has, END TURN, in pixels 105-139
 (let side_glyphs (array u8 8))
 
 (fn side_row ((y u8) (rerolls u8) (mana u8) (most u8)) void
     (pix.fill BLACK)
     ; the re-roll button: a white pill with a die's five pips
-    (if (and (>= y 128) (< y 140))
+    (if (and (>= y 124) (< y 136))
         (do
-            (let inset u8 (if (or (= y 128) (= y 139))
+            (let inset u8 (if (or (= y 124) (= y 135))
                 1
                 0))
-            (pix.span (+ 92 inset) (- 99 inset) (if (> rerolls 0)
+            (pix.span (+ 107 inset) (- 115 inset) (if (> rerolls 0)
                 WHITE
                 GREY))
-            (if (or (or (= y 130) (= y 131)) (or (= y 136) (= y 137)))
+            (if (or (or (= y 126) (= y 127)) (or (= y 132) (= y 133)))
                 (do
-                    (pix.dot 93 BLACK)
-                    (pix.dot 97 BLACK)))
-            (if (or (= y 133) (= y 134))
-                (pix.dot 95 BLACK))))
-    (if (and (>= y 132) (< y 137))
+                    (pix.dot 108 BLACK)
+                    (pix.dot 112 BLACK)))
+            (if (or (= y 129) (= y 130))
+                (pix.dot 110 BLACK))))
+    (if (and (>= y 128) (< y 133))
         (do
             (set (at side_glyphs 0) 'X')
             (set (at side_glyphs 1) (+ '0' rerolls))
-            (pix.glyphs 101 (addr_of (at side_glyphs 0)) 2 (- y 132) WHITE)))
+            (pix.glyphs 118 (addr_of (at side_glyphs 0)) 2 (- y 128) WHITE)))
     ; the mana: a star for each, lit while the hero has it
-    (if (and (>= y 131) (< y 137))
+    (if (and (>= y 139) (< y 145))
         (do
             (for k u8 0 most
                 (set (at side_glyphs k) (if (< k mana)
                     '\''
                     '$')))
-            (pix.glyphs 109 (addr_of (at side_glyphs 0)) most (- y 131) WHITE)))
-    ; END TURN: a magenta pill rimmed in white, a pink shine along its top
-    (if (and (>= y 143) (< y 157))
+            (pix.glyphs 108 (addr_of (at side_glyphs 0)) most (- y 139) WHITE)))
+    ; END TURN: a magenta pill, a pink shine along its top
+    (if (and (>= y 147) (< y 159))
         (do
-            (let inset u8 (if (or (= y 143) (= y 156))
+            (let inset u8 (if (or (= y 147) (= y 158))
                 1
                 0))
-            (pix.span (+ 91 inset) (- 138 inset) WHITE)
-            (if (and (>= y 144) (< y 156))
-                (do
-                    (let inner u8 (if (or (= y 144) (= y 155))
-                        1
-                        0))
-                    (pix.span (+ 92 inner) (- 137 inner) MAGENTA)))
-            (if (= y 145)
-                (pix.span 94 135 PINK))
-            (if (and (>= y 148) (< y 153))
-                (pix.glyphs 99 "END TURN" 8 (- y 148) WHITE)))))
+            (pix.span (+ 105 inset) (- 140 inset) MAGENTA)
+            (if (= y 148)
+                (pix.span 107 138 PINK))
+            (if (and (>= y 151) (< y 156))
+                (pix.glyphs 107 "END TURN" 8 (- y 151) WHITE)))))
 
 ; the side as it shows: drawn whole the first time, then only the rows of the re-roll button
 ; and the stars, and only when what they show changed (the hero's badge changing asks too)
 (let side_rerolls u8 0)
 (let side_mana u8 0)
-(const COUNTS_TOP u8 128)
-(const COUNTS_END u8 140)
+(const COUNTS_TOP u8 124)
+(const COUNTS_END u8 145)
 
 (fn side ((rerolls u8) (mana u8) (most u8)) void
     (let y0 u8 HUD_TOP)
@@ -298,7 +302,7 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
-; the buttons off, for the reward: its sixth slot goes there
+; the buttons off, between fights
 (fn clear_side () void
     (set side_on false)
     (pix.begin SIDE_G0 SIDE_GN)

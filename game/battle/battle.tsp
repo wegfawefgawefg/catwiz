@@ -1,12 +1,15 @@
-; the run's battles in the forest: a run starts the hero's bag of dice and hit points, each
-; fight is set up from its encounter, steps one frame at a time and is drawn; after a won fight
-; the reward (battle/reward.tsp), then the next fight; after the last, "to be continued".
+; the run's battles in the forest: a run starts the hero's kit (an item in each of her six
+; slots, no levels, no charms) and hit points, each fight is set up from its encounter, steps one
+; frame at a time and is drawn; after a won fight what comes between fights (battle/reward.tsp:
+; a card, a charm, the nap, the doors), then the next fight; after the last, "to be continued".
 
 (import apple2 a2)
 (import state)
 (import art/sprites art)
+(import content/charms)
 (import content/enemies en)
 (import content/encounters enc)
+(import content/items)
 (import content/statuses st)
 (import draw/screen)
 (import draw/scene)
@@ -17,7 +20,8 @@
 (import battle/look)
 (import battle/hud)
 (import battle/act)
-(import battle/bag)
+(import battle/dice)
+(import battle/spawn)
 (import battle/turn)
 (import battle/words)
 (import battle/log)
@@ -26,13 +30,42 @@
 
 (const BANNER_AFTER u8 56) ; frames from the last blow to the end: the poof has finished
 
-; a new run: the starting dice, full hit points, the first fight
+; for test builds, flipped in a copy: the run starts at fight START_STAGE (0 the first; with
+; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before "to be continued"
+; (fights 3-11 fight on fight 1-2's screens with stand-in figures); START_CHARM is held from
+; the start (a row of enc.CHARMS); WIN_AT_ONCE wins every fight as it starts, to walk what
+; comes between fights (the cards, charms, the nap, the doors). The kit: items.STARTING_ITEMS
+(const START_STAGE u8 0)
+(const START_FIGHT u8 0)
+(const STOP_STAGE u8 2)
+(const START_CHARM u8 state.NOTHING)
+(const WIN_AT_ONCE bool false)
+
+; a new run: the starting items, no levels or charms, full hit points, the first fight
 (fn enter () void
-    (bag.fill)
+    (for k u8 0 state.SLOTS
+        (set (at state.items k) (at items.STARTING_ITEMS k))
+        (set (at state.levels k) 0))
+    (for c u8 0 10
+        (set (at state.charms c) 0))
+    (let charm u8 START_CHARM)
+    (if (< charm 10)
+        (set (at state.charms charm) 1))
     (set state.hero_hp enc.HERO.hp)
-    (set state.fight 0)
+    (set state.stage START_STAGE)
+    (set state.fight START_FIGHT)
     (set state.screen state.Screen.battle)
     (enter_fight))
+
+; enemy kind's figure, and the figures of the kinds it calls and becomes, for load_art
+(fn want_enemy ((kind u8)) void
+    (let k u8 kind)
+    (while (!= k state.NOTHING)
+        (blit.want (at en.ENEMIES k figure))
+        (let calls u8 (at en.ENEMIES k calls))
+        (if (!= calls state.NOTHING)
+            (blit.want (at en.ENEMIES calls figure)))
+        (set k (at en.ENEMIES k then))))
 
 ; the fight's art: its backdrop unpacked onto the spare page and copied onto the page (so it
 ; never shows half unpacked), the hero's, the small sprites' and its enemies' runs unpacked
@@ -49,15 +82,7 @@
     (blit.want art.KIND_CAT)
     (blit.want art.KIND_MISC)
     (for i u8 0 fight.count
-        (let spot enc.Spot (at fight.spots i))
-        (let kind u8 (at en.ENEMIES spot.enemy figure))
-        (let seen bool false)
-        (for j u8 0 i
-            (let other enc.Spot (at fight.spots j))
-            (if (= (at en.ENEMIES other.enemy figure) kind)
-                (set seen true)))
-        (if (not seen)
-            (blit.want kind)))
+        (want_enemy (at fight.spots i enemy)))
     (blit.unpack_all)
     (text.forget)
     (hud.forget))
@@ -70,25 +95,35 @@
     (set state.target 1)
     (set state.selected state.NOTHING)
     (set state.log_hold 0)
-    (bag.gather)
+    (set state.last_face state.NOTHING)
+    (set state.last_on state.HERO)
+    (set state.dice_n (charms.dice))
+    (dice.gather)
     (for i u8 0 state.FLOATERS
         (set (at state.floaters i time) 0))
     (set_hero)
     (st.start state.HERO state.NOTHING)
+    (charms.fight_start)
+    (let fight enc.Fight (at enc.FIGHTS state.fight))
     (for i u8 1 state.ACTORS
-        (set_enemy i)
-        (if (!= (at state.actors i kind) state.NOTHING)
-            (st.start i (at state.actors i kind)))
+        (if (> i fight.count)
+            (spawn.nobody i)
+            (spawn.enemy i (at fight.spots (- i 1) enemy) false))
         (set (at state.actors i mood) (look.resting_mood i)))
     (text.clear)
     (log.clear)
     (set state.hud_pills 0x0F)
     (set state.hud_intents 0x0E)
-    (set state.hud_dice 0x1F)
+    (set state.hud_dice 0x3F)
     (set state.hud_rerolls true)
     (set state.hud_words true)
     (sound.song sound.Song.battle)
-    (turn.start_round))
+    (turn.start_round)
+    (if WIN_AT_ONCE
+        (do
+            (for i u8 1 state.ACTORS
+                (spawn.nobody i))
+            (turn.end_battle state.Phase.won))))
 
 (fn set_hero () void
     (set (at state.actors state.HERO)
@@ -104,35 +139,6 @@
             :move 0
             :moves_made 0
             :mood state.Mood.idle
-            :mood_time 0
-            :flash 0
-            :knock 0
-            :dying 0)))
-
-; actor i is spot i - 1 of this fight, or nobody past its end. Enemies start on their first move
-(fn set_enemy ((i u8)) void
-    (let fight enc.Fight (at enc.FIGHTS state.fight))
-    (if (> i fight.count)
-        (do
-            (set (at state.actors i alive) false)
-            (set (at state.actors i kind) state.NOTHING)
-            (set (at state.actors i dying) 0)
-            (return)))
-    (let spot enc.Spot (at fight.spots (- i 1)))
-    (let kind en.Enemy (at en.ENEMIES spot.enemy))
-    (set (at state.actors i)
-        (make state.Actor
-            :alive true
-            :kind spot.enemy
-            :figure kind.figure
-            :hp kind.hp
-            :max_hp kind.hp
-            :col spot.col
-            :home spot.col
-            :lift 0
-            :move kind.first_move
-            :moves_made 0
-            :mood state.Mood.angry
             :mood_time 0
             :flash 0
             :knock 0
@@ -170,15 +176,17 @@
         (state.Phase.reward
             (if (reward.step key)
                 (do
-                    (set state.fight (+ state.fight 1))
+                    (set state.stage (+ state.stage 1))
+                    (set state.fight state.next_fight)
                     (enter_fight))))
         (state.Phase.won (return (ending key true)))
         (state.Phase.lost (return (ending key false))))
     state.Screen.battle)
 
-; whether the fight just won was the run's last
+; whether the fight just won was the run's last (or the last with art, STOP_STAGE)
 (fn last_fight () bool
-    (>= (+ state.fight 1) enc.FIGHT_COUNT))
+    (let next u8 (+ state.stage 1))
+    (or (>= next enc.FIGHT_COUNT) (>= next STOP_STAGE)))
 
 ; after the last blow: once the beaten have puffed away, the reward, or the end of the run
 ; (to be continued, or lost), where any key (RETURN, a tap) goes back to the title
@@ -209,7 +217,7 @@
     (if (or (or (!= state.hud_pills 0) (!= state.hud_intents 0))
             (or (!= state.hud_dice 0) (or state.hud_rerolls state.hud_words)))
         (return true))
-    (if (or log.unshown (!= drawn_phase state.phase))
+    (if (or (or log.unshown (!= drawn_phase state.phase)) (!= reward.due state.NOTHING))
         (return true))
     (look.update (turn.picked_aim))
     (scene.differs))
@@ -226,6 +234,7 @@
     (if (not tray_drew)
         (do
             (words.refresh)
-            (log.flush)))
+            (log.flush)
+            (reward.refresh)))
     (look.update (turn.picked_aim))
     (scene.draw_frame))

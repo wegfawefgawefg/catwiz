@@ -3,12 +3,12 @@
 
 (const ACTORS u8 4) ; the hero, then up to three enemies
 (const HERO u8 0)
-(const STATUS_SLOTS u8 16)
-(const HAND u8 5) ; dice in the hand
-(const DIE_FACES u8 6)
-(const FLOATERS u8 4) ; damage numbers in the air at once
-(const BAG_MOST u8 6) ; dice in the bag at most: the reward's pickers show them all in the tray
-(const MARKERS u8 3)  ; arrows over who the picked die goes to: every enemy, for a hit-all
+(const STATUS_SLOTS u8 32)
+(const DICE u8 5)      ; dice she rolls (a charm adds one)
+(const DICE_MOST u8 6) ; and at most: the tray's six slots
+(const SLOTS u8 6)     ; item slots: a die's six faces
+(const FLOATERS u8 4)  ; damage numbers in the air at once
+(const MARKERS u8 3)   ; arrows over who the picked die goes to: every enemy, for a hit-all
 ; things drawn over the backdrop, later ones on top: 4 actors, their hit point badges, the
 ; enemies' intent badges, the bolt, 3 markers, 4 floaters
 (const LOOKS u8 19)
@@ -26,9 +26,9 @@
 
 (enum Phase (rolling player acting enemies won lost reward))
 
-; the steps of the reward screen: pick an offer, then the die to take out of the bag, or the
-; die and the face to upgrade
-(enum Pick (offer remove upgrade_die upgrade_face))
+; the steps between fights (battle/reward): one of the fight's three cards, one of three charms,
+; the nap (sleep or dream), the slot a dream levels, one of two doors
+(enum Pick (cards charms nap nap_slot door))
 
 ; the face an actor shows (battle/look turns it into a frame of the art)
 (enum Mood (idle angry worried hurt attack happy ko surprised))
@@ -96,28 +96,40 @@
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
-(let stacks (array u8 64) :address 0x0600) ; status stacks: actor * STATUS_SLOTS + status
-; the run: which fight, the hero's hit points between fights, and her bag of dice as face rows
-; (die d is d * DIE_FACES to d * DIE_FACES + 5)
+(let stacks (array u8 128)) ; status stacks: actor * STATUS_SLOTS + status
+; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
+; stage's, or its other door), the hero's hit points between fights, and her kit: the item in
+; each of the six slots (rows of content/items), each slot's level, and how many of each charm
+; she holds
+(let stage u8)
 (let fight u8)
+(let next_fight u8) ; the row the next fight is: the next stage's, or the door picked
 (let hero_hp u8)
-(let dice (array u8 36) :address 0x0700) ; BAG_MOST * DIE_FACES
-(let bag u8)                             ; dice in the bag
-; each turn the tray takes HAND dice from the bag's draw pile; when it runs out, the dice not
-; in the tray are shuffled back into it. A fight starts with every die in the draw pile
-(let in_draw (array bool 6) :address 0x06D6) ; die d is in the draw pile
-(let tray_die (array u8 5) :address 0x06DC)  ; the bag die in each tray slot, NOTHING for none
-(let hand (array u8 5))                      ; the face each die shows, a row in content/faces
-(let played (array bool 5))
+(let items (array u8 6))
+(let levels (array u8 6))
+(let charms (array u8 10))
+; the fight's dice: dice_n of them roll each turn (die d in tray slot d). A die an enemy holds
+; (held: its actor, NOTHING) stays out until that enemy is beaten; a slot a hairball clogs shows
+; the hairball on every die until a re-roll coughs it up
+(let dice_n u8)
+(let held (array u8 6))
+(let clogged (array bool 6))
+(let face_of (array u8 6)) ; the face (slot) each die shows
+(let hand (array u8 6))    ; and the item it is, a row in content/items
+(let played (array bool 6))
 (let rerolls u8)
-(let end_wait u8) ; frames until the hero's turn ends by itself, 0 for not
-(let selected u8) ; the die picked to play next, or NOTHING
-(let target u8)   ; the enemy the dice go to
-(let log_hold u8) ; frames the enemies wait, so the last log line can be read
+(let rerolled bool)      ; a re-roll this turn (still water)
+(let combo (array u8 6)) ; faces of each slot played this turn, for the threes
+(let last_face u8)       ; the item played last (copycat), and on whom
+(let last_on u8)
+(let last_played u8) ; the die played last this turn (an enemy may grab it)
+(let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
+(let selected u8)    ; the die picked to play next, or NOTHING
+(let target u8)      ; the enemy the dice go to
+(let log_hold u8)    ; frames the enemies wait, so the last log line can be read
 ; the reward screen
 (let pick Pick)
-(let picked u8) ; the slot picked, or NOTHING
-(let upgrade_die u8)
+(let picked u8)     ; the card picked, or NOTHING
 (let next_enemy u8) ; on the enemies' turn, who acts next
 (let turn u8)
 ; the action in flight
@@ -152,13 +164,17 @@
 (let glow u8) ; which step of the glow cycle it shows
 (let glow_time u8)
 
-(fn stack ((who u8) (status u8)) u8
-    (at stacks (+ (* who STATUS_SLOTS) status)))
+; actor who's first stack, and its bit in the hud's flags
+(const FIRST_STACK (array u8 4) (make (array u8 4) 0 32 64 96))
+(const BIT (array u8 4) (make (array u8 4) 1 2 4 8))
 
-; a stack changes who's pill, and may change the intent over its head (wet halves it, a hiss
+(fn stack ((who u8) (status u8)) u8
+    (at stacks (+ (at FIRST_STACK who) status)))
+
+; a stack changes who's pill, and may change the intent over its head (wet halves it, a stall
 ; skips it)
 (fn set_stack ((who u8) (status u8) (n u8)) void
-    (set (at stacks (+ (* who STATUS_SLOTS) status)) n)
-    (let bit u8 (<< 1 who))
+    (set (at stacks (+ (at FIRST_STACK who) status)) n)
+    (let bit u8 (at BIT who))
     (set hud_pills (| hud_pills bit))
     (set hud_intents (| hud_intents bit)))

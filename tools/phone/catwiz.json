@@ -1,6 +1,6 @@
 {
  "title": "Catwiz",
- "about": "A cat wizard's dice battles in the forest: tap a die, then an enemy.",
+ "about": "A cat wizard's dice battles in the forest: tap a die, then an enemy. Between fights, tap a card twice.",
  "mockingboard": 4,
  "look": "ntsc",
  "pad": [
@@ -130,15 +130,22 @@
   {
    "x": 175,
    "y": 118,
-   "w": 105,
-   "h": 24,
+   "w": 35,
+   "h": 42,
+   "key": "6"
+  },
+  {
+   "x": 210,
+   "y": 118,
+   "w": 70,
+   "h": 27,
    "key": "R"
   },
   {
-   "x": 175,
-   "y": 142,
-   "w": 105,
-   "h": 18,
+   "x": 210,
+   "y": 145,
+   "w": 70,
+   "h": 15,
    "key": "E"
   },
   {

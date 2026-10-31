@@ -4,7 +4,10 @@
 
 (import state)
 (import art/sprites art)
+(import content/charms)
+(import content/enemies en)
 (import content/statuses st)
+(import battle/spawn)
 (import battle/place)
 (import battle/log)
 (import sound/sound)
@@ -21,10 +24,38 @@
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
 (const MOST_STACKS u8 99)
 
-; by hits target for amount: by's statuses, then target's, then what is left comes off its
-; hit points
-(fn strike ((by u8) (target u8) (amount u8)) void
-    (let damage u8 (st.dealt by amount true))
+; by hits target for amount: by's statuses (content/statuses dealt), then a mark on target
+; adds; an enemy sending hits back returns its share to the hero; then target's shield, unless
+; pierce, and what is left comes off its hit points. Who hits a spiky hero takes some back
+(fn strike ((by u8) (target u8) (amount u8) (pierce bool)) void
+    (let damage u8 (+ (st.dealt by amount true) (state.stack target (as u8 st.Status.brand))))
+    (if (= by state.HERO)
+        (do
+            (let back u8 (state.stack target (as u8 st.Status.reflect)))
+            (if (> back damage)
+                (set back damage))
+            (if (> back 0)
+                (do
+                    (state.set_stack target
+                        (as u8 st.Status.reflect)
+                        (- (state.stack target (as u8 st.Status.reflect)) back))
+                    (set damage (- damage back))
+                    (log.who target " sends # back." back)
+                    (plain state.HERO back)))))
+    (if pierce
+        (do
+            (set state.hud_pills (| state.hud_pills (<< 1 target)))
+            (log.who target " takes #." damage)
+            (lose target damage))
+        (plain target damage))
+    (if (and (= target state.HERO) (!= by state.HERO))
+        (do
+            (let thorns u8 (state.stack state.HERO (as u8 st.Status.thorns)))
+            (if (> thorns 0)
+                (lose by thorns)))))
+
+; damage on target, its shield first (a kitten's pounce, a trio, what is sent back)
+(fn plain ((target u8) (damage u8)) void
     (set damage (st.taken target damage))
     (set state.hud_pills (| state.hud_pills (<< 1 target)))
     (if (= damage 0)
@@ -60,12 +91,34 @@
     (set state.hitstop HITSTOP_FRAMES)
     (float_number who n false)
     (if (= who state.HERO)
-        (sound.cue sound.Cue.yelp)
-        (sound.cue sound.Cue.thump))
+        (do
+            (sound.cue sound.Cue.yelp)
+            (if (> n 0)
+                (charms.hero_hurt)))
+        (do
+            (sound.cue sound.Cue.thump)
+            (add_stacks who (as u8 st.Status.hurt) n)))
     (if (= (- hp n) 0)
         (die who)))
 
+; at 0 hit points: the dice it held come back; an enemy with a next form gets up as it (with a
+; round to get up), any other is beaten
 (fn die ((who u8)) void
+    (for d u8 0 state.DICE_MOST
+        (if (= (at state.held d) who)
+            (set (at state.held d) state.NOTHING)))
+    (if (!= who state.HERO)
+        (do
+            (let next u8 (at en.ENEMIES (at state.actors who kind) then))
+            (if (!= next state.NOTHING)
+                (do
+                    (spawn.enemy who next true)
+                    (set (at state.actors who mood) state.Mood.hurt)
+                    (set (at state.actors who mood_time) HURT_FRAMES)
+                    (set state.hud_intents (| state.hud_intents (<< 1 who)))
+                    (log.who who " gets up!" 0)
+                    (sound.cue sound.Cue.wobble)
+                    (return)))))
     (set (at state.actors who alive) false)
     (if (!= who state.HERO)
         (set (at state.actors who dying) DEATH_FRAMES))

@@ -91,6 +91,9 @@
 (let wanted_count u8 0)
 
 (fn want ((kind u8)) void
+    (for i u8 0 wanted_count
+        (if (= (at wanted i) kind)
+            (return)))
     (set (at wanted wanted_count) kind)
     (set wanted_count (+ wanted_count 1)))
 
