@@ -37,7 +37,7 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
             t->played = b->t_played;
             t->fight = (uint8_t)(use->nfights + 1);
             t->turn = (uint8_t)b->turn;
-            t->dmg = (uint8_t)(b->t_dmg < 255 ? b->t_dmg : 255);
+            t->dmg = (uint16_t)(b->t_dmg < 65535 ? b->t_dmg : 65535);
             t->sys = b->t_sys;
         }
         if (b->result != R_NONE || b->turn >= TURN_CAP)

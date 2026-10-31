@@ -27,7 +27,8 @@ typedef struct {
    fight (the number, 1-based) and turn, the damage it did, the systems it touched */
 typedef struct {
     uint64_t played;
-    uint8_t fight, turn, dmg, sys;
+    uint16_t dmg;
+    uint8_t fight, turn, sys;
 } TurnRec;
 
 typedef struct {

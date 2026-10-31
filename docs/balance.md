@@ -378,7 +378,8 @@ The hairball (an enemy's dud on a slot, coughed up by a re-roll) is in the item 
 
 ### Results, fight by fight
 
-Full naps (the owner's lean), 4,096 runs of the good player, 3,000 strong, 5,000 greedy and
+(With kittens capped at 4 and a pounce of 2: the kitten section below has the final run with
+no cap, a pounce of 1 and the Kitten Cannon, 73.7% won, within a point of this.) Full naps (the owner's lean), 4,096 runs of the good player, 3,000 strong, 5,000 greedy and
 random. Lost: hit points lost by the runs that won the fight; p90: lost by the worst tenth of
 the runs that reached it (a death counts all she had); turns: mean (most).
 
@@ -668,6 +669,109 @@ interesting (hits, stacks, turns, shields). Proposals, no new items:
 | Spray Bottle | the damage | the wet is the card; with Wet adding, a boosted wet is control | "1, AND IT IS WET #" (turns) |
 | Bell Collar, Static Fur, Spiky Fluff | the shield | the combo is the card and it takes no boost | keep: the shield is the fluff's part |
 
+## Kittens without a cap, and the Kitten Cannon (2026-10-31)
+
+The owner's tests: no kitten cap (KITTENS_MOST 99, a status's room), a pounce of 1 against
+2, one kitten still running off each time she is hurt; and Kitten Cannon back as a cash-out
+book. Everything else as above. The draft was re-learned for each (two passes for the pounce
+tests, one more for each Cannon, on the Mac mini). "Kittens": the most she had at once in the
+run.
+
+| setting | good player won | kittens: median, top tenth, top hundredth, most | Meowcronomicon taken when offered | runs that held it won | runs with 20-39 kittens | 40 or more |
+|---|---|---|---|---|---|---|
+| a pounce of 2, 4 at most (before) | 74.2% | capped at 4 | | | | |
+| a pounce of 1, no cap | 75.0% | 1, 17, 67, 99 | 26% | 81% (16% of runs) | 5% of runs, won 89% | 3%, won 99% |
+| a pounce of 2, no cap | 80.2% | 1, 30, 65, 99 | 71% | 91% (38% of runs) | 15%, won 100% | 6%, won 100% |
+
+1. A pounce of 1 with no cap is the one to keep. A huge pile is an insane payoff (runs that
+   reach 40 kittens win 99%), but few runs get there, and building it costs the run: the
+   kitten runs win 81% against 75% for all. It is a line, not a lock.
+2. A pounce of 2 with no cap is a lock: Meowcronomicon is taken 71% of the times it is
+   offered and its runs win 91%.
+3. The big piles come from x2 on Meowcronomicon (x16 makes 63 kittens in one cast), then
+   Feather Toy and Mittens to make them pounce.
+
+The Kitten Cannon: "3 MANA: LAUNCH ALL KITTENS, # EACH". Every kitten hits the picked enemy for
+#, the next enemy when it falls, then all are gone. As a book, with a pounce of 1 and no cap:
+
+| cost, # | taken when offered | forced, by third of the run (won) | good player won |
+|---|---|---|---|
+| 2 mana, 2 each | 0% | 35%, 37%, 42% | 74.4% |
+| 3 mana, 2 each | 0% | 32%, 40%, 42% | 74.1% |
+| 3 mana, 3 each | 0% | 32%, 38%, 43% | 74.4% |
+| 3 mana, 4 each | 0% | 31%, 41%, 39% | 74.9% |
+
+Its # hardly matters, because the Cannon fails on its slot. It is a book, so it pushes out
+Meowcronomicon, the only big kitten maker, and kittens do not carry between fights. A Cannon
+run launches only Mother Cat's one kitten and the Cardboard Box's one per three fluffs. Its
+lift (given from fight 1, 192 runs a cell): alone it wins 39% (it pushes out Zoomies too);
+with Feather Toy -0.77, with Catnip -1.11; it cannot be held with Meowcronomicon at all. Its
+best pairs are mana (Moon Bowl +0.69, Wishing Star +0.66, Bad Milk +0.50), still under 75%.
+
+Tried as a wand ("LAUNCH ALL KITTENS AT IT, # EACH", no mana), so it can sit beside
+Meowcronomicon:
+
+| wand, # | taken when offered | forced (won) | lift with Meowcronomicon | with Catnip | with Times Two |
+|---|---|---|---|---|---|
+| 1 each | 1% | 53%, 55%, 44% | +0.55 | -0.28 | -0.45 |
+| 2 each | 2% | 55%, 53%, 43% | +0.40 | -0.67 | +0.10 |
+
+Better, still rarely right: spending kittens loses to keeping them, since kept kittens pounce
+every turn and the pile keeps growing. Runs made to hold a wand Cannon and Meowcronomicon
+won 35% (1,500 runs); runs made to hold a book Cannon, Mother Cat and the Box won 18%.
+
+The biggest Cannon turns (all at the king; the turn's damage count in these logs stopped at
+255; the hits show what it was). The wand with Meowcronomicon: a waiting x9 and one more Times
+Two make x16 (the cap) on the book, 64 kittens; one Times Two more on the Cannon (x3) launches
+them at 8 each, and 16 hit before the king's last phase falls (the other 48 find no one):
+
+```
+turn 3  hp 26 mana 4 (x9 waits) | BULLDOG KING 98 (THRONE NAP: SHIELD 8); | dice: FLUFF, TIMES TWO, KITTEN CANNON, FLUFF, MEOWCRONOMICON
+  TIMES TWO
+  MEOWCRONOMICON x16 = 64
+  re-roll FLUFF, KITTEN CANNON, FLUFF -> WET, KITTEN CANNON, KITTEN CANNON
+  WET = 1 on BULLDOG KING; BULLDOG KING's ward blocks it
+  re-roll KITTEN CANNON, KITTEN CANNON -> TIMES TWO, MOON BOWL
+  TIMES TWO
+  re-roll MOON BOWL -> KITTEN CANNON
+  KITTEN CANNON x3 = 8 on BULLDOG KING: 16 hits of 8 (BULLDOG KING 13, BULLDOG KING, CROSS 3); 64 kittens launched; BULLDOG KING, CROSS GETS UP; BULLDOG KING, FURIOUS GETS UP; BULLDOG KING, FURIOUS beaten
+```
+
+The book (3 mana, 3 each) with Mother Cat and the Box: Times Two three times (x16, the cap),
+four kittens at 48 each:
+
+```
+turn 6  hp 22 mana 5 kittens 4 (wish waits) | BULLDOG KING, CROSS 30 fleas2x2 (CHOMP FOR 28); ROYAL PUG 8 (CHEER: KING +2 NEXT); ROYAL PUG 8 (CHEER: KING +2 NEXT); | dice: TIMES TWO, TIMES TWO, KITTEN CANNON, CARDBOARD BOX, WISHING STAR, FLEAS
+  TIMES TWO
+  re-roll TIMES TWO, KITTEN CANNON, CARDBOARD BOX, WISHING STAR, FLEAS -> FLEAS, TIMES TWO, CARDBOARD BOX, TIMES TWO, KITTEN CANNON
+  TIMES TWO
+  TIMES TWO
+  KITTEN CANNON x16 = 48 on BULLDOG KING, CROSS: 4 hits of 48 (BULLDOG KING, CROSS 1, BULLDOG KING, FURIOUS 3); 4 kittens launched; BULLDOG KING, FURIOUS GETS UP; BULLDOG KING, FURIOUS beaten
+  FLEAS = 1 on ROYAL PUG; ROYAL PUG fleas 1
+  ROYAL PUG: CHEER: KING +2 NEXT (at ROYAL PUG)
+  ROYAL PUG: CHEER: KING +2 NEXT (at ROYAL PUG)
+
+```
+
+Recommendation: keep the pounce of 1 and no cap. The Cannon as a book is a dead card in the
+item-slot model (left in the pool as asked, weight 3 from fight 3; almost never taken, so it
+barely moves runs: 73.7% won with it, 75.0% without). For it to work it needs a kitten maker
+outside the book slot, or not to spend the kittens: the owner's call, with the next content
+round. The tables (`tools/sim/proposal`): KITTEN_HIT 1 and KITTENS_MOST 99 in effects.tsp;
+KITTEN CANNON a new row after the hairball (row 33, book, 3, a level +1, cost 3); in
+OFFER_CARDS `(make Offer :card items.CANNON :weight 3 :from 3)`. `learned.txt` is learned for
+these tables.
+
+The final run with them, the good player, 4,096 runs:
+
+| fight | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| won | 100% | 100% | 100% | 100% | 100% | 98% | 100% | 100% | 94% | 80% |
+| hp lost | 2.2 | 2.9 | 7.3 | 1.8 | 3.0 | 11.2 | 4.5 | 2.5 | 6.4 | 14.5 |
+| turns | 2.2 | 2.9 | 3.8 | 2.8 | 3.1 | 4.4 | 3.4 | 3.5 | 5.0 | 9.1 |
+
+Runs won 73.7%; strong 18.4%; greedy 0% (77% die at the mailman); random 0% (66% at the shroom).
+
 ## What changed and why
 
 ### Rule changes
@@ -696,13 +800,13 @@ Mine, each the smallest that fixed what the sim showed:
 8. A waiting times stacks to x16 at most (no end before). The strong player hoarded Times Two
    past x1,000,000; a hit's damage is a byte in the game. x16 is x2 four times, so the owner's
    "super mega strong" stacking stays.
-9. Kittens pounce for 2 (KITTEN_HIT, effects.tsp; 1 in the code before) and are 4 at most
-   (KITTENS_MOST; 5). At 1 the kitten cards lost their picks by 30-60 points; at 2 with 5
-   kittens the kitten line won 93%.
+9. Kittens: KITTEN_HIT and KITTENS_MOST are numbers in effects.tsp now (1 and 5 in the code
+   before). At 1 with a cap of 5 the kitten cards lost their picks by 30-60 points; the
+   owner's test (above) settled on a pounce of 1 and no cap (99).
 10. Bad Milk: "WANDS +2; BOOKS COST 1 MORE" (was wands +1 and fleas 2 on her at every fight's
     start, 6 hit points a fight: forced, it won 0% of runs). A trade between wands and books.
-11. Kitten Cannon is cut: forced, it lost its pick in every version (11-40%), as a book and as
-    a wand.
+11. Kitten Cannon: cut (it lost its pick in every version, 11-40%, as a book and as a wand),
+    then back as the owner's cash-out book: every kitten hits for its #, all gone (above).
 12. A woods elite, THE OLD SHROOM (an enemy and three moves), for the new shape.
 
 Tried and dropped: kittens that run off when a hit-all lands instead of whenever she is hurt
@@ -761,13 +865,14 @@ top of it:
 
 1. The new tables' numbers: `python3 tools/sim/tablediff.py` lists them (items, enemies, moves,
    charms, the fights, the pools, the constants).
-2. KITTEN_HIT (2) and KITTENS_MOST (4) as content constants where the pounce and the kitten cap
-   read them.
+2. KITTEN_HIT (1) and KITTENS_MOST (99: no cap) as content constants where the pounce and the
+   kitten cap read them; the kitten count is a status, so 99 fits.
 3. Bad Milk: wands +2 (its amount), books cost 1 more for each bad milk held; no fleas.
 4. A waiting times at most x16.
 5. THE OLD SHROOM: an enemy row and three moves (calls 2 sporelets, cap slam 8, spore cap
    shield 5), its art; in the engine's stand-in's place.
-6. Kitten Cannon's row can go.
+6. Kitten Cannon as a cash-out book (3 mana, 3 each): every kitten launched at the picked enemy
+   for the face's number, on to the next standing enemy when it falls, then the kittens are 0.
 7. The pools as `OFFER_CARDS` and `OFFER_CHARMS` (the game's shape: the sims' tables carry
    only the cards in the pool; the rest weigh 0), NAP_HEAL_SHIFT 0.
 
@@ -968,7 +1073,7 @@ From the seed lists the coordinator passed on, and from the sim's own first cuts
 | Laser Pointer and Slow Blink redirecting a lone enemy onto itself | a lone elite or the boss never hit you; now with no friend standing the hit comes at you |
 | Wishing Star's "next die times 2" | 98% of won runs; now "the next wand times 2" |
 | zoomies hitting the cat (the game's u8 wrap) | a bug in the game; the proposals take the fix |
-| Kitten Cannon (2026-10-31) | lost its pick in every version, as a book (it had to beat Zoomies and Meowcronomicon for the slot) and as a wand |
+| Kitten Cannon (2026-10-31; back the same day as a cash-out book, see the kittens section) | lost its pick in every version, as a book (it had to beat Zoomies and Meowcronomicon for the slot) and as a wand |
 | the fixed three cards a fight | the owner: offers drawn at random from one pool |
 | the eleven-fight run's puffcap-sporelet-nightflap and gnome-sporelets fights | the ten-fight shape has six normal fights; the nightflap is in no fight now |
 | studying (a book without mana gave 1 mana) | the owner: a book without its mana is a dud |
