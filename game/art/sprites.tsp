@@ -86,7 +86,7 @@
 (const ROLE_COUNT u8 6) ; idle attack hurt happy surprised flap
 (const KIND_COL (array u8 6)
     (make (array u8 6)
-        4 16 26 26 0 4))
+        4 20 32 26 0 4))
 
 (const KIND_TOP (array u8 6)
     (make (array u8 6)

@@ -1,6 +1,7 @@
 ; Catwiz: a cat wizard's dice battle in the forest, for the Apple IIe in double hi-res.
 ; The title, then a battle, then back to the title. See AGENTS.md and docs/plan.md.
 
+(import apple2 a2)
 (import keys)
 (import state)
 (import title/title)
@@ -17,7 +18,39 @@
 ; the program's one interrupt handler: the Mockingboard's tick, which plays the music
 (fn irq () void :interrupt
     (set state.clock (+ state.clock 1))
+    (take_key)
     (mb.service))
+
+; keys go into a line as the card's tick finds them, 60 times a second, so a tap is never lost
+; to the next one while a long frame draws (the keyboard holds one key); the loop takes them in
+; order. The tick only adds (tail), the loop only takes (head): no interrupts off for it. With
+; no card, the keyboard is read once a pass
+(const KEY_LINE u8 8) ; a power of 2
+(let key_line (array u8 8))
+(let key_head u8 0)
+(let key_tail u8 0)
+
+(fn take_key () void
+    (let next u8 (& (+ key_tail 1) (- KEY_LINE 1)))
+    (if (= next key_head)
+        (return))
+    ; the keyboard read here, not with keys.read: the loop calls that too, and the tick may
+    ; stop it halfway
+    (let k u8 (io_read u8 a2.KBD))
+    (if (< k 0x80)
+        (return))
+    (io_read u8 a2.KBDSTRB)
+    (set (at key_line key_tail) (& k 0x7F))
+    (set key_tail next))
+
+(fn next_key () u8
+    (if (not mb.found)
+        (return (keys.read)))
+    (if (= key_head key_tail)
+        (return 0))
+    (let k u8 (at key_line key_head))
+    (set key_head (& (+ key_head 1) (- KEY_LINE 1)))
+    k)
 
 ; the battle steps once for every frame that went by since the last pass, so its animations
 ; keep their time however long a frame takes to draw (a pass with sprites moving takes a few),
@@ -57,9 +90,11 @@
     (title.enter)
     (while true
         (set state.ticks (+ state.ticks 1))
-        ; read keys, only when the screen takes them: a key pressed during an animation waits
+        ; read keys, only when the screen takes them: a key pressed during her own action or
+        ; the dice landing waits in the line (so dice can be played one after another as fast
+        ; as they are tapped), one in the enemies' turn is dropped (battle.wants_key)
         (let key u8 (if (wants_key)
-            (keys.read)
+            (next_key)
             0))
         ; step the screen we are on, and change screens when it asks
         (let steps u8 (steps_due))
@@ -69,7 +104,9 @@
             (state.Screen.battle (battle.step key))))
         (while (and (and (> steps 1) (not state.pose))
                 (and (= state.screen state.Screen.battle) (= next state.screen)))
-            (set next (battle.step 0))
+            (set next (battle.step (if (battle.wants_key)
+                (next_key)
+                0)))
             (set steps (- steps 1)))
         (if (!= next state.screen)
             (match next

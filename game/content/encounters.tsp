@@ -22,15 +22,15 @@
             :backdrop 0
             :count 2
             :spots (make (array Spot 3)
-                (make Spot :enemy en.PUFFCAP :col 16)
-                (make Spot :enemy en.SPORELET :col 26)
+                (make Spot :enemy en.PUFFCAP :col 20)
+                (make Spot :enemy en.SPORELET :col 32)
                 (make Spot :enemy en.PUFFCAP :col 0)))
         (make Fight
             :backdrop 1
             :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.PUFFCAP :col 16)
-                (make Spot :enemy en.SPORELET :col 26)
+                (make Spot :enemy en.PUFFCAP :col 20)
+                (make Spot :enemy en.SPORELET :col 32)
                 (make Spot :enemy en.NIGHTFLAP :col 26)))))
 
 ; after a fight, pick one of three: a new die in place of one of yours, the other new die, or

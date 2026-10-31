@@ -12,7 +12,9 @@ from dhgr import BLACK
 
 # where everyone stands (sprites sit on 7-pixel steps: these are their drawing origins)
 CAT = (30, 108)
-SLOTS = {"puffcap": (77, 108), "sporelet": (103, 106), "nightflap": (115, 44)}
+# the enemies far enough apart, and from the cat's widest frame (her wand out reaches column
+# 18), that no two boxes meet: a sprite drawn again then never draws its neighbour again too
+SLOTS = {"puffcap": (91, 108), "sporelet": (124, 106), "nightflap": (115, 44)}
 
 HAND = [("wand", "3"), ("tuna", "2"), ("fluff", "3"), ("star", "1"), ("times2", "X2")]
 TEXT = [("GOLD WAND  3 damage to one enemy.", ((0, 9),)),

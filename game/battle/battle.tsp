@@ -138,7 +138,9 @@
             :knock 0
             :dying 0)))
 
-; whether this frame takes a key: in the hero's turn, the reward and at the end
+; whether this frame takes a key: in the hero's turn, the reward and at the end; and in the
+; enemies' turn, to drop it (step does nothing with it). In her own action and while the dice
+; land, keys wait for the turn to go on
 (fn wants_key () bool
     (if (> state.hitstop 0)
         (return false))
@@ -147,6 +149,8 @@
         (state.Phase.won true)
         (state.Phase.lost true)
         (state.Phase.reward true)
+        (state.Phase.enemies true)
+        (state.Phase.acting (= state.act_source state.Source.move))
         (_ false)))
 
 ; one frame of the battle; gives the screen to show next
