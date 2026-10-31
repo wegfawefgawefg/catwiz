@@ -32,12 +32,23 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 ## Content
 
-- Game rules content (dice, enemies, statuses, encounters, the hero, effects) is hand-written
-  Tisple in `content/`: plain tables of structs written out, and the `match` on the effect
-  kind. No macros, no separate data format, no parser, no Python step for it.
-- The engine (`battle/`, `draw/`) never names a specific enemy, die, effect or status. It reads
-  the tables and calls the hooks in `content/statuses.tsp` and `content/effects.tsp`, so the
-  content files can be replaced without touching the engine.
+- Game rules content is hand-written Tisple in `content/`: plain tables of structs written out
+  (`items.tsp` the hero's items, `enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the
+  fights, their cards, the charms, the nap and the doors), and the `match` on the effect kind
+  (`effects.tsp` the hero's faces, the boosts and threes, the curses, the kittens; `foes.tsp`
+  the enemies' moves; `charms.tsp` what the charms do; `statuses.tsp` the statuses and their
+  hooks). No macros, no separate data format, no parser, no Python step for it. The rules are
+  the balance sim's (`tools/sim/items.py`, `rules.py`; docs/balance.md, the item-slot model).
+- The engine (`battle/`, `draw/`) never names a specific enemy, item, effect or status. It reads
+  the tables and calls the hooks in `content/`, so the content files can be replaced without
+  touching the engine.
+- The hero rolls five identical dice (six with a charm); each die's six faces are her six item
+  slots (`state.items`), so a face is the item in its slot (`battle/dice.tsp`). Levels belong to
+  the slot (`state.levels`). Between fights (`battle/reward.tsp`): one of three cards (an item for
+  a slot, or a level), charms, the nap, the doors; the stage shows her six slots (`battle/kit`).
+- Test builds: the constants at the top of `battle/battle.tsp` (start at fight N or its other
+  door, play on past fight 2 on stand-in art, a charm held from the start, every fight won as it
+  starts) and `items.STARTING_ITEMS`, flipped in a copy.
 - No text, names or item lists from other games. Our own names and art.
 
 ## Text
@@ -49,12 +60,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   `FONT_35` in `draw/text.tsp` is the one place that switches to the 40-column dot font
   (`art/font40`, violet and green in the flat colour look). Strings are 35 characters at most
   either way. A line is drawn again only when it changed.
-- `battle/words.tsp` writes the top two rows (the die picked: name and what it does; else the
-  target), `battle/log.tsp` the bottom two (what just happened, in sentences).
+- `battle/words.tsp` writes the top two rows (the die picked: its item's name, a wand's damage
+  or a fluff's shield or how to play it, and the item's line; else the target), `battle/log.tsp`
+  the bottom two (what just happened, in sentences: a line waits as data, made once a frame).
+  Between fights `battle/reward.tsp` writes all four (a card in balance.md's four lines).
 - Strings are plain ASCII in sentence case in the code and the content tables (names
-  capitalised, a die's name in capitals, inverse); `#` in a face or move text is its number. The
-  hud font (badges, card captions, buttons: `tools/dhgr/game_hud.py`, 3 x 5 pixels) has ' ' to
-  '_', and some punctuation there is icons (heart, sword, shield, star and the statuses).
+  capitalised, an item's or charm's name in capitals, inverse); `#` in an item or move text is
+  its number. The hud font (badges, card captions, buttons: `tools/dhgr/game_hud.py`, 3 x 5
+  pixels) has ' ' to '_', and its punctuation is icons (heart, sword, shield, star, the statuses
+  and the moves' glyphs: `HUD_ICONS`). Glyphs a badge holds stay 3 wide (`lanes.py`
+  BADGE_GLYPHS: the badges' lanes are sized by the widest).
 
 ## Art
 
@@ -94,7 +109,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   forest (`forest.py`, `palettes.py`) and its previews are the old plan, kept for the record.
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
-  from `art/icons`), the buttons, the text.
+  from `art/icons`), the buttons, the text. The card pictures (`tools/dhgr/icons.py`, 11 x 15, one
+  an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
+  picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
+  (`battle/kit.tsp`).
 - NTSC (the TV look) is the real target and the web player starts in it (`"look": "ntsc"` in
   `tools/phone/catwiz.json`); judge the art and take screenshots there first, colour second. In
   NTSC every colour but black, white and grey shows fine stripes, the dark ones worst: big areas
@@ -179,8 +197,8 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
 
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
   is not zeroed at the start: `$0200-$02E3` (state.drawn), `$0800-$0BDF` once the boot loader
-  is done (the song buffer, the log, the text line and what each line shows, the reward's six,
-  the hud's pixel row and its bytes), and text page 1 (`$0400-$07FF` but `$0478-$047F` and the
+  is done (the song buffer, the log, the text line and what each line shows, the hud's pixel
+  row and its bytes), and text page 1 (`$0400-$07FF` but `$0478-$047F` and the
   other screen holes: the rects, the scene's boxes, the looks, the stacks, the actors, the
   floaters, the dice, the badges, the counter). Each such let says so. The screen shows no text
   page (`dhgr_text2` is not imported), so both are free.
@@ -218,3 +236,13 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
   `$6000-$7FFF` holds code now), `sprite_aux` 10,752 bytes in the aux memory the backdrop had;
   fight 1's sprites leave 5,839 bytes spare, fight 2's 1,779. Five dice played as fast as tapped
   (passlog SEED=5): done at frame 416 after the first tap, was 806.
+- 2026-10-31, the item-slot model (branch items, Tisple bf11831): the content's tables and their
+  text (items, moves, enemies, charms, the fights; about 3 KB of text) and the new rules' code
+  do not fit main memory and the language card at the usual size budget (37.2 KB of code):
+  built at squeeze 10 with 1.3 KB of cold code in the card's bank 1; the card 12,254 of 12,288
+  bytes; aux 4,977 bytes at `$0800` and 21,824 at `$6000` (2.7 KB left at `$B540-$BFFF`, the card
+  pictures 3,330 of it); the disk 68,976 bytes in 9 segments (the title by frame 725, was 670).
+  The code every pass runs is written out where the squeeze would call it (the tray's lift, the
+  looks): a pass flat out waiting for a key 5,657 cycles in fight 1 (was 5,535), 11,278 in fight
+  2 (was 11,106); a pick shows in 2 frames; a turn of plain wand hits takes the frames it took
+  (passlog, every face a wand: each throw within a frame, the enemies' turn within ten).

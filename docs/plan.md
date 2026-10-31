@@ -14,59 +14,74 @@ is merged; settings in `tisple.project`).
    that glows (magenta, orange, yellow, orange), the cat against a big white moon on a night
    page, "a dice battle in the woods", PRESS RETURN. One packed picture and the rim's four
    colours as sprites.
-2. A run: fight 1 in the clearing (puffcap, sporelet), a reward, fight 2 on the path (puffcap,
-   sporelet, nightflap), then "to be continued" and the title. Both at night (2026-10-31, midnight: the whole game). Hit points and
-   the bag carry between fights; losing ends the run.
-3. Rules (numbers are our own starting tuning; the dice are the only luck):
-   - Catwiz has 30 HP and a bag of six-faced dice (five to start, six at most). Each turn five
-     come from the bag's draw pile at random and roll; at the end of the turn they go to the
-     discard, played or not; when the draw pile runs out the discard is shuffled back in. A
-     fight starts with the whole bag in the draw pile. Two re-rolls a turn of the unplayed dice.
-   - Faces: wand (damage), tuna (heal), fluff (shield till the next turn), star (mana, kept all
-     fight, 5 at most; the card a bold yellow star, as the mana meter's), spells paid in mana
-     (hairball, zoomies, cardboard box, 3 AM screaming), curses for enemies (fleas, wet, hiss,
-     bath time; each ward pip blocks one), +1 and x2 (boost the next die), lint (nothing;
-     upgrades to +1).
-   - Enemies show their next move and act in order from the first: puffcap 9 HP (headbutt 4,
-     spore shield 3), sporelet 6 (nip 2, cheer: a friend hits +1 next), nightflap 8 with a ward
-     pip (scratch 1, bite 2, dive 3).
-   - Reward: one of two new dice into the bag, one face of a bag die upgraded, or a die taken
-     out of the bag.
+2. A run: fight 1 in the clearing (puffcap, sporelet), what comes between fights, fight 2 on the
+   path (puffcap, sporelet, nightflap), then "to be continued" and the title. Both at night
+   (2026-10-31, midnight: the whole game). Hit points and her kit carry between fights; losing
+   ends the run. Fights 3-11 (docs/balance.md, the run fight by fight) are in the content as data
+   and play in test builds on fight 1-2's screens with stand-in figures (`battle/battle.tsp`'s
+   test constants); the run stops after fight 2 until their art and per-fight disk loading.
+3. Rules: the item-slot model (2026-10-31; docs/balance.md, the proposal; the balance sim's
+   rules, `tools/sim/items.py` and `rules.py`):
+   - Catwiz has 30 HP and rolls five identical dice; each die's six faces are her six item slots
+     (wand, fluff, star, book, curse, trick), and the item in a slot decides what its face does
+     (`content/items.tsp`, 33 items and the hairball). She starts with Twig Wand, Fluff, Star,
+     Zoomies, Fleas, Plus One. Two re-rolls a turn of the unplayed dice. A face's number is its
+     item's amount, a step more for each level on its slot (two at most), then the boosts in
+     the sim's order (a times, a plus, catnip, knead, bad milk, a wish, a spook). The third face
+     of a slot in a turn sets off its item's combo; a times counts its number towards it. A book
+     with too little mana gives 1 mana. Kittens pounce at the end of her turn and one runs off
+     when she is hurt.
+   - Enemies show their next move and act in order from the first, round and round
+     (`content/moves.tsp`). Summons fill empty spots, an enemy with a next form gets up as it,
+     both a round later; a squirrel or the vet holds the die played last till it is beaten; a
+     hairball clogs a slot on every die till a re-roll of a die showing it; the lawnmower stalls
+     after losing 12 in a turn.
+   - Between fights (`battle/reward.tsp`): one of the fight's three cards (an item for a slot,
+     the old one going, or a level on a slot; the item you hold is a level); after fights 4, 7
+     and 10 one of three charms (`content/charms.tsp`); after 7 the nap (10 hit points, or a
+     level on a slot of your choice); before 10 two doors (the vet or the big bath).
    - M meows: a sound, a hop and the happy face; no effect on the fight.
-4. Controls: 1-5 pick a die (its text shows at the bottom, arrows show who it goes to); Z X C
-   (or the arrows and RETURN) play it on an enemy; the same number again plays a die for the
-   hero or for every enemy, and lets go of one for a single enemy; M (the cat) plays a die for
-   the hero, else meows. ESC lets go, R re-rolls, E ends the turn; the turn ends by itself a
-   beat after the last die is played, or when none can be played and no re-roll is left ("No
-   playable dice."; with re-rolls left the log says "R re-roll or E end turn."). Any key starts
-   the title and leaves the run's end. Everything is also a tap or a click on the screen:
-   `tools/phone/catwiz.json` has the tap boxes (the five cards, the re-roll button and the
+4. Controls: 1-5 pick a die (1-6 with the sixth toe; its text shows at the bottom, arrows show
+   who it goes to); Z X C (or the arrows and RETURN) play it on an enemy; the same number again
+   plays a die for the hero or for every enemy, and lets go of one for a single enemy; M (the
+   cat) plays a die for the hero, else meows. ESC lets go, R re-rolls, E ends the turn; the turn
+   ends by itself a beat after the last die is played, or when none can be played and no
+   re-roll is left ("No playable dice."; with re-rolls left the log says "R re-roll or E end
+   turn."). Between fights the choices are cards in the tray: 1-3 (1-2, or 1-6 for a dream's
+   slot) picks one and shows it, the same key again or RETURN takes it, ESC lets go. Any key
+   starts the title and leaves the run's end. Everything is also a tap or a click on the screen:
+   `tools/phone/catwiz.json` has the tap boxes (the six cards, the re-roll button and the
    stars, END TURN, the enemies, the cat, then the whole screen as ESC) for Tisple's web player
-   and `tisple machine --taps`, the web player's portrait pad, and `"look": "ntsc"`: the player
-   starts in the TV look. The reward's sixth slot sits where the re-roll button is, and the
-   reward takes R as that slot (the box there sends R; its lower part is END's box). One-time
-   hints in the log (once a boot): the first turn, the first mana, the first reshuffle.
+   and `tisple machine --taps`, the web player's portrait pad (DIE 1-6), and `"look": "ntsc"`:
+   the player starts in the TV look. One-time hints in the log (once a boot): the first turn,
+   the first mana.
 5. Screen: double hi-res, all graphics: the stage (rows 0-117 and a black gutter), the tray
    (rows 118-159), four lines of 35-column text drawn into the picture (rows 160-191): the pick
-   or the target (name, hit points, statuses, next move, Bag n draw n), then a log of what
-   happened. A black pill badge under each actor (a heart and its hit points, then its statuses)
-   and over each enemy (its next move: a sword and how much, a shield, a cheer, an orange sword
-   for a dive). The tray: a tilted white card for each die with its picture and number, the
-   picked one upright, lifted and rimmed in yellow; the re-roll button (a die and X and the re-
-   rolls left), five mana stars, END TURN. Sprites in the night's light, solid on a black stage.
+   (the item's name, its base or how to play it, its line) or the target (name, hit points,
+   statuses, next move), then a log of what happened. A black pill badge under each actor (a
+   heart and its hit points, then its statuses as glyphs: the kittens a kitten's head) and over
+   each enemy (its next move: a sword and how much, a shield, a cheer, a Z when it skips...).
+   The tray: a tilted white card for each die with its item's picture and number, the picked one
+   lifted with a yellow bar; a sixth die's card where the buttons were; right of the cards the
+   re-roll button (a die and X and the re-rolls left), five mana stars, END TURN. Between fights
+   the tray holds the choices and the stage her six slots (a picture and a pip a level each, the
+   slot a choice changes framed in yellow, showing the change). Sprites in the night's light,
+   solid on a black stage.
 6. Sound: Mockingboard music and effects in any slot; speaker effects and the title jingle
    without one.
-7. Memory: main memory full, the language card about 3 KB left (bank 1 0.5 KB), aux about
-   3.7 KB, zero page 172 of 256 (AGENTS.md, Memory). A fight's sprites do not fit since the
-   solid frames (Open 2): fight 1 3.2 KB short, fight 2 7.5 KB.
-8. Speed: waiting for a key a pass is a frame (fight 2 1.6: the nightflap's wings); an action
-   (a die thrown, an enemy's lunge) about 5 frames a pass; picking a die shows in a few frames.
+7. Memory (2026-10-31, the item model): main memory and the language card full, built at
+   squeeze 10 with 1.3 KB of cold code in the card's bank 1; aux about 2.7 KB left
+   (`$B540-$BFFF`); zero page 172 of 256 (AGENTS.md, Memory). The content's text (items,
+   moves, charms, enemies: about 3 KB) is most of what grew; Open 7.
+8. Speed: waiting for a key a pass is a frame; a pick shows in 2 frames; the same turn of plain
+   wand hits takes the frames it took before the item model, give or take one an action (AGENTS.md,
+   Memory).
 
 ## Open
 
-1. Fights 3-10: more enemies and encounters in `game/content/`, each fight's night in
-   `tools/dhgr/night.py` outside its lanes (`lanes.py`: add the fight's spots), and the final
-   fight (the bulldog king, to draw in double hi-res). The game is midnight throughout now: the
+1. Fights 3-11's nights: each fight's night in `tools/dhgr/night.py` outside its lanes
+   (`lanes.py`: add the fight's spots), and the final fight (the bulldog king, to draw in double
+   hi-res). The game is midnight throughout now: the
    day and dusk zones are not planned any more.
 2. The sprites do not fit (2026-10-31, `art/dhgr/memory.txt`): solid frames and the four flash
    frames put fight 1 at 22,977 bytes and fight 2 at 27,597 against 21,744 of room (the aux
@@ -76,7 +91,7 @@ is merged; settings in `tisple.project`).
    frame left out while nothing shows the surprised mood (2,448 bytes), a flash only for the
    enemies.
 3. Per-fight art from disk: the packed store grows a screen (about 1.2 KB packed) and the new
-   enemies' runs (2-3 KB) a fight, and aux has about 2.9 KB left, so fights 3-10 need their art
+   enemies' runs (2-3 KB) a fight, and aux has about 2.7 KB left, so fights 3-11 need their art
    read from the disk when they start (Tisple main 7c3de44's `:on disk` tables and lib/disk,
    which reserves main memory `$1400-$1BFF`: main memory is full, so that needs 2 KB of code
    moved to the language card or bank 1 first, or the reader placed elsewhere), each fight's
@@ -87,20 +102,23 @@ is merged; settings in `tisple.project`).
    sprite (restore and draw in one; lib/dhgr's kit has a byte left and no zero page, so it
    needs room there), clipping a redraw's first rows too (bottom clipping is in), the nightflap
    flapping less often.
-5. A bigger reward picker: the bag stops at six dice because the reward shows the whole bag in
-   the tray's six slots; a picker that pages would lift that.
-6. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
+5. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
    and enemies on a real IIe; today clicks work through the web player and `--taps`.
-7. A balance sim: a greedy simulated player for the run, kept in the repo, to tune by. A one-off
-   one (2026-10-30) lost about 2.3 HP in fight 1 and 4.2 in fight 2.
+6. Fights 3-11's art: twelve new enemies (the stand-ins are the puffcap's and sporelet's
+   figures, `content/enemies.tsp`), their nights and lanes, and their spots in
+   `content/encounters.tsp` laid out for them; with Open 3 the run goes on past fight 2
+   (`battle/battle.tsp` STOP_STAGE).
+7. Room: the content's text in aux memory (or read from the disk with a fight's art) would take
+   the build out of the squeeze; today a squeezed pass costs about 2% more flat out, kept even
+   by writing the per-pass code out by hand (the tray's lift, the looks).
 
 Smaller:
 
 - Play it on a real IIe (FloppyEmu or ADTPro) and a real Mockingboard; balance the mix by ear.
 - The tray is drawn in Tisple (about 2,500 cycles a group of pixels a row); the roll's redraw of
   all five faces takes a few frames.
-- More spells (Static Fur, Catnip, Mark Territory, Knock It Off The Table, Laser Pointer, Belly
-  Rub Trap, Nine Lives).
+- The balance doc's next tunings (docs/balance.md: the kitten axis, the cards that lose to a
+  clear favourite, steadier elites) are content changes in `game/content`.
 
 ## Art rules
 
