@@ -2,7 +2,7 @@
    level), the boosts in their order, its effect, its combo when it is the third of its slot
    this turn; the kittens; the hairball that clogs a slot; the charms.
 
-   Boosts on a played face, in this order: a pending times (a wand, fluff or book only: times
+   Boosts on a played face, in this order: a pending times (any die but a trick: times
    m, and it counts m towards its slot's three), a pending plus (the next two dice of any
    slot), catnip's +1, knead (the next fluff x2, the next wand +n), bad milk (wands +1), a
    wishing star (the next wand x2), then a spook takes away. */
@@ -61,12 +61,11 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     switch (face->effect) {
     case E_plus:
         /* +1 is wide: the next two dice get it, each hit and stack of them */
-        if (st[ST_PLUS] < n)
-            st[ST_PLUS] = (int32_t)n;
+        st[ST_PLUS] = st[ST_PLUS] + n < 99 ? st[ST_PLUS] + n : 99; /* +1s stack (the owner) */
         st[ST_PLUS_LEFT] = PLUS_DICE;
         break;
     case E_double: {
-        /* x2 is tall: the next wand, fluff or book, counted as two towards a three; played
+        /* x2 is tall: the next die but a trick, counted as two towards a three; played
            after a +1 it doubles that too */
         st[ST_PLUS] = fold((int64_t)st[ST_PLUS] * n);
         int m = st[ST_MULT] > 1 ? st[ST_MULT] : 1;
@@ -113,7 +112,7 @@ void items_land(Battle *b, int row, int target, int again) {
     }
     int counts = 1;
     int base = n;
-    if (st[ST_MULT] && (face->slot == S_wand || face->slot == S_fluff || face->slot == S_book)) {
+    if (st[ST_MULT] && face->slot != S_trick) { /* the next die of any slot (the owner) */
         n = fold((int64_t)n * st[ST_MULT]);
         counts = st[ST_MULT];
         st[ST_MULT] = 0;

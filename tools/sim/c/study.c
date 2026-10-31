@@ -14,27 +14,6 @@
 
 FILE *STUDY_OUT = NULL; /* --out: each forced option's win rate, for the draft (--learned) */
 
-static void forced_line(int player, int runs, uint64_t seed, int jobs, const char *what,
-                        double share) {
-    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
-    Summary s;
-    summary(r, runs, &s);
-    double boss = 0;
-    int nb = 0;
-    for (int i = 0; i < runs; i++) {
-        if (r[i].nfights == FIGHT_COUNT) {
-            boss += r[i].fights[FIGHT_COUNT - 1].hp_in;
-            nb++;
-        }
-    }
-    printf("    %-22s won %5.1f%%  hp at the boss %4.1f  end %4.1f  (taken %3.0f%%)\n", what,
-           100 * s.win, nb ? boss / nb : 0, s.hp_end, 100 * share);
-    if (STUDY_OUT)
-        fprintf(STUDY_OUT, "%d %d %d %.4f\n", FORCE.kind, FORCE.after, FORCE.a, s.win);
-    fflush(stdout);
-    free(r);
-}
-
 /* how often the unforced player took this option at this point (of the runs that got there) */
 static double share_of(const RunResult *r, int n, int kind, int after, int a) {
     int got = 0, took = 0;
@@ -63,7 +42,37 @@ static const char *card_name(int c, char *buf) {
     return buf;
 }
 
-int STUDY_ONLY = 0; /* --only N: just the picks after fight N */
+int STUDY_ONLY = 0; /* --only N: just the picks after fight N (a phase's first) */
+
+static void out_range(int kind, int lo, int hi, int a, double win) {
+    for (int f = lo; f <= hi && STUDY_OUT; f++)
+        fprintf(STUDY_OUT, "%d %d %d %.4f\n", kind, f, a, win);
+}
+
+/* one option forced: its line, and its learned value for the fights lo-hi */
+static void option(int player, int runs, uint64_t seed, int jobs, const RunResult *base,
+                   Force fo, const char *what, int lo, int hi) {
+    FORCE = fo;
+    FILE *keep = STUDY_OUT;
+    STUDY_OUT = NULL; /* forced_line would write one fight only */
+    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
+    Summary s;
+    summary(r, runs, &s);
+    double boss = 0;
+    int nb = 0;
+    for (int i = 0; i < runs; i++)
+        if (r[i].nfights == FIGHT_COUNT) {
+            boss += r[i].fights[FIGHT_COUNT - 1].hp_in;
+            nb++;
+        }
+    printf("    %-22s won %5.1f%%  hp at the boss %4.1f  end %4.1f  (taken unforced %3.0f%%)\n",
+           what, 100 * s.win, nb ? boss / nb : 0, s.hp_end,
+           100 * share_of(base, runs, fo.kind, fo.after, fo.a));
+    fflush(stdout);
+    STUDY_OUT = keep;
+    out_range(fo.kind, lo, hi, fo.a, s.win);
+    free(r);
+}
 
 int study_picks(int player, int runs, uint64_t seed, int jobs) {
     double secs;
@@ -73,53 +82,58 @@ int study_picks(int player, int runs, uint64_t seed, int jobs) {
     printf("%s, %d runs a line, unforced: won %.1f%% (%.0f s)\n", PLAYER_NAME[player], runs,
            100 * s.win, secs);
     char buf[64];
-    for (int row = 0; row < FIGHT_ROWS; row++) {
-        if (row == FIGHT_COUNT - 1)
-            continue; /* the boss: no reward */
-        int after = row >= FIGHT_COUNT ? FIGHT_COUNT - 1 : row + 1;
+    /* cards: each slipped into the offer at the first pick it can come in each third of the
+       run, and taken; its value stands for that third */
+    static const int third[3][2] = {{1, 3}, {4, 6}, {7, FIGHT_COUNT - 1}};
+    for (int t = 0; t < 3; t++) {
+        if (STUDY_ONLY && STUDY_ONLY != third[t][0])
+            continue;
+        printf("  cards after fights %d-%d:\n", third[t][0], third[t][1]);
+        for (int i = 0; i < OFFER_COUNT; i++) {
+            int at = OFFERS[i].from > third[t][0] ? OFFERS[i].from : third[t][0];
+            if (at > third[t][1])
+                continue;
+            snprintf(buf, sizeof buf, "%s (at %d)", card_name(OFFERS[i].what, buf + 40), at);
+            option(player, runs, seed, jobs, base, (Force){1, FORCE_CARD, at, OFFERS[i].what},
+                   buf, at, third[t][1]);
+        }
+    }
+    /* after each elite: the rest's heal or dream, the charm; the doors */
+    for (int row = 0; row < FIGHT_COUNT - 1; row++) {
         const FightRow *fr = &FIGHTS[row];
-        if (STUDY_ONLY && after != STUDY_ONLY)
+        int after = row + 1;
+        if (STUDY_ONLY && STUDY_ONLY != after)
             continue;
         if (fr->other != NOTHING) {
-            printf("  door at fight %d:\n", row + 1);
+            printf("  door at fight %d:\n", after);
             for (int d = 0; d < 2; d++) {
                 int idx = d ? fr->other : row;
-                FORCE = (Force){1, FORCE_DOOR, row, idx};
-                forced_line(player, runs, seed, jobs, KINDS[FIGHTS[idx].enemies[0]].name,
-                            share_of(base, runs, FORCE_DOOR, row, idx));
+                option(player, runs, seed, jobs, base, (Force){1, FORCE_DOOR, row, idx},
+                       KINDS[FIGHTS[idx].enemies[0]].name, row, row);
             }
         }
-        printf("  after fight %d%s:\n", after, row >= FIGHT_COUNT ? " (the other door)" : "");
-        /* a door's own cards: that door taken too */
-        DOOR_FORCE.on = 0;
-        for (int d = 0; d < FIGHT_ROWS; d++)
-            if (FIGHTS[d].other != NOTHING && (d == row || FIGHTS[d].other == row))
-                DOOR_FORCE = (Force){1, FORCE_DOOR, d, row};
-        for (int i = 0; i < 3; i++) {
-            int c = fr->cards[i];
-            FORCE = (Force){1, FORCE_CARD, after, c};
-            forced_line(player, runs, seed, jobs, card_name(c, buf),
-                        share_of(base, runs, FORCE_CARD, after, c));
-        }
-        for (int i = 0; i < fr->ncharms; i++) {
-            int c = fr->charms[i];
-            FORCE = (Force){1, FORCE_CHARM, after, c};
-            snprintf(buf, sizeof buf, "charm %s", CHARMS[c].name);
-            forced_line(player, runs, seed, jobs, buf, share_of(base, runs, FORCE_CHARM, after, c));
-        }
         if (fr->nap) {
-            FORCE = (Force){1, FORCE_NAP, after, NOTHING};
-            forced_line(player, runs, seed, jobs, "nap: heal",
-                        share_of(base, runs, FORCE_NAP, after, NOTHING));
+            printf("  the rest after fight %d:\n", after);
+            option(player, runs, seed, jobs, base, (Force){1, FORCE_NAP, after, NOTHING}, "heal",
+                   after, after);
             for (int sl = 0; sl < 6; sl++) {
-                FORCE = (Force){1, FORCE_NAP, after, sl};
-                snprintf(buf, sizeof buf, "nap: +1 %s", SLOT_UP[sl]);
-                forced_line(player, runs, seed, jobs, buf, share_of(base, runs, FORCE_NAP, after, sl));
+                snprintf(buf, sizeof buf, "dream: +1 %s", SLOT_UP[sl]);
+                option(player, runs, seed, jobs, base, (Force){1, FORCE_NAP, after, sl}, buf,
+                       after, after);
+            }
+        }
+        if (fr->charm) {
+            printf("  the charm after fight %d:\n", after);
+            for (int i = 0; i < CHARM_OFFER_COUNT; i++) {
+                if (CHARM_OFFERS[i].from > after)
+                    continue;
+                int c = CHARM_OFFERS[i].what;
+                option(player, runs, seed, jobs, base, (Force){1, FORCE_CHARM, after, c},
+                       CHARMS[c].name, after, after);
             }
         }
     }
     FORCE.on = 0;
-    DOOR_FORCE.on = 0;
     free(base);
     return 0;
 }

@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
 /* catwiz-sim: the C balance sim. Runs a batch of whole runs and prints the report, or the
    runs one line each (--dump, for checking against the Python sim), or readable logs.
 
@@ -8,7 +9,7 @@
      ./catwiz-sim --combos ...                          the combos study (combos.c)
 
    Seeds: run n of --seed s is seed s * 100000 + n, as the Python sim. --jobs (8 at most).
-   Rules: the sixth toe rolls a sixth die and a waiting times stacks to x4 at most (the rule
+   Rules: the sixth toe rolls a sixth die and a waiting times stacks to x16 at most (the rule
    changes in docs/balance.md); --no-toe-fix --mult-cap 0 plays the Python sim's old rules. */
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,6 +60,57 @@ static void dump(const RunResult *r, int n, uint64_t seed) {
                 printf(" %d:%s;", r[i].picks[j].after, pick_words(&r[i].picks[j], buf));
         printf("\n");
     }
+}
+
+static int plan_what(int kind, const char *w) {
+    static const char *const up[6] = {"+1 WAND", "+1 FLUFF", "+1 STAR", "+1 BOOK", "+1 CURSE",
+                                      "+1 TRICK"};
+    if (w[0] >= '0' && w[0] <= '9')
+        return atoi(w);
+    if (kind == FORCE_CARD) {
+        for (int i = 0; i < 6; i++)
+            if (!strcmp(w, up[i]))
+                return UP_CARD + i;
+        for (int r = 0; r < ITEM_COUNT; r++)
+            if (!strcmp(w, ITEMS[r].name))
+                return r;
+    } else if (kind == FORCE_CHARM) {
+        for (int c = 0; c < CHARM_COUNT; c++)
+            if (!strcmp(w, CHARMS[c].name))
+                return c;
+    } else if (kind == FORCE_NAP) {
+        if (!strcmp(w, "heal"))
+            return NOTHING;
+        for (int i = 0; i < 6; i++)
+            if (!strcmp(w, up[i]))
+                return i;
+    } else {
+        for (int f = 0; f < FIGHT_ROWS; f++)
+            if (!strcmp(w, KINDS[FIGHTS[f].enemies[0]].name))
+                return f;
+    }
+    fprintf(stderr, "no such pick: %s\n", w);
+    return -1;
+}
+
+static int plan_parse(const char *v) {
+    char buf[1024], *save = NULL;
+    snprintf(buf, sizeof buf, "%s", v);
+    for (char *p = strtok_r(buf, ";", &save); p; p = strtok_r(NULL, ";", &save)) {
+        char kind[16], what[64];
+        int after;
+        if (sscanf(p, "%15[a-z]:%d:%63[^;]", kind, &after, what) != 3 || NPLAN >= PLAN_MOST)
+            return 1;
+        Force *f = &PLAN[NPLAN++];
+        f->on = 1;
+        f->kind = !strcmp(kind, "card") ? FORCE_CARD : !strcmp(kind, "charm") ? FORCE_CHARM
+                : !strcmp(kind, "nap") ? FORCE_NAP : FORCE_DOOR;
+        f->after = after;
+        f->a = plan_what(f->kind, what);
+        if (f->a < 0)
+            return 1;
+    }
+    return 0;
 }
 
 static int player_by_name(const char *s) {
@@ -134,6 +186,12 @@ int main(int argc, char **argv) {
                        : !strcmp(kind, "nap") ? FORCE_NAP : FORCE_DOOR;
             FORCE.after = after;
             FORCE.a = x;
+            i++;
+        } else if (!strcmp(a, "--plan")) {
+            /* picks forced at once, "kind:after:what;...", what a number or a name: an item,
+               +1 SLOT, a charm, heal, a door's enemy */
+            if (plan_parse(v))
+                return 2;
             i++;
         } else if (!strcmp(a, "--mult-cap")) {
             RULES.mult_cap = atoi(v);

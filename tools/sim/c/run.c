@@ -70,8 +70,9 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
         int index = f;
         if (fight->other != NOTHING) {
             index = pick_door(&pl, &kit, hp, f, fight->other);
-            if (FORCE.on && FORCE.kind == FORCE_DOOR && FORCE.after == f)
-                index = FORCE.a;
+            const Force *fo = forced_at(FORCE_DOOR, f);
+            if (fo)
+                index = fo->a;
             if (DOOR_FORCE.on && DOOR_FORCE.after == f)
                 index = DOOR_FORCE.a;
             if (out->npicks < MAX_PICKS) {
@@ -108,7 +109,7 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
             break;
         }
         int before = out->npicks;
-        reward_pick(&pl, &kit, &hp, f, index, out);
+        reward_pick(&pl, &kit, &hp, f, index, out, &rng);
         if (tell) {
             tell_printf(tell, "   took:");
             for (int i = before; i < out->npicks; i++)

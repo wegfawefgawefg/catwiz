@@ -118,7 +118,7 @@ def one_run(args):
         if f >= rules.fight_count:
             out["won"] = True
             break
-        kit, hp, taken = rewards.pick(rules, pol, kit, hp, f, index, prng)
+        kit, hp, taken = rewards.pick(rules, pol, kit, hp, f, index, prng, rng)
         out["picks"] += [(f, t) for t in taken]
         if trace is not None:
             trace.append("   took: " + "; ".join(taken))

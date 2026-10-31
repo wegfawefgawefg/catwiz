@@ -41,9 +41,10 @@
 (const KING_2 u8 18)
 (const KING_3 u8 19)
 (const PUG u8 20)
+(const SHROOM u8 21)
 
-(const ENEMIES (array Enemy 21)
-    (make (array Enemy 21)
+(const ENEMIES (array Enemy 22)
+    (make (array Enemy 22)
         (make Enemy
             :name "PUFFCAP"
             :hp 15
@@ -166,7 +167,7 @@
             :stall 0)
         (make Enemy
             :name "LAWNMOWER"
-            :hp 48
+            :hp 44
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 26
@@ -176,8 +177,8 @@
             :stall 16)
         (make Enemy
             :name "THE MAILMAN"
-            :hp 74
-            :ward 3
+            :hp 62
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 28
             :move_count 4
@@ -187,7 +188,7 @@
         (make Enemy
             :name "THE VET"
             :hp 46
-            :ward 3
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 32
             :move_count 5
@@ -197,7 +198,7 @@
         (make Enemy
             :name "THE BIG BATH"
             :hp 54
-            :ward 3
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 37
             :move_count 3
@@ -217,7 +218,7 @@
         (make Enemy
             :name "BULLDOG KING"
             :hp 54
-            :ward 3
+            :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 42
             :move_count 3
@@ -227,7 +228,7 @@
         (make Enemy
             :name "BULLDOG KING, CROSS"
             :hp 54
-            :ward 2
+            :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 45
             :move_count 4
@@ -237,7 +238,7 @@
         (make Enemy
             :name "BULLDOG KING, FURIOUS"
             :hp 54
-            :ward 1
+            :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 49
             :move_count 4
@@ -252,5 +253,17 @@
             :first_move 53
             :move_count 2
             :calls state.NOTHING
+            :then state.NOTHING
+            :stall 0)
+        ; the woods' elite: it calls sporelets, and sporelets cheer their friends (hit it with
+        ; groups in mind: zoomies, screaming, the twig's sweep; knock it off takes the cheer)
+        (make Enemy
+            :name "THE OLD SHROOM"
+            :hp 40
+            :ward 1
+            :figure art.KIND_CAP_BIG
+            :first_move 55
+            :move_count 3
+            :calls SPORELET
             :then state.NOTHING
             :stall 0)))

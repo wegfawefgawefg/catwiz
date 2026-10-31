@@ -398,7 +398,7 @@
             :icon art.TILE_PLUS1)
         (make ac.Item
             :name "TIMES TWO"
-            :text "NEXT WAND, FLUFF, BOOK X#: COUNTS #"
+            :text "NEXT DIE X#: COUNTS #"
             :slot Slot.trick
             :effect ac.Effect.double
             :amount 2

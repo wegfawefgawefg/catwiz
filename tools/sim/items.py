@@ -5,7 +5,7 @@ its effect, and the combo when it is the third fluff (or twig wand) this turn; t
 the hairball that clogs a slot; and the charms (which the bag variants use too). The game has
 none of this yet; docs/balance.md lists what the engine would need.
 
-Boosts on a played face, in this order: a pending times (a wand, fluff or book only: its number
+Boosts on a played face, in this order: a pending times (any die but a trick: its number
 times m, and it counts m towards its slot's three), then a pending plus (the next two dice,
 any slot: each hit, each stack, each star), catnip's +1,
 knead (the next fluff x2, the next wand +n), bad milk (wands +1), a wishing star (the next wand
@@ -26,7 +26,9 @@ def kittens_most(b):
     return b.R.fx.get("KITTENS_MOST", KITTENS_MOST)
 COMBO_AT = 3
 PLUS_DICE = 2  # plus one: how many dice it boosts
-MULT_SLOTS = ("wand", "fluff", "book")  # what a pending times takes
+# what a pending times takes: the next die of any slot but a trick (the owner, 2026-10-31;
+# it was wands, fluff and books)
+MULT_SLOTS = ("wand", "fluff", "star", "book", "curse", "food")
 
 
 def amount(b, kind, default):
@@ -135,10 +137,10 @@ def trick(b, face, n):
     e = face.effect
     if e == "plus":
         # +1 is wide: the next two dice get it, each hit and stack of them
-        st[r.PLUS] = max(st[r.PLUS], n)
+        st[r.PLUS] = min(99, st[r.PLUS] + n)  # +1s stack (the owner, 2026-10-31; was max)
         st[r.PLUS_LEFT] = PLUS_DICE
     elif e == "double":
-        # x2 is tall: the next wand, fluff or book (a star or curse leaves it waiting), and it
+        # x2 is tall: the next die of any slot but a trick (a trick leaves it waiting), and it
         # counts as two towards a three; played after a +1 it doubles that too
         st[r.PLUS] *= n
         st[r.MULT] = max(st[r.MULT], 1) * n

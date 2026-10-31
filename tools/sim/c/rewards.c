@@ -7,6 +7,7 @@
    random picks any offer; greedy the one that most raises the kit's worth by a fixed table
    (item_worth); strong tries each offer in rollouts of the next fight (the greedy player, the
    same dice for every option); search (search.c) has its own draft. */
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -99,14 +100,32 @@ static double charm_worth(int kind) {
     return 0.0;
 }
 
+/* a running sum as Python 3.12's sum() of floats does it (Neumaier's compensation), so the
+   two sims rank equal-looking kits the same */
+typedef struct {
+    double s, c;
+} Sum;
+
+static void sum_add(Sum *a, double x) {
+    double t = a->s + x;
+    if (fabs(a->s) >= fabs(x))
+        a->c += (a->s - t) + x;
+    else
+        a->c += (x - t) + a->s;
+    a->s = t;
+}
+
+static double sum_of(const Sum *a) {
+    return a->c != 0.0 ? a->s + a->c : a->s;
+}
+
 double kit_worth(const Kit *kit) {
-    double w = 0.0;
+    Sum w = {0, 0}, c = {0, 0};
     for (int s = 0; s < 6; s++)
-        w += item_worth(kit->items[s], kit->level[s]);
-    double c = 0.0;
+        sum_add(&w, item_worth(kit->items[s], kit->level[s]));
     for (int i = 0; i < kit->ncharms; i++)
-        c += charm_worth(CHARMS[kit->charms[i]].kind);
-    return w + c;
+        sum_add(&c, charm_worth(CHARMS[kit->charms[i]].kind));
+    return sum_of(&w) + sum_of(&c);
 }
 
 static int item_slot(int row) {
@@ -114,6 +133,18 @@ static int item_slot(int row) {
 }
 
 Force FORCE = {0, 0, 0, 0}, DOOR_FORCE = {0, 0, 0, 0};
+Force PLAN[PLAN_MOST];
+int NPLAN = 0;
+
+/* the forced pick of this kind after fight f: the study's, or a line's (NULL for none) */
+const Force *forced_at(int kind, int after) {
+    if (FORCE.on && FORCE.kind == kind && FORCE.after == after)
+        return &FORCE;
+    for (int i = 0; i < NPLAN; i++)
+        if (PLAN[i].kind == kind && PLAN[i].after == after)
+            return &PLAN[i];
+    return NULL;
+}
 const Kit *START_KIT = NULL;
 
 /* the options a fight's cards give this kit; card[i] the card option i came from */
@@ -150,10 +181,11 @@ static int card_options(const Kit *kit, const uint8_t *cards, Pick *out, int *ca
 
 /* the forced option of this kind after fight f, if it is on offer (study.c), else -1 */
 static int forced(int kind, int f, const int *what, int n) {
-    if (!FORCE.on || FORCE.kind != kind || FORCE.after != f)
+    const Force *fo = forced_at(kind, f);
+    if (!fo)
         return -1;
     for (int i = 0; i < n; i++)
-        if (what[i] == FORCE.a)
+        if (what[i] == fo->a)
             return i;
     return -1;
 }
@@ -257,11 +289,9 @@ static void add_pick(RunResult *out, const Pick *o, int f) {
     }
 }
 
-/* after an elite, a nap: NAP_HEAL hit points back, or a level on a slot */
+/* after an elite, a rest: REST_HEAL percent of the missing hit points, or dream a level */
 static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
-    int heal = *hp + NAP_HEAL;
-    if (heal > HERO_HP)
-        heal = HERO_HP;
+    int heal = *hp + ((HERO_HP - *hp) * REST_HEAL + 99) / 100; /* a share of what she misses */
     Pick ups[6];
     int n = 0;
     for (int s = 0; s < 6; s++) {
@@ -290,15 +320,16 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
         }
     }
     int take_heal;
-    if (out && FORCE.on && FORCE.kind == FORCE_NAP && FORCE.after == f) {
-        take_heal = FORCE.a == NOTHING;
+    const Force *fo = out ? forced_at(FORCE_NAP, f) : NULL;
+    if (fo) {
+        take_heal = fo->a == NOTHING;
         for (int i = 0; i < n; i++)
-            if (ups[i].a == FORCE.a)
+            if (ups[i].a == fo->a)
                 best = i;
     } else if (p->kind == P_RANDOM) {
         take_heal = mt_random(p->rng) < 0.5;
     } else if (p->kind == P_GREEDY) {
-        take_heal = heal - *hp >= NAP_HEAL * 0.7;
+        take_heal = heal - *hp >= 5; /* a rest worth 5 or more */
     } else if (p->kind == P_SEARCH && DRAFT.ahead > 0) {
         take_heal = search_nap(p, kit, *hp, heal, &ups[best], f);
     } else {
@@ -319,31 +350,118 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
 }
 
 /* the reward after fight row fought, before fight index f (rewards.pick) */
-int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out) {
+/* up to three different entries of a pool drawn at random by weight (the game's random
+   numbers), among those that may come after f fights won and that ok allows
+   (rewards.py draw) */
+static int draw(Mt *rng, const OfferRow *pool, int count, int f, const uint8_t *ok,
+                uint8_t *out) {
+    int what[64], wt[64], m = 0, n = 0;
+    for (int i = 0; i < count; i++) {
+        if (pool[i].from <= f && ok[i]) {
+            what[m] = pool[i].what;
+            wt[m++] = pool[i].weight;
+        }
+    }
+    for (int k = 0; k < 3; k++) {
+        int total = 0;
+        for (int j = 0; j < m; j++)
+            total += wt[j];
+        if (!total)
+            break;
+        int r = mt_below(rng, total);
+        for (int j = 0; j < m; j++) {
+            if (r < wt[j]) {
+                out[n++] = (uint8_t)what[j];
+                for (int q = j; q + 1 < m; q++) {
+                    what[q] = what[q + 1];
+                    wt[q] = wt[q + 1];
+                }
+                m--;
+                break;
+            }
+            r -= wt[j];
+        }
+    }
+    return n;
+}
+
+/* a forced pick (a study or a line) slipped into the offer when it may come and is not in it */
+static int slip_in(int kind, int f, uint8_t *drawn, int n, int may) {
+    const Force *fo = forced_at(kind, f);
+    if (!fo || !may)
+        return n;
+    for (int i = 0; i < n; i++)
+        if (drawn[i] == fo->a)
+            return n;
+    if (n < 3)
+        drawn[n++] = (uint8_t)fo->a;
+    else
+        drawn[2] = (uint8_t)fo->a;
+    return n;
+}
+
+static int card_gives(const Kit *kit, int c) {
+    uint8_t one[3] = {(uint8_t)c, NOTHING, NOTHING};
+    Pick o[3];
+    int card[3];
+    return card_options(kit, one, o, card) > 0;
+}
+
+/* the reward after fight row fought, before fight index f (f fights won): three cards drawn
+   from the pool, then three charms at a charm fight, then the nap (rewards.pick) */
+int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out, Mt *rng) {
     const FightRow *fight = &FIGHTS[fought];
+    uint8_t ok[64], cards[3] = {NOTHING, NOTHING, NOTHING}, charms[3];
+    for (int i = 0; i < OFFER_COUNT; i++)
+        ok[i] = (uint8_t)card_gives(kit, OFFERS[i].what);
+    int nc = draw(rng, OFFERS, OFFER_COUNT, f, ok, cards);
+    int nh = 0;
+    if (fight->charm) {
+        for (int i = 0; i < CHARM_OFFER_COUNT; i++) {
+            ok[i] = 1;
+            for (int j = 0; j < kit->ncharms; j++)
+                if (kit->charms[j] == CHARM_OFFERS[i].what)
+                    ok[i] = 0;
+        }
+        nh = draw(rng, CHARM_OFFERS, CHARM_OFFER_COUNT, f, ok, charms);
+    }
+    if (out) {
+        const Force *fo = forced_at(FORCE_CARD, f);
+        int may = 0;
+        for (int i = 0; fo && i < OFFER_COUNT; i++)
+            may |= OFFERS[i].what == fo->a && OFFERS[i].from <= f && card_gives(kit, fo->a);
+        nc = slip_in(FORCE_CARD, f, cards, nc, may);
+        if (fight->charm) {
+            fo = forced_at(FORCE_CHARM, f);
+            may = fo != NULL;
+            for (int j = 0; fo && j < kit->ncharms; j++)
+                may &= kit->charms[j] != fo->a;
+            nh = slip_in(FORCE_CHARM, f, charms, nh, may);
+        }
+    }
     Pick opts[8];
     int card[8];
-    int n = card_options(kit, fight->cards, opts, card);
+    int n = card_options(kit, cards, opts, card);
     if (n) {
         int i = out ? forced(FORCE_CARD, f, card, n) : -1;
+        if (i >= 0 && NPLAN && opts[i].what == PK_ITEM)
+            kit->locked |= (uint8_t)(1 << item_slot(opts[i].a)); /* a line keeps its items */
         if (i < 0)
             i = choose(p, kit, *hp, f, opts, n);
         pick_apply(kit, &opts[i]);
         opts[i].card = (uint8_t)card[i];
         add_pick(out, &opts[i], f);
     }
-    if (fight->ncharms) {
-        n = 0;
-        for (int c = 0; c < fight->ncharms; c++) {
-            opts[n].what = PK_CHARM;
-            opts[n].a = fight->charms[c];
-            opts[n].card = fight->charms[c];
-            card[n] = fight->charms[c];
-            n++;
+    if (nh) {
+        for (int c = 0; c < nh; c++) {
+            opts[c].what = PK_CHARM;
+            opts[c].a = charms[c];
+            opts[c].card = charms[c];
+            card[c] = charms[c];
         }
-        int i = out ? forced(FORCE_CHARM, f, card, n) : -1;
+        int i = out ? forced(FORCE_CHARM, f, card, nh) : -1;
         if (i < 0)
-            i = choose(p, kit, *hp, f, opts, n);
+            i = choose(p, kit, *hp, f, opts, nh);
         pick_apply(kit, &opts[i]);
         add_pick(out, &opts[i], f);
     }
@@ -384,8 +502,8 @@ const char *pick_words(const Pick *pk, char *buf) {
     case PK_ITEM: sprintf(buf, "%s", ITEMS[pk->a].name); break;
     case PK_LEVEL: sprintf(buf, "+1 %s", SLOT_UP[pk->a]); break;
     case PK_CHARM: sprintf(buf, "charm %s", CHARMS[pk->a].name); break;
-    case PK_NAP_HEAL: sprintf(buf, "nap: heal"); break;
-    case PK_NAP_LEVEL: sprintf(buf, "nap: +1 %s", SLOT_UP[pk->a]); break;
+    case PK_NAP_HEAL: sprintf(buf, "rest: heal"); break;
+    case PK_NAP_LEVEL: sprintf(buf, "rest: +1 %s", SLOT_UP[pk->a]); break;
     default: sprintf(buf, "door %d", pk->a);
     }
     return buf;

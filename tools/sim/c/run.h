@@ -51,6 +51,11 @@ typedef struct {
     int on, kind, after, a;
 } Force;
 extern Force FORCE, DOOR_FORCE; /* DOOR_FORCE: a door forced as well (the doors' cards) */
+/* a line: several picks forced at once (main.c --plan), the rest drafted as usual */
+#define PLAN_MOST 16
+extern Force PLAN[PLAN_MOST];
+extern int NPLAN;
+const Force *forced_at(int kind, int after);
 
 /* the reward chooser's knobs (rewards.c) */
 typedef struct {
@@ -69,7 +74,7 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
 
 /* rewards.c */
 double kit_worth(const Kit *kit);
-int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out);
+int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out, Mt *rng);
 int pick_door(Player *p, const Kit *kit, int hp, int f, int other);
 const char *pick_words(const Pick *pk, char *buf);
 const char *kit_words(const Kit *kit, char *buf);

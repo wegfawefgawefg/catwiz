@@ -65,7 +65,7 @@ def main():
         ("FIGHT_COUNT", R.fight_count),
         ("CHARM_COUNT", len(R.charm_table)),
         ("HERO_HP", R.hero_hp),
-        ("NAP_HEAL", R.nap_heal),
+        ("REST_HEAL", R.rest_heal if R.rest_heal is not None else 100),
         ("ITEM_MOST", R.item_most),
         ("MOST_MANA", R.most_mana),
         ("FLEA_TURNS", R.fx["FLEA_TURNS"]),
@@ -106,17 +106,22 @@ def main():
             cstr(k.name), k.hp, k.ward, k.first, k.count, k.calls, k.then, k.stall))
     out.append("};")
 
-    out.append("typedef struct { unsigned char zone, count, enemies[3], nap, other, cards[3],"
-               " ncharms, charms[3]; } FightRow;")
+    out.append("typedef struct { unsigned char zone, count, enemies[3], nap, charm, other; } FightRow;")
     out.append("static const FightRow FIGHTS[FIGHT_ROWS] = {")
     for f in R.fights:
         en = (f.enemies + [255, 255, 255])[:3]
-        ch = (f.charms + [255, 255, 255])[:3]
-        cards = (f.cards + [255, 255, 255])[:3]
-        out.append("    {Z_%s, %d, {%s}, %d, %d, {%s}, %d, {%s}}," % (
-            f.zone, len(f.enemies), ", ".join(map(str, en)), 1 if f.nap else 0, f.other,
-            ", ".join(map(str, cards)), len(f.charms), ", ".join(map(str, ch))))
+        out.append("    {Z_%s, %d, {%s}, %d, %d, %d}," % (
+            f.zone, len(f.enemies), ", ".join(map(str, en)), 1 if f.nap else 0,
+            1 if f.charm else 0, f.other))
     out.append("};")
+    # the reward pools: a card or charm, its weight, the fights won before it can come
+    out.append("typedef struct { unsigned char what, weight, from; } OfferRow;")
+    out.append("#define OFFER_COUNT %d" % len(R.offers))
+    out.append("static const OfferRow OFFERS[OFFER_COUNT] = {%s};" % ", ".join(
+        "{%d, %d, %d}" % o for o in R.offers))
+    out.append("#define CHARM_OFFER_COUNT %d" % len(R.charm_offers))
+    out.append("static const OfferRow CHARM_OFFERS[CHARM_OFFER_COUNT] = {%s};" % ", ".join(
+        "{%d, %d, %d}" % o for o in R.charm_offers))
 
     out.append("typedef struct { const char *name, *text; unsigned char kind, amount; } CharmRow;")
     out.append("static const CharmRow CHARMS[CHARM_COUNT] = {")

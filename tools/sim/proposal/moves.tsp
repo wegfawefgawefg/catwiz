@@ -7,8 +7,8 @@
 (import state)
 (import content/action ac)
 
-(const MOVES (array ac.Move 55)
-    (make (array ac.Move 55)
+(const MOVES (array ac.Move 58)
+    (make (array ac.Move 58)
         ; puffcap
         (make ac.Move
             :text "HEADBUTT FOR #"
@@ -207,14 +207,14 @@
         (make ac.Move
             :text "REVS UP: +# FOR GOOD"
             :effect ac.Effect.grow
-            :amount 2
+            :amount 1
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
         (make ac.Move
             :text "MOWS FOR #"
             :effect ac.Effect.hit
-            :amount 12
+            :amount 9
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -236,14 +236,14 @@
         (make ac.Move
             :text "HEAVY PARCEL FOR #"
             :effect ac.Effect.hit
-            :amount 12
+            :amount 10
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
         (make ac.Move
             :text "GRUMPIER: +# FOR GOOD"
             :effect ac.Effect.grow
-            :amount 2
+            :amount 1
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
@@ -414,4 +414,26 @@
             :amount 2
             :aim state.Aim.friend
             :motion state.Motion.hop
-            :icon '<')))
+            :icon '<')
+        ; the old shroom
+        (make ac.Move
+            :text "CALLS # SPORELETS"
+            :effect ac.Effect.summon
+            :amount 2
+            :aim state.Aim.self
+            :motion state.Motion.hop
+            :icon '+')
+        (make ac.Move
+            :text "CAP SLAM FOR #"
+            :effect ac.Effect.hit
+            :amount 6
+            :aim state.Aim.foe
+            :motion state.Motion.lunge
+            :icon '!')
+        (make ac.Move
+            :text "SPORE CAP: SHIELD #"
+            :effect ac.Effect.shield
+            :amount 5
+            :aim state.Aim.self
+            :motion state.Motion.hop
+            :icon '#')))

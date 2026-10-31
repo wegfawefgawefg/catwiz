@@ -88,7 +88,7 @@ static double window(const Kit *kit, int hp, int f, int door, uint32_t seed) {
         }
         hp = b.hp[HERO];
         if (f + j + 1 < FIGHT_COUNT && j + 1 < DRAFT.ahead)
-            reward_pick(&greedy, &k, &hp, f + j + 1, idx, NULL);
+            reward_pick(&greedy, &k, &hp, f + j + 1, idx, NULL, &rng);
     }
     return hp + DRAFT.kit * kit_worth(&k);
 }

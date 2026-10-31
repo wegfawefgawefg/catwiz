@@ -195,11 +195,45 @@ def choose(rules, pol, kit, hp, f, opts, applied, prng):
     return pick
 
 
-def pick(rules, pol, kit, hp, f, fought, prng):
+def draw(rng, pool, ok, n=3):
+    """n different entries of a pool of (what, weight, from) drawn at random by weight among
+    those ok says may come; rng is the game's (GameRng): the C sim draws the same"""
+    left = [(w, wt) for w, wt, _ in pool if ok(w)]
+    out = []
+    for _ in range(n):
+        total = sum(wt for _, wt in left)
+        if total == 0:
+            break
+        r = rng.r.randrange(total)
+        for i, (w, wt) in enumerate(left):
+            if r < wt:
+                out.append(w)
+                left.pop(i)
+                break
+            r -= wt
+    return out
+
+
+def offered(rules, kit, f, rng):
+    """the three cards after f fights won: from the pool, by weight, ones that give an option"""
+    pool = [o for o in rules.offers if o[2] <= f]
+    return draw(rng, pool, lambda c: bool(item_options(rules, kit, [c])))
+
+
+def pick(rules, pol, kit, hp, f, fought, prng, rng=None):
     """the reward after fight index fought (its door), before fight index f. Gives the new kit,
-    the hit points and what was taken (a list of words)"""
+    the hit points and what was taken (a list of words). rng: the game's, for the random offers"""
     taken = []
     fight = rules.fights[fought]
+    if kit.items is not None and rules.offers:
+        fight = content.Fight.__new__(content.Fight)
+        fight.cards = offered(rules, kit, f, rng)
+        fight.nap = rules.fights[fought].nap
+        fight.charms = []
+        if rules.fights[fought].charm:
+            have = set(kit.charms)
+            pool = [o for o in rules.charm_offers if o[2] <= f]
+            fight.charms = draw(rng, pool, lambda c: rules.charm_table[c]["kind"] not in have)
     if kit.items is None:
         opts = bagpick.options(rules, kit, fight.offers, f)
         def applied(o):
@@ -230,6 +264,8 @@ def nap(rules, pol, kit, hp, f, prng):
     """after an elite, a nap: NAP_HEAL hit points back, or a level (the item model: a slot;
     the bag model: the upgrade the reward would give)"""
     heal = min(kit.max_hp(), hp + rules.nap_heal)
+    if rules.rest_heal is not None:  # a share of what she is missing, rounded up
+        heal = hp + ((kit.max_hp() - hp) * rules.rest_heal + 99) // 100
     if kit.items is not None:
         ups = [("level", s) for s in range(6) if kit.level(s) < rules.item_most]
         def applied(o):
@@ -239,19 +275,19 @@ def nap(rules, pol, kit, hp, f, prng):
         def applied(o):
             return bagpick.apply(rules, kit, [], o)
     if not ups:
-        return heal, kit, "nap: heal"
+        return heal, kit, "rest: heal"
     best_up = max(ups, key=lambda o: worth(rules, applied(o)[0]))
     if pol.name == "random":
         take_heal = prng.random() < 0.5
     elif pol.name == "greedy":
-        take_heal = heal - hp >= rules.nap_heal * 0.7
+        take_heal = heal - hp >= (rules.nap_heal * 0.7 if rules.rest_heal is None else 5)
     else:
         seeds = [prng.getrandbits(30) for _ in range(ROLLOUTS)]
         take_heal = rollout(rules, kit, heal, f, seeds) >= rollout(rules, applied(best_up)[0], hp, f, seeds)
     if take_heal:
-        return heal, kit, "nap: heal"
+        return heal, kit, "rest: heal"
     k, words = applied(best_up)
-    return hp, k, "nap: " + words
+    return hp, k, "rest: " + words
 
 
 def pick_door(rules, pol, kit, hp, f, other, prng):
