@@ -1,0 +1,129 @@
+#define _POSIX_C_SOURCE 200809L
+/* catwiz-sim: the C balance sim. Runs a batch of whole runs and prints the report, or the
+   runs one line each (--dump, for checking against the Python sim), or readable logs.
+
+     ./catwiz-sim --player strong --runs 400            (random, greedy, strong, search, all)
+     ./catwiz-sim --player search --runs 1 --log 1      the run told turn by turn
+     ./catwiz-sim --player greedy --runs 50 --dump      a line a run (tools/sim/c/check.py)
+     ./catwiz-sim --combos ...                          the combos study (combos.c)
+
+   Seeds: run n of --seed s is seed s * 100000 + n, as the Python sim. --jobs (8 at most). */
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "combos.h"
+#include "pool.h"
+#include "report.h"
+
+typedef struct {
+    int player, want_log;
+    uint64_t seed;
+    RunResult *out;
+} Batch;
+
+static void one(int i, void *ctx) {
+    Batch *b = ctx;
+    run_one(b->player, b->seed * 100000 + (uint64_t)i, &b->out[i], b->want_log && i < b->want_log);
+}
+
+static double now(void) {
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec + t.tv_nsec * 1e-9;
+}
+
+RunResult *run_batch(int player, int runs, uint64_t seed, int jobs, int want_log, double *secs) {
+    Batch b = {player, want_log, seed, calloc(runs, sizeof(RunResult))};
+    double t0 = now();
+    parallel_for(runs, jobs, one, &b);
+    if (secs)
+        *secs = now() - t0;
+    return b.out;
+}
+
+static void dump(const RunResult *r, int n, uint64_t seed) {
+    char buf[80];
+    for (int i = 0; i < n; i++) {
+        printf("%llu %d %d |", (unsigned long long)(seed * 100000 + i), r[i].won, r[i].nfights);
+        for (int f = 0; f < r[i].nfights; f++) {
+            const FightResult *x = &r[i].fights[f];
+            printf(" %d:%d:%d:%d:%d", x->index, x->won, x->hp_out, x->turns, x->lost);
+        }
+        printf(" |");
+        for (int j = 0; j < r[i].npicks; j++)
+            if (r[i].picks[j].what != PK_DOOR)
+                printf(" %d:%s;", r[i].picks[j].after, pick_words(&r[i].picks[j], buf));
+        printf("\n");
+    }
+}
+
+static int player_by_name(const char *s) {
+    for (int p = 0; p < P_COUNT; p++)
+        if (!strcmp(s, PLAYER_NAME[p]))
+            return p;
+    fprintf(stderr, "no such player: %s\n", s);
+    exit(2);
+}
+
+int main(int argc, char **argv) {
+    const char *player = "all";
+    int runs = 300, jobs = 8, logs = 0, dumping = 0, picks = 0;
+    uint64_t seed = 1;
+    for (int i = 1; i < argc; i++) {
+        const char *a = argv[i];
+        const char *v = i + 1 < argc ? argv[i + 1] : "";
+        if (!strcmp(a, "--player")) {
+            player = v;
+            i++;
+        } else if (!strcmp(a, "--runs")) {
+            runs = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--seed")) {
+            seed = strtoull(v, 0, 10);
+            i++;
+        } else if (!strcmp(a, "--jobs")) {
+            jobs = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--log")) {
+            logs = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--dump")) {
+            dumping = 1;
+        } else if (!strcmp(a, "--picks")) {
+            picks = 1;
+        } else if (!strcmp(a, "--toe-fix")) {
+            RULES.toe_fix = 1;
+        } else if (!strcmp(a, "--mult-cap")) {
+            RULES.mult_cap = atoi(v);
+            i++;
+        } else if (!strcmp(a, "--combos")) {
+            judge_init();
+            search_init();
+            return combos_main(argc - i - 1, argv + i + 1);
+        } else {
+            fprintf(stderr, "unknown argument: %s\n", a);
+            return 2;
+        }
+    }
+    judge_init();
+    search_init();
+    for (int p = 0; p < P_COUNT; p++) {
+        if (strcmp(player, "all") && player_by_name(player) != p)
+            continue;
+        double secs;
+        RunResult *r = run_batch(p, runs, seed, jobs, logs, &secs);
+        if (dumping)
+            dump(r, runs, seed);
+        else
+            print_report(p, r, runs, secs, picks);
+        for (int i = 0; i < logs && i < runs; i++) {
+            printf("\n---- run %d (seed %llu)\n%s", i, (unsigned long long)(seed * 100000 + i),
+                   r[i].log ? r[i].log : "");
+            free(r[i].log);
+        }
+        free(r);
+        fflush(stdout);
+    }
+    return 0;
+}

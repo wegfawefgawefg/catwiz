@@ -137,6 +137,9 @@ def trick(b, face, n):
         # counts as two towards a three; played after a +1 it doubles that too
         st[r.PLUS] *= n
         st[r.MULT] = max(st[r.MULT], 1) * n
+        cap = b.R.variant.get("multcap")
+        if cap:
+            st[r.MULT] = min(st[r.MULT], int(cap))  # a waiting times stacks this far at most
     elif e == "copy":
         if b.last_face != r.NOTHING:
             if n:

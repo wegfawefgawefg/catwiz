@@ -46,7 +46,10 @@ class Kit:
     @property
     def dice(self):
         if self.items is not None:
-            return [self.items] * self.rules.hand
+            # toefix: the sixth toe's sixth die (without it the bag has five dice and the
+            # sixth tray spot stays empty: the toe was only a re-roll less)
+            extra = self.charms.count("toe") if "toefix" in self.rules.variant else 0
+            return [self.items] * (self.rules.hand + extra)
         return self.bag
 
     @dice.setter
