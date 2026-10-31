@@ -21,10 +21,26 @@
 ; ---- badges: a badge's glyphs are put in state.badge_glyphs, then it becomes a look
 
 (let filling u8 0) ; the badge being filled
+; what it showed before, so a badge filled the same again is not drawn again (each drawing is
+; a read and a write of its rows on both pages)
+(let was (array u8 8))
+(let was_count u8 0)
 
 (fn start_glyphs ((b u8)) void
     (set filling b)
+    (set was_count (at state.badge_count b))
+    (for k u8 0 state.BADGE_MOST
+        (set (at was k) (at state.badge_glyphs (+ (* b state.BADGE_MOST) k))))
     (set (at state.badge_count b) 0))
+
+; whether badge b holds what it held before start_glyphs
+(fn unchanged ((b u8)) bool
+    (if (!= (at state.badge_count b) was_count)
+        (return false))
+    (for k u8 0 was_count
+        (if (!= (at was k) (at state.badge_glyphs (+ (* b state.BADGE_MOST) k)))
+            (return false)))
+    true)
 
 (fn put ((c u8)) void
     (let n u8 (at state.badge_count filling))
@@ -50,6 +66,10 @@
         0))
     (if (> (+ x0 w) 140)
         (set x0 (- 140 w)))
+    ; shown already, the same and in the same place: nothing to draw
+    (if (and (and (= (at state.looks look sprite) state.BADGE) (= (at state.looks look top) top))
+            (and (= (at state.badge_x b) x0) (unchanged b)))
+        (return))
     (set (at state.badge_x b) x0)
     (set (at state.badge_stamp b) (+ (at state.badge_stamp b) 1))
     (let g0 u8 (at dhgr.X_GROUP x0))

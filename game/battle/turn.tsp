@@ -24,8 +24,9 @@
 (import battle/words)
 (import sound/sound)
 
-(const ROLL_FRAMES u8 16)
-(const ROLL_EVERY u8 8) ; a power of 2: (& t 7) is the test; each tumble redraws the faces (a few frames)
+(const HURT_LEFT u8 8) ; frames of a held hurt face left once the enemies' turn ends
+(const DEAL_EVERY u8 4) ; frames from one die landing to the next: a power of 2
+(const DEAL_SHIFT u8 2)
 (const ENEMY_PAUSE u8 10)
 (const KEY_1 u8 '1')
 (const END_BEAT u8 20) ; frames from the last play to a turn that ends by itself
@@ -60,20 +61,22 @@
     (set state.phase state.Phase.rolling)
     (set state.timer 0))
 
-; the unplayed dice tumble a few times, then show their faces
+; the unplayed dice land one at a time, left to right, each with a rattle, then her turn goes
+; on: a slot is drawn once (a few frames for its card), not every slot at every tumble
 (fn roll_step () void
     (let t u8 state.timer)
     (set state.timer (+ t 1))
-    (if (and (< t ROLL_FRAMES) (= (& t (- ROLL_EVERY 1)) 0))
+    (if (= (& t (- DEAL_EVERY 1)) 0)
         (do
-            (for d u8 0 state.HAND
-                (if (not (at state.played d))
-                    (do
-                        (let first u8 (* (at state.tray_die d) state.DIE_FACES))
-                        (set (at state.hand d) (at state.dice (+ first (random_face))))
-                        (set state.hud_dice (| state.hud_dice (<< 1 d))))))
-            (sound.cue sound.Cue.rattle)))
-    (if (< t ROLL_FRAMES)
+            (let d u8 (>> t DEAL_SHIFT))
+            (if (and (< d state.HAND) (not (at state.played d)))
+                (do
+                    (let first u8 (* (at state.tray_die d) state.DIE_FACES))
+                    (set (at state.hand d) (at state.dice (+ first (random_face))))
+                    (set state.hud_dice (| state.hud_dice (<< 1 d)))
+                    (sound.cue sound.Cue.rattle)
+                    (set state.pose true)))))
+    (if (< t (<< state.HAND DEAL_SHIFT))
         (return))
     (start_player))
 
@@ -335,8 +338,11 @@
     (log.uses i (at en.MOVES row text) (fx.intent_amount i row))
     (act.begin state.Source.move row i (fx.move_target i row)))
 
-; the enemies' statuses tick and each takes up its next move; then the hero's turn
+; the enemies' statuses tick and each takes up its next move; then the hero's turn (and her
+; face again, if a hit held it hurt)
 (fn end_enemies () void
+    (if (> (at state.actors state.HERO mood_time) HURT_LEFT)
+        (set (at state.actors state.HERO mood_time) HURT_LEFT))
     (for i u8 1 state.ACTORS
         (if (at state.actors i alive)
             (do

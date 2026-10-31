@@ -32,6 +32,9 @@
     (set state.act_time 0)
     (set state.act_done false)
     (set state.phase state.Phase.acting)
+    ; a throw's wind-up is a pose to see; a lunge shows its first jump instead (one change of
+    ; the sprite fewer, each a redraw on both pages)
+    (set state.pose (= (action_motion) state.Motion.throw))
     (let hop bool (= (action_motion) state.Motion.hop))
     (if (= by state.HERO)
         (look.show_mood by
@@ -58,7 +61,8 @@
         (state.Source.move (fx.land_move state.act_row state.act_by state.act_on))
         (state.Source.meow))
     (set state.act_done true)
-    (set state.act_time 0))
+    (set state.act_time 0)
+    (set state.pose true))
 
 ; one frame of the action; true once it is over
 (fn step () bool
@@ -83,8 +87,12 @@
             (let edge u8 (+ target_home (at art.KIND_COLS (at state.actors target figure))))
             (if (> by_home edge)
                 (set gap (- by_home edge)))))
+    ; a step short of touching: its frames are wider than its spot, and boxes that meet draw
+    ; the other again
     (if (> gap 10)
         (set gap 10))
+    (if (>= gap 4)
+        (set gap (- gap 2)))
     (if (< gap 2)
         (set gap 2))
     (& gap 0xFE))
@@ -138,7 +146,8 @@
     (if (= k 0)
         (do
             (set state.bolt_sx 0)
-            (set state.bolt_sy 0)))
+            (set state.bolt_sy 0)
+            (set state.pose true)))
     (let col i16 (+ x0 (>> state.bolt_sx 3)))
     (let top i16 (+ y0 (>> state.bolt_sy 3)))
     (set state.bolt_sx (+ state.bolt_sx (- (as i16 (place.middle target)) x0)))

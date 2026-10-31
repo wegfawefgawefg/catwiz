@@ -9,10 +9,14 @@
 (import battle/log)
 (import sound/sound)
 
-(const FLASH_FRAMES u8 3)
+; the flash and the knockback end on the same frame: each change of a sprite costs a redraw
+; of it on both pages (the hero's about 50,000 cycles), so a hit is three changes (hurt, white
+; and knocked back; back in colour and place; the face again), not five
+(const FLASH_FRAMES u8 4)
 (const HITSTOP_FRAMES u8 3)
-(const KNOCK_FRAMES u8 6)
-(const HURT_FRAMES u8 30)
+(const KNOCK_FRAMES u8 4)
+(const HURT_FRAMES u8 24)
+(const HURT_HELD u8 255) ; until the enemies' turn ends (turn.end_enemies)
 (const FLOAT_FRAMES u8 26)
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
 (const MOST_STACKS u8 99)
@@ -43,9 +47,16 @@
     (set (at state.actors who hp) (- hp n))
     (set state.hud_pills (| state.hud_pills (<< 1 who)))
     (set (at state.actors who flash) FLASH_FRAMES)
-    (set (at state.actors who knock) KNOCK_FRAMES)
     (set (at state.actors who mood) state.Mood.hurt)
     (set (at state.actors who mood_time) HURT_FRAMES)
+    ; the hero is the big sprite (each change a redraw of 87 rows on both pages): she is not
+    ; knocked back, and hit on the enemies' turn she keeps the hurt face until it ends (a
+    ; second hit is then only a flash)
+    (if (= who state.HERO)
+        (do
+            (if (= state.act_source state.Source.move)
+                (set (at state.actors who mood_time) HURT_HELD)))
+        (set (at state.actors who knock) KNOCK_FRAMES))
     (set state.hitstop HITSTOP_FRAMES)
     (float_number who n false)
     (if (= who state.HERO)

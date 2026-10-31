@@ -20,10 +20,11 @@
     (mb.service))
 
 ; the battle steps once for every frame that went by since the last pass, so its animations
-; keep their time however long a frame takes to draw (a pass with sprites moving takes a few).
+; keep their time however long a frame takes to draw (a pass with sprites moving takes a few),
+; but never past a pose worth seeing (state.pose): that is drawn first.
 ; The card's tick counts the frames; with no card, one step a pass. owed carries what one pass
 ; took more or less than its steps, a frame or two at most, so a long load is not caught up
-(const MOST_STEPS i8 12)
+(const MOST_STEPS i8 20)
 (let counted u8 0)
 (let owed i8 0)
 
@@ -62,10 +63,12 @@
             0))
         ; step the screen we are on, and change screens when it asks
         (let steps u8 (steps_due))
+        (set state.pose false)
         (let next state.Screen (match state.screen
             (state.Screen.title (title.step key))
             (state.Screen.battle (battle.step key))))
-        (while (and (> steps 1) (and (= state.screen state.Screen.battle) (= next state.screen)))
+        (while (and (and (> steps 1) (not state.pose))
+                (and (= state.screen state.Screen.battle) (= next state.screen)))
             (set next (battle.step 0))
             (set steps (- steps 1)))
         (if (!= next state.screen)

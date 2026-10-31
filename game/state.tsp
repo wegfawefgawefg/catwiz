@@ -92,6 +92,9 @@
 ; the Mockingboard's ticks, one a frame (main.irq): the frames that really went by, however
 ; long drawing one took
 (let clock u8)
+; a pose worth seeing was just reached (an action's start, its contact, a bolt's launch, a
+; tumble): the main loop draws it before stepping further
+(let pose bool)
 (let frame u8) ; counts up every frame but in hit-stop
 (let idle u8)  ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
