@@ -34,33 +34,57 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 - Game rules content is hand-written Tisple in `content/`: plain tables of structs written out
   (`items.tsp` the hero's items, `enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the
-  fights, their cards, the charms, the nap and the doors), and the `match` on the effect kind
+  run's fights (`FIGHTS`: zone, elite, the other door), the draws' pools (`OFFER_CARDS`,
+  `OFFER_CHARMS`: a card or charm, its weight, the first fight it can come after; the sim's
+  tuned weights drop in there as data), the charms and the nap's `NAP_HEAL_SHIFT`; `rules.tsp`
+  the rules page's text), and the `match` on the effect kind
   (`effects.tsp` the hero's faces, the boosts and threes, the curses, the kittens; `foes.tsp`
   the enemies' moves; `charms.tsp` what the charms do; `statuses.tsp` the statuses and their
-  hooks). No macros, no separate data format, no parser, no Python step for it. The rules are
+  hooks). No macros, no separate data format, no parser, no Python step for it (one small
+  macro lays the rules page's text out: `content/rules.tsp` `page`; `draw/packs` packs the
+  generated art). The rules are
   the balance sim's (`tools/sim/items.py`, `rules.py`; docs/balance.md, the item-slot model).
 - The engine (`battle/`, `draw/`) never names a specific enemy, item, effect or status. It reads
   the tables and calls the hooks in `content/`, so the content files can be replaced without
   touching the engine.
 - The hero rolls five identical dice (six with a charm); each die's six faces are her six item
   slots (`state.items`), so a face is the item in its slot (`battle/dice.tsp`). Levels belong to
-  the slot (`state.levels`). Between fights (`battle/reward.tsp`): one of three cards (an item for
-  a slot, or a level), charms, the nap, the doors; the stage shows her six slots (`battle/kit`).
+  the slot (`state.levels`). The run (2026-10-31, the owner): ten fights, three places of three
+  (the woods, the garden, the yard), each ending with an elite, then the Bulldog King; the two
+  doors (the vet or the big bath) are the yard's elite. Between fights (`battle/reward.tsp`):
+  one of three cards drawn at random (`battle/offer.tsp`: by weight from `OFFER_CARDS`, three
+  different, no level on a slot at its most; the item she holds is a level, the same card to a
+  draw as the slot's upgrade); after an elite also one of three charms drawn the same way (ones
+  she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
+  choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`).
+- The map of the run (`battle/map.tsp`) at the top of the stage, over the cat, drawn once a
+  fight: the place, a mark a fight (an elite's bigger, hers lit), the king's crown. Its box is a
+  lane (`tools/dhgr/lanes.py` MAP), so the scenery stays out of it.
+- Pages over the stage in her turn (`battle/page.tsp`): her kit (`battle/bag.tsp`, B) and the
+  rules (`battle/rules.tsp`, ?). The fight waits under one; closing puts the stage back from the
+  spare page, which keeps the fight's picture all fight.
 - Test builds: the constants at the top of `battle/battle.tsp` (start at fight N or its other
   door, play on past fight 2 on stand-in art, a charm held from the start, every fight won as it
-  starts) and `items.STARTING_ITEMS`, flipped in a copy.
+  starts, `SEED`: the run's random numbers, the dice and the draws, the same every time) and
+  `items.STARTING_ITEMS`, flipped in a copy.
 - No text, names or item lists from other games. Our own names and art.
 
 ## Text
 
-- Strings: every const table of strings (the content's items, moves, enemies, charms, the hero,
-  the status names, the reward's slot names and bases) is marked `:strings aux`, so its text
-  lives in aux memory (Tisple 9eeaa80), and is read with `text.add_aux` / `add_aux_n` (a copy
-  under with_aux, then as `add_n`). Strings written in the code stay in main memory: `text.add`
-  and `add_n`. A pointer cannot tell which, so a function that takes one takes one kind (the
-  log keeps names and move texts as aux, its other sentences as code strings). The tray's
-  caption tables (`battle/hud.tsp` DIGITS...) stay in main memory: lib/dhgr_pixels' glyphs read
-  them.
+- Strings: main memory is full, so text lives in aux memory. The content's tables are
+  `:strings aux` (items, the hero, the status names) or wholly `:in aux` (moves, enemies, fights,
+  charms, the offers: read through their modules' accessors, `(mv.text row)`, `(en.hp kind)`,
+  `(enc.elite f)`, a `with_aux` each). The code's sentences are `SAY` tables, `:strings aux`, one
+  a module with a `SAY_` name for each (`(at SAY SAY_STUDY)`; the hero's faces' in
+  `content/effects_said.tsp`). All are read with `text.add_aux` / `add_aux_n` (a copy under
+  with_aux, then as `add_n`), and the log takes only aux strings. Strings written in the code
+  stay in main memory (`text.add`, `add_n`): only those lib/dhgr_pixels' glyphs read (the tray's
+  captions, `battle/hud.tsp` DIGITS...; the buttons' words; the map's places; the charms'
+  marks). A pointer cannot tell which, so a function that takes one takes one kind.
+- The rules page's text is on the disk (`content/rules.tsp`, `:on disk`; its `page` macro pads
+  each line to 35 columns and fails a longer one), read a page at a time into aux memory's text
+  page 1 (`$0400`, free: the game shows no text page). Every rule there is the engine's: change
+  them together.
 
 - The screen is all graphics (double hi-res, no mixed text window). The four text lines at the
   foot (rows 160-191) are drawn onto the page being drawn by `draw/text.tsp`, only the blocks of
@@ -89,10 +113,14 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   pixels (a pixel is 4 dots, 1.83 rows wide).
 - Sprites are cut on 7-pixel steps (4 bytes: aux, main, aux, main) so their colours hold, and
   move on them (2 byte columns a step); up and down at any row. Each half is stored as lib/dhgr
-  runs (skips, opaque runs, edged runs with masks) and packed (`tables.packed_bytes`, in aux
-  memory); a screen's kinds are unpacked when it starts (`draw/blit.tsp`): the main halves into
-  the aux language card's bank 2, the aux halves into its bank 1, the rest of bank 2, then
-  `sprite_aux` in aux memory, as they fit. Frames are whole (no face patches): a mood shows as a
+  runs (skips, opaque runs, edged runs with masks). A screen's art is on the disk (2026-10-31,
+  `art/screen_*.tsp`: `draw/packs.tsp` tables, each part packed while compiling): its picture
+  (read into `sprite_aux`, unpacked onto the spare page and shown there) and its kinds' runs
+  (read into page 1's aux memory, not shown then, and unpacked: `draw/blit.tsp`): the main halves
+  into the aux language card's bank 2, the aux halves into its bank 1, the rest of bank 2, then
+  `sprite_aux` in aux memory, as they fit; then the spare page is copied onto page 1. A fight
+  screen has every kind its fights use (the clearing: the cat, the small sprites, the puffcap,
+  the sporelet; the path: and the nightflap). Frames are whole (no face patches): a mood shows as a
   kind's frame by role (idle, attack, hurt, happy, surprised, flap, flash; `battle/look.tsp`),
   its idle one when it has none.
 - Midnight (2026-10-31): the whole game is night, for speed. The fighters stand on pure black
@@ -153,14 +181,14 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Building and running
 
 ```sh
-TISPLE=~/Coding/LangDev/tisple-catlib/build/tisple   # Tisple's branch catwiz-dhgr-lib
+TISPLE=~/Coding/LangDev/tisple/build/tisple          # Tisple main (34fde5b on 2026-10-31)
 $TISPLE build                        # build/catwiz.dsk; $TISPLE build --disk x.dsk --asm > x.asm
 $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --screenshot shots/x.png
 $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --ntsc --screenshot x.png
 ```
 
-- The game needs Tisple's branch `catwiz-dhgr-lib` (lib/dhgr's runs and `FROM_CARD`,
-  lib/auxcard, lib/dhgr_pixels, unpacking into the aux card, `dhgr_text2`) until it is merged.
+- The game needs Tisple main with lib/dhgr's runs, lib/auxcard, lib/dhgr_pixels, `:strings
+  aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged).
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
@@ -195,22 +223,29 @@ $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --nts
 Self-booting disk, origin `$8000`. Double hi-res: page 1 `$2000` and page 2 `$4000`, each in
 both main and aux memory, reserved (32 KB). One page is drawn and shown (2026-10-31, page 1):
 every change goes straight onto the screen once, with no flip to wait for (a big pose may tear
-for a frame); page 2 is only where a fight's picture is unpacked before it is copied over.
+for a frame); page 2 is where a screen's picture is unpacked, shown while its runs load, and
+kept all fight (a page over the stage closes by copying the stage back from it).
 There is no backdrop page: what a look leaves is filled black (the lanes). The looks keep to
 rows 0-120, the hud to rows 121-191. Fighters whose boxes meet are drawn with lib/dhgr's
 CUTOUT (their black not drawn); a lunge with another fighter in the way is a shot instead
 (`battle/act.tsp` blocked), so no one passes through anyone. Code and data fill `$8000-$BEFF`, `$6000-$7FFF`,
-then `$0BE0-$1BFF`, then the language card. Tisple's libraries keep `$1C00-$1D89` (lib/unpack,
-both memories), `$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1F32` (lib/dhgr's runs, both). The packed art and the
-songs live in aux memory; a screen's sprites in the aux language card and `blit.sprite_aux`.
+then `$0BE0-$13FF`, then the language card (bank 2, and code in bank 1). Tisple's libraries keep
+`$1400-$1BFF` (lib/disk's reader, main), `$1C00-$1D89` (lib/unpack, both memories),
+`$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1F32` (lib/dhgr's runs, both). The art (each
+screen's picture and runs) and the rules' text are on the disk (`:on disk`); the songs, the
+card pictures and most text live in aux memory; a screen's sprites in the aux language card and
+`blit.sprite_aux`. The disk has 10 segments, the most a disk holds: a new `:address` let that
+splits a memory would not build.
 
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
   is not zeroed at the start: `$0200-$02E3` (state.drawn), `$0800-$0BDF` once the boot loader
   is done (the song buffer, the log, the text line and what each line shows, the hud's pixel
   row and its bytes), and text page 1 (`$0400-$07FF` but `$0478-$047F` and the
   other screen holes: the rects, the scene's boxes, the looks, the stacks, the actors, the
-  floaters, the dice, the badges, the counter). Each such let says so. The screen shows no text
-  page (`dhgr_text2` is not imported), so both are free.
+  floaters, the dice, the badges, the counter; and since the kit round the text's glyph tables
+  `$0424`, `$0600-$0668`, the log's waiting lines `$0447-$0476`, the hud's `was` `$0700`, the
+  kit's picture `$0780`). Each such let says so. The screen shows no text page (`dhgr_text2` is
+  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer.
 - No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
   (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
   listing for `rt.` calls.
@@ -255,3 +290,18 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
   looks): a pass flat out waiting for a key 5,657 cycles in fight 1 (was 5,535), 11,278 in fight
   2 (was 11,106); a pick shows in 2 frames; a turn of plain wand hits takes the frames it took
   (passlog, every face a wand: each throw within a frame, the enemies' turn within ten).
+- 2026-10-31, the kit round (branch kit, Tisple 34fde5b): the random offers, the map, the kit and
+  rules pages and lib/disk (its reader takes `$1400-$1BFF`, 2 KB of main memory) did not fit.
+  Moved out of main memory: the art onto the disk (each screen's picture and runs, one table
+  each, `art/screen_*`), which freed 11 KB of aux memory; into aux memory the moves, enemies,
+  fights, charms and offers (`:in aux`, read through accessors) and the code's sentences (the
+  log's, the reward's, the rows', the kit page's: `SAY` tables); small lets to text page 1. Built
+  at squeeze 10 (was 8) with 14 functions (2,290 bytes) in the card's bank 1; bank 2 12,138 of
+  12,288; aux memory 6,143 at `$0800` and 17,013 at `$6000` (7.5 KB left at `$A275-$BFFF`); the
+  disk 64,199 bytes in 10 segments, 16 tables on tracks 28-34. Speed: passlog SEED=5 on a turn
+  of fight 1 (five dice and the enemies' turn) the same to the frame (627 frames, the roll back
+  at the same frame); a pass waiting for a key, flat out, 5,708 cycles (was 5,583); a pick still
+  shows in 3 frames. Loading: the title at frame 770 (was about 725); a fight's art 3.2 s from
+  the key (was about 2 s: the runs are read from the disk, 1.2 s). The rules page: its first
+  line 0.37 s after ?, the page 0.93 s, the buttons 1.3 s; a page turn 0.7 s. The kit page
+  1.0 s; closing a page puts the fight back in 1.2 s.
