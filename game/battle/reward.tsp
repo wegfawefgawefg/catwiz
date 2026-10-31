@@ -316,6 +316,8 @@
 ; choice n is taken. Gives true when all is done and the next fight can start
 (fn take ((n u8)) bool
     (let c u8 (at choice n))
+    ; a pick not drawn yet is not drawn: the step changes or ends
+    (set due state.NOTHING)
     (match state.pick
         (state.Pick.cards
             (if (not (card_ok c))
