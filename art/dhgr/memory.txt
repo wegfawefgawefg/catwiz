@@ -1,53 +1,44 @@
-Catwiz double hi-res art: memory for the day fights (python3 tools/dhgr/make.py memory)
-raw: bytes as the game uses them. packed: zlib -9 (a stand-in for Tisple's packer).
-lit sprites: picture + mask, every frame whole; trimmed: each row only its bytes, and a
-frame that is idle moved plus a patch (the hop, a new face) stored as that.
-materials: a frame unlit at 3-5 bits a pixel, one copy for every zone (light.py).
+Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)
+before: masked day frames, no flash (the build before 2026-10-31); after: solid night
+frames and a flash frame a fighter kind. Room: the aux language card's bank 2 12272 and
+bank 1 4096, then sprite_aux 5376 (game/draw/blit.tsp): 21744 in all.
 
-shared by every fight
-  12 card pictures (pic+mask)           2880 raw     631 packed  
-  40-column font (95 glyphs)            1520 raw     475 packed  inverse: each byte XOR $7F
-    or the 35-column font                760 raw     289 packed  3 pixels a row, shifted into place
-  tray picture, rows 124-159            2880 raw     548 packed  card blanks, buttons; icons go on top
-  the cat, 5 frames, lit               19916 raw    2341 packed  trimmed: 13570
-    the cat as materials                8886 raw    2058 packed  
-  stored                                            3691 packed  (cards, 40-column font, tray, the cat as materials)
+kind       before aux+main  after aux+main   growth   zlib before -> after
+cat           5356+5186       7028+7028       +3514   2940 -> 2742
+puffcap       1251+1203       1956+1956       +1458   790 -> 849
+sporelet      1175+1039       1540+1540        +866   700 -> 681
+nightflap     1667+1733       2310+2310       +1220   1126 -> 1016
+misc           993+936         993+936           +0   641 -> 641
+cat        of it the flash frame: 2324
+puffcap    of it the flash frame: 864
+sporelet   of it the flash frame: 700
+nightflap  of it the flash frame: 864
 
-fight 1 (clearing, day light): cat, puffcap, sporelet
-  screen, whole 16 KB page             16384 raw     992 packed  
-  screen, the stage (rows 0-117)        9440 raw     621 packed  
-  enemies, every frame                  8968 raw    1397 packed  as materials; trimmed lit 6710
-  in memory (beyond the pages)         29720       while the fight runs: the stage's clean copy, the cat and
-                                                   the enemies lit and trimmed
-  stored, new for this fight                        2018 packed  (the screen as stored, enemies not stored before)
+fight 1 (clearing): cat, misc, puffcap, sporelet
+  before  17139 bytes: bank 2 8364 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 5376: 4605 to spare
+  after   22977 bytes: bank 2 11460 of 12272, bank 1 2949 of 4096, sprite_aux 8568 of 5376: 3192 SHORT
+           cat main 7028: bank 2
+           misc main 936: bank 2
+           puffcap main 1956: bank 2
+           sporelet main 1540: bank 2
+           cat aux 7028: sprite_aux, past its end
+           misc aux 993: bank 1
+           puffcap aux 1956: bank 1
+           sporelet aux 1540: sprite_aux, past its end
+  backdrop, zlib: day 1034, night 781
 
-fight 2 (path, day light): cat, puffcap, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    1157 packed  
-  screen, the stage (rows 0-117)        9440 raw     747 packed  
-    or patches over fight 1             1669 raw     182 packed  1 boxes
-  enemies, every frame                 15584 raw    2288 packed  as materials; trimmed lit 10384
-  in memory (beyond the pages)         33394       while the fight runs: the stage's clean copy, the cat and
-                                                   the enemies lit and trimmed
-  stored, new for this fight                        1073 packed  (the screen as stored, enemies not stored before)
+fight 2 (path): cat, misc, puffcap, sporelet, nightflap
+  before  20539 bytes: bank 2 11764 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 5376: 1205 to spare
+  after   27597 bytes: bank 2 11460 of 12272, bank 1 3303 of 4096, sprite_aux 12834 of 5376: 7458 SHORT
+           cat main 7028: bank 2
+           misc main 936: bank 2
+           puffcap main 1956: bank 2
+           sporelet main 1540: bank 2
+           nightflap main 2310: bank 1
+           cat aux 7028: sprite_aux, past its end
+           misc aux 993: bank 1
+           puffcap aux 1956: sprite_aux, past its end
+           sporelet aux 1540: sprite_aux, past its end
+           nightflap aux 2310: sprite_aux, past its end
+  backdrop, zlib: day 1204, night 549
 
-fight 3 (brook, day light): cat, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    1178 packed  
-  screen, the stage (rows 0-117)        9440 raw     750 packed  
-    or patches over fight 1              965 raw     212 packed  1 boxes
-  enemies, every frame                 10436 raw    1548 packed  as materials; trimmed lit 6800
-  in memory (beyond the pages)         29810       while the fight runs: the stage's clean copy, the cat and
-                                                   the enemies lit and trimmed
-  stored, new for this fight                         212 packed  (the screen as stored, enemies not stored before)
-
-fight 4 (thicket, day light): cat, puffcap, sporelet, nightflap
-  screen, whole 16 KB page             16384 raw    1104 packed  
-  screen, the stage (rows 0-117)        9440 raw     697 packed  
-    or patches over fight 1             9445 raw     703 packed  1 boxes
-  enemies, every frame                 15584 raw    2288 packed  as materials; trimmed lit 10384
-  in memory (beyond the pages)         33394       while the fight runs: the stage's clean copy, the cat and
-                                                   the enemies lit and trimmed
-  stored, new for this fight                         697 packed  (the screen as stored, enemies not stored before)
-
-the four day fights stored, everything above packed: 7691 bytes
-
-not counted: the two 16 KB pages the screen flips between (main and aux $2000-$5FFF).

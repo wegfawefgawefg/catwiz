@@ -1,187 +1,132 @@
-# the byte tables (export.py's formats) written to art/dhgr/, and the memory each day fight
-# needs, raw and packed (zlib -9: a stand-in for the packer Tisple is adding). Written to
-# art/dhgr/memory.txt and printed.
+# the memory each fight's sprites need while it runs, as the game places them, written to
+# art/dhgr/memory.txt and printed (python3 tools/dhgr/make.py memory).
+#
+# A fight unpacks its kinds' runs (game.py's sprites: the cat, the small ones, its enemies) as
+# game/draw/blit.tsp unpack_all does: every kind's main half into the aux language card (bank
+# 2's 12,272 bytes at $D000-$FFEF, else bank 1's 4,096), then every aux half into bank 1 first,
+# then bank 2, then blit.sprite_aux (5,376 bytes of aux memory). Keep the capacities and the
+# order in step with blit.tsp. "before" is the masked frames of the build before the midnight
+# decision (day light, no flash frames), "after" the solid night frames and the flash ones.
+#
+# The packed column is zlib -9, a stand-in for Tisple's packer (the build's own sizes are in
+# its output): the store in aux memory, the runs and the backdrops.
+#
+# The art/dhgr/*.bin tables are the 2026-10-30 planning round's (day sprites, materials,
+# screens): nothing writes or reads them now.
 
 import os
+import zlib
 
 import dhgr
-import export
-import fonts
 import forest
-import hud
-import icons
+import game
+import game_sprites as gs
 import light
 import night
-import palettes
 import screen
-import cat
-import foes
-from canvas import Canvas
 
-STAGE_ROWS = forest.STAGE
-
-
-def stage_bytes(px, rows=range(0, STAGE_ROWS)):
-    # the rows a backdrop really needs, in screen order: the tray and text are drawn by code
-    out = bytearray()
-    for y in rows:
-        out += bytes(dhgr.row_bytes(px[y]))
-    return bytes(out)
+BANK2 = 0xFFF0 - 0xD000
+BANK1 = 0xE000 - 0xD000
+SPRITE_AUX = 5376
 
 
-def frames(kind):
-    return cat.FRAMES if kind == "cat" else foes.FRAMES[kind]
+def packed(data):
+    return len(zlib.compress(bytes(data), 9))
 
 
-def span_bytes(c, box):
-    # a sprite stored by rows: per row its first 4-byte step and how many, then only those
-    # bytes, picture and mask (rows that are empty cost their two bytes)
-    x0, y0, x1, y1 = box
-    out = 0
-    for y in range(y0, y1):
-        xs = [x for x in range(x0, x1) if c.px[y][x] is not None]
-        out += 2
-        if xs:
-            out += (max(xs) // 7 - min(xs) // 7 + 1) * 4 * 2
+def kinds_after():
+    # {kind: (aux bytes, main bytes)} as game.py writes them
+    out = {}
+    for kind, sprites, _ in game.all_sprites():
+        out[kind] = (b"".join(s.aux for s in sprites), b"".join(s.main for s in sprites))
     return out
 
 
-def best_patch(idle, frame):
-    # the frame as idle drawn dy rows lower plus a patch box where they still differ: the
-    # hop, a blink, a new mouth. Returns (bytes, dy) of the smallest, or None.
-    best = None
-    for dy in range(-8, 9):
-        moved = idle.shifted(0, dy)
-        xs, ys = [], []
-        for y in range(dhgr.H):
-            a, b = moved.px[y], frame.px[y]
-            for x in range(dhgr.W):
-                if a[x] != b[x]:
-                    xs.append(x)
-                    ys.append(y)
-        if not xs:
-            size = 4
+def kinds_before():
+    # the masked day frames, no flash: what the build carried before
+    out = {}
+    for kind in gs.KINDS:
+        if kind == "misc":
+            sprites = gs.misc()
         else:
-            g0, g1 = min(xs) // 7, max(xs) // 7 + 1
-            size = 4 + (g1 - g0) * 4 * 2 * (max(ys) + 1 - min(ys))
-        if best is None or size < best[0]:
-            best = (size, dy)
-    return best
+            sprites = [gs.Sprite(f, light.lit(screen.figure(kind, f), "day")) for f in gs.frames(kind)]
+        out[kind] = (b"".join(s.aux for s in sprites), b"".join(s.main for s in sprites))
+    return out
 
 
-class Kind:
-    # one fighter's frames for one zone: written to art/dhgr/, and their sizes
-    def __init__(self, art, kind, zone):
-        self.lit, self.mats = bytearray(), bytearray()
-        self.trimmed = 0
-        idle = None
-        for fr in frames(kind):
-            d = screen.figure(kind, fr)
-            lit = light.lit(d, zone)
-            s = dhgr.cut("%s_%s" % (kind, fr), lit.px, lit.bbox())
-            raw = export.sprite_bytes(s)
-            export.write(art, "sprites/%s/%s_%s.bin" % (zone, kind, fr), raw)
-            mb, _ = export.material_bytes(d, d.bbox())
-            export.write(art, "materials/%s_%s.bin" % (kind, fr), mb)
-            self.lit += raw
-            self.mats += mb
-            spans = span_bytes(lit, lit.bbox())
-            if idle is None:
-                idle = lit
-                self.trimmed += spans
-            else:
-                self.trimmed += min(spans, best_patch(idle, lit)[0])
+def place(kinds, sizes):
+    # blit.tsp unpack_all: where each half goes. Returns (lines, bank 2 used, bank 1 used,
+    # sprite_aux used, bytes short)
+    used2 = used1 = used_aux = short = 0
+    lines = []
+    for k in kinds:
+        n = len(sizes[k][1])
+        fits2, fits1 = n <= BANK2 - used2, n <= BANK1 - used1
+        if fits1 and not fits2:
+            used1 += n
+            lines.append("%s main %d: bank 1" % (k, n))
+        elif fits2:
+            used2 += n
+            lines.append("%s main %d: bank 2" % (k, n))
+        else:
+            short += n
+            lines.append("%s main %d: fits nowhere (the game gives up on it)" % (k, n))
+    for k in kinds:
+        n = len(sizes[k][0])
+        if n <= BANK1 - used1:
+            used1 += n
+            lines.append("%s aux %d: bank 1" % (k, n))
+        elif n <= BANK2 - used2:
+            used2 += n
+            lines.append("%s aux %d: bank 2" % (k, n))
+        else:
+            used_aux += n
+            lines.append("%s aux %d: sprite_aux%s" % (k, n, "" if used_aux <= SPRITE_AUX else ", past its end"))
+    short += max(0, used_aux - SPRITE_AUX)
+    return lines, used2, used1, used_aux, short
 
-    def packed(self):
-        return dhgr.packed(bytes(self.mats))
+
+def fight_kinds(F):
+    return ["cat", "misc"] + [k for i, k in enumerate(F["foes"]) if k not in F["foes"][:i]]
 
 
 def run(art):
     out = []
     say = out.append
-    say("Catwiz double hi-res art: memory for the day fights (python3 tools/dhgr/make.py memory)")
-    say("raw: bytes as the game uses them. packed: zlib -9 (a stand-in for Tisple's packer).")
-    say("lit sprites: picture + mask, every frame whole; trimmed: each row only its bytes, and a")
-    say("frame that is idle moved plus a patch (the hop, a new face) stored as that.")
-    say("materials: a frame unlit at 3-5 bits a pixel, one copy for every zone (light.py).")
+    before, after = kinds_before(), kinds_after()
+    room = BANK2 + BANK1 + SPRITE_AUX
+    say("Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)")
+    say("before: masked day frames, no flash (the build before 2026-10-31); after: solid night")
+    say("frames and a flash frame a fighter kind. Room: the aux language card's bank 2 %d and" % BANK2)
+    say("bank 1 %d, then sprite_aux %d (game/draw/blit.tsp): %d in all." % (BANK1, SPRITE_AUX, room))
     say("")
-    # ---- shared by every fight
-    icon_blob = bytearray()
-    for n in icons.ICONS:
-        one = Canvas()
-        icons.draw(one, 0, 0, n)
-        icon_blob += dhgr.cut(n, one.px, (0, 0, 14, icons.ICON_H)).raw()
-    export.write(art, "icons.bin", bytes(icon_blob))
-    font = bytearray()
-    for i in range(32, 127):
-        for a, m in fonts.cell_bytes(chr(i)):
-            font += bytes([a, m])
-    export.write(art, "font40.bin", bytes(font))
-    font35 = bytearray()
-    for i in range(32, 127):
-        g = fonts.F35.get(chr(i), [])
-        rows = [(r + "...")[:3] for r in g] + ["..."] * (8 - len(g))
-        font35 += bytes(sum((ch == "#") << k for k, ch in enumerate(r)) for r in rows[:8])
-    export.write(art, "font35.bin", bytes(font35))
-    tray = Canvas(dhgr.BLACK)
-    hud.tray(tray, hud.U_DAY, [("lint", "")] * 5, None)
-    tray_raw = stage_bytes(tray.px, range(hud.TRAY_TOP, hud.TEXT_TOP))
-    kinds = {}
-    for k in ["cat", "puffcap", "sporelet", "nightflap"]:
-        kinds[k] = Kind(art, k, "day")
-    cat_ = kinds["cat"]
-    say("shared by every fight")
-    say("  " + export.report_line("12 card pictures (pic+mask)", icon_blob))
-    say("  " + export.report_line("40-column font (95 glyphs)", font, "inverse: each byte XOR $7F"))
-    say("  " + export.report_line("  or the 35-column font", font35, "3 pixels a row, shifted into place"))
-    say("  " + export.report_line("tray picture, rows 124-159", tray_raw, "card blanks, buttons; icons go on top"))
-    say("  " + export.report_line("the cat, %d frames, lit" % len(cat.FRAMES), cat_.lit, "trimmed: %d" % cat_.trimmed))
-    say("  " + export.report_line("  the cat as materials", cat_.mats))
-    shared_pk = dhgr.packed(bytes(icon_blob) + bytes(font) + tray_raw) + cat_.packed()
-    say("  %-34s %7s     %7d packed  (cards, 40-column font, tray, the cat as materials)" % ("stored", "", shared_pk))
+    say("%-10s %15s %15s %8s   %s" % ("kind", "before aux+main", "after aux+main", "growth", "zlib before -> after"))
+    for k in gs.KINDS:
+        b, a = before[k], after[k]
+        nb, na = len(b[0]) + len(b[1]), len(a[0]) + len(a[1])
+        say("%-10s %7d+%-7d %7d+%-7d %+8d   %d -> %d" % (k, len(b[0]), len(b[1]), len(a[0]), len(a[1]), na - nb,
+                                                      packed(b[0] + b[1]), packed(a[0] + a[1])))
+    for kind, sprites, _ in game.all_sprites():
+        for s in sprites:
+            if s.name.endswith("_flash"):
+                say("%-10s of it the flash frame: %d" % (kind, len(s.aux) + len(s.main)))
     say("")
-    run_pk = shared_pk
-    seen = set()
-    base = None
-    for F in palettes.FIGHTS:
-        P = F["P"]
-        n, variant, zone = F["n"], F["variant"], F["zone"]
-        bd = forest.picture(P, variant)
-        name = "fight%d_%s" % (n, variant)
-        main, aux = dhgr.to_pages(bd.px)
-        export.write(art, "screens/%s.bin" % name, main + aux)
-        stage = stage_bytes(bd.px)
-        say("fight %d (%s, %s light): %s" % (n, variant, zone, ", ".join(["cat"] + F["foes"])))
-        say("  " + export.report_line("screen, whole 16 KB page", main + aux))
-        say("  " + export.report_line("screen, the stage (rows 0-%d)" % (STAGE_ROWS - 1), stage))
-        screen_pk = dhgr.packed(stage)
-        if base is None:
-            base = bd
-        else:
-            boxes = export.patches(base.px, bd.px)
-            pb = export.patch_bytes(bd.px, boxes)
-            export.write(art, "patches/%s.bin" % name, pb)
-            say("  " + export.report_line("  or patches over fight 1", pb, "%d boxes" % len(boxes)))
-            screen_pk = min(screen_pk, dhgr.packed(pb))
-        foes_lit = sum(len(kinds[k].lit) for k in F["foes"])
-        foes_trim = sum(kinds[k].trimmed for k in F["foes"])
-        foes_pk = sum(kinds[k].packed() for k in F["foes"])
-        new_pk = sum(kinds[k].packed() for k in F["foes"] if k not in seen)
-        seen |= set(F["foes"])
-        say("  %-34s %7d raw %7d packed  as materials; trimmed lit %d" % ("enemies, every frame", foes_lit, foes_pk, foes_trim))
-        ram = len(stage) + cat_.trimmed + foes_trim
-        say("  %-34s %7d       while the fight runs: the stage's clean copy, the cat and" % ("in memory (beyond the pages)", ram))
-        say("  %-34s %7s       the enemies lit and trimmed" % ("", ""))
-        say("  %-34s %7s     %7d packed  (the screen as stored, enemies not stored before)" % ("stored, new for this fight", "", screen_pk + new_pk))
-        run_pk += screen_pk + new_pk
+    for F in game.FIGHTS:
+        kinds = fight_kinds(F)
+        say("fight %d (%s): %s" % (F["n"], F["variant"], ", ".join(kinds)))
+        for label, sizes in (("before", before), ("after", after)):
+            total = sum(len(sizes[k][0]) + len(sizes[k][1]) for k in kinds)
+            lines, u2, u1, ua, short = place(kinds, sizes)
+            say("  %-6s %6d bytes: bank 2 %d of %d, bank 1 %d of %d, sprite_aux %d of %d: %s" % (
+                label, total, u2, BANK2, u1, BANK1, ua, SPRITE_AUX,
+                "%d SHORT" % short if short else "%d to spare" % (room - total)))
+            if label == "after":
+                for line in lines:
+                    say("           " + line)
+        dm, da = dhgr.to_pages(forest.picture(F["P"], F["variant"]).px)
+        nm, na = dhgr.to_pages(night.picture(F["variant"]).px)
+        say("  backdrop, zlib: day %d, night %d" % (packed(dm) + packed(da), packed(nm) + packed(na)))
         say("")
-    say("the four day fights stored, everything above packed: %d bytes" % run_pk)
-    say("")
-    # the night and dusk backdrops of the lighting proof, for the next rounds
-    for zone, bd in (("dusk", night.dusk()), ("night", night.night())):
-        main, aux = dhgr.to_pages(bd.px)
-        export.write(art, "screens/proof_%s.bin" % zone, main + aux)
-    say("not counted: the two 16 KB pages the screen flips between (main and aux $2000-$5FFF).")
     text = "\n".join(out) + "\n"
     with open(os.path.join(art, "memory.txt"), "w") as f:
         f.write(text)
