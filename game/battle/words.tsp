@@ -85,8 +85,8 @@
     (set text.inverse false)
     (text.tab PROMPT_COL)
     (match (at items.ITEMS row slot)
-        (ac.Slot.wand (text.add_aux_n (at SAY SAY_DAMAGE) n))
-        (ac.Slot.fluff (text.add_aux_n (at SAY SAY_SHIELD) n))
+        (ac.Slot.wand (text.add_item (at SAY SAY_DAMAGE) n))
+        (ac.Slot.fluff (text.add_item (at SAY SAY_SHIELD) n))
         (ac.Slot.junk (text.add_aux (at SAY SAY_REROLL)))
         (_
             (if (fx.short_of_mana row)
@@ -97,7 +97,7 @@
                     (_ (text.add_aux (at SAY SAY_ON_YOU)))))))
     (text.show 0)
     (text.start)
-    (text.add_aux_n (at items.ITEMS row text) n)
+    (text.add_item (at items.ITEMS row text) n)
     (text.show 1))
 
 ; the target's next move

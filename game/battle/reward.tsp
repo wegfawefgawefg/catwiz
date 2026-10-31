@@ -195,6 +195,12 @@
     (text.add_aux_n s n)
     (show r))
 
+; an item's line on row r, its number inverse (text.add_item)
+(fn item_aux ((r u8) (s (ptr u8)) (n u8)) void
+    (text.start)
+    (text.add_item s n)
+    (show r))
+
 ; the step's prompt, nothing picked: rows 0 to 3
 (fn prompt () void
     (match state.pick
@@ -251,7 +257,7 @@
 ; row 1: slot's base with item row at level, and the level
 (fn base_row ((slot u8) (item u8) (level u8)) void
     (text.start)
-    (text.add_aux_n (at BASE slot) (fx.number_at item level))
+    (text.add_item (at BASE slot) (fx.number_at item level))
     (if (> level 0)
         (text.add_aux_n (at SAY SAY_UP) level))
     (show 1))
@@ -272,14 +278,14 @@
             (if (not (card_ok c))
                 (do
                     (base_row slot old level)
-                    (row_aux 2 (at items.ITEMS old text) (fx.number_at old level))
+                    (item_aux 2 (at items.ITEMS old text) (fx.number_at old level))
                     (text.start)
                     (text.add_aux (at SLOT_NAME slot))
                     (text.add_aux (at SAY SAY_AT_MOST))
                     (show 3)
                     (return)))
             (base_row slot old (+ level 1))
-            (row_aux 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
+            (item_aux 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
             (text.start)
             (text.add_aux (if (>= c UP)
                 (at SAY SAY_ON_SLOT)
@@ -289,7 +295,7 @@
             (return)))
     (title (at items.ITEMS c name) false)
     (base_row slot c level)
-    (row_aux 2 (at items.ITEMS c text) (fx.number_at c level))
+    (item_aux 2 (at items.ITEMS c text) (fx.number_at c level))
     (text.start)
     (text.add_aux (at SAY SAY_REPLACES))
     (text.add_aux (at items.ITEMS old name))

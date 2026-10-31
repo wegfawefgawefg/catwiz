@@ -27,6 +27,7 @@
 (let shown (array u8 140) :address 0x0A10)
 (let col u8 0)
 (let inverse bool false)
+(let mark_number bool false) ; an item's line: its # drawn inverse (add_item)
 
 (fn start () void
     (for i u8 0 COLUMNS
@@ -57,7 +58,12 @@
     (while (!= (load (+ s i)) 0)
         (let c u8 (load (+ s i)))
         (if (= c '#')
-            (number n)
+            (do
+                (let was bool inverse)
+                (if mark_number
+                    (set inverse true))
+                (number n)
+                (set inverse was))
             (char c))
         (set i (+ i 1))))
 
@@ -81,6 +87,13 @@
 
 (fn add_aux ((s (ptr u8))) void
     (add_aux_n s 0))
+
+; an item's line (aux memory), its number inverse: the number a boost or an upgrade changes, so
+; it stands out from the line's fixed numbers (the owner, 2026-10-31)
+(fn add_item ((s (ptr u8)) (n u8)) void
+    (set mark_number true)
+    (add_aux_n s n)
+    (set mark_number false))
 
 ; the next character at column c
 (fn tab ((c u8)) void
