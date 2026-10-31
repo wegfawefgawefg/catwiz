@@ -3,14 +3,14 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -ffp-contract=off -g
 SRC = main.c battle.c foes.c items.c judge.c players.c search.c draft.c rewards.c run.c \
-      report.c tell.c pool.c rng.c combos.c value.c
+      report.c tell.c pool.c rng.c combos.c value.c study.c swings.c
 TABLES = $(wildcard ../proposal/*.tsp) ../content.py ../tsp.py gen.py
 
 catwiz-sim: $(SRC) *.h gen_content.h
-	$(CC) $(CFLAGS) -o $@ $(SRC) -lpthread
+	$(CC) $(CFLAGS) -o $@ $(SRC) -lpthread -lm
 
 gen_content.h: $(TABLES)
-	python3 gen.py > $@
+	python3 gen.py $(TABLES_DIR) > $@
 
 clean:
 	rm -f catwiz-sim gen_content.h

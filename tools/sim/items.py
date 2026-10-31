@@ -44,8 +44,8 @@ def fight_start(b):
     st[r.MANA] = 2 * c.count("nightlight")
     st[r.WARD] = c.count("bell")
     st[r.KITTENS] = amount(b, "mother", 1)
-    if "badmilk" in c:
-        st[r.POISON] = 2
+    if "badmilk" in c and "BADMILK_FLEAS" in b.R.fx:
+        st[r.POISON] = b.R.fx["BADMILK_FLEAS"]  # the old bad milk: fights start with fleas
         st[r.FLEA_TURNS] = b.R.fx["FLEA_TURNS"]
 
 
@@ -110,11 +110,12 @@ def land(b, row, target, again=False):
         b.last_on = target
     if face.slot == "book":
         # with too little mana a book gives 1 mana instead (she studies it); a copycat's
-        # book is paid again
-        if st[r.MANA] < face.cost:
+        # book is paid again; bad milk: books cost its amount more
+        cost = face.cost + (amount(b, "badmilk", 1) if "BADMILK_FLEAS" not in b.R.fx else 0)
+        if st[r.MANA] < cost:
             b.apply("mana", r.HERO, r.HERO, 1)
             return
-        st[r.MANA] -= face.cost
+        st[r.MANA] -= cost
     effect(b, face.effect, target, n)
     if three and face.combo and face.combo != "none":
         combo(b, face.combo, face.combo_n, target, n)
@@ -249,7 +250,7 @@ def combo(b, c, k, t, n):
 def pounce(b, t, times):
     """every kitten pounces on t, times times: 1 each, more with mittens and marks"""
     r = ru()
-    hit = 1 + amount(b, "mittens", 1)
+    hit = b.R.fx.get("KITTEN_HIT", 1) + amount(b, "mittens", 1)
     for _ in range(b.st[r.HERO][r.KITTENS] * times):
         if not b.alive[t]:
             return

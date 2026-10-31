@@ -113,8 +113,11 @@ static int item_slot(int row) {
     return ITEMS[row].slot == S_food ? 5 : ITEMS[row].slot;
 }
 
-/* the options a fight's cards give this kit */
-static int card_options(const Kit *kit, const uint8_t *cards, Pick *out) {
+Force FORCE = {0, 0, 0, 0}, DOOR_FORCE = {0, 0, 0, 0};
+const Kit *START_KIT = NULL;
+
+/* the options a fight's cards give this kit; card[i] the card option i came from */
+static int card_options(const Kit *kit, const uint8_t *cards, Pick *out, int *card) {
     int n = 0;
     for (int i = 0; i < 3; i++) {
         int c = cards[i];
@@ -126,19 +129,33 @@ static int card_options(const Kit *kit, const uint8_t *cards, Pick *out) {
         } else {
             slot = item_slot(c);
             if (kit->items[slot] != c) {
+                if (kit->locked & (1 << slot))
+                    continue;
                 out[n].what = PK_ITEM;
                 out[n].a = (uint8_t)c;
-                n++;
+                out[n].card = (uint8_t)c;
+                card[n++] = c;
                 continue;
             }
         }
         if (kit->level[slot] < ITEM_MOST) {
             out[n].what = PK_LEVEL;
             out[n].a = (uint8_t)slot;
-            n++;
+            out[n].card = (uint8_t)c;
+            card[n++] = c;
         }
     }
     return n;
+}
+
+/* the forced option of this kind after fight f, if it is on offer (study.c), else -1 */
+static int forced(int kind, int f, const int *what, int n) {
+    if (!FORCE.on || FORCE.kind != kind || FORCE.after != f)
+        return -1;
+    for (int i = 0; i < n; i++)
+        if (what[i] == FORCE.a)
+            return i;
+    return -1;
 }
 
 void pick_apply(Kit *kit, const Pick *o) {
@@ -251,10 +268,11 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
         if (kit->level[s] < ITEM_MOST) {
             ups[n].what = PK_NAP_LEVEL;
             ups[n].a = (uint8_t)s;
+            ups[n].card = (uint8_t)s;
             n++;
         }
     }
-    Pick heal_pick = {PK_NAP_HEAL, 0, 0};
+    Pick heal_pick = {PK_NAP_HEAL, 0, 0, NOTHING};
     if (!n) {
         *hp = heal;
         add_pick(out, &heal_pick, f);
@@ -272,7 +290,12 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
         }
     }
     int take_heal;
-    if (p->kind == P_RANDOM) {
+    if (out && FORCE.on && FORCE.kind == FORCE_NAP && FORCE.after == f) {
+        take_heal = FORCE.a == NOTHING;
+        for (int i = 0; i < n; i++)
+            if (ups[i].a == FORCE.a)
+                best = i;
+    } else if (p->kind == P_RANDOM) {
         take_heal = mt_random(p->rng) < 0.5;
     } else if (p->kind == P_GREEDY) {
         take_heal = heal - *hp >= NAP_HEAL * 0.7;
@@ -299,10 +322,14 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
 int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out) {
     const FightRow *fight = &FIGHTS[fought];
     Pick opts[8];
-    int n = card_options(kit, fight->cards, opts);
+    int card[8];
+    int n = card_options(kit, fight->cards, opts, card);
     if (n) {
-        int i = choose(p, kit, *hp, f, opts, n);
+        int i = out ? forced(FORCE_CARD, f, card, n) : -1;
+        if (i < 0)
+            i = choose(p, kit, *hp, f, opts, n);
         pick_apply(kit, &opts[i]);
+        opts[i].card = (uint8_t)card[i];
         add_pick(out, &opts[i], f);
     }
     if (fight->ncharms) {
@@ -310,9 +337,13 @@ int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out)
         for (int c = 0; c < fight->ncharms; c++) {
             opts[n].what = PK_CHARM;
             opts[n].a = fight->charms[c];
+            opts[n].card = fight->charms[c];
+            card[n] = fight->charms[c];
             n++;
         }
-        int i = choose(p, kit, *hp, f, opts, n);
+        int i = out ? forced(FORCE_CHARM, f, card, n) : -1;
+        if (i < 0)
+            i = choose(p, kit, *hp, f, opts, n);
         pick_apply(kit, &opts[i]);
         add_pick(out, &opts[i], f);
     }

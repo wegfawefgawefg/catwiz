@@ -39,6 +39,18 @@ void summary(const RunResult *r, int n, Summary *s) {
                 maxt = x->turns;
         }
         FightRowSum *row = &s->rows[f];
+        int *all = malloc(sizeof(int) * (here ? here : 1)), m = 0;
+        for (int i = 0; i < n; i++)
+            if (r[i].nfights > f)
+                all[m++] = r[i].fights[f].won ? r[i].fights[f].lost : r[i].fights[f].hp_in;
+        for (int a = 1; a < m; a++) /* insertion sort: a few thousand at most */
+            for (int b = a; b > 0 && all[b - 1] > all[b]; b--) {
+                int t = all[b];
+                all[b] = all[b - 1];
+                all[b - 1] = t;
+            }
+        row->lost_p90 = m ? all[(m * 9) / 10 < m ? (m * 9) / 10 : m - 1] : 0;
+        free(all);
         row->reached = (double)here / n;
         row->won = here ? (double)won / here : 0;
         row->hp_in = here ? hp_in / here : 0;
@@ -100,16 +112,16 @@ void print_report(int player, const RunResult *r, int n, double seconds, int by_
     summary(r, n, &s);
     printf("\n%s: %d runs in %.1f s (%.0f runs/s)\n", PLAYER_NAME[player], n, seconds,
            n / (seconds > 1e-9 ? seconds : 1e-9));
-    printf("fight  reached  won    hp in  hp lost  healed  net  turns (max)\n");
+    printf("fight  reached  won    hp in  hp lost  healed  net  turns (max)  lost p90\n");
     for (int f = 0; f < FIGHT_COUNT; f++) {
         const FightRowSum *row = &s.rows[f];
         if (row->reached == 0) {
             printf("%5d  -\n", f + 1);
             continue;
         }
-        printf("%5d  %6.0f%%  %4.0f%%  %5.1f  %7.1f  %6.1f  %4.1f  %5.1f (%d)\n", f + 1,
+        printf("%5d  %6.0f%%  %4.0f%%  %5.1f  %7.1f  %6.1f  %4.1f  %5.1f (%d)  %4d\n", f + 1,
                100 * row->reached, 100 * row->won, row->hp_in, row->lost, row->healed,
-               row->net, row->turns, row->turns_max);
+               row->net, row->turns, row->turns_max, row->lost_p90);
     }
     printf("runs won: %.1f%%, hp at the end of won runs %.1f\n", 100 * s.win, s.hp_end);
     printf("runs lost in fight:");
@@ -127,7 +139,7 @@ void print_report(int player, const RunResult *r, int n, double seconds, int by_
     char buf[80];
     printf("taken in %s runs (share of runs):\n", only_won ? "won" : "all");
     for (int i = 0; i < m && i < 24; i++) {
-        Pick p = {(uint8_t)(sh[i][0] / 256), (uint8_t)(sh[i][0] % 256), 0};
+        Pick p = {(uint8_t)(sh[i][0] / 256), (uint8_t)(sh[i][0] % 256), 0, 0};
         printf("  %3.0f%%  %s\n", 100.0 * sh[i][1] / base, pick_words(&p, buf));
     }
     if (by_fight) {
@@ -138,7 +150,7 @@ void print_report(int player, const RunResult *r, int n, double seconds, int by_
                 continue;
             printf("  after %2d:", f);
             for (int i = 0; i < m && i < 8; i++) {
-                Pick p = {(uint8_t)(sh[i][0] / 256), (uint8_t)(sh[i][0] % 256), 0};
+                Pick p = {(uint8_t)(sh[i][0] / 256), (uint8_t)(sh[i][0] % 256), 0, 0};
                 printf("%s %s %.0f%%", i ? "," : "", pick_words(&p, buf),
                        100.0 * sh[i][1] / base);
             }

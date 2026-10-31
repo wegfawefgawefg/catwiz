@@ -24,8 +24,8 @@ static int has(const Battle *b, int kind) {
 void items_fight_start(Battle *b) {
     int32_t *st = b->st[HERO];
     st[ST_KITTENS] = (int32_t)charm_amount(b, K_mother);
-    if (has(b, K_badmilk)) {
-        st[ST_POISON] = 2;
+    if (has(b, K_badmilk) && BADMILK_FLEAS) {
+        st[ST_POISON] = BADMILK_FLEAS; /* the old bad milk: fights start with fleas */
         st[ST_FLEA_TURNS] = FLEA_TURNS;
     }
 }
@@ -106,11 +106,13 @@ void items_land(Battle *b, int row, int target, int again) {
     const ItemRow *face = &ITEMS[row];
     int32_t *st = b->st[HERO];
     int n = face->amount + b->k->level_of[row] * face->step;
+    b->t_played |= 1ull << row;
     if (face->slot == S_trick) {
         trick(b, face, n);
         return;
     }
     int counts = 1;
+    int base = n;
     if (st[ST_MULT] && (face->slot == S_wand || face->slot == S_fluff || face->slot == S_book)) {
         n = fold((int64_t)n * st[ST_MULT]);
         counts = st[ST_MULT];
@@ -138,6 +140,10 @@ void items_land(Battle *b, int row, int target, int again) {
             st[ST_WISH] = 0;
         }
     }
+    if (n > base || again)
+        b->t_sys |= SYS_TRICK; /* a boost used, or a copycat's copy */
+    if (face->slot == S_wand && charm_amount(b, K_badmilk))
+        b->t_sys |= SYS_CHARM;
     if (st[ST_SPOOK]) {
         n -= st[ST_SPOOK];
         if (n < 0)
@@ -154,21 +160,25 @@ void items_land(Battle *b, int row, int target, int again) {
         tell_number(b, n);
     if (face->slot == S_book) {
         /* with too little mana a book gives 1 mana instead (she studies it); a copycat's
-           book is paid again */
-        if (st[ST_MANA] < face->cost) {
+           book is paid again; bad milk: books cost its amount more */
+        int cost = face->cost + (BADMILK_FLEAS ? 0 : charm_amount(b, K_badmilk));
+        if (st[ST_MANA] < cost) {
             if (b->tell)
                 tell_line(b, "too little mana: she studies it, +1 mana");
             b_apply(b, E_mana, HERO, HERO, 1);
             return;
         }
-        st[ST_MANA] = (int32_t)(st[ST_MANA] - face->cost);
+        st[ST_MANA] = (int32_t)(st[ST_MANA] - cost);
+        b->t_sys |= SYS_MANA;
     }
     effect(b, face->effect, target, n);
     if (three && face->combo != C_none) {
         if (b->tell)
             tell_combo(b, face->combo);
+        b->t_sys |= SYS_COMBO;
         combo(b, face->combo, face->combo_n, target, n);
         if (has(b, K_trio)) {
+            b->t_sys |= SYS_CHARM;
             int a = charm_amount(b, K_trio);
             for (int i = 1; i < ACTORS; i++)
                 if (b->alive[i])
@@ -179,8 +189,10 @@ void items_land(Battle *b, int row, int target, int again) {
 
 /* every kitten pounces on t, times times: 1 each, more with mittens and marks */
 static void pounce(Battle *b, int t, int times) {
-    int hit = 1 + charm_amount(b, K_mittens);
+    int hit = KITTEN_HIT + charm_amount(b, K_mittens);
     int n = b->st[HERO][ST_KITTENS] * times;
+    if (n && b->alive[t])
+        b->t_sys |= SYS_KITTEN | (charm_amount(b, K_mittens) ? SYS_CHARM : 0);
     if (b->tell && n && b->alive[t])
         tell_pounce(b, t, n, hit + b->st[t][ST_BRAND]);
     for (int i = 0; i < n; i++) {
@@ -203,6 +215,8 @@ static void add_mana(Battle *b, int n) {
 
 static void effect(Battle *b, int e, int t, int n) {
     int32_t *sh = b->st[HERO];
+    if (e == E_kittens || ((e == E_litter || e == E_cannon || e == E_pile) && sh[ST_KITTENS]))
+        b->t_sys |= SYS_KITTEN;
     switch (e) {
     case E_yarn:
         b_strike(b, HERO, t, n, 0);
@@ -300,6 +314,7 @@ static void combo(Battle *b, int c, int k, int t, int n) {
             sh[ST_THORNS] = (int32_t)k;
         break;
     case C_box: {
+        b->t_sys |= SYS_KITTEN;
         sh[ST_BOX] = 1;
         int kk = sh[ST_KITTENS] + k;
         sh[ST_KITTENS] = (int32_t)(kk < KITTENS_MOST ? kk : KITTENS_MOST);
@@ -324,8 +339,10 @@ static void combo(Battle *b, int c, int k, int t, int n) {
    first, else the leftmost), twice in a turn with catnip */
 void items_turn_end(Battle *b) {
     int32_t *st = b->st[HERO];
-    if (has(b, K_still) && !b->rerolled)
+    if (has(b, K_still) && !b->rerolled) {
         add_mana(b, charm_amount(b, K_still));
+        b->t_sys |= SYS_CHARM;
+    }
     int k = st[ST_KITTENS];
     int times = st[ST_NIPPED] ? 2 : 1;
     st[ST_NIPPED] = 0;
@@ -365,8 +382,11 @@ void items_hero_hurt(Battle *b) {
 
 /* a ward pip took a curse (hers or an enemy's): rubber duck's shield */
 void items_ward_blocked(Battle *b) {
-    if (has(b, K_duck))
+    if (has(b, K_duck)) {
         b_add(b, HERO, ST_SHIELD, charm_amount(b, K_duck));
+        if (b->in_turn)
+            b->t_sys |= SYS_CHARM;
+    }
 }
 
 /* an enemy's hairball on face slot (0 wand, 1 fluff, ...) of every die, for the fight */

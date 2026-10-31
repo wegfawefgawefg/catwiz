@@ -2,6 +2,7 @@
 sim's own reader (content.py, tsp.py), so every number stays in tools/sim/proposal.
 
     python3 tools/sim/c/gen.py > tools/sim/c/gen_content.h     (the Makefile does this)
+    python3 tools/sim/c/gen.py DIR > ...      the tables in DIR instead (make TABLES_DIR=DIR)
 
 The header has the enums (effect kinds, combos, slots, aims, charm kinds) as E_hit, C_sweep,
 S_wand, A_foe, K_mother, and the tables as static arrays: items, moves, enemy kinds, fights
@@ -33,6 +34,8 @@ def enum(out, name, prefix, members):
 
 
 def main():
+    if len(sys.argv) > 1:
+        content.DIRS["proposal"] = [os.path.abspath(sys.argv[1])]
     dirs = content.DIRS["proposal"] + [os.path.join(content.GAME, "content")]
     R = content.load("proposal")
     c = tsp.Content(dirs + [content.GAME])
@@ -68,6 +71,8 @@ def main():
         ("FLEA_TURNS", R.fx["FLEA_TURNS"]),
         ("ZOOMIES_HITS", R.fx["ZOOMIES_HITS"]),
         ("SCREAM_SELF", R.fx["SCREAM_SELF"]),
+        ("KITTEN_HIT", R.fx.get("KITTEN_HIT", 1)),
+        ("BADMILK_FLEAS", R.fx.get("BADMILK_FLEAS", 0)),
         ("REROLLS", R.rerolls),
         ("HAND", R.hand),
         ("HAIRBALL", R.junk_row),

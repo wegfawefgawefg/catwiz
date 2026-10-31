@@ -30,9 +30,16 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
                 use->played[b->hand[s]] += b->played[s];
             }
         }
-        if (b->result != R_NONE)
-            break;
-        b_end_turn(b);
+        if (b->result == R_NONE)
+            b_end_turn(b);
+        if (use && use->nturns < MAX_TURNS) {
+            TurnRec *t = &use->turns[use->nturns++];
+            t->played = b->t_played;
+            t->fight = (uint8_t)(use->nfights + 1);
+            t->turn = (uint8_t)b->turn;
+            t->dmg = (uint8_t)(b->t_dmg < 255 ? b->t_dmg : 255);
+            t->sys = b->t_sys;
+        }
         if (b->result != R_NONE || b->turn >= TURN_CAP)
             break;
         b_start_round(b);
@@ -51,6 +58,8 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
     Player pl = {player, &prng};
     Kit kit;
     kit_start(&kit);
+    if (START_KIT)
+        kit = *START_KIT;
     int hp = HERO_HP;
     Tell *tell = want_log ? calloc(1, sizeof(Tell)) : NULL;
     if (tell)
@@ -61,8 +70,12 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
         int index = f;
         if (fight->other != NOTHING) {
             index = pick_door(&pl, &kit, hp, f, fight->other);
+            if (FORCE.on && FORCE.kind == FORCE_DOOR && FORCE.after == f)
+                index = FORCE.a;
+            if (DOOR_FORCE.on && DOOR_FORCE.after == f)
+                index = DOOR_FORCE.a;
             if (out->npicks < MAX_PICKS) {
-                Pick d = {PK_DOOR, (uint8_t)index, (uint8_t)f};
+                Pick d = {PK_DOOR, (uint8_t)index, (uint8_t)f, (uint8_t)index};
                 out->picks[out->npicks++] = d;
             }
         }

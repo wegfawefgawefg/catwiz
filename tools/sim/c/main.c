@@ -107,13 +107,31 @@ int main(int argc, char **argv) {
         } else if (!strcmp(a, "--draft-kit")) {
             DRAFT.kit = atof(v);
             i++;
+        } else if (!strcmp(a, "--learned")) {
+            learned_load(v);
+            i++;
+        } else if (!strcmp(a, "--learn")) {
+            DRAFT.learn = atof(v);
+            i++;
         } else if (!strcmp(a, "--weights")) {
             weights_load(v);
+            i++;
+        } else if (!strcmp(a, "--force")) {
+            /* kind:after:a, kind card, charm, nap or door (study.c's FORCE) */
+            char kind[16];
+            int after, x;
+            if (sscanf(v, "%15[a-z]:%d:%d", kind, &after, &x) != 3)
+                return 2;
+            FORCE.on = 1;
+            FORCE.kind = !strcmp(kind, "card") ? FORCE_CARD : !strcmp(kind, "charm") ? FORCE_CHARM
+                       : !strcmp(kind, "nap") ? FORCE_NAP : FORCE_DOOR;
+            FORCE.after = after;
+            FORCE.a = x;
             i++;
         } else if (!strcmp(a, "--mult-cap")) {
             RULES.mult_cap = atoi(v);
             i++;
-        } else if (!strcmp(a, "--combos")) {
+        } else if (!strcmp(a, "--study")) {
             judge_init();
             search_init();
             return combos_main(argc - i - 1, argv + i + 1);

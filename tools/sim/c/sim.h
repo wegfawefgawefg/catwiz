@@ -58,7 +58,17 @@ typedef struct Battle {
     uint8_t combo[S_COUNT]; /* faces of each slot played this turn */
     int32_t old_shield;
     int turn, hero_lost, hero_healed, self_hits, lost_this_round;
+    /* this hero turn, for the combos study: damage to enemies (the kittens' pounces at its
+       end too), the systems it touched (SYS_ bits), the faces played (a bit an item row) */
+    int t_dmg;
+    uint8_t t_sys, in_turn;
+    uint64_t t_played;
 } Battle;
+
+/* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a
+   status put on or paying off (marked hits, wet, tangled), a trick's boost used, a charm */
+enum { SYS_MANA = 1, SYS_KITTEN = 2, SYS_COMBO = 4, SYS_STATUS = 8, SYS_TRICK = 16,
+       SYS_CHARM = 32 };
 
 /* battle.c: rules.py */
 void b_init(Battle *b, const Setup *k, int hero_hp, int maxhp, const uint8_t *enemies, int n,
@@ -104,7 +114,10 @@ typedef struct {
     uint8_t level[6];
     uint8_t charms[8];
     int ncharms;
+    uint8_t locked; /* slots whose item no card replaces (a bit a slot: the combos bench) */
 } Kit;
+
+extern const Kit *START_KIT; /* the kit runs start with instead of the starting items */
 
 void kit_start(Kit *kit);
 void kit_setup(const Kit *kit, Setup *k);

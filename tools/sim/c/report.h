@@ -6,6 +6,8 @@
 typedef struct {
     double reached, won, hp_in, lost, healed, net, turns;
     int turns_max;
+    int lost_p90; /* hit points lost by the worst tenth of the runs that reached it (a death:
+                     all she had) */
 } FightRowSum;
 
 typedef struct {

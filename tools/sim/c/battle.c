@@ -140,6 +140,10 @@ void b_start_round(Battle *b) {
     b->rerolls = REROLLS;
     b->last_played = NOTHING;
     b->lost_this_round = 0;
+    b->t_dmg = 0;
+    b->t_sys = 0;
+    b->t_played = 0;
+    b->in_turn = 1;
     items_round_start(b);
     if (b->result != R_NONE)
         return;
@@ -359,6 +363,8 @@ void b_curse(Battle *b, int effect, int target, int n) {
     default:
         st[ST_SHIELD] = 0;
     }
+    if (b->in_turn && target != HERO)
+        b->t_sys |= SYS_STATUS;
     if (b->tell)
         tell_status(b, target, effect, n);
 }
@@ -386,6 +392,8 @@ void b_strike(Battle *b, int by, int target, int amount, int pierce) {
     int damage = dealt(b, by, amount);
     int32_t *st = b->st[target];
     damage += st[ST_BRAND];
+    if (st[ST_BRAND] && by == HERO)
+        b->t_sys |= SYS_STATUS; /* a marked hit */
     if (st[ST_REFLECT] && by == HERO) {
         int back = st[ST_REFLECT] < damage ? st[ST_REFLECT] : damage;
         st[ST_REFLECT] = (int32_t)(st[ST_REFLECT] - back);
@@ -458,6 +466,8 @@ void b_lose(Battle *b, int who, int n) {
             items_hero_hurt(b);
     } else {
         b->st[who][ST_HURT] = (int32_t)(b->st[who][ST_HURT] + n);
+        if (b->in_turn)
+            b->t_dmg += n;
     }
     if (hp - n == 0)
         die(b, who);

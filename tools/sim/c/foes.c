@@ -77,6 +77,7 @@ static void next_move(Battle *b, int i) {
 void foes_end_turn(Battle *b) {
     int32_t *st = b->st[HERO];
     items_turn_end(b);
+    b->in_turn = 0;
     if (b->result != R_NONE)
         return;
     int bite = status_end(b, HERO);
