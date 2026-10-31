@@ -88,6 +88,10 @@
     (line_row 1 "Their turn"))
 
 (fn refresh () void
+    ; while her own action plays, the rows keep showing the die she played: drawn again once it
+    ; is over (the phase changes)
+    (if (and (= state.phase state.Phase.acting) (!= state.act_source state.Source.move))
+        (return))
     (if (and (and (not state.hud_words) (= shown_phase state.phase))
             (and (= state.hud_pills 0) (= state.hud_intents 0)))
         (return))

@@ -244,7 +244,8 @@
     (let target u8 (if (= face.aim state.Aim.self)
         state.HERO
         state.target))
-    (log.uses state.HERO face.name 0)
+    ; no log line for her own die: the rows above still show it (battle/words), and each line
+    ; is two rows drawn again
     (act.begin state.Source.face row state.HERO target))
 
 (fn reroll () void
