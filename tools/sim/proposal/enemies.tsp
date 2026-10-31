@@ -47,7 +47,7 @@
     (make (array Enemy 22)
         (make Enemy
             :name "PUFFCAP"
-            :hp 15
+            :hp 20
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 0
@@ -57,7 +57,7 @@
             :stall 0)
         (make Enemy
             :name "SPORELET"
-            :hp 7
+            :hp 9
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 2
@@ -87,7 +87,7 @@
             :stall 0)
         (make Enemy
             :name "POSSUM"
-            :hp 12
+            :hp 15
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 9
@@ -107,7 +107,7 @@
             :stall 0)
         (make Enemy
             :name "SQUIRREL"
-            :hp 7
+            :hp 9
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 12
@@ -117,7 +117,7 @@
             :stall 0)
         (make Enemy
             :name "ROOMBA"
-            :hp 34
+            :hp 42
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 14
@@ -127,7 +127,7 @@
             :stall 0)
         (make Enemy
             :name "DUST BUNNY"
-            :hp 4
+            :hp 5
             :ward 0
             :figure art.KIND_CAP_SMALL
             :first_move 17

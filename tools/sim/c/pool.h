@@ -2,7 +2,9 @@
 #ifndef POOL_H
 #define POOL_H
 
-#define MOST_JOBS 8
+#ifndef MOST_JOBS
+#define MOST_JOBS 8 /* the owner's desktop; -DMOST_JOBS=14 on the mini */
+#endif
 
 /* fn(i, ctx) for i in 0..n-1 on jobs threads; each i once, in any order. fn is the one
    function pointer of the sim: a worker needs to be told what to run. */
