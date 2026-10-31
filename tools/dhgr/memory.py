@@ -4,7 +4,7 @@
 # A fight unpacks its kinds' runs (game.py's sprites: the cat, the small ones, its enemies) as
 # game/draw/blit.tsp unpack_all does: every kind's main half into the aux language card (bank
 # 2's 12,272 bytes at $D000-$FFEF, else bank 1's 4,096), then every aux half into bank 1 first,
-# then bank 2, then blit.sprite_aux (5,376 bytes of aux memory). Keep the capacities and the
+# then bank 2, then blit.sprite_aux (10,752 bytes of aux memory). Keep the capacities and the
 # order in step with blit.tsp. "before" is the masked frames of the build before the midnight
 # decision (day light, no flash frames), "after" the solid night frames and the flash ones.
 #
@@ -27,7 +27,7 @@ import screen
 
 BANK2 = 0xFFF0 - 0xD000
 BANK1 = 0xE000 - 0xD000
-SPRITE_AUX = 5376
+SPRITE_AUX = 10752
 
 
 def packed(data):

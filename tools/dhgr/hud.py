@@ -22,7 +22,7 @@ CARD_CX = tuple(8.75 + 17.5 * n for n in range(5))
 CARD_TILT = (-5, 3, -2, 4, -4)
 CARD_CY = 142
 CARD_HW, CARD_HH = 7.5, 15          # half width in pixels, half height in rows
-LIFT = 5
+LIFT = 4                            # a lifted card starts at row 121, under the badges
 GLOW_ROWS = 2                       # the picked card's glow: a bar under it, its middle 3 columns
 
 U_DAY = dict(focus=YELLOW, button=MAGENTA, button_hi=PINK, badge=BLACK, badge_ink=WHITE,

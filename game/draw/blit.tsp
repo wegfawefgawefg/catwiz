@@ -21,13 +21,13 @@
 
 ; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
 ; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
-; each fits. Fight 2 (the cat, the small ones, puffcap, sporelet, nightflap): 10,093 bytes of
-; main halves and 10,438 of aux ones; the cat's aux half (5,356) is the one in sprite_aux
-(const AUX_BYTES u16 5376)
+; each fits. The fighters are solid (on black, fills of 8 or more): fight 2 needs 10,202 bytes
+; of sprite_aux (art/dhgr/memory.txt); the 8 KB of aux memory the backdrop page had pays for it
+(const AUX_BYTES u16 10752)
 (const CARD_START u16 0xD000)
 (const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
 (const CARD1_END u16 0xE000)
-(let sprite_aux (array u8 5376) :in aux)
+(let sprite_aux (array u8 10752) :in aux)
 
 ; where each kind's runs are now (an address, and dhgr.runs' flags saying in which memory)
 (let aux_at (array u16 6))
@@ -134,6 +134,7 @@
 (fn sprite ((page u8) (col u8) (top u8) (id u8)) void
     (draw page col top id false 255))
 
-; a box of the backdrop page copied onto page: cols byte columns from col, rows from top
+; what a look leaves: black (the midnight stage keeps every pixel a look can cover black,
+; tools/dhgr/lanes.py), cols byte columns from col, rows from top
 (fn restore ((page u8) (col u8) (top u8) (cols u8) (rows u8)) void
-    (screen.copy_box page col top cols rows screen.BACKDROP))
+    (dhgr.box page col top cols rows 0))

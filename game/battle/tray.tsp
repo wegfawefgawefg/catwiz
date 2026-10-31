@@ -43,6 +43,7 @@
 (let dirty_g1 u8 0)
 (let faces_only bool true)
 
+(const HUD_TOP u8 121)  ; the hud's first row: the looks keep above it (draw/scene)
 (const FACE_TOP u8 124) ; the rows a face (picture and caption) may change, picked or not
 (const FACE_END u8 153)
 
@@ -85,7 +86,7 @@
         (do
             (if faces_only
                 (draw_groups dirty_g0 (- dirty_g1 dirty_g0) FACE_TOP FACE_END)
-                (draw_groups dirty_g0 (- dirty_g1 dirty_g0) hud.TRAY_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)))
+                (draw_groups dirty_g0 (- dirty_g1 dirty_g0) HUD_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)))
             (set dirty_g0 255)
             (set dirty_g1 0)
             (set faces_only true)))
@@ -106,6 +107,7 @@
 ; the card rows of slot columns col to col + 4 in the backdrop moved LIFT rows up, or down, in
 ; one memory (aux: with aux memory switched in for reading and writing)
 (fn shift ((col u8) (up bool) (aux bool)) void
+    (let page u8 screen.back)
     (with_aux aux aux
         (let y u8 (if up
             hud.CARD_TOP
@@ -118,8 +120,8 @@
             (let to u8 (if up
                 (- y hud.LIFT)
                 y))
-            (let src (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP from col)))
-            (let dst (ptr u8) (as (ptr u8) (screen.row_at screen.BACKDROP to col)))
+            (let src (ptr u8) (as (ptr u8) (screen.row_at page from col)))
+            (let dst (ptr u8) (as (ptr u8) (screen.row_at page to col)))
             (for i u8 0 hud.SLOT_COLS
                 (store (+ dst i) (load (+ src i))))
             (set y (if up
@@ -131,8 +133,8 @@
     (shift col true false)
     (shift col true true)
     (let left u8 (- hud.CARD_BOTTOM hud.LIFT))
-    (dhgr.box screen.BACKDROP col left hud.SLOT_COLS hud.LIFT BLACK)
-    (dhgr.box screen.BACKDROP (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
+    (dhgr.box screen.back col left hud.SLOT_COLS hud.LIFT BLACK)
+    (dhgr.box screen.back (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
     (set (at lifted n) true)
     (mark_slot col))
 
@@ -140,7 +142,7 @@
     (let col u8 (* n hud.SLOT_COLS))
     (shift col false false)
     (shift col false true)
-    (dhgr.box screen.BACKDROP col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
+    (dhgr.box screen.back col (- hud.CARD_TOP hud.LIFT) hud.SLOT_COLS hud.LIFT BLACK)
     (set (at lifted n) false)
     (mark_slot col))
 
@@ -213,7 +215,7 @@
                 (do
                     (card_row n y)
                     (face_row n y))))
-        (pix.write screen.BACKDROP y))
+        (pix.write screen.back y))
     (scene.mark (<< g0 1) y0 (<< gn 1) (- y1 y0)))
 
 ; ---- the buttons and the mana, right of the cards
@@ -278,7 +280,7 @@
 (const COUNTS_END u8 140)
 
 (fn side ((rerolls u8) (mana u8) (most u8)) void
-    (let y0 u8 hud.TRAY_TOP)
+    (let y0 u8 HUD_TOP)
     (let y1 u8 (+ hud.TRAY_TOP hud.TRAY_ROWS))
     (if side_on
         (do
@@ -292,7 +294,7 @@
     (pix.begin SIDE_G0 SIDE_GN)
     (for y u8 y0 y1
         (side_row y rerolls mana most)
-        (pix.write screen.BACKDROP y))
+        (pix.write screen.back y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
 ; the buttons off, for the reward: its sixth slot goes there
@@ -300,6 +302,6 @@
     (set side_on false)
     (pix.begin SIDE_G0 SIDE_GN)
     (pix.fill BLACK)
-    (for y u8 hud.TRAY_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
-        (pix.write screen.BACKDROP y))
-    (scene.mark (<< SIDE_G0 1) hud.TRAY_TOP (<< SIDE_GN 1) hud.TRAY_ROWS))
+    (for y u8 HUD_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
+        (pix.write screen.back y))
+    (scene.mark (<< SIDE_G0 1) HUD_TOP (<< SIDE_GN 1) (- (+ hud.TRAY_TOP hud.TRAY_ROWS) HUD_TOP)))

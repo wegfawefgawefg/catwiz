@@ -43,8 +43,8 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Text
 
 - The screen is all graphics (double hi-res, no mixed text window). The four text lines at the
-  foot (rows 160-191) are drawn into the backdrop page by `draw/text.tsp` and copied onto both
-  pages like any hud part. The font is the 35-column one in whole colour pixels (`FONT35`, a
+  foot (rows 160-191) are drawn onto the page being drawn by `draw/text.tsp`, only the blocks of
+  7 characters that changed, and copied onto the other page like any hud part. The font is the 35-column one in whole colour pixels (`FONT35`, a
   4-pixel cell a character, white in every look, drawn with lib/dhgr_pixels' cells);
   `FONT_35` in `draw/text.tsp` is the one place that switches to the 40-column dot font
   (`art/font40`, violet and green in the flat colour look). Strings are 35 characters at most
@@ -165,11 +165,13 @@ $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --nts
 
 ## Memory
 
-Self-booting disk, origin `$8000`. Double hi-res: page 1 `$2000`, page 2 `$4000` and the
-backdrop copy `$6000`, each in both main and aux memory, all reserved (48 KB). Code and data
-fill `$8000-$BEFF`, then `$0BE0-$1BFF`, then the language card (and its bank 1 for code, when
-the program does not fit). Tisple's libraries keep `$1C00-$1D89` (lib/unpack, both memories),
-`$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1FFE` (lib/dhgr, both). The packed art and the
+Self-booting disk, origin `$8000`. Double hi-res: page 1 `$2000` and page 2 `$4000`, each in
+both main and aux memory, reserved (32 KB). There is no backdrop page (2026-10-31): what a look
+leaves is filled black (the lanes), and the hud is drawn onto the page being drawn and copied
+from it onto the other at that page's next frame (`draw/scene.tsp`: mark, sync, copy_all); the
+looks keep to rows 0-120, the hud to rows 121-191. Code and data fill `$8000-$BEFF`, `$6000-$7FFF`,
+then `$0BE0-$1BFF`, then the language card. Tisple's libraries keep `$1C00-$1D89` (lib/unpack,
+both memories), `$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1F32` (lib/dhgr's runs, both). The packed art and the
 songs live in aux memory; a screen's sprites in the aux language card and `blit.sprite_aux`.
 
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
@@ -208,3 +210,8 @@ songs live in aux memory; a screen's sprites in the aux language card and `blit.
   flash frames are 4,752 of it. The night backdrops pack smaller (zlib: fight 1 1,034 to 785,
   fight 2 1,204 to 549); aux memory (Tisple fbc83f2, squeeze 6) 5,107 at `$0800` and 12,680 at
   `$8000` (3.7 KB left at `$B188-$BFFF`).
+- 2026-10-31, later: fill runs (Tisple 770a16b, `$C0 + n`, used for 8 or more of one byte, where
+  they pay for a segment's 55 cycles) and the backdrop page gone: no squeeze (code 29,928 bytes,
+  `$6000-$7FFF` holds code now), `sprite_aux` 10,752 bytes in the aux memory the backdrop had;
+  fight 1's sprites leave 5,839 bytes spare, fight 2's 1,779. Five dice played as fast as tapped
+  (passlog SEED=5): done at frame 416 after the first tap, was 806.

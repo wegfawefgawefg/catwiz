@@ -1,21 +1,23 @@
 ; the double hi-res pages (lib/dhgr): page 1 at $2000 and page 2 at $4000 take turns on screen,
-; the whole screen graphics, and the backdrop page at $6000 holds the clean picture with the hud
-; drawn into it, which everything else is drawn over. Each is 8 KB of main memory and 8 KB of
-; aux memory at the same addresses; a page is named by its high byte (dhgr.PAGE1, dhgr.PAGE2,
-; BACKDROP), so row y of it is (at dhgr.ROW y) plus that many pages less $20.
+; the whole screen graphics. Each is 8 KB of main memory and 8 KB of aux memory at the same
+; addresses; a page is named by its high byte (dhgr.PAGE1, dhgr.PAGE2), so row y of it is
+; (at dhgr.ROW y) plus that many pages less $20. There is no backdrop page (the midnight stage:
+; what a look leaves is black, and the hud is drawn onto the page being drawn and copied from
+; it onto the other, draw/scene.tsp).
 
 (import apple2 a2)
 (import dhgr)
 (import unpack)
 
-(let backdrop_main (array u8 8192) :address 0x6000 :reserve)
-(let backdrop_aux (array u8 8192) :address 0x6000 :in aux :reserve)
-
-(const BACKDROP u8 0x60)
-
 ; the page being drawn, which is not the one on screen, and its number (0 or 1)
 (let back u8 dhgr.PAGE2)
 (let back_index u8 1)
+
+; the page on screen
+(fn front () u8
+    (if (= back dhgr.PAGE2)
+        dhgr.PAGE1
+        dhgr.PAGE2))
 
 ; the address of byte column col of row y on page, in the memory it is read from
 (fn row_at ((page u8) (y u8) (col u8)) u16
@@ -57,8 +59,7 @@
 (fn copy_page ((from u8) (to u8)) void
     (copy_box to 0 0 40 192 from))
 
-; a screen packed in aux memory (its two halves, art/NAME_aux and NAME_main) onto page, which
-; is the backdrop or a page not on screen
+; a screen packed in aux memory (its two halves, art/NAME_aux and NAME_main) onto page
 (fn unpack_page ((page u8) (aux (ptr u8)) (main (ptr u8))) void
     (let at (ptr u8) (as (ptr u8) (<< (as u16 page) 8)))
     (unpack.aux_to_aux at aux)

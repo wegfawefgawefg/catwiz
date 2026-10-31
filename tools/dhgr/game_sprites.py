@@ -67,7 +67,7 @@ def opaque(out, bytes_):
         k = 1
         while i + k < len(bytes_) and bytes_[i + k] == bytes_[i]:
             k += 1
-        if k >= 3:
+        if k >= 8:
             flush()
             out.append(0xC0 + k)
             out.append(bytes_[i])

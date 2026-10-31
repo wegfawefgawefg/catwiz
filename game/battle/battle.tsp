@@ -34,15 +34,16 @@
     (set state.screen state.Screen.battle)
     (enter_fight))
 
-; the fight's art: its backdrop onto the backdrop page, the hero's, the small sprites' and its
-; enemies' runs unpacked (draw/blit). The music stops first: the card's half unpacks with
-; interrupts off
+; the fight's art: its backdrop onto the page being drawn (the other copies it, draw/scene),
+; the hero's, the small sprites' and its enemies' runs unpacked (draw/blit). The music stops
+; first: the card's half unpacks with interrupts off
 (fn load_art () void
     (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
     (let fight enc.Fight (at enc.FIGHTS state.fight))
-    (stage.backdrop fight.backdrop)
+    (stage.backdrop screen.back fight.backdrop)
+    (scene.copy_all)
     (blit.start)
     (blit.want art.KIND_CAT)
     (blit.want art.KIND_MISC)
@@ -58,8 +59,7 @@
             (blit.want kind)))
     (blit.unpack_all)
     (text.forget)
-    (hud.forget)
-    (scene.mark_all))
+    (hud.forget))
 
 (fn enter_fight () void
     (load_art)
@@ -86,7 +86,6 @@
     (set state.hud_dice 0x1F)
     (set state.hud_rerolls true)
     (set state.hud_words true)
-    (scene.mark_all)
     (sound.song sound.Song.battle)
     (turn.start_round))
 
@@ -217,6 +216,7 @@
 ; the tray first: a pick shows a pass before the rows of words it changes (each a few frames
 ; to draw), which wait for the next
 (fn draw () void
+    (scene.sync)
     (set drawn_phase state.phase)
     (let words_due bool (words.due))
     (let tray_drew bool (hud.refresh))

@@ -2,7 +2,8 @@
 ; landing and the actor settling back. Its look comes from the action's motion:
 ;   lunge  the actor jumps at the target in 2-column steps and lands the effect on contact
 ;   throw  the actor winds up, a bolt arcs across to the target, the effect lands with it
-;   hop    the actor hops in place and the effect lands as it comes down
+;   hop    the actor shows its happy (hero) or idle face a moment, then the effect lands (no
+;          lift: the hero is 87 rows, each height a redraw of her on both pages)
 
 (import state)
 (import art/sprites art)
@@ -19,14 +20,12 @@
 (const LUNGE_STEP u8 4) ; byte columns a jump, the last one shorter
 
 ; every change of the picture is drawn before the next (main.tsp), so motions change it every
-; few frames, each change worth seeing: a jump of 4 columns, the bolt every other frame, the
-; hop in three heights
+; few frames, each change worth seeing: a jump of 4 columns, the bolt every other frame
 
 ; how high the bolt rides over the straight line, by step of its flight
 (const ARC (array u8 9) (make (array u8 9) 0 7 11 13 14 13 11 7 0))
 
-; up 3, 6, 3 (two frames each), then down to land
-(const HOP (array u8 6) (make (array u8 6) 3 3 6 6 3 3))
+(const HOP_WAIT u8 6) ; frames of the face before the effect lands
 
 ; by starts the action in row row of source's table, aimed at target
 (fn begin ((source state.Source) (row u8) (by u8) (target u8)) void
@@ -168,13 +167,9 @@
     false)
 
 (fn hop_step ((t u8)) bool
-    (let by u8 state.act_by)
     (if state.act_done
         (return (>= t SETTLE)))
-    (if (< t 6)
-        (do
-            (set (at state.actors by lift) (at HOP t))
-            (return false)))
-    (set (at state.actors by lift) 0)
+    (if (< t HOP_WAIT)
+        (return false))
     (land)
     false)

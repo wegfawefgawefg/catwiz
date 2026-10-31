@@ -1,44 +1,44 @@
 Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)
 before: masked day frames, no flash (the build before 2026-10-31); after: solid night
 frames and a flash frame a fighter kind. Room: the aux language card's bank 2 12272 and
-bank 1 4096, then sprite_aux 5376 (game/draw/blit.tsp): 21744 in all.
+bank 1 4096, then sprite_aux 10752 (game/draw/blit.tsp): 27120 in all.
 
 kind       before aux+main  after aux+main   growth   zlib before -> after
-cat           5200+5040       5180+4925        -135   2986 -> 3288
-puffcap       1239+1193       1615+1605        +788   804 -> 953
-sporelet      1163+1030       1440+1398        +645   702 -> 762
-nightflap     1654+1691       1619+1633         -93   1144 -> 1223
-misc           973+911         973+911           +0   644 -> 644
-cat        of it the flash frame: 1654
-puffcap    of it the flash frame: 550
-sporelet   of it the flash frame: 598
-nightflap  of it the flash frame: 589
+cat           5356+5186       6294+6197       +1949   2940 -> 2873
+puffcap       1251+1203       1886+1895       +1327   790 -> 862
+sporelet      1175+1039       1540+1540        +866   700 -> 681
+nightflap     1667+1733       2022+2038        +660   1126 -> 1109
+misc           993+936         993+936           +0   641 -> 641
+cat        of it the flash frame: 2159
+puffcap    of it the flash frame: 733
+sporelet   of it the flash frame: 700
+nightflap  of it the flash frame: 692
 
 fight 1 (clearing): cat, misc, puffcap, sporelet
-  before  16749 bytes: bank 2 8174 of 12272, bank 1 3375 of 4096, sprite_aux 5200 of 5376: 4995 to spare
-  after   18047 bytes: bank 2 8839 of 12272, bank 1 4028 of 4096, sprite_aux 5180 of 5376: 3697 to spare
-           cat main 4925: bank 2
-           misc main 911: bank 2
-           puffcap main 1605: bank 2
-           sporelet main 1398: bank 2
-           cat aux 5180: sprite_aux
-           misc aux 973: bank 1
-           puffcap aux 1615: bank 1
-           sporelet aux 1440: bank 1
+  before  17139 bytes: bank 2 8364 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 10752: 9981 to spare
+  after   21281 bytes: bank 2 12108 of 12272, bank 1 2879 of 4096, sprite_aux 6294 of 10752: 5839 to spare
+           cat main 6197: bank 2
+           misc main 936: bank 2
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           cat aux 6294: sprite_aux
+           misc aux 993: bank 1
+           puffcap aux 1886: bank 1
+           sporelet aux 1540: bank 2
   backdrop, zlib: day 1034, night 781
 
 fight 2 (path): cat, misc, puffcap, sporelet, nightflap
-  before  20094 bytes: bank 2 11519 of 12272, bank 1 3375 of 4096, sprite_aux 5200 of 5376: 1650 to spare
-  after   21299 bytes: bank 2 12091 of 12272, bank 1 4028 of 4096, sprite_aux 5180 of 5376: 445 to spare
-           cat main 4925: bank 2
-           misc main 911: bank 2
-           puffcap main 1605: bank 2
-           sporelet main 1398: bank 2
-           nightflap main 1633: bank 2
-           cat aux 5180: sprite_aux
-           misc aux 973: bank 1
-           puffcap aux 1615: bank 1
-           sporelet aux 1440: bank 1
-           nightflap aux 1619: bank 2
+  before  20539 bytes: bank 2 11764 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 10752: 6581 to spare
+  after   25341 bytes: bank 2 12108 of 12272, bank 1 3031 of 4096, sprite_aux 10202 of 10752: 1779 to spare
+           cat main 6197: bank 2
+           misc main 936: bank 2
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           nightflap main 2038: bank 1
+           cat aux 6294: sprite_aux
+           misc aux 993: bank 1
+           puffcap aux 1886: sprite_aux
+           sporelet aux 1540: bank 2
+           nightflap aux 2022: sprite_aux
   backdrop, zlib: day 1204, night 549
 

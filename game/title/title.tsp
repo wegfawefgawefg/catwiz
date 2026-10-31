@@ -1,6 +1,6 @@
 ; the title: CATWIZ with a glowing rim over the night, the cat against the moon, a jingle, and
-; PRESS RETURN (any key or tap starts). One picture (art/title_*, packed), unpacked onto the
-; backdrop page and both pages; the glow is the letters' rim drawn again in turn in each of its
+; PRESS RETURN (any key or tap starts). One picture (art/title_*, packed), unpacked onto both
+; pages; the glow is the letters' rim drawn again in turn in each of its
 ; colours (art KIND_GLOW: the rim's sprites), on the page not shown, then shown.
 
 (import apple2 a2)
@@ -21,12 +21,11 @@
     (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
-    (stage.title)
+    (stage.title dhgr.PAGE2)
     (blit.start)
     (blit.want art.KIND_GLOW)
     (blit.unpack_all)
-    (screen.copy_page screen.BACKDROP dhgr.PAGE1)
-    (screen.copy_page screen.BACKDROP dhgr.PAGE2)
+    (screen.copy_page dhgr.PAGE2 dhgr.PAGE1)
     (screen.on)
     (set state.glow 0)
     (set state.glow_time 0)

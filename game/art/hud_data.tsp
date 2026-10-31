@@ -62,7 +62,7 @@
 (const SLOT_COLS u8 5)
 (const CARD_TOP u8 125)
 (const CARD_BOTTOM u8 159)
-(const LIFT u8 5)
+(const LIFT u8 4)
 (const GLOW_ROWS u8 2)
 (const CAPTION_Y u8 148)
 ; from ' ' to '_': width, colour (0: the ink's), 6 rows of bits
