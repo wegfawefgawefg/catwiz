@@ -119,7 +119,8 @@ def main():
             if p not in rows:
                 rows[p] = [took] + [rings[r * 32 + slot] for r in range(1, 7)]
             back_frames += took
-        frame -= max(back_frames, 1)
+        # step back by half of what this read covered, so the reads overlap and no pass is missed
+        frame -= max(back_frames // 2, 1)
     if LOOKS:
         print("pass frames phase        restored   hero  enemy1 enemy2 others (sprite rows)")
     else:
