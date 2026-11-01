@@ -68,7 +68,7 @@
             (do
                 (pill_row y 3 50 "BACK" 4)
                 (pill_row y 55 102 "NEXT" 4)))
-        (pill_row y 106 140 "CLOSE" 5)
+        (pill_row y 107 137 "CLOSE" 5)
         (pix.write screen.PAGE y))
     (scene.mark (<< g0 1) PILL_TOP (<< (- 20 g0) 1) (- PILL_END PILL_TOP)))
 
