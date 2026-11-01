@@ -34,9 +34,12 @@
 (const CLAWS u8 8)
 (const COIN u8 9)
 (const NONE u8 10)
+(const SPRAY u8 11)
+(const STREAK u8 12)
+(const PUFF u8 13)
 
-(const SHOWS (array Show 11)
-    (make (array Show 11)
+(const SHOWS (array Show 14)
+    (make (array Show 14)
         ; the bolt: a wand's spark (and an enemy's shot)
         (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
         ; a red dot skitters about its face
@@ -58,33 +61,41 @@
         ; a coin flips over her paw
         (make Show :way ON :a art.COIN0 :b art.COIN1 :first 22 :steps 3 :flags 0)
         ; none: a plain hop
-        (make Show :way ON :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0))
+        (make Show :way ON :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
+        ; a squirt of water flies at it (the spray bottle, wet)
+        (make Show :way ARC :a art.DROP :b art.DROP :first 0 :steps 0 :flags 0)
+        ; she streaks across at it (zoomies)
+        (make Show :way ARC :a art.STREAK :b art.STREAK :first 0 :steps 0 :flags 0)
+        ; a curse puffs up on it
+        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0))
     :in aux)
 
 ; the ON shows' places, a show's steps one after another: byte columns from the left of the
 ; spot of whoever it is for (even: a sprite's colours hold only on 7-pixel steps), rows from its
 ; top. Keep a sprite inside the narrowest spot it can be for: an enemy's is 8 columns at least
 ; (the sporelet), hers 10
-(const PATH_COL (array u8 25)
-    (make (array u8 25)
+(const PATH_COL (array u8 27)
+    (make (array u8 27)
         2 4 2 0 4 ; red dot
         2 0 4 2   ; catfight
         2 4 6     ; mirror fur
         8 8 8     ; lucky paw
         4 4 4     ; sunbeam
         0 2 4 2   ; claws
-        6 6 6)    ; coin
+        6 6 6     ; coin
+        0 2)      ; puff
     :in aux)
 
-(const PATH_ROW (array u8 25)
-    (make (array u8 25)
+(const PATH_ROW (array u8 27)
+    (make (array u8 27)
         10 4 14 18 8 ; red dot
         4 8 6 10     ; catfight
         10 18 26     ; mirror fur
         40 38 40     ; lucky paw
         0 6 12       ; sunbeam
         2 6 10 8     ; claws
-        30 16 28)    ; coin
+        30 16 28     ; coin
+        6 2)         ; puff
     :in aux)
 
 ; show k's row into the action's copy of it (state.show_*), read out of aux memory as the action

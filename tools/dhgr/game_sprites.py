@@ -228,6 +228,10 @@ SHOWS = {
     # a lucky paw waving: up, then tipped over
     "paw0": ["R.R.R", "WWWWW", "WRRRW", "WRRRW", ".WWW.", ".WWW.", ".WWW."],
     "paw1": ["..R.R", ".R.WW", "WWWWW", "WRRRW", "WRRRW", ".WWW.", ".WWW."],
+    # a squirt of water (thrown: the spray bottle, wet)
+    "drop": ["..L..", ".LLL.", "LLWLL", "LWLLL", "LLLLL", ".LLL."],
+    # zoomies: a streak of fur and dust (thrown)
+    "streak": ["....W", "WWW.W", "..WWW", "WWW.W", "....W"],
 }
 SPARSE = ("claw0", "claw1", "shine")
 

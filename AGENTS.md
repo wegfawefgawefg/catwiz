@@ -207,7 +207,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
   step every 2 frames at a path's places, then the effect lands: the red dot skittering, claws
   raking (Catfight, with its angry face; Scratching Habit), a glint down her fur, a lucky paw
-  waving, a sunbeam coming down, a coin flipping). NONE is the plain hop. A show is never longer
+  waving, a sunbeam coming down, a coin flipping; and the old cards' squirt of water (the spray
+  bottle, wet), streak (zoomies), flea (fleas) and puff (ball of yarn, mark territory)). NONE is
+  the plain hop. A show is never longer
   than what it replaces (her own cards' 3 steps are the hop's 6 frames; the rest land before
   the bolt would), and an ON sprite stays inside its fighter's idle frame (a lane always). The
   scene draws the fighter's rows again where a small look left it, with no black fill first
