@@ -73,6 +73,20 @@ static double item_worth(int row, int level) {
     case E_tangled: w = 1.5 * n; break;
     case E_pile: w = 0.7 * n + 1.0; break;
     case E_cannon: w = 1.5 * n; break;
+    case E_dot: w = 2.0 * n + 1.0; break;
+    case E_swat: w = 1.4 * n; break;
+    case E_paw: w = 0.7 * n + 1.5; break;
+    case E_sunbeam: w = 1.1 * n + 0.5; break;
+    case E_stretch: w = 1.5 * n; break;
+    case E_mimic: w = 4.0 * n; break;
+    case E_catfight: w = 1.5 + 0.8 * n; break;
+    case E_mirror: w = 1.1 * n; break;
+    case E_dryoff: w = 2.0 * n; break;
+    case E_circus: w = 2.5 * n; break;
+    case E_haunt: w = 1.0 * n; break;
+    case E_habit: w = 1.3 * n + 1.0; break;
+    case E_gamble: w = 1.0 * n; break;
+    case E_cough: w = 0.5 * n; break;
     default: w = 0.0;
     }
     if (f->combo != C_none)
@@ -96,6 +110,9 @@ static double charm_worth(int kind) {
     case K_grumpy: return 2.0;
     case K_duck: return 1.5;
     case K_badmilk: return 2.5;
+    case K_nine: return 3.0;
+    case K_litterbox: return 1.5;
+    case K_lives9: return 3.0;
     }
     return 0.0;
 }
@@ -443,8 +460,11 @@ int reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out,
             nh = slip_in(FORCE_CHARM, f, charms, nh, may);
         }
     }
-    if (out && f >= 1 && f <= FIGHT_COUNT)
+    if (out && f >= 1 && f <= FIGHT_COUNT) {
         memcpy(out->offer[f - 1], cards, 3);
+        for (int c = 0; c < nh; c++)
+            out->charm_offer[f - 1][c] = charms[c];
+    }
     Pick opts[8];
     int card[8];
     int n = card_options(kit, cards, opts, card);
