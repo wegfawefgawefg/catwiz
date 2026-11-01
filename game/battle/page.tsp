@@ -72,7 +72,7 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< g0 1) PILL_TOP (<< (- 20 g0) 1) (- PILL_END PILL_TOP)))
 
-(fn open ((p state.Page)) void
+(fn open ((p state.Page)) void :overlay
     (set state.page p)
     (sound.cue sound.Cue.confirm)
     ; the rules' lines cover the stage's first 120 rows whole: only the rest is filled black
@@ -90,7 +90,7 @@
             (buttons true))))
 
 ; one frame with a page open
-(fn step ((key u8)) void
+(fn step ((key u8)) void :overlay
     (let close bool (if (= state.page state.Page.bag)
         (bag.key key)
         (rules.key key)))

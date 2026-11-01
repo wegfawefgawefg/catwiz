@@ -39,7 +39,7 @@
     (sound.song sound.Song.title))
 
 ; one frame of the title; gives the screen to show next
-(fn step ((key u8)) state.Screen
+(fn step ((key u8)) state.Screen :overlay
     ; the time to the key press seeds the dice
     (set random.seed (+ random.seed 1))
     (if (!= key 0)
@@ -49,7 +49,7 @@
     (set state.glow_time (+ state.glow_time 1))
     state.Screen.title)
 
-(fn draw () void
+(fn draw () void :overlay
     (if (< state.glow_time GLOW_FRAMES)
         (return))
     (set state.glow_time 0)

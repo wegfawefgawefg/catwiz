@@ -198,7 +198,7 @@
 
 ; after the last blow: once the beaten have puffed away, the reward, or the end of the run
 ; (to be continued, or lost), where any key (RETURN, a tap) goes back to the title
-(fn ending ((key u8) (won bool)) state.Screen
+(fn ending ((key u8) (won bool)) state.Screen :overlay
     (if (< state.timer 255)
         (set state.timer (+ state.timer 1)))
     (if (= state.timer BANNER_AFTER)

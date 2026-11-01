@@ -90,7 +90,7 @@
 (const SAY_HP u8 21)
 (const SAY_WARD u8 22)
 
-(fn start () void
+(fn start () void :overlay
     (set state.phase state.Phase.reward)
     (set state.selected state.NOTHING)
     (set state.next_fight (+ state.stage 1))
@@ -444,7 +444,7 @@
     (set due state.NOTHING))
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
-(fn step ((key u8)) bool
+(fn step ((key u8)) bool :overlay
     (if (and (>= key '1') (< key (+ '1' choices)))
         (return (pick (- key '1'))))
     (match key
