@@ -1,7 +1,8 @@
-; the run's battles, from the woods to the Bulldog King: a run starts the hero's kit (an item in each of her six
-; slots, no levels, no charms) and hit points, each fight is set up from its encounter, steps one
-; frame at a time and is drawn; after a won fight what comes between fights (battle/reward.tsp:
-; a card, a charm, the nap, the doors), then the next fight; after the last, "to be continued".
+; the run's battles, from the woods to the Bulldog King: a run starts the hero's kit (an item in
+; each of her six slots, no levels, no charms) and hit points, each fight is set up from its
+; encounter, steps one frame at a time and is drawn; after a won fight what comes between fights
+; (battle/reward.tsp: a card, a charm, the nap, the doors), then the next fight; after the last,
+; the run is won (a page: battle/bag won).
 
 (import apple2 a2)
 (import dhgr)
@@ -35,7 +36,7 @@
 (const BANNER_AFTER u8 56) ; frames from the last blow to the end: the poof has finished
 
 ; for test builds, flipped in a copy: the run starts at fight START_STAGE (0 the first; with
-; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before "to be continued"
+; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before the run is won
 ; (fights 3-10 fight on fight 1-2's screens with stand-in figures); START_CHARM is held from
 ; the start (a row of enc.CHARMS); WIN_AT_ONCE wins every fight as it starts, to walk what
 ; comes between fights (the cards, charms, the rest, the doors); SEED, when not 0, seeds the
@@ -173,6 +174,11 @@
     ; a page over the stage: the fight waits under it
     (if (!= state.page state.Page.none)
         (do
+            ; the run won: once its page is drawn, any key (a click) goes to the title
+            (if (and (= state.page state.Page.won) (and (not page.fresh) (!= key 0)))
+                (do
+                    (set state.page state.Page.none)
+                    (return state.Screen.title)))
             (page.step key)
             (return state.Screen.battle)))
     (look.tick)
@@ -216,7 +222,8 @@
     (or (>= next enc.FIGHT_COUNT) (>= next STOP_STAGE)))
 
 ; after the last blow: once the beaten have puffed away, the reward, or the end of the run
-; (to be continued, or lost), where any key (RETURN, a tap) goes back to the title
+; (won: a page of her kit and the fights, battle/bag won; or lost), where any key (RETURN, a
+; tap) goes back to the title
 (fn ending ((key u8) (won bool)) state.Screen :overlay
     (if (< state.timer 255)
         (set state.timer (+ state.timer 1)))
@@ -227,7 +234,13 @@
                     (set state.hero_hp (at state.actors state.HERO hp))
                     (reward.start)
                     (return state.Screen.battle)))
-            (words.ending won)
+            ; the run is over: won, its page (her kit at the end, the fights she won); lost,
+            ; the words say so
+            (if won
+                (do
+                    (set state.page state.Page.won)
+                    (set page.fresh true))
+                (words.lost))
             (sound.song (if won
                 sound.Song.won
                 sound.Song.lost))))

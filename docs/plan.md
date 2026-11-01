@@ -18,7 +18,8 @@ text or data from any other game; the content can be replaced by much stranger s
    garden (4-6, the mailman at 6), the yard (7-9, the two doors at 9: the vet or the big bath),
    then the Bulldog King. All at night; the zones are places now. Fight 1 in the clearing
    (puffcap, sporelet), what comes between fights, fight 2 on the path (puffcap, sporelet,
-   nightflap), then "to be continued" and the title. Hit points and her kit carry between
+   nightflap), and on to the Bulldog King; after him the run is won (a page of her kit at the
+   end and the fights, 2026-11-01), then the title. Hit points and her kit carry between
    fights; losing ends the run. Fights 3-10 are in the content as data (stand-ins laid out to the
    new shape until the sim's tables come: the woods' elite is the OLD GNOME, a garden gnome with
    24 hit points) and play in test builds on fight 1-2's screens with stand-in figures

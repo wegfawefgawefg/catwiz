@@ -24,7 +24,7 @@ On a TV or composite monitor (NTSC), the look it is drawn for:
 
 ![the two doors](shots/doors_ntsc.png) ![six dice with the sixth toe](shots/toe_ntsc.png)
 
-![the run won (to be continued)](shots/win_ntsc.png) ![the run lost](shots/lose_ntsc.png)
+![the run won: her kit at the end](shots/win_ntsc.png) ![the run lost](shots/lose_ntsc.png)
 
 In flat colour (an RGB monitor, the web player's other look):
 [title](shots/title_color.png), [fight 1](shots/fight1_color.png), [fight 2](shots/fight2_color.png),

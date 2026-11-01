@@ -46,6 +46,7 @@
                     (fight)))
             (state.Page.bag (kit_page))
             (state.Page.log (close_button))
+            (state.Page.won)
             (_ (rules_page))))
     (if (= hit 0)
         '.'

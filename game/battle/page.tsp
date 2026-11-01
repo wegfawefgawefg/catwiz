@@ -106,6 +106,7 @@
         (state.Page.log
             (history.open)
             (buttons false))
+        (state.Page.won (bag.won))
         (_
             (rules.open)
             (buttons true))))
@@ -120,6 +121,7 @@
     (let close bool (match state.page
         (state.Page.bag (bag.key key))
         (state.Page.log (history.key key))
+        (state.Page.won false) ; battle.step takes the key: the title
         (_ (rules.key key))))
     (if close
         (shut)))

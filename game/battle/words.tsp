@@ -16,8 +16,8 @@
 (const PROMPT_COL u8 16) ; after the longest item name
 
 ; the rows' words, in aux memory (text.add_aux): SAY_ and their words
-(const SAY (array (ptr u8) 17)
-    (make (array (ptr u8) 17)
+(const SAY (array (ptr u8) 16)
+    (make (array (ptr u8) 16)
         "All is quiet again."
         " hp"
         "# damage"
@@ -30,7 +30,6 @@
         "Next: "
         "Their turn"
         "Rolling"
-        "To be continued..."
         " is down. The run is over."
         "Press RETURN or tap."
         " has this die."
@@ -49,11 +48,10 @@
 (const SAY_NEXT u8 9)
 (const SAY_THEIR_TURN u8 10)
 (const SAY_ROLLING u8 11)
-(const SAY_CONTINUED u8 12)
-(const SAY_DOWN u8 13)
-(const SAY_PRESS u8 14)
-(const SAY_HAS_DIE u8 15)
-(const SAY_BEAT_IT u8 16)
+(const SAY_DOWN u8 12)
+(const SAY_PRESS u8 13)
+(const SAY_HAS_DIE u8 14)
+(const SAY_BEAT_IT u8 15)
 
 ; what the rows were drawn for, so a change of phase draws them again
 (let shown_phase state.Phase state.Phase.won)
@@ -183,18 +181,12 @@
                     (actor_row state.target)
                     (intent_row state.target))))))
 
-; the run is over: won (to be continued) or lost
-(fn ending ((won bool)) void
+; the run is lost (won, its page says so: battle/bag won)
+(fn lost () void
     (text.start)
-    (if won
-        (do
-            (text.add_aux (at SAY SAY_QUIET))
-            (text.show 0)
-            (line_row 1 (at SAY SAY_CONTINUED)))
-        (do
-            (text.add_aux (log.name state.HERO))
-            (text.add_aux (at SAY SAY_DOWN))
-            (text.show 0)
-            (blank_row 1)))
+    (text.add_aux (log.name state.HERO))
+    (text.add_aux (at SAY SAY_DOWN))
+    (text.show 0)
+    (blank_row 1)
     (blank_row 2)
     (line_row 3 (at SAY SAY_PRESS)))

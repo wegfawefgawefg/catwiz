@@ -31,8 +31,8 @@
 (enum Pick (cards charms nap nap_slot door))
 
 ; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules), the
-; log's history (battle/history)
-(enum Page (none bag rules log))
+; log's history (battle/history), the run won (battle/bag won)
+(enum Page (none bag rules log won))
 
 ; the face an actor shows (battle/look turns it into a frame of the art)
 (enum Mood (idle angry worried hurt attack happy ko surprised))

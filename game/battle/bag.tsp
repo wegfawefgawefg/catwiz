@@ -30,8 +30,8 @@
 (const CHARM_Y (array u8 4) (make (array u8 4) 54 54 54 14))
 
 ; the page's words, in aux memory (text.add_aux): SAY_ and what each is
-(const SAY (array (ptr u8) 24)
-    (make (array (ptr u8) 24)
+(const SAY (array (ptr u8) 31)
+    (make (array (ptr u8) 31)
         "HER KIT"
         "Fight # of "
         "No charms yet. Elites give them."
@@ -55,7 +55,14 @@
         "Level # of "
         " (+#)"
         "A charm works all run."
-        "She has # of them.")
+        "She has # of them."
+        "THE RUN IS WON!"
+        "Her charms:"
+        "Her six faces at the end:"
+        "Catwiz beat the Bulldog King!"
+        "Ten fights won: the woods, the"
+        "garden, the yard and the King."
+        "Press RETURN or tap.")
     :strings aux)
 
 (const SAY_HER_KIT u8 0)
@@ -82,6 +89,13 @@
 (const SAY_UP u8 21)
 (const SAY_ALL_RUN u8 22)
 (const SAY_HAS u8 23)
+(const SAY_WON u8 24)
+(const SAY_WON_CHARMS u8 25)
+(const SAY_WON_SLOTS u8 26)
+(const SAY_BEAT_KING u8 27)
+(const SAY_TEN_FIGHTS u8 28)
+(const SAY_PLACES u8 29)
+(const SAY_PRESS u8 30)
 
 (let held (array u8 4)) ; the charm rows she holds, in order
 (let held_n u8 0)
@@ -116,7 +130,8 @@
     (text.add_aux s)
     (text.show r))
 
-(fn open () void
+; her charms and her six faces' cards, under the lines charms and slots (SAY's)
+(fn kit_cards ((charms (ptr u8)) (slots (ptr u8))) void
     (set sel state.NOTHING)
     (set held_n 0)
     (for c u8 0 enc.OFFER_CHARM_COUNT
@@ -124,6 +139,16 @@
             (do
                 (set (at held held_n) c)
                 (set held_n (+ held_n 1)))))
+    (if (= held_n 0)
+        (stage_line 40 (at SAY SAY_NO_CHARMS))
+        (stage_line 40 charms))
+    (for k u8 0 held_n
+        (charm_card k false))
+    (stage_line 108 slots)
+    (for n u8 0 state.SLOTS
+        (slot_card n false)))
+
+(fn open () void
     (text.start)
     (set text.inverse true)
     (text.add_aux (at SAY SAY_HER_KIT))
@@ -132,19 +157,26 @@
     (text.add_aux_n (at SAY SAY_FIGHT) (+ state.stage 1))
     (text.number enc.FIGHT_COUNT)
     (text.draw_at 2 text.BLOCKS)
-    (if (= held_n 0)
-        (stage_line 40 (at SAY SAY_NO_CHARMS))
-        (stage_line 40 (at SAY SAY_CHARMS)))
-    (for k u8 0 held_n
-        (charm_card k false))
-    (stage_line 108 (at SAY SAY_SLOTS))
-    (for n u8 0 state.SLOTS
-        (slot_card n false))
+    (kit_cards (at SAY SAY_CHARMS) (at SAY SAY_SLOTS))
     (row 0 (at SAY SAY_PICK))
     (row 1 (at SAY SAY_KEYS))
     (text.start)
     (text.show 2)
     (row 3 (at SAY SAY_BACK)))
+
+; the run won, after the Bulldog King (battle.ending opens it as a page): her kit at the end and
+; the fights she won; any key goes to the title (battle.step)
+(fn won () void
+    (text.start)
+    (set text.inverse true)
+    (text.add_aux (at SAY SAY_WON))
+    (set text.inverse false)
+    (text.draw_at 2 text.BLOCKS)
+    (kit_cards (at SAY SAY_WON_CHARMS) (at SAY SAY_WON_SLOTS))
+    (row 0 (at SAY SAY_BEAT_KING))
+    (row 1 (at SAY SAY_TEN_FIGHTS))
+    (row 2 (at SAY SAY_PLACES))
+    (row 3 (at SAY SAY_PRESS)))
 
 ; ---- what an entry says
 
