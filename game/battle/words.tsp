@@ -16,8 +16,8 @@
 (const PROMPT_COL u8 16) ; after the longest item name
 
 ; the rows' words, in aux memory (text.add_aux): SAY_ and their words
-(const SAY (array (ptr u8) 15)
-    (make (array (ptr u8) 15)
+(const SAY (array (ptr u8) 17)
+    (make (array (ptr u8) 17)
         "All is quiet again."
         " hp"
         "# damage"
@@ -32,7 +32,9 @@
         "Rolling"
         "To be continued..."
         " is down. The run is over."
-        "Press RETURN or tap.")
+        "Press RETURN or tap."
+        " has this die."
+        "Beat it and the die comes back.")
     :strings aux)
 
 (const SAY_QUIET u8 0)
@@ -50,6 +52,8 @@
 (const SAY_CONTINUED u8 12)
 (const SAY_DOWN u8 13)
 (const SAY_PRESS u8 14)
+(const SAY_HAS_DIE u8 15)
+(const SAY_BEAT_IT u8 16)
 
 ; what the rows were drawn for, so a change of phase draws them again
 (let shown_phase state.Phase state.Phase.won)
@@ -101,6 +105,16 @@
     (text.start)
     (text.add_item (at items.ITEMS row text) n)
     (text.show 1))
+
+; a die enemy who holds: who has it, how to get it back
+(fn held_rows ((who u8)) void
+    (text.start)
+    (set text.inverse true)
+    (text.add_aux (log.name who))
+    (set text.inverse false)
+    (text.add_aux (at SAY SAY_HAS_DIE))
+    (text.show 0)
+    (line_row 1 (at SAY SAY_BEAT_IT)))
 
 ; the target's next move
 (fn intent_row ((who u8)) void
@@ -157,6 +171,11 @@
             (if (and (= state.phase state.Phase.acting) (= state.act_source state.Source.move))
                 (do
                     (their_turn)
+                    (return)))
+            (if (and (!= state.looked state.NOTHING)
+                    (!= (at state.held state.looked) state.NOTHING))
+                (do
+                    (held_rows (at state.held state.looked))
                     (return)))
             (if (!= state.selected state.NOTHING)
                 (die_rows state.selected)

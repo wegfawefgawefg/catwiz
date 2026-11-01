@@ -7,6 +7,7 @@
 (import dhgr)
 (import state)
 (import art/sprites art)
+(import art/icons)
 (import draw/pix)
 (import draw/text)
 (import battle/place)
@@ -183,12 +184,16 @@
         (return (at PLUSES small)))
     (at DIGITS n))
 
-; die d's card: none past the dice she rolls or while an enemy holds it, a blank card once it
-; is played
+; die d's card: none past the dice she rolls, a paw on it while an enemy holds it (picked, the
+; rows say who: battle/words), a blank card once it is played
 (fn die ((d u8)) void
-    (if (or (>= d state.dice_n) (!= (at state.held d) state.NOTHING))
+    (if (>= d state.dice_n)
         (do
             (tray.slot d false state.NOTHING "" false)
+            (return)))
+    (if (!= (at state.held d) state.NOTHING)
+        (do
+            (tray.slot d true icons.TILE_GRABBED "" false)
             (return)))
     (if (at state.played d)
         (do

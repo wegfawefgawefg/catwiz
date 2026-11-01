@@ -80,6 +80,7 @@
         (set (at state.combo k) 0))
     (set state.hud_rerolls true)
     (set state.selected state.NOTHING)
+    (set state.looked state.NOTHING)
     (sound.cue sound.Cue.turn_on)
     (if (log.once log.HINT_TURN)
         (do
@@ -231,6 +232,13 @@
 ; slot d picked: its text shows; picked again, it plays, or with a die for one enemy it is let
 ; go. An empty slot lets go of the picked die
 (fn select ((d u8)) void
+    ; a die an enemy holds: the rows say who has it and how to get it back
+    (if (!= (at state.held d) state.NOTHING)
+        (do
+            (deselect)
+            (set state.looked d)
+            (sound.cue sound.Cue.blip)
+            (return)))
     (if (at state.played d)
         (do
             (deselect)
@@ -251,6 +259,7 @@
     (play_selected))
 
 (fn deselect () void
+    (set state.looked state.NOTHING)
     (mark_slot state.selected)
     (set state.selected state.NOTHING)
     (set state.hud_words true))

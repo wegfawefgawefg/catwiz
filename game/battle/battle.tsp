@@ -101,6 +101,7 @@
     (set state.bolt_on false)
     (set state.target 1)
     (set state.selected state.NOTHING)
+    (set state.looked state.NOTHING)
     (set state.log_hold 0)
     (set state.last_face state.NOTHING)
     (set state.last_on state.HERO)

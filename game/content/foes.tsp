@@ -166,6 +166,7 @@
                 (do
                     (sound.cue sound.Cue.squeak)
                     (set (at state.held d) by)
+                    (set state.hud_dice (| state.hud_dice (<< 1 d)))
                     (log.who by (at SAY SAY_GRABS_DIE_BEAT) 0))))
         (ac.Effect.grow
             (sound.cue sound.Cue.wobble)

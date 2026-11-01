@@ -135,6 +135,7 @@
 (let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
 (let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8)    ; the die picked to play next, or NOTHING
+(let looked u8)      ; a die an enemy holds, picked to read who has it (battle/words), or NOTHING
 (let target u8)      ; the enemy the dice go to
 (let log_hold u8)    ; frames the enemies wait, so the last log line can be read
 (let page Page)      ; the page open over the stage, none for the fight itself

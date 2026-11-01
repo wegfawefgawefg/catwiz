@@ -146,7 +146,9 @@
         (hooks.status steps.When.falls who who))
     (for d u8 0 state.DICE_MOST
         (if (= (at state.held d) who)
-            (set (at state.held d) state.NOTHING)))
+            (do
+                (set (at state.held d) state.NOTHING)
+                (set state.hud_dice (| state.hud_dice (<< 1 d))))))
     (if (!= who state.HERO)
         (do
             (let next u8 (en.then (at state.actors who kind)))
