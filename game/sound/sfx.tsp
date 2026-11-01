@@ -58,7 +58,8 @@
         (make Part :kind Kind.slide :half 1360 :step 2 :count 40)
         ; 25 meow: a mew up, then down
         (make Part :kind Kind.slide :half 520 :step -10 :count 30)
-        (make Part :kind Kind.slide :half 250 :step 9 :count 40)))
+        (make Part :kind Kind.slide :half 250 :step 9 :count 40))
+    :in aux) ; main memory is full; read a field at a time (play)
 
 ; count clicks from half cycles apart, the gap moving by step after each (0 for a tone);
 ; noise adds a random 0 to 4 * 255 cycles to each gap. One wait for all three kinds: each
@@ -75,10 +76,17 @@
 
 (fn play ((first u8) (count u8)) void
     (for p u8 first (+ first count)
-        (run (= (at PARTS p kind) Kind.noise)
-            (at PARTS p half)
-            (at PARTS p step)
-            (at PARTS p count))))
+        (run
+            (=
+                (with_aux true false
+                    (at PARTS p kind))
+                Kind.noise)
+            (with_aux true false
+                (at PARTS p half))
+            (with_aux true false
+                (at PARTS p step))
+            (with_aux true false
+                (at PARTS p count)))))
 
 (fn win () void
     (play 20 3))

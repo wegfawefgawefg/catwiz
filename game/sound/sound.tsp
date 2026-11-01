@@ -54,13 +54,15 @@
 ; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
 (const CUE_VOICE (array u8 27)
-    (make (array u8 27) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2))
+    (make (array u8 27) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2)
+    :in aux) ; the cues' tables are in aux memory (main memory is full): read by cue_row
 
 ; whether a cue waits in line while another effect plays; false: dropped
 (const CUE_WAITS (array bool 27)
     (make (array bool 27)
         false true true true true true true true true true true true true true false true false
-        false true true true true true true true true true))
+        false true true true true true true true true true)
+    :in aux)
 
 ; the song the card plays, copied from aux memory: the largest song's size (the title's), and
 ; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
@@ -102,11 +104,8 @@
         (addr_of (at fx.hops 0))
         (addr_of (at fx.glow 0))
         (addr_of (at fx.scratch 0))
-        (addr_of (at fx.coin 0))))
-
-; the cue on the card now
-(fn card_play ((c Cue)) void
-    (mb.effect (at CARD_EFFECT (as u8 c)) (at CUE_VOICE (as u8 c)) 1))
+        (addr_of (at fx.coin 0)))
+    :in aux)
 
 ; the speaker's version of each cue, in Cue's order: the first of sfx.parts and how many
 ; (0: none; the cues added with the card have none, but the dead key's tick). The chain
@@ -114,29 +113,42 @@
 ; Mirror Fur and Lucky Paw the ping, Sunbeam and Double or Nothing the chime), and the curses'
 ; have none (the curse's hiss follows them), so the speaker holds the processor no longer
 (const SPEAKER_FIRST (array u8 27)
-    (make (array u8 27) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8))
+    (make (array u8 27) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8)
+    :in aux)
 
 (const SPEAKER_COUNT (array u8 27)
-    (make (array u8 27) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2))
+    (make (array u8 27) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2)
+    :in aux)
 
+; cue c's row of the tables, read from aux memory into these
+(let row_effect (ptr u8))
+(let row_voice u8)
+(let row_waits bool)
+(let row_first u8)
+(let row_count u8)
+
+(fn cue_row ((c u8)) void
+    (with_aux true false
+        (set row_effect (at CARD_EFFECT c))
+        (set row_voice (at CUE_VOICE c))
+        (set row_waits (at CUE_WAITS c))
+        (set row_first (at SPEAKER_FIRST c))
+        (set row_count (at SPEAKER_COUNT c))))
+
+; cue c: on the card, or on the speaker without one
 (fn cue ((c Cue)) void
-    (if (not mb.found)
-        (do
-            (sfx.play (at SPEAKER_FIRST (as u8 c)) (at SPEAKER_COUNT (as u8 c)))
-            (return)))
-    (if (and (not (at CUE_WAITS (as u8 c))) (mb.effect_playing))
-        (return))
-    (card_play c))
+    (cue_byte (as u8 c)))
 
 ; the same for cue number c (a card's steps name their sounds by number: content/play)
 (fn cue_byte ((c u8)) void
+    (cue_row c)
     (if (not mb.found)
         (do
-            (sfx.play (at SPEAKER_FIRST c) (at SPEAKER_COUNT c))
+            (sfx.play row_first row_count)
             (return)))
-    (if (and (not (at CUE_WAITS c)) (mb.effect_playing))
+    (if (and (not row_waits) (mb.effect_playing))
         (return))
-    (mb.effect (at CARD_EFFECT c) (at CUE_VOICE c) 1))
+    (mb.effect row_effect row_voice 1))
 
 ; each song in aux memory, in Song's order
 (const SONG_BYTES (array (ptr u8) 4)

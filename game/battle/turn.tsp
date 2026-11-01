@@ -5,8 +5,8 @@
 ; re-rolls the unplayed dice up to twice and ends her turn (E); M with no die for her meows, for
 ; fun. With every die played, or none playable and no re-roll left, the turn ends by itself
 ; after a beat. Then each enemy makes the move it showed, statuses tick, the enemies take up
-; their next moves, and her turn comes round again. Taps on the screen send the same keys
-; (tools/phone/catwiz.json).
+; their next moves, and her turn comes round again. A click on the screen comes as the key of
+; what it hit (battle/boxes).
 
 (import apple2 a2)
 (import random)
@@ -165,7 +165,7 @@
         sound.Cue.nope
         sound.Cue.blip)))
 
-; an enemy picked by name (Z, X, C: the enemies left to right, and taps on them): with a die
+; an enemy picked by name (Z, X, C: the enemies left to right, and clicks on them): with a die
 ; for an enemy or every enemy picked, it plays there; with none it becomes the target. A die
 ; for the hero does not go to an enemy
 (fn choose_target ((t u8)) void
@@ -182,7 +182,7 @@
             (return)))
     (play_selected))
 
-; M (and taps on the cat): a die for the hero picked plays; else she meows and hops, just for
+; M (and clicks on the cat): a die for the hero picked plays; else she meows and hops, just for
 ; fun: no effect on the fight, as often as you like
 (fn meow () void
     (if (= (picked_aim) state.Aim.self)
@@ -192,41 +192,6 @@
     (sound.cue sound.Cue.meow)
     (log.who state.HERO (at SAY SAY_MEOW) 0)
     (act.begin state.Source.meow 0 state.HERO state.HERO))
-
-; a tap on the stage (tools/phone/catwiz.json): the stage over the enemies is cut into strips
-; two columns wide, each sending one of these keys, so a tap picks the enemy standing nearest it
-; whatever the fight's layout (the owner, 2026-11-01: taps hit the wrong enemy in fight 2)
-(const STRIP_FIRST u8 0x21) ; '!': columns 14-15
-(const STRIP_LAST u8 0x2D)  ; '-': columns 38-39
-(const STRIP_COL u8 15)     ; the middle column of the first strip
-
-(fn is_strip ((key u8)) bool
-    (and (>= key STRIP_FIRST) (<= key STRIP_LAST)))
-
-; a key for the screens that only know a tap on the stage ('.')
-(fn stage_key ((key u8)) u8
-    (if (is_strip key)
-        '.'
-        key))
-
-; the standing enemy nearest column col, picked as Z X C would
-(fn tap_enemy ((col u8)) void
-    (let best u8 state.NOTHING)
-    (let gap u8 255)
-    (for i u8 1 state.ACTORS
-        (if (at state.actors i alive)
-            (do
-                (let m u8 (place.middle i))
-                (let d u8 (if (> m col)
-                    (- m col)
-                    (- col m)))
-                (if (< d gap)
-                    (do
-                        (set gap d)
-                        (set best i))))))
-    (if (= best state.NOTHING)
-        (deselect)
-        (choose_target best)))
 
 (fn player_key ((key u8)) void
     ; the beat before a turn ends by itself; a key in it still counts
@@ -240,10 +205,6 @@
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.DICE_MOST)))
         (do
             (select (- key KEY_1))
-            (return)))
-    (if (is_strip key)
-        (do
-            (tap_enemy (+ STRIP_COL (<< (- key STRIP_FIRST) 1)))
             (return)))
     (match (& key 0xDF) ; letters either case
         ('R' (reroll))
@@ -259,7 +220,7 @@
                 (a2.KEY_RIGHT (pick_target 1))
                 (a2.KEY_RETURN (play_selected))
                 (a2.KEY_ESC (deselect))
-                ('.' (deselect)) ; a tap on the stage where nobody stands
+                ('.' (deselect)) ; a click where nothing is
                 (_ (sound.cue sound.Cue.nope))))))
 
 ; die d of the tray to draw again (none for NOTHING)

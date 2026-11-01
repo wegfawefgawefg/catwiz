@@ -10,6 +10,7 @@
 (import battle/spawn)
 (import battle/place)
 (import battle/log)
+(import draw/text)
 (import content/hooks)
 (import content/steps)
 (import sound/sound)
@@ -203,8 +204,9 @@
     (let second u8 state.NOTHING)
     (if (>= n 10)
         (do
-            (set first (+ art.DIGIT_0 (/ n 10)))
-            (set second (+ art.DIGIT_0 (% n 10)))))
+            (text.digits n)
+            (set first (+ art.DIGIT_0 text.tens))
+            (set second (+ art.DIGIT_0 text.ones))))
     (if (and plus (< n 10))
         (do
             (set first art.DIGIT_PLUS)

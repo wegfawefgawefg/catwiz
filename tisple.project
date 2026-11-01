@@ -2,6 +2,6 @@
 (program game/main.tsp)
 (origin 0x8000)
 (disk build/catwiz.dsk)
-(mockingboard 4)
+(mockingboard 5)
 (scale 2)
 (taps tools/phone/catwiz.json)

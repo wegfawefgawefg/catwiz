@@ -57,22 +57,25 @@ text or data from any other game; the content can be replaced by much stranger s
    re-roll is left ("No playable dice."; with re-rolls left the log says "R re-roll or E end
    turn."). Between fights the choices are cards in the tray: 1-3 (1-2, or 1-6 for a dream's
    slot) picks one and shows it, the same key again or RETURN takes it, ESC lets go. Any key
-   starts the title and leaves the run's end. Everything is also a tap or a click on the screen:
-   `tools/phone/catwiz.json` has the tap boxes (the six cards, BAG and ?, the re-roll button
-   and the stars, END TURN, the enemies, the cat, the rest of the stage as `.`, then the whole
-   screen as ESC) for Tisple's web player
-   and `tisple machine --taps`, the web player's portrait pad (BAG, RULES, MEOW, LET GO; <, RE-ROLL, END TURN, >; ENEMY 1-3; DIE 1-6), and `"look": "ntsc"`:
+   starts the title and leaves the run's end. Everything is also a click (2026-11-01): the game
+   reads an AppleMouse (lib/mouse; the emulator's in slot 4, the Mockingboard in 5) and a click
+   is the key of the box it hit on the screen as it is then (`battle/boxes.tsp`: the dice
+   cards, BAG, ?, re-roll, END TURN, the cat and each enemy where it stands, the log's rows;
+   the pages' cards and buttons; between fights the cards and BAG; anywhere else `.`). The
+   phone player and `tisple machine --taps` put the mouse where a tap or click is and press it
+   (`"mouse": true` in `tools/phone/catwiz.json`), with the portrait pad (BAG, RULES, MEOW,
+   LET GO, LOG; <, RE-ROLL, END TURN, >; ENEMY 1-3; DIE 1-6), and `"look"`:
    the player starts in the TV look. One-time hints in the log (once a boot): the first turn
    (the keys, and B and ? for the pages), the first mana.
    - Her kit (B, the BAG button by the re-roll button, BAG on the pad): a page over the stage
      with her six slots as cards in the tray's places (a pip a level) and her charms on the stage
-     (each where the cat's or an enemy's tap box is); 1-6 a slot, 7-9 a charm, M Z X C (taps on
+     (each where the cat or an enemy stands); 1-6 a slot, 7-9 a charm, M Z X C (clicks on
      the charms), the arrows (< > on the pad) step; the text shows its name and level, the slot's
-     base, the item's line, what it has going this fight. ESC, B, CLOSE (the re-roll and END
-     TURN boxes) or a tap on the empty stage closes.
+     base, the item's line, what it has going this fight. ESC, B, CLOSE or a click on the empty
+     stage closes.
    - The rules (?, the ? button, RULES on the pad): ten pages read from the disk; LEFT/RIGHT,
-     1-3 (BACK) and 4-6 (NEXT), a tap on the stage or space turn them; ESC, ? or CLOSE closes.
-   - A tap on the stage where nobody stands is `.`: it lets go of a die, as ESC does.
+     1-3 (BACK) and 4-6 (NEXT), a click on the stage or space turn them; ESC, ? or CLOSE closes.
+   - A click where nothing is is `.`: it lets go of a die, as ESC does.
 5. Screen: double hi-res, all graphics: the stage (rows 0-117 and a black gutter), the tray
    (rows 118-159), four lines of 35-column text drawn into the picture (rows 160-191): the pick
    (the item's name, its base or how to play it, its line) or the target (name, hit points,
@@ -122,8 +125,7 @@ text or data from any other game; the content can be replaced by much stranger s
    sprite (restore and draw in one; lib/dhgr's kit has a byte left and no zero page, so it
    needs room there), clipping a redraw's first rows too (bottom clipping is in), the nightflap
    flapping less often.
-5. Mouse support: the Apple mouse card (Tisple's machine has one, `--mouse`) for picking dice
-   and enemies on a real IIe; today clicks work through the web player and `--taps`.
+5. Mouse support: done 2026-11-01 (the clicks above); not tried on a real IIe yet.
 6. Fights 3-11's art: twelve new enemies (the stand-ins are the puffcap's and sporelet's
    figures, `content/enemies.tsp`), their nights and lanes, and their spots in
    `content/encounters.tsp` laid out for them; with Open 3 the run goes on past fight 2

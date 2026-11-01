@@ -30,6 +30,18 @@
 (const ICON_H u8 15)
 (const SIDE_G0 u8 15) ; the buttons' groups: pixels 105-139
 (const SIDE_GN u8 5)
+; the boxes battle/boxes takes clicks in: the side's pixels (the re-roll button's from the
+; tray's top, END TURN's to its foot), and the small BAG and ? buttons
+(const SIDE_X u8 105)
+(const SIDE_W u8 35)
+(const REROLL_H u8 27)
+(const END_TOP u8 145)
+(const SIDE_END u8 160)
+(const SMALL_X u8 124)
+(const SMALL_W u8 16)
+(const SMALL_H u8 9)
+(const BAG_TOP u8 121)
+(const RULES_TOP u8 130)
 
 ; what each slot shows (not game state: the tray's own record): a card or not, its picture
 ; (icons' TILE number or state.NOTHING), its caption and where it starts, whether it is picked
@@ -39,8 +51,7 @@
 (let caption_len (array u8 6))
 (let caption_x (array u8 6))
 (let picked (array bool 6))
-(let lifted (array bool 6))   ; what the page shows
-(let pictures (array u8 540)) ; each slot's picture, icons.ICON_BYTES a slot
+(let lifted (array bool 6)) ; what the page shows
 (let side_on bool false)
 ; the groups of pixels to draw again at the next flush, and whether only the faces changed
 (let dirty_g0 u8 255)
@@ -51,6 +62,16 @@
 (const FACE_TOP u8 124) ; the rows a face (picture and caption) may change, picked or not
 (const FACE_END u8 153)
 
+; each slot's copy of its picture (art/icons: 15 rows of 6 bytes) is on the spare page, slot n's
+; row r in bytes 6n to 6n + 5 of its row PICTURE_ROW + r, in main memory: rows of the spare page
+; nothing reads once the fight's picture is shown (a page closing copies back rows 0-159), and
+; main memory is full. The fight's picture comes with tray.forget after it, so they are copied
+; again
+(const PICTURE_ROW u8 160)
+
+(fn picture_at ((n u8) (r u8)) (ptr u8)
+    (as (ptr u8) (screen.row_at screen.SPARE (+ PICTURE_ROW r) (* n 6))))
+
 ; a slot's card and what is on it; drawn at the next flush, composed again only when the card
 ; or what is on it changed
 (fn slot ((n u8) (has_card bool) (tile u8) (text (ptr u8)) (is_picked bool)) void
@@ -60,9 +81,11 @@
     (if (!= (at card n) has_card)
         (set faces_only false))
     (if (and (!= (at icon n) tile) (!= tile state.NOTHING))
-        (auxmem.read (addr_of (at pictures (* (as u16 n) icons.ICON_BYTES)))
-            (addr_of (at icons.pixels (* (as u16 tile) icons.ICON_BYTES)))
-            icons.ICON_BYTES))
+        (do
+            (let from u16 (* (as u16 tile) icons.ICON_BYTES))
+            (for r u8 0 ICON_H
+                (auxmem.read (picture_at n r) (addr_of (at icons.pixels from)) 6)
+                (set from (+ from 6)))))
     (set (at card n) has_card)
     (set (at icon n) tile)
     (set (at caption n) text)
@@ -188,7 +211,7 @@
     (let cap_y u8 hud.CAPTION_Y)
     (if (and (>= y top) (< y (+ top ICON_H)))
         (do
-            (let at u16 (+ (* (as u16 n) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
+            (let row (ptr u8) (picture_at n (- y top)))
             ; the picture's pixels in the stretch: from i0 to i1 of its 11, at px k on
             (let i0 u8 0)
             (if (< x pix.origin)
@@ -201,7 +224,7 @@
                     0)))
             (let k u8 (- (+ x i0) pix.origin))
             (for i u8 i0 i1
-                (let b u8 (at pictures (+ at (as u16 (>> i 1)))))
+                (let b u8 (load (+ row (>> i 1))))
                 (let c u8 (if (= (& i 1) 0)
                     (>> b 4)
                     (& b 15)))

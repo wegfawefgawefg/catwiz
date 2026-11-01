@@ -95,8 +95,9 @@
 ; the Mockingboard's ticks, one a frame (main.irq): the frames that really went by, however
 ; long drawing one took
 (let clock u8)
+(let mouse_on bool false) ; a mouse card, set up (title.enter): main's handler reads it then
 (let frame u8) ; counts up every frame but in hit-stop
-(let idle u8)  ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
+(let idle u8) ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)

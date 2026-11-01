@@ -8,6 +8,7 @@
 (import state)
 (import art/sprites art)
 (import draw/pix)
+(import draw/text)
 (import battle/place)
 (import battle/tray)
 (import content/action ac)
@@ -53,11 +54,12 @@
 
 ; n in up to three digits (every number is a byte: 255 at most)
 (fn put_number ((n u8)) void
-    (if (>= n 100)
-        (put (+ '0' (/ n 100))))
-    (if (>= n 10)
-        (put (+ '0' (% (/ n 10) 10))))
-    (put (+ '0' (% n 10))))
+    (text.digits n)
+    (if (> text.hundreds 0)
+        (put (+ '0' text.hundreds)))
+    (if (or (> text.hundreds 0) (> text.tens 0))
+        (put (+ '0' text.tens)))
+    (put (+ '0' text.ones)))
 
 ; the badge just filled, centred on pixel cx with its top at top, as look: its box the groups
 ; of pixels the pill covers

@@ -8,6 +8,7 @@
 ; string stands for the number given to add_n.
 
 (import auxmem)
+(import dhgr)
 (import art/hud_data hud)
 (import art/font40)
 (import draw/screen)
@@ -44,13 +45,31 @@
         c))
     (set col (+ col 1)))
 
+; n's decimal digits, by subtraction (a division would pull in the runtime's routines: AGENTS.md
+; Memory); battle/hud and battle/hit read them too
+(let hundreds u8 0)
+(let tens u8 0)
+(let ones u8 0)
+
+(fn digits ((n u8)) void
+    (set hundreds 0)
+    (while (>= n 100)
+        (set n (- n 100))
+        (set hundreds (+ hundreds 1)))
+    (set tens 0)
+    (while (>= n 10)
+        (set n (- n 10))
+        (set tens (+ tens 1)))
+    (set ones n))
+
 ; n in decimal
 (fn number ((n u8)) void
-    (if (>= n 100)
-        (char (+ '0' (/ n 100))))
-    (if (>= n 10)
-        (char (+ '0' (% (/ n 10) 10))))
-    (char (+ '0' (% n 10))))
+    (digits n)
+    (if (> hundreds 0)
+        (char (+ '0' hundreds)))
+    (if (or (> hundreds 0) (> tens 0))
+        (char (+ '0' tens)))
+    (char (+ '0' ones)))
 
 ; a string, with n for each #
 (fn add_n ((s (ptr u8)) (n u8)) void
@@ -184,8 +203,9 @@
                 (row40 k (+ y k)))
             (scene.mark 0 y 40 8)
             (return)))
-    (let b0 u8 (/ first 7))
-    (let b1 u8 (/ (+ last 6) 7))
+    ; the blocks of 7 characters from first's to last's (dhgr.X_GROUP: a pixel's 7-pixel group)
+    (let b0 u8 (at dhgr.X_GROUP first))
+    (let b1 u8 (at dhgr.X_GROUP (+ last 6)))
     (glyphs35)
     (for k u8 0 8
         (row35 k (+ y k) b0 (- b1 b0)))

@@ -4,8 +4,8 @@
 #
 # run: python3 tools/measure.py "1000f:RETURN" 1100 1400
 #      keys as for tisple machine, then the two frames to measure between, then any number of
-#      "file|old|new" edits to the copy it builds, to try something out; MB=4 puts a
-#      Mockingboard in slot 4, so the music plays while it measures
+#      "file|old|new" edits to the copy it builds, to try something out; MB=5 puts a
+#      Mockingboard in slot 5, so the music plays while it measures
 
 import os
 import re

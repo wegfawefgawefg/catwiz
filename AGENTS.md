@@ -114,6 +114,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - Pages over the stage in her turn (`battle/page.tsp`): her kit (`battle/bag.tsp`, B) and the
   rules (`battle/rules.tsp`, ?). The fight waits under one; closing puts the stage back from the
   spare page, which keeps the fight's picture all fight.
+- Clicks (2026-11-01, the owner: exact boxes for everything clickable): the game reads an
+  AppleMouse (lib/mouse, set up in `title.enter`) once a pass of the main loop (`main.poll_click`;
+  not in the handler: a call into the card's firmware may change anything for all the compiler
+  knows, which would slow the whole game). A press goes in the key line as CLICK with where it
+  was, and `main.next_key` gives the key of the box it hits on the screen as it is then
+  (`battle/boxes.tsp`, made from the drawing's own numbers: tray slots, `tray.SIDE_X`...,
+  `page.CLOSE_X`..., `kit.cell_x`, the actors' idle frames where they stand); a click on
+  nothing is `.`. So every screen takes clicks as keys. Add a box there with anything new that
+  takes a click. The emulator (`tisple machine --taps` with `"mouse": true`, the web player)
+  puts the mouse where a click or tap is and holds each press until READMOUSE has seen it.
 - Test builds: the constants at the top of `battle/battle.tsp` (start at fight N or its other
   door, play on past fight 2 on stand-in art, a charm held from the start, every fight won as it
   starts, `SEED`: the run's random numbers, the dice and the draws, the same every time) and
@@ -250,8 +260,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   which `tisple expand` shows).
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
-- `tisple machine ... --mockingboard 4 --wav x.wav` plays and saves it; `MB=4` makes
-  `tools/measure.py` measure with the card in.
+- `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
+  `tools/measure.py` measure with the card in. Slot 5: the emulator's mouse card is in slot 4
+  (`tisple.project`, `tools/phone/catwiz.json`; the game finds either card in any slot).
 
 ## Building and running
 
@@ -267,8 +278,8 @@ $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --nts
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
-  with `--mockingboard 4 --scale 2 --taps tools/phone/catwiz.json` (needs Tisple 71899ed or
-  later). When the program does not fit, Tisple builds it with a tighter size budget
+  with `--mockingboard 5 --scale 2 --taps tools/phone/catwiz.json` (the config's `"mouse":
+  true`: a click is the mouse card's mouse there, pressed; Tisple's mouse-player branch). When the program does not fit, Tisple builds it with a tighter size budget
   (squeeze levels) and says which functions it kept as calls instead of copying them into
   their callers; `TISPLE_SIZE_NOTES=1` lists what the budget weighs. The game keeps no list of
   its own (it had `game/noinline.txt` until 2026-10-30).
@@ -326,6 +337,9 @@ splits a memory would not build.
   `$0424`, `$0600-$0668`, the log's waiting lines `$0447-$0476`, the hud's `was` `$0700`, the
   kit's picture `$0780`). Each such let says so. The screen shows no text page (`dhgr_text2` is
   not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer.
+- The tray's copies of its cards' pictures are on the spare page (rows 160-174, 6 bytes a slot
+  each: `tray.picture_at`), which nothing reads once a fight's picture is shown: main memory is
+  full. Numbers are split into digits by subtraction (`text.digits`): no division routines.
 - No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
   (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
   listing for `rt.` calls.

@@ -21,6 +21,13 @@
 (const STAGE_LINES u8 120) ; the rules' fifteen lines
 (const PILL_TOP u8 130)
 (const PILL_END u8 150)
+(const PILL_H u8 20)
+; the buttons' stretches of pixels (battle/boxes takes clicks on them)
+(const BACK_X u8 3)
+(const NEXT_X u8 55)
+(const NAV_W u8 47)
+(const CLOSE_X u8 107)
+(const CLOSE_W u8 30)
 (const TEXT_TOP u8 138) ; a pill's word, 5 rows
 (const BLACK u8 0)
 (const MAGENTA u8 1)
@@ -66,9 +73,9 @@
         (pix.fill BLACK)
         (if nav
             (do
-                (pill_row y 3 50 "BACK" 4)
-                (pill_row y 55 102 "NEXT" 4)))
-        (pill_row y 107 137 "CLOSE" 5)
+                (pill_row y BACK_X (+ BACK_X NAV_W) "BACK" 4)
+                (pill_row y NEXT_X (+ NEXT_X NAV_W) "NEXT" 4)))
+        (pill_row y CLOSE_X (+ CLOSE_X CLOSE_W) "CLOSE" 5)
         (pix.write screen.PAGE y))
     (scene.mark (<< g0 1) PILL_TOP (<< (- 20 g0) 1) (- PILL_END PILL_TOP)))
 

@@ -83,7 +83,7 @@ def build():
 def read(disk, keys, frame):
     # the pass and the rings at frame, or None when the run stopped with aux memory switched in
     # for reading (the pass at $BDFF then does not match the counter)
-    out = subprocess.run([TISPLE, "machine", "--disk", disk, "--mockingboard", "4", "--frames", str(frame),
+    out = subprocess.run([TISPLE, "machine", "--disk", disk, "--mockingboard", "5", "--frames", str(frame),
                           "--keys", keys, "--peek", "0x06E2:2", "--peek", "0xBF00:%d" % (RING - 0xBF00 + 7 * 32)],
                          capture_output=True, text=True, check=True).stdout
     peeks = [[int(x, 16) for x in line.split(":", 1)[1].split("(")[0].split()]

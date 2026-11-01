@@ -70,7 +70,7 @@
         (if (and (> n 0) (!= show st.Show.hidden))
             (do
                 (text.char ' ')
-                (text.add_aux (at st.NAME s))
+                (text.add_aux (st.name s))
                 (if (!= show st.Show.flag)
                     (text.number n)))))
     (text.show 0))

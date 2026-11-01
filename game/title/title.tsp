@@ -12,6 +12,7 @@
 (import draw/blit)
 (import draw/stage)
 (import sound/sound)
+(import mouse)
 
 (const GLOW_STEPS u8 4)   ; the rim's colours in turn (tools/dhgr/title.py, GLOW)
 (const GLOW_FRAMES u8 10) ; frames on each step
@@ -26,8 +27,13 @@
     (stage.title dhgr.PAGE2)
     ; page 1 is where the runs are read (draw/blit): once the screen is graphics (after the
     ; first title) the picture shows from page 2 meanwhile
+    ; the first time: the mouse card found and set up (here, not in main: main's code stays in
+    ; main memory, and this is cold), then main's handler may read it
     (if shown
-        (dhgr.show dhgr.PAGE2))
+        (dhgr.show dhgr.PAGE2)
+        (do
+            (mouse.init)
+            (set state.mouse_on mouse.found)))
     (set shown true)
     (stage.title_runs)
     (screen.copy_page dhgr.PAGE2 dhgr.PAGE1)
