@@ -41,6 +41,7 @@ def main():
     ap.add_argument("--player", default="greedy")
     ap.add_argument("--runs", type=int, default=200)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--jobs", type=int, default=8)  # Python workers
     ap.add_argument("--toe-fix", action="store_true")
     ap.add_argument("--mult-cap", type=int, default=0)
     ap.add_argument("--tables", default=None)  # the proposal's tables from this folder
@@ -59,7 +60,7 @@ def main():
         variant.append("multcap=%d" % a.mult_cap)
     c_lines = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.split("\n")
     seeds = [a.seed * 100000 + n for n in range(a.runs)]
-    with multiprocessing.Pool(8) as pool:
+    with multiprocessing.Pool(a.jobs) as pool:
         py_lines = pool.map(line, [(s, a.player, ",".join(variant)) for s in seeds],
                             chunksize=1)
     bad = 0
