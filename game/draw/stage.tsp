@@ -4,19 +4,19 @@
 ; encounters' backdrop: 0 the clearing, 1 the path, 2 the clearing with the old shroom, the
 ; woods' elite), and the title.
 
-(import disk)
 (import art/screen_fight1 fight1)
 (import art/screen_fight2 fight2)
 (import art/screen_fight3 fight3)
 (import art/screen_title title_art)
 (import draw/blit)
+(import draw/meter)
 (import draw/packs)
 (import draw/screen)
 
 ; the picture whose packs table is table onto page
 (fn picture ((page u8) (table (ptr u8))) void
     (let at (ptr u8) (addr_of (at blit.sprite_aux 0)))
-    (disk.read at table disk.AUX)
+    (meter.read at table)
     (screen.unpack_page page (packs.part at 0) (packs.part at 1)))
 
 ; the fight screens' tables, by number
@@ -40,6 +40,11 @@
 
 (fn backdrop ((page u8) (n u8)) void
     (picture page (at PICTURES n)))
+
+; fight screen n's runs' load, for the meter: its table's sectors, and its 8 unpacks (each of
+; its 4 kinds' two halves)
+(fn runs_weight ((n u8)) u8
+    (+ (meter.sectors (at RUNS n)) (* 8 meter.UNPACK)))
 
 ; fight screen n's kinds' runs, ready to draw (each screen has 4 kinds)
 (fn fight_runs ((n u8)) void

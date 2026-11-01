@@ -9,10 +9,10 @@
 ; Nothing is clipped: callers keep sprites on the screen.
 
 (import auxcard)
-(import disk)
 (import dhgr)
 (import unpack)
 (import art/sprites art)
+(import draw/meter)
 (import draw/packs)
 
 ; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
@@ -69,12 +69,13 @@
     (set card2_next CARD_START)
     (set card1_next CARD_START)
     (let read (ptr u8) (as (ptr u8) READ_AT))
-    (disk.read read table disk.AUX)
+    (meter.read read table)
     (for i u8 0 n
         (let kind u8 (load (+ kinds i)))
         (set (at card_flags kind)
             (into_card (packs.part read i) (at art.KIND_MAIN_SIZE kind) false))
-        (set (at card_at kind) placed_at))
+        (set (at card_at kind) placed_at)
+        (meter.unpacked))
     (for i u8 0 n
         (let kind u8 (load (+ kinds i)))
         (let src (ptr u8) (packs.part read (+ n i)))
@@ -86,7 +87,8 @@
                 (let at (ptr u8) (+ (addr_of (at sprite_aux 0)) aux_next))
                 (unpack.aux_to_aux at src)
                 (set (at aux_at kind) (as u16 at))
-                (set aux_next (+ aux_next (at art.KIND_AUX_SIZE kind)))))))
+                (set aux_next (+ aux_next (at art.KIND_AUX_SIZE kind)))))
+        (meter.unpacked)))
 
 (fn aux_runs ((id u8)) (ptr u8)
     (as (ptr u8) (+ (at aux_at (at art.KIND_OF id)) (at art.AUX_AT id))))
