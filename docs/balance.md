@@ -24,9 +24,11 @@ cd tools/sim/c && make                     # gen.py writes gen_content.h from to
 ./catwiz-sim --study picks --runs 256 --out new.txt     # every pick forced in turn; learns
 ./catwiz-sim --learned learned.txt --learn 80 --study swings --runs 2000   # big turns, pairs
 ./catwiz-sim --learned learned.txt --learn 80 --study lift --runs 128      # what wins together
+./catwiz-sim ... --study lift --without MEOWCRONOMICON --lift-from old.txt   # triples without it, old cells reused
+./catwiz-sim --learned learned.txt --learn 80 --study cards --runs 4096    # each card taken, held, won
 ./catwiz-sim --learned learned.txt --learn 80 --study luck --runs 4000     # offer luck
 ./catwiz-sim ... --plan "card:1:TIMES TWO;charm:3:BAD MILK;nap:3:+1 TRICK"  # force a line
-python3 check.py --player strong --runs 400 --toe-fix --mult-cap 16      # against Python
+python3 check.py --player strong --runs 120 --toe-fix    # against Python
 python3 ../tablediff.py                    # what changed in the tables since f403880
 ```
 
@@ -76,7 +78,8 @@ What the port found in the Python sim, all fixed in both:
    the toe was only a re-roll less. The engine gives the die (as the charm says).
 2. A waiting times had no end: the strong player played Times Two over and over (its judge
    paid 1.5 a point of waiting times) and reached x1,000,000; in the game a hit's damage is a
-   byte. Now x16 at most (a rule change, below).
+   byte. It was x16 at most for a while; now every number saturates at 255 (the owner's rule
+   of 2026-11-01, below).
 3. Python 3.12's `sum()` of floats compensates its rounding (Neumaier); C's plain adding did
    not, so two kits worth "13.7" ranked differently and greedy picked another card in 1% of
    runs. The C sim sums the same way now.
@@ -525,7 +528,9 @@ makes 150-220 in a turn (below), so the king has 294 hit points in all.
 
 ## Combos
 
-How the parts win together, from three studies with the good player:
+How the parts win together, from three studies with the good player, under the rules before
+2026-11-01 (boosts banked over turns, a x16 cap; the lift under the new rules is in that
+round's section, below):
 
 1. Lift (`--study lift`, 192 runs a cell, run on the Mac mini): each part (an item not in the
    starting kit, or a charm) given from fight 1, its slot locked so no card replaces it; alone,
@@ -772,6 +777,211 @@ The final run with them, the good player, 4,096 runs:
 
 Runs won 73.7%; strong 18.4%; greedy 0% (77% die at the mailman); random 0% (66% at the shroom).
 
+## Boosts to the turn's end, bytes, and the wand Cannon (2026-11-01)
+
+The owner's rules:
+
+1. A waiting times and a waiting plus last to the end of the turn. They still stack within it,
+   over re-rolls; nothing carries into the next turn.
+2. No x16 cap. Every number saturates at 255 (the game keeps them in bytes) instead of
+   wrapping or stopping at 99: the times, the plus, a face's boosted number, a hit's damage,
+   shield, kittens (KITTENS_MOST 255), status turns, wet's turns, the three-count.
+3. Kittens as merged: a pounce of 1, no cap but the byte.
+4. Kitten Cannon a wand (beside Meowcronomicon now), still spending the kittens: "LAUNCH ALL
+   KITTENS, # EACH", gone after; no mana.
+
+Both sims play the rules the same way (`check.py`: greedy and random 500 runs, strong 120, 0
+differ). The draft was re-learned for each Cannon # (two passes each, on the Mac mini).
+
+### The run
+
+The good player, 4,096 runs, the final tables (the Cannon at 5):
+
+| fight | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| won | 100% | 100% | 100% | 100% | 100% | 97% | 100% | 100% | 92% | 76% |
+| hp lost | 2.2 | 3.0 | 7.7 | 2.4 | 3.3 | 11.3 | 5.1 | 2.7 | 7.2 | 17.3 |
+| hp lost before | 2.2 | 2.9 | 7.3 | 1.8 | 3.0 | 11.2 | 4.5 | 2.5 | 6.4 | 14.5 |
+| turns | 2.3 | 2.9 | 4.0 | 2.9 | 3.3 | 4.7 | 3.6 | 3.8 | 5.4 | 9.7 |
+| turns before | 2.2 | 2.9 | 3.8 | 2.8 | 3.1 | 4.4 | 3.4 | 3.5 | 5.0 | 9.1 |
+| most turns | 5 | 9 | 11 | 14 | 12 | 40 | 44 | 33 | 60 | 58 |
+
+Runs won 67.4% (73.7% before); lost at the mailman 3.3%, fight 9 8.1%, the king 21.0%.
+Rollout picks 39.2%, strong 11.0%, greedy 0% (69% die at the mailman), random 0% (70% at the
+shroom). The enemies were not retuned. The 6 points are mostly boosts that no longer bank
+over turns: the king and fight 9 take more turns and more hit points. Their hit points are
+the lever if the owner wants 74% back.
+
+Stalls: 10.8% of runs have a fight over 15 turns (12.0% on another 4,096 seeds; 9.7% before
+on the same count and seeds as the second; the 8% before was an older count). The longest
+fights are fights 9 and 10 (60 and 58 turns at most), then fight 7 and the mailman (44, 40):
+with no banked boosts the long fights get longer. Wet still adds its turns (to 255 now), so
+the Wet stall (an enemy kept wet so it does nothing) is there as before; the owner keeps it
+as a technique.
+
+### Times Two and +1 Trick
+
+| card | taken when offered | runs that held it | those runs won | all runs won |
+|---|---|---|---|---|
+| Times Two | 84% (97% before) | 31.9% | 83.9% (90.4%) | 69.4% (73.7%) |
+| Times Two at x3 or more (a level) | | 9.0% (20.7%) | 95.1% (97.9%) | |
+| Times Two at x4 or more | | 1.6% (6.2%) | 98.4% (98.8%) | |
+| +1 Trick | 79% (85%) | 21.2% (24.0%) | 75.3% (79.3%) | |
+| Copycat | 50% | 16.9% | 77.2% | |
+| Meowcronomicon | 36% (32%) | 20.7% (19.8%) | 76.8% (80.0%) | |
+
+Times Two is still close to an auto-pick: 84% taken, and its runs win 15 points over the
+rest. Less than before (97%), since it can no longer bank a times for the next turn; it now
+needs two or three Times Two faces up in one turn, which is what re-rolls are for. Levelled
+it is a lock: x3 three times in a turn is x27, and runs that hold a x3 win 95%. If that is
+too much, the smallest change is its level step (x2, then x3 at most), or its from-fight.
+Meowcronomicon is no lock (36% taken when offered, its runs 77%: the pounce of 2 was 71% and
+91%).
+
+### The biggest turns
+
+Turn damage in the logs is counted to 65,535 now; each hit stops at 255. Times Two at a
+level three times in one turn, x27 on Zoomies (two Times Two came from a re-roll):
+
+```
+turn 2  hp 30 mana 3 | BULLDOG KING 68 (CHOMP FOR 26); | dice: CARDBOARD BOX, SPRAY BOTTLE, ZOOMIES, TIMES TWO, FLEAS
+  TIMES TWO
+  re-roll CARDBOARD BOX, SPRAY BOTTLE, ZOOMIES, FLEAS -> STAR, TIMES TWO, FLEAS, TIMES TWO
+  TIMES TWO
+  TIMES TWO
+  re-roll STAR, FLEAS -> ZOOMIES, CARDBOARD BOX
+  ZOOMIES x27 spooked -1 = 53: 5 hits of 53 (BULLDOG KING 2, BULLDOG KING, CROSS 2, BULLDOG KING, FURIOUS 1); BULLDOG KING, CROSS GETS UP; BULLDOG KING, FURIOUS GETS UP
+```
+
+221 damage, all three of the king's phases in one turn. Marks, no Times Two: 48 marks on the
+king, put on over the fight, make a plain Zoomies of 3 hit for 51:
+
+```
+turn 4  hp 20 mana 4 | BULLDOG KING, CROSS 98 marked48 (CHOMP FOR 28); ROYAL PUG 8 (CHEER: KING +2 NEXT); ROYAL PUG 8 (CHEER: KING +2 NEXT); | dice: MARK TERRITORY, TIMES TWO, BELL COLLAR, ZOOMIES, MARK TERRITORY
+  ZOOMIES = 3: 51 on BULLDOG KING, CROSS, 3 on ROYAL PUG, 3 on ROYAL PUG, 51 on BULLDOG KING, CROSS, 3 on ROYAL PUG; BULLDOG KING, FURIOUS GETS UP
+```
+
+Kittens: 26 kittens on, Mouse on String at x9, then the pounce (129 damage):
+
+```
+turn 4  hp 25 mana 1 kittens 26 | BULLDOG KING, CROSS 31 (CHOMP FOR 28); | dice: MEOWCRONOMICON, SPIKY FLUFF, SPIKY FLUFF, MEOWCRONOMICON, MEOWCRONOMICON
+  re-roll MEOWCRONOMICON, SPIKY FLUFF, SPIKY FLUFF, MEOWCRONOMICON, MEOWCRONOMICON -> MOUSE ON STRING, SPIKY FLUFF, MOUSE ON STRING, MEOWCRONOMICON, MOUSE ON STRING
+  MOUSE ON STRING = 5 on BULLDOG KING, CROSS: 2 hits of 5 (BULLDOG KING, CROSS 2)
+  re-roll SPIKY FLUFF, MOUSE ON STRING, MEOWCRONOMICON, MOUSE ON STRING -> MOUSE ON STRING, TIMES TWO, TIMES TWO, SPIKY FLUFF
+  TIMES TWO
+  TIMES TWO
+  MOUSE ON STRING x9 = 29 on BULLDOG KING, CROSS: 2 hits of 29 (BULLDOG KING, CROSS 1, BULLDOG KING, FURIOUS 1); BULLDOG KING, FURIOUS GETS UP
+  re-roll SPIKY FLUFF -> TIMES TWO
+  re-roll TIMES TWO -> MARK TERRITORY
+  MARK TERRITORY = 2 on BULLDOG KING, FURIOUS; BULLDOG KING, FURIOUS marked 2
+  26 kitten pounces on BULLDOG KING, FURIOUS for 3
+  BULLDOG KING, FURIOUS beaten
+```
+
+Boost targets moved little: 26.9 boosts a run; Zoomies 32% of them (+3.4 a hit, the main
+target in 63% of runs, won 68%), Mouse on String 13% (+6.7, 19% of runs, won 79%), Fleas 12%,
+Star 7%.
+
+### The wand Kitten Cannon
+
+"LAUNCH ALL KITTENS, # EACH", a wand, no mana, a level +1; every kitten hits the picked enemy
+for #, the next standing enemy when it falls, then the kittens are 0. In the pool at weight 3
+from fight 3 (the book's place; chosen so it comes with Meowcronomicon's from-fight and no
+more often than the other mid cards). Each # with its own learned draft, 4,096 runs:
+
+| # | good player won | taken when offered | forced, by third of the run (won) | Meowcronomicon then and Cannon (forced, 1,500 runs) |
+|---|---|---|---|---|
+| 3 | 65.7% | 0% | 38%, 36%, 32% | 25.5% |
+| 4 | 65.8% | 0% | 36%, 41%, 29% | 32.7% |
+| 5 | 67.4% | 0% | 38%, 47%, 31% | 41.7% |
+
+Lift (given from fight 1, slot locked, 192 runs a cell; "none" 67-69%):
+
+| # | Cannon alone | with Meowcronomicon (won) | with Catnip | with Times Two |
+|---|---|---|---|---|
+| 3 | 50.0% | +0.57 (67.7%) | -0.25 (33.3%) | -0.46 (73.4%) |
+| 4 | 45.3% | +1.13 (75.0%) | +0.26 (38.5%) | +0.09 (80.7%) |
+| 5 | 52.1% | +0.62 (76.0%) | -0.57 (33.9%) | -0.44 (74.0%) |
+
+Still a dead card at every #: it is never taken. As a wand it now fights Mouse on String
+(taken 72% when offered) for the wand slot, and a run's kittens are few (median 1 at once, top
+tenth 17), so most launches are a few kittens at 5. With Meowcronomicon it does lift (+0.6 to
++1.1), but the pair only reaches the plain run's win rate. I kept # 5 (the best forced runs
+and the best with Meowcronomicon). The biggest launches reach the king's whole 98 in one turn,
+but they need Meowcronomicon at x8 or x9 first; most of the kittens find no one:
+
+```
+turn 2  hp 30 mana 4 (wish waits) | BULLDOG KING 98 (CHOMP FOR 26); | dice: KITTEN CANNON, TIMES TWO, MEOWCRONOMICON, KITTEN CANNON, KITTEN CANNON
+  TIMES TWO
+  re-roll KITTEN CANNON, MEOWCRONOMICON, KITTEN CANNON, KITTEN CANNON -> SPIKY FLUFF, WET, WISHING STAR, TIMES TWO
+  TIMES TWO
+  re-roll SPIKY FLUFF, WET, WISHING STAR -> WISHING STAR, MEOWCRONOMICON, TIMES TWO
+  TIMES TWO
+  MEOWCRONOMICON x8 spooked -1 = 23
+  re-roll WISHING STAR -> KITTEN CANNON
+  KITTEN CANNON wish x2 spooked -1 = 17 on BULLDOG KING: 16 hits of 17 (BULLDOG KING 6, BULLDOG KING, CROSS 6, BULLDOG KING, FURIOUS 4); 23 kittens launched; BULLDOG KING, CROSS GETS UP; BULLDOG KING, FURIOUS GETS UP; BULLDOG KING, FURIOUS beaten
+```
+
+(294 damage counted against the king's 98: the count adds each hit's full number.) For the
+Cannon to be picked, kept kittens must be worth less than launched ones; as long as every
+kitten pounces every turn, keeping them wins.
+
+### What wins together now, and the combos without Meowcronomicon
+
+The lift study again under these rules (each part given from fight 1, its slot locked, 192
+runs a cell, every pair; about 0.4 either way is noise). Alone (none: 67.7%): Times Two 90%,
+Sixth Toe 89%, Spray Bottle 88%, Mouse on String 85%, Copycat 85%, Mark Territory 84%; at the
+bottom 3 AM Screaming 45%, Knock It Off 47%, Knead and Kitten Cannon 52%.
+
+The kitten pairs are still at the top: Meowcronomicon with Kitten Mittens +1.55 (96% won),
+Catnip +1.38 (92%), Feather Toy +1.36 (94%). The best pairs without Meowcronomicon:
+
+| pair | lift | won together | apart | why |
+|---|---|---|---|---|
+| Mouse on String + Wet | +1.60 | 98% | 85%, 76% | two hits a turn, and the big hitter's hits halved for turns: damage and safety from two cheap faces in different slots |
+| Spray Bottle + Mark Territory | +1.08 | 98% | 88%, 84% | the marked enemy takes more from every wand hit, and the spray keeps it wet (its hits halved) while doing it |
+| Wishing Star + Knock It Off | +0.81 | 78% | 78%, 47% | the 3 mana book is a dud without mana; Wishing Star pays it (still below the plain run) |
+| Static Fur + Wishing Star | +0.81 | 94% | 81%, 78% | likely the fur's 5 to all on the pups while the star's mana keeps Zoomies coming |
+| Mouse on String + Copycat | +0.80 | 97% | 85%, 85% | Copycat plays the last face again, +#: both of Mouse on String's hits again, harder |
+| Mouse on String + Wishing Star | +0.80 | 96% | 85%, 78% | the star's "next wand times 2" doubles both hits |
+| Wishing Star + Mother Cat | +0.74 | 91% | 78%, 74% | mana and a kitten from the start of each fight (near noise) |
+| Fishbone Wand + Times Two | +0.70 | 94% | 64%, 90% | a x2 or x3 hit that no shield stops (the king's shields) |
+| Knock It Off + Times Two | +0.69 | 88% | 47%, 90% | the book drops the shield and buffs, then hits at x2 |
+| Fishbone Wand + Wet | +0.64 | 83% | 64%, 76% | the same pierce, with the enemy's hits halved |
+| Mouse on String + Static Fur | +0.64 | 96% | 85%, 81% | the wand on the big ones, the fur's 5 to all on the pups |
+| Bell Collar + Times Two | +0.61 | 97% | 80%, 90% | Times Two "counts #" towards a three, so a fluff combo fires with fewer fluffs up |
+| Cardboard Box + Times Two | +0.57 | 97% | 83%, 90% | the same: hit-alls miss and a kitten, more often |
+| Mark Territory + Sixth Toe | +0.57 | 97% | 84%, 89% | the sixth die finds Mark more often, and every die after hits the marked one harder |
+
+Triples without Meowcronomicon (the best of those pairs and a third that lifts with both):
+Mouse on String + Wishing Star + Spiky Fluff 99% (the pair 96%); Mouse on String + Wishing Star
++ Static Fur 98%; Fishbone Wand + Times Two + Wishing Star 96% (the pair 94%: the star's x2 and
+Times Two's on one piercing hit); Wishing Star + Knock It Off + Mouse on String 97% (the pair
+78%); Mouse on String + Wet + Still Water 96% (no better than the pair, 98%). At 96-99% a third
+part adds little; the pairs are the combos.
+
+So yes: Mouse on String is the other engine. It is the best wand (85% alone) and everything
+that boosts a wand doubles both its hits (Wishing Star, Copycat; in natural runs Bad Milk +2 on
+both, +18 damage a turn on the turns both are played, the top pair of the swings study); with
+Wet it is also the safest build. Times Two's second use is on the fluff: its x counts towards a
+three. Marks are the third: Mark Territory with a wand that hits often (Spray Bottle) or more
+dice (Sixth Toe).
+
+Worse together: Yarn Wand + Ball of Yarn -1.36 (two tangles on one enemy, the second adds
+little), the Cannon with a book (Laser Pointer -1.28, 3 AM Screaming -1.27, If It Fits -1.06)
+or with Bad Milk (-1.13), If It Fits + Mark Territory -1.13,
+Feather Toy + Bad Milk -0.98, Spray Bottle + Sixth Toe -0.89.
+
+### The tables
+
+`tools/sim/proposal`, in the game's shape:
+
+- effects.tsp: `(const KITTEN_HIT u8 1)`, `(const KITTENS_MOST u8 255)`.
+- items.tsp, KITTEN CANNON (row 33): `:text "LAUNCH ALL KITTENS, # EACH" :slot Slot.wand
+  :effect ac.Effect.cannon :amount 5 :step 1 :cost 0 :aim state.Aim.foe :icon art.TILE_WAND`.
+- encounters.tsp, OFFER_CARDS: `(make Offer :card items.CANNON :weight 3 :from 3)` (unchanged).
+- `learned.txt` is learned for these tables.
+
 ## What changed and why
 
 ### Rule changes
@@ -798,15 +1008,16 @@ The owner's (2026-10-31), in the game already or coming:
 Mine, each the smallest that fixed what the sim showed:
 
 8. A waiting times stacks to x16 at most (no end before). The strong player hoarded Times Two
-   past x1,000,000; a hit's damage is a byte in the game. x16 is x2 four times, so the owner's
-   "super mega strong" stacking stays.
+   past x1,000,000; a hit's damage is a byte in the game. Superseded on 2026-11-01: no cap, every
+   number saturates at 255, and boosts end with the turn (the owner's, above).
 9. Kittens: KITTEN_HIT and KITTENS_MOST are numbers in effects.tsp now (1 and 5 in the code
    before). At 1 with a cap of 5 the kitten cards lost their picks by 30-60 points; the
-   owner's test (above) settled on a pounce of 1 and no cap (99).
+   owner's test (above) settled on a pounce of 1 and no cap (99, then 255).
 10. Bad Milk: "WANDS +2; BOOKS COST 1 MORE" (was wands +1 and fleas 2 on her at every fight's
     start, 6 hit points a fight: forced, it won 0% of runs). A trade between wands and books.
 11. Kitten Cannon: cut (it lost its pick in every version, 11-40%, as a book and as a wand),
-    then back as the owner's cash-out book: every kitten hits for its #, all gone (above).
+    then back as the owner's cash-out book, then a wand (2026-11-01): every kitten hits for
+    its #, all gone (above).
 12. A woods elite, THE OLD SHROOM (an enemy and three moves), for the new shape.
 
 Tried and dropped: kittens that run off when a hit-all lands instead of whenever she is hurt
@@ -818,8 +1029,9 @@ sums in the C sim.
 Flagged, not changed:
 
 - Mouse on String with one enemy left hits it twice.
-- A waiting +1 or times stays to the next turn, so she can bank them over turns ("+36 waits"
-  in the logs), and Wet now adds without end (99). Together they make stalls: 1% of the good
+- (Settled by the owner on 2026-11-01: boosts end with the turn; the Wet stall is a
+  technique.) A waiting +1 or times stayed to the next turn, so she could bank them over turns
+  ("+36 waits" in the logs), and Wet adds without end (99). Together they made stalls: 1% of the good
   player's fights last over 15 turns (8% of runs have one, mostly at the king and fight 9).
   One logged: the big bath at 1 hit point and 87 turns wet, so it can do nothing, while she
   banks +36 and shields with a Moon Bowl for 37, turn after turn, to one-shot the gremlin
@@ -865,14 +1077,18 @@ top of it:
 
 1. The new tables' numbers: `python3 tools/sim/tablediff.py` lists them (items, enemies, moves,
    charms, the fights, the pools, the constants).
-2. KITTEN_HIT (1) and KITTENS_MOST (99: no cap) as content constants where the pounce and the
-   kitten cap read them; the kitten count is a status, so 99 fits.
+2. KITTEN_HIT (1) and KITTENS_MOST (255: no cap but the byte) as content constants where the
+   pounce and the kitten cap read them.
 3. Bad Milk: wands +2 (its amount), books cost 1 more for each bad milk held; no fleas.
-4. A waiting times at most x16.
+4. A waiting plus and times cleared at the turn's end (after still water's turn), and every
+   number saturating at 255 instead of wrapping: the times, the plus, a face's boosted number,
+   a hit's damage (after the brand), shield, kittens, status turns, wet's adding, the
+   three-count.
 5. THE OLD SHROOM: an enemy row and three moves (calls 2 sporelets, cap slam 8, spore cap
    shield 5), its art; in the engine's stand-in's place.
-6. Kitten Cannon as a cash-out book (3 mana, 3 each): every kitten launched at the picked enemy
-   for the face's number, on to the next standing enemy when it falls, then the kittens are 0.
+6. Kitten Cannon as a cash-out wand (no mana, 5 each, a level +1): every kitten launched at
+   the picked enemy for the face's number, on to the next standing enemy when it falls, then
+   the kittens are 0.
 7. The pools as `OFFER_CARDS` and `OFFER_CHARMS` (the game's shape: the sims' tables carry
    only the cards in the pool; the rest weigh 0), NAP_HEAL_SHIFT 0.
 
