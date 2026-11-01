@@ -136,8 +136,21 @@ class Screen:
 
 
 def screen_of(F):
+    # the enemies' blocks in the order that fits the sprite room best (blit places them in the
+    # table's order, each half whole where it first fits: memory.py)
+    import itertools
+    import memory
     blocks, kinds = screens.blocks_of(F["kinds"])
-    return Screen(HERO_BLOCKS + blocks, HERO_BLOCKS + kinds)
+    best = None
+    for order in itertools.permutations(blocks):
+        short = memory.short_of(list(order))
+        if best is None or short < best[0]:
+            best = (short, list(order))
+        if short == 0:
+            break
+    order = best[1]
+    kinds = order + [k for k in kinds if k not in order]
+    return Screen(HERO_BLOCKS + order, HERO_BLOCKS + kinds)
 
 
 def title_screen():

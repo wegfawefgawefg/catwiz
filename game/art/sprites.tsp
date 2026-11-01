@@ -8,9 +8,9 @@
 (const KIND_GLOW u8 0) ; on the title
 (const NONE u8 255) ; no sprite, no kind
 (const ROLE_COUNT u8 9) ; idle attack hurt happy surprised flap flash shot shot2
-(const SPRITES_MOST u8 49)
+(const SPRITES_MOST u8 54)
 (const KINDS_MOST u8 5)
-(const BLOCKS_MOST u8 4)
+(const BLOCKS_MOST u8 5)
 
 (const CAT_IDLE u8 0) ; 10 x 87
 (const CAT_ATTACK u8 1) ; 14 x 87
@@ -60,7 +60,12 @@
 (const FIG_SQUIRREL u8 4)
 (const FIG_POSSUM u8 5)
 (const FIG_POSSUM_UP u8 6)
-(const FIGURE_COUNT u8 7)
+(const FIG_SPRINKLER u8 7)
+(const FIG_MOWER u8 8)
+(const FIG_CUCUMBER u8 9)
+(const FIG_GNOME u8 10)
+(const FIG_MAILMAN u8 11)
+(const FIGURE_COUNT u8 12)
 
 ; a screen's tables: blocks the number of its blocks (the hero's 0, the small sprites' 1,
 ; then the enemies'); by sprite its box (byte columns, rows; dcol, dtop from its block's
@@ -69,16 +74,16 @@
 ; each role (kind * ROLE_COUNT + role, NONE for the idle frame); by block its runs' sizes;
 ; by figure its kind here (NONE: not on this screen)
 (struct Tables ((blocks u8)
-        (cols (array u8 49))
-        (rows (array u8 49))
-        (dcol (array i8 49))
-        (dtop (array i8 49))
-        (aux_lo (array u8 49))
-        (aux_hi (array u8 49))
-        (main_lo (array u8 49))
-        (main_hi (array u8 49))
-        (kind_of (array u8 49))
-        (solid (array u8 49))
+        (cols (array u8 54))
+        (rows (array u8 54))
+        (dcol (array i8 54))
+        (dtop (array i8 54))
+        (aux_lo (array u8 54))
+        (aux_hi (array u8 54))
+        (main_lo (array u8 54))
+        (main_hi (array u8 54))
+        (kind_of (array u8 54))
+        (solid (array u8 54))
         (kcol (array u8 5))
         (ktop (array u8 5))
         (kfeet (array u8 5))
@@ -86,10 +91,10 @@
         (kreach (array u8 5))
         (kleft (array u8 5))
         (frame (array u8 45))
-        (aux_size_lo (array u8 4))
-        (aux_size_hi (array u8 4))
-        (main_size_lo (array u8 4))
-        (main_size_hi (array u8 4))
-        (figure (array u8 7))))
+        (aux_size_lo (array u8 5))
+        (aux_size_hi (array u8 5))
+        (main_size_lo (array u8 5))
+        (main_size_hi (array u8 5))
+        (figure (array u8 12))))
 
 (let tab Tables)

@@ -66,6 +66,14 @@ class Room:
             self.short += self.aux - SPRITE_AUX
 
 
+def short_of(blocks):
+    # the bytes a screen of these enemy blocks (after the hero's) would be short
+    r = Room()
+    r.place(game.HERO_BLOCKS, True)
+    r.place(blocks)
+    return r.short
+
+
 def block_size(b):
     a, m = game.runs_halves(game.sprites_of(b))
     return len(a), len(m)

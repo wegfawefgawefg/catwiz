@@ -240,8 +240,14 @@ def path(n):
 
 
 def picture_for(F):
-    # fight F's backdrop (screens.fights): its zone's scenery round its own lanes. The garden's
-    # and the house's stand in on the woods' until they are drawn
+    # fight F's backdrop (screens.fights): its zone's scenery round its own lanes (the woods'
+    # by their fights' backdrop numbers: the clearing, the path, the clearing again)
+    if F["zone"] == "garden":
+        import night_garden
+        return night_garden.garden(F["n"])
+    if F["zone"] == "house":
+        import night_house
+        return night_house.house(F["n"])
     variant = {0: "clearing", 1: "path", 2: "clearing"}[F["backdrop"]]
     return picture(variant, F["n"])
 

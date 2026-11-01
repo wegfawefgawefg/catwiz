@@ -8,11 +8,16 @@ cat            6294+6197          6     2912   2159
 misc           1575+1441         29     1034   -
 puffcap        1886+1895          4      865   733
 sporelet       1540+1540          4      687   700
-squirrel       1968+1990          6     1400   811
+squirrel       1968+1990          6     1394   811
 possum         2802+2792          8     1967   520
-shroom         2938+2921          4     1374   1091
+shroom         2938+2921          4     1286   1091
+sprinkler      1840+1856          7     1022   673
+mower          1914+1938          6     1148   855
+cucumber       1391+1380          6      755   780
+gnome          1886+1915          6     1126   800
+mailman        4058+4059          7     1826   1463
 
-the screen's tables (art/sprites tab, main memory): 49 sprites, 5 kinds, 4 blocks at most
+the screen's tables (art/sprites tab, main memory): 54 sprites, 5 kinds, 5 blocks at most
 the hero's blocks: bank 2 7638, bank 1 0, sprite_aux 7869
 
 fight 1 (woods): cat, misc, puffcap, sporelet
@@ -39,31 +44,33 @@ fight 3 (woods): cat, misc, shroom, sporelet
            shroom aux 2938: bank 1
            sporelet aux 1540: sprite_aux
 
-fight 4 (garden): cat, misc, sporelet, puffcap
-   22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
-  the picture, zlib 500, into sprite_aux's 2883 after the hero's
-           sporelet main 1540: bank 2
-           puffcap main 1895: bank 2
-           sporelet aux 1540: bank 1
-           puffcap aux 1886: bank 1
+fight 4 (garden): cat, misc, sprinkler, mower
+   23055 bytes: bank 2 11432 of 12272, bank 1 3754 of 4096, sprite_aux 7869 of 10752: 4065 to spare
+  the picture, zlib 917, into sprite_aux's 2883 after the hero's
+           sprinkler main 1856: bank 2
+           mower main 1938: bank 2
+           sprinkler aux 1840: bank 1
+           mower aux 1914: bank 1
 
-fight 5 (garden): cat, misc, sporelet, puffcap
-   22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
-  the picture, zlib 704, into sprite_aux's 2883 after the hero's
-           sporelet main 1540: bank 2
-           puffcap main 1895: bank 2
-           sporelet aux 1540: bank 1
-           puffcap aux 1886: bank 1
+fight 5 (garden): cat, misc, sprinkler, cucumber, gnome
+   25775 bytes: bank 2 12265 of 12272, bank 1 3755 of 4096, sprite_aux 9755 of 10752: 1345 to spare
+  the picture, zlib 742, into sprite_aux's 2883 after the hero's
+           sprinkler main 1856: bank 2
+           cucumber main 1380: bank 2
+           gnome main 1915: bank 1
+           sprinkler aux 1840: bank 1
+           cucumber aux 1391: bank 2
+           gnome aux 1886: sprite_aux
 
-fight 6 (garden): cat, misc, puffcap
-   19288 bytes: bank 2 9533 of 12272, bank 1 1886 of 4096, sprite_aux 7869 of 10752: 7832 to spare
-  the picture, zlib 532, into sprite_aux's 2883 after the hero's
-           puffcap main 1895: bank 2
-           puffcap aux 1886: bank 1
+fight 6 (garden): cat, misc, mailman
+   23624 bytes: bank 2 11697 of 12272, bank 1 4058 of 4096, sprite_aux 7869 of 10752: 3496 to spare
+  the picture, zlib 923, into sprite_aux's 2883 after the hero's
+           mailman main 4059: bank 2
+           mailman aux 4058: bank 1
 
 fight 7 (house): cat, misc, puffcap, sporelet
    22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
-  the picture, zlib 654, into sprite_aux's 2883 after the hero's
+  the picture, zlib 512, into sprite_aux's 2883 after the hero's
            puffcap main 1895: bank 2
            sporelet main 1540: bank 2
            puffcap aux 1886: bank 1
@@ -79,7 +86,7 @@ fight 8 (house): cat, misc, sporelet, puffcap
 
 fight 9 (house): cat, misc, puffcap
    19288 bytes: bank 2 9533 of 12272, bank 1 1886 of 4096, sprite_aux 7869 of 10752: 7832 to spare
-  the picture, zlib 723, into sprite_aux's 2883 after the hero's
+  the picture, zlib 532, into sprite_aux's 2883 after the hero's
            puffcap main 1895: bank 2
            puffcap aux 1886: bank 1
 

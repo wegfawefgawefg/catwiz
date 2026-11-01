@@ -13,6 +13,7 @@
 import beasts
 import cat
 import foes
+import garden_foes as gf
 
 ROLE_NAMES = ["idle", "attack", "hurt", "happy", "surprised", "flap", "flash", "shot", "shot2"]
 
@@ -85,6 +86,21 @@ block("possum", at(beasts.possum, 70, 108), beasts.FRAMES["possum"], flash="hurt
       roles={"attack": "attack", "hurt": "hurt", "shot": "bite"})
 # the possum that faked it: up again, on the possum's block (its hurt the same playing dead)
 borrow("possum_up", "possum", {"idle": "up", "attack": "up_attack", "hurt": "hurt", "shot": "smack"})
+
+# the garden
+block("sprinkler", at(gf.sprinkler, 70, 108), gf.FRAMES["sprinkler"], flash="hurt",
+      shots=gf.SHOTS["sprinkler"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "spray", "shot2": "fountain"})
+block("mower", at(gf.mower, 70, 108), gf.FRAMES["mower"], flash="hurt", shots=gf.SHOTS["mower"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "clippings", "shot2": "smoke"})
+block("cucumber", at(gf.cucumber, 70, 108), gf.FRAMES["cucumber"], flash="hurt",
+      shots=gf.SHOTS["cucumber"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "fright", "shot2": "bump"})
+block("gnome", at(gf.gnome, 70, 108), gf.FRAMES["gnome"], flash="hurt", shots=gf.SHOTS["gnome"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "hook", "shot2": "guard"})
+block("mailman", at(gf.mailman, 70, 108), gf.FRAMES["mailman"], flash="hurt",
+      shots=gf.SHOTS["mailman"][:2],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "cross", "shot": "parcel", "shot2": "heavy"})
 
 
 def frame_names(b):

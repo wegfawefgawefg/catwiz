@@ -45,6 +45,21 @@ DAY = {
     # the possum
     "pos": GREY, "pos_sh": DBLUE, "pos_hi": WHITE, "pos_face": WHITE, "mask": GREY, "ptail": PINK,
     "paw_p": PINK, "tongue": PINK, "leaf": GREEN, "leaf_hi": AQUA,
+    # the garden: the sprinkler, the lawnmower, the cucumber, the gnome, the mailman
+    "spr": GREEN, "spr_hi": AQUA, "spr_sh": DGREEN, "spike": GREY, "brass": YELLOW, "brass_hi": WHITE,
+    "water": LBLUE, "water_hi": WHITE,
+    "mow": ORANGE, "mow_hi": YELLOW, "mow_sh": MAGENTA, "wheel": GREY, "hub": WHITE, "handle": GREY,
+    "grip": PINK, "light": YELLOW, "eyewhite": WHITE, "teeth": WHITE, "blade": WHITE, "grass": GREEN, "grass_hi": AQUA,
+    "smoke": GREY,
+    "cuc": GREEN, "cuc_hi": AQUA, "cuc_bump": DGREEN, "cuc_end": YELLOW, "cuc_slice": AQUA,
+    "cuc_seed": WHITE, "dust": GREY,
+    "boot": GREY, "coat": LBLUE, "coat_hi": WHITE, "belt": BLACK, "buckle": YELLOW, "skin": PINK,
+    "beard": WHITE, "gnose": PINK, "hat_g": ORANGE, "hat_hi": YELLOW, "rod": GREY, "line": LBLUE,
+    "bobber": PINK, "hook": WHITE,
+    "trousers": MBLUE, "shoe": GREY, "bag": ORANGE, "bag_hi": YELLOW, "parcel": YELLOW, "string": ORANGE,
+    "uniform": LBLUE, "uniform_hi": WHITE, "shirt": WHITE, "button": YELLOW, "strap": BROWN,
+    "skin_m": PINK, "skin_cross": ORANGE, "stamp_ink": MAGENTA, "stache": GREY, "nose_m": PINK, "cap": MBLUE, "badge": YELLOW,
+    "steam": WHITE,
     # nightflap
     "bat": PURPLE, "bat_sh": PURPLE, "bat_hi": PINK, "wing": BLACK, "wing_sh": BLACK,
     "bone": MAGENTA, "fang": WHITE, "bat_eye": WHITE,
