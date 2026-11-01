@@ -1,9 +1,9 @@
 ; the statuses an actor can carry, as stacks (state.stack), and when each one acts. The engine
 ; calls the hooks below at the right moments and never names a status itself; the hud shows
-; them by the tables here.
+; them by the tables here. (No log here: content/steps' macro needs this module, and the log
+; needs the content's names; battle/turn writes the fleas' line.)
 
 (import state)
-(import battle/log)
 (import content/enemies en)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
@@ -12,34 +12,40 @@
 (const SAY_TAKES_FROM_FLEAS u8 0)
 
 (enum Status (shield ; soaks hits until the holder's next turn
-        poison       ; fleas: damage at the end of each of its turns
-        flea_turns   ; turns of fleas left
-        wet          ; its hits are halved, for this many of its turns
-        cheer        ; its next hit does this much more
-        ward         ; pips: each curse breaks one instead of landing
-        box          ; the hero in a box: hit-all attacks miss
-        mana         ; the hero's mana
-        plus         ; the next die played gets this much more, till her turn ends
-        plus_left    ; 1 while a plus waits for its die
-        mult         ; the next die but a trick: times this, counting this towards a three
-        spook        ; the hero's dice are this much less, till her turn ends
-        reflect      ; it sends back this much of what the hero deals it, till its turn
-        laser        ; its next hit goes to a friend (to the hero when it has none)
-        thorns       ; who hits the hero takes this much back, till her next turn
-        strength     ; its hits are this much more, all fight
-        kittens      ; the hero's kittens: each pounces at the end of her turn
-        tangle       ; its hits are this much less, till its turn ends
-        brand        ; marked: every hit on it is this much more, all fight; kittens go for it
-        nip          ; catnip: the next this many dice get 1 more
-        nipped       ; catnip this turn: the kittens pounce twice at its end
-        knead_fluff  ; the next fluff is times 2
-        knead_wand   ; the next wand is this much more
-        keep         ; the hero's shield stays through her next turn's start
-        wish         ; the next wand is times 2
-        hurt         ; hit points it lost this turn of the hero's (a stall counts them)
-        fresh))      ; just came in or got up: it skips its next move
+        poison ; fleas: damage at the end of each of its turns
+        flea_turns ; turns of fleas left
+        wet ; its hits are halved, for this many of its turns
+        cheer ; its next hit does this much more
+        ward ; pips: each curse breaks one instead of landing
+        box ; the hero in a box: hit-all attacks miss
+        mana ; the hero's mana
+        plus ; the next die played gets this much more, till her turn ends
+        plus_left ; 1 while a plus waits for its die
+        mult ; the next die but a trick: times this, counting this towards a three
+        spook ; the hero's dice are this much less, till her turn ends
+        reflect ; it sends back this much of what the hero deals it, till its turn
+        laser ; its next hit goes to a friend (to the hero when it has none)
+        thorns ; who hits the hero takes this much back, till her next turn
+        strength ; its hits are this much more, all fight
+        kittens ; the hero's kittens: each pounces at the end of her turn
+        tangle ; its hits are this much less, till its turn ends
+        brand ; marked: every hit on it is this much more, all fight; kittens go for it
+        nip ; catnip: the next this many dice get 1 more
+        nipped ; catnip this turn: the kittens pounce twice at its end
+        knead_fluff ; the next fluff is times 2
+        knead_wand ; the next wand is this much more
+        keep ; the hero's shield stays through her next turn's start
+        wish ; the next wand is times 2
+        hurt ; hit points it lost this turn of the hero's (a stall counts them)
+        fresh ; just came in or got up: it skips its next move
+        dot ; red dot: this many times, a wand hit on it brings her dice back
+        catfight ; its next hit goes to a friend, this much harder
+        mirror ; what her shield takes this round goes back to the hitter, this much at most
+        circus ; a flea circus: when it falls its fleas jump to the next one, doubled
+        gamble ; double or nothing: she loses this much at her turn's end if no die took the times
+        habit)) ; scratching habit: her habit's number is this much more, all fight
 
-(const STATUS_COUNT u8 27)
+(const STATUS_COUNT u8 33)
 (const MOST u8 255)    ; every number is a byte and stops here (the owner, 2026-11-01)
 (const MOST_MANA u8 5) ; mana is kept all fight, this much at most
 
@@ -47,29 +53,33 @@
 ; glyph per stack in the hit point pill, or not at all (mana: the stars by the tray show it)
 (enum Show (count flag pips hidden))
 
-(const SHOW (array Show 27)
-    (make (array Show 27)
+(const SHOW (array Show 33)
+    (make (array Show 33)
         Show.count Show.count Show.hidden Show.count Show.count Show.pips Show.flag Show.hidden
         Show.count Show.hidden Show.count Show.count Show.count Show.flag Show.count Show.count
         Show.count Show.count Show.count Show.count Show.hidden Show.flag Show.count Show.flag
-        Show.flag Show.hidden Show.hidden))
+        Show.flag Show.hidden Show.hidden Show.count Show.count Show.count Show.flag Show.hidden
+        Show.count))
 
 ; the glyphs, in the hud font (tools/dhgr/game_hud.py): # shield, , fleas (a bug), % wet (a
 ; drop), < cheered, ; a ward pip, & in a box, + the next dice's plus, > times, ? spooked, :
 ; sends back (an arrow), " lasered (a red dot), / spiky, ^ strength (an orange sword), _
 ; kittens (a kitten's head), [ tangled (yarn), ] marked, ( catnip (a leaf), \ knead (a paw), =
-; shield stays, ' wished (a star)
-(const GLYPH (array u8 27)
-    (make (array u8 27)
+; shield stays, ' wished (a star); the chain cards' borrow these till they have their own: "
+; a red dot (the laser's), ! catfight (a sword), : mirror (the arrow), , a flea circus (the
+; flea), ^ her habit (the orange sword)
+(const GLYPH (array u8 33)
+    (make (array u8 33)
         '#' ',' ' ' '%' '<' ';' '&' ' ' '+' ' ' '>' '?' ':' '"' '/' '^' '_' '[' ']' '(' ' ' '\\'
-        '\\' '=' '\'' ' ' ' '))
+        '\\' '=' '\'' ' ' ' ' '"' '!' ':' ',' ' ' '^'))
 
 ; in words, for the bottom text: a name, then the stack's number for counts
-(const NAME (array (ptr u8) 27)
-    (make (array (ptr u8) 27)
+(const NAME (array (ptr u8) 33)
+    (make (array (ptr u8) 33)
         "Shield " "Fleas " "" "Wet " "Cheered +" "Ward " "In a box" "" "Next +" "" "Next x"
         "Spooked -" "Sends back " "Lasered" "Spiky " "Strength +" "Kittens " "Tangled " "Marked "
-        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "")
+        "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "" "Red dot " "Catfight +"
+        "Mirror " "Flea circus" "" "Habit +")
     :strings aux)
 
 ; a + b, MOST at most instead of wrapping
@@ -93,7 +103,7 @@
     (state.set_stack who (as u8 Status.reflect) 0))
 
 ; at the end of who's turn: wet dries a turn, tangles come loose, fleas bite. Gives the damage
-; for the engine to take off
+; for the engine to take off (battle/turn logs the bite)
 (fn turn_end ((who u8)) u8
     (let wet u8 (state.stack who (as u8 Status.wet)))
     (if (> wet 0)
@@ -106,7 +116,6 @@
     (state.set_stack who (as u8 Status.flea_turns) (- turns 1))
     (if (= turns 1)
         (state.set_stack who (as u8 Status.poison) 0))
-    (log.who who (at SAY SAY_TAKES_FROM_FLEAS) bite)
     bite)
 
 ; whether who skips the move it was going to make: it just came in or got up

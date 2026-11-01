@@ -12,9 +12,11 @@
 (import random)
 (import state)
 (import content/action ac)
+(import content/cards)
 (import content/charms)
 (import content/items)
 (import content/effects fx)
+(import content/play)
 (import content/foes)
 (import content/moves mv)
 (import content/statuses st)
@@ -27,8 +29,8 @@
 (import sound/sound)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 8)
-    (make (array (ptr u8) 8)
+(const SAY (array (ptr u8) 9)
+    (make (array (ptr u8) 9)
         "Pick a die 1-5, then an enemy ZXC."
         "E ends the turn. B: kit. ?: rules."
         "Your turn: pick a die (1-5)."
@@ -36,7 +38,8 @@
         "No playable dice."
         ": meow!"
         "A hairball: re-roll it to cough it up."
-        "Stars fill your mana; spells spend.")
+        "Stars fill your mana; spells spend."
+        "All your dice come back!")
     :strings aux)
 
 (const SAY_PICK_DIE_1 u8 0)
@@ -47,13 +50,14 @@
 (const SAY_MEOW u8 5)
 (const SAY_HAIRBALL_RE_ROLL u8 6)
 (const SAY_STARS_FILL_MANA u8 7)
+(const SAY_ALL_BACK u8 8)
 
 (const HURT_LEFT u8 8)  ; frames of a held hurt face left once the enemies' turn ends
 (const DEAL_EVERY u8 4) ; frames from one die landing to the next: a power of 2
 (const DEAL_SHIFT u8 2)
 (const ENEMY_PAUSE u8 10)
 (const KEY_1 u8 '1')
-(const END_BEAT u8 20) ; frames from the last play to a turn that ends by itself
+(const END_BEAT u8 20)  ; frames from the last play to a turn that ends by itself
 (const MANA_SHAKE u8 8) ; steps the mana stars shake, a book played short of mana
 
 (fn any_enemy_alive () bool
@@ -68,6 +72,8 @@
     (set state.turn (+ state.turn 1))
     (set state.rerolls (charms.round_start))
     (set state.rerolled false)
+    (set state.refreshes 0)
+    (set state.back_due false)
     (set state.last_played state.NOTHING)
     (for k u8 0 state.SLOTS
         (set (at state.combo k) 0))
@@ -295,10 +301,12 @@
     (deselect)
     (set state.rerolls (- state.rerolls 1))
     (set state.hud_rerolls true)
+    (set state.rerolled true)
     (dice.cough)
     (start_roll))
 
-; after an action is over: the battle may be over, else back to whose turn it is
+; after an action is over: the battle may be over, else back to whose turn it is; her dice come
+; back when her face set that off (a red dot), cards.BACK_MOST times a turn at most, rolled again
 (fn after_action () void
     (if (not (at state.actors state.HERO alive))
         (do
@@ -316,9 +324,22 @@
     (if (> (fx.mana) 0)
         (if (log.once log.HINT_MANA)
             (log.line (at SAY SAY_STARS_FILL_MANA) 0)))
+    (if state.back_due
+        (do
+            (set state.back_due false)
+            (if (< state.refreshes cards.BACK_MOST)
+                (do
+                    (set state.refreshes (+ state.refreshes 1))
+                    (log.line (at SAY SAY_ALL_BACK) 0)
+                    (dice.back)
+                    (start_roll)
+                    (return)))))
     (start_player))
 
+; the fight is over; won, her kittens are kept (a litter box brings them to the next)
 (fn end_battle ((how state.Phase)) void
+    (if (= how state.Phase.won)
+        (set state.kept (fx.hero st.Status.kittens)))
     (set state.phase how)
     (set state.timer 0)
     (look.show_mood state.HERO
@@ -327,11 +348,16 @@
             state.Mood.ko)
         1))
 
-; statuses that hurt at the end of who's turn
+; statuses that hurt at the end of who's turn: fleas bite (and say so)
 (fn turn_end ((who u8)) void
+    (let fleas bool (> (state.stack who (as u8 st.Status.flea_turns)) 0))
     (let hurt u8 (st.turn_end who))
+    (if fleas
+        (log.who who (at st.SAY st.SAY_TAKES_FROM_FLEAS) hurt))
     (if (> hurt 0)
-        (hit.lose who hurt)))
+        (do
+            (hit.lose who hurt)
+            (play.drain))))
 
 ; her turn ends: her kittens pounce (content/effects), her statuses tick, a spook wears off;
 ; then the enemies' turn begins: their shields from last turn go
@@ -339,7 +365,7 @@
     (set state.end_wait 0)
     (deselect)
     (sound.cue sound.Cue.turn_off)
-    (fx.turn_end)
+    (play.turn_end)
     (if (not (any_enemy_alive))
         (do
             (end_battle state.Phase.won)

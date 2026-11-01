@@ -63,8 +63,9 @@
     (text.char '/')
     (text.number (at state.actors who max_hp))
     (text.add_aux (at SAY SAY_HP))
+    (let first u8 (at state.FIRST_STACK who))
     (for s u8 0 st.STATUS_COUNT
-        (let n u8 (state.stack who s))
+        (let n u8 (at state.stacks (+ first s)))
         (let show st.Show (at st.SHOW s))
         (if (and (> n 0) (!= show st.Show.hidden))
             (do
@@ -83,6 +84,7 @@
     (set text.inverse true)
     (text.add_aux (at items.ITEMS row name))
     (set text.inverse false)
+    (text.tab (+ text.col 1)) ; a space after the longer names
     (text.tab PROMPT_COL)
     (match (at items.ITEMS row slot)
         (ac.Slot.wand (text.add_item (at SAY SAY_DAMAGE) n))

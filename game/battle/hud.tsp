@@ -12,6 +12,7 @@
 (import battle/tray)
 (import content/action ac)
 (import content/items)
+(import content/cards)
 (import content/effects fx)
 (import content/foes)
 (import content/moves mv)
@@ -108,8 +109,10 @@
     (start_glyphs who)
     (put '*')
     (put_number (at state.actors who hp))
+    ; its stacks read straight from the table (state.stack is a call when the build is squeezed)
+    (let first u8 (at state.FIRST_STACK who))
     (for s u8 0 st.STATUS_COUNT
-        (let n u8 (state.stack who s))
+        (let n u8 (at state.stacks (+ first s)))
         (let show st.Show (at st.SHOW s))
         (if (= show st.Show.pips)
             (for k u8 0 n
@@ -169,13 +172,14 @@
     (let small u8 n)
     (if (> small 9)
         (set small 9))
-    (match (at items.ITEMS row effect)
-        (ac.Effect.nothing "")
-        (ac.Effect.double (at TIMESES small))
-        (ac.Effect.plus (at PLUSES small))
-        (ac.Effect.copy (at PLUSES small))
-        (ac.Effect.knead (at PLUSES small))
-        (_ (at DIGITS n))))
+    (let tags u8 (at cards.CARDS row tags))
+    (if (!= (& tags ac.CAP_NONE) 0)
+        (return ""))
+    (if (!= (& tags ac.CAP_TIMES) 0)
+        (return (at TIMESES small)))
+    (if (!= (& tags ac.CAP_PLUS) 0)
+        (return (at PLUSES small)))
+    (at DIGITS n))
 
 ; die d's card: none past the dice she rolls or while an enemy holds it, a blank card once it
 ; is played

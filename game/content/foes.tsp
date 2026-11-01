@@ -7,7 +7,8 @@
 (import battle/log)
 (import battle/spawn)
 (import content/action ac)
-(import content/effects fx)
+(import content/cards)
+(import content/play)
 (import content/enemies en)
 (import content/moves mv)
 (import content/statuses st)
@@ -46,9 +47,13 @@
 (fn skips ((who u8)) bool
     (or (st.skips who) (stalls who)))
 
+; what a catfight adds to the hit it turned on a friend (move_target sets it, land_move uses it)
+(let fight_extra u8 0)
+
 ; who an enemy's move goes to: itself, a friend (the first other one standing, left to right;
 ; itself when alone), else the hero. A lasered enemy's hit goes to a friend, or to the hero when
-; it has none; the laser is used up (use: the move is made, not only shown)
+; it has none; the laser is used up (use: the move is made, not only shown). A hit on her from
+; one in a catfight goes to a friend instead, its catfight harder (with no friend it waits)
 (fn move_target ((by u8) (row u8) (use bool)) u8
     (let aim state.Aim (mv.aim row))
     (let effect ac.Effect (mv.effect row))
@@ -62,6 +67,17 @@
             (return (friend by state.HERO))))
     (if (= aim state.Aim.friend)
         (return (friend by by)))
+    (let fight u8 (state.stack by (as u8 st.Status.catfight)))
+    (if (and (> fight 0) (or (= effect ac.Effect.hit) (= effect ac.Effect.hit2)))
+        (do
+            (let f u8 (friend by state.NOTHING))
+            (if (!= f state.NOTHING)
+                (do
+                    (if use
+                        (do
+                            (set fight_extra fight)
+                            (state.set_stack by (as u8 st.Status.catfight) 0)))
+                    (return f)))))
     state.HERO)
 
 ; the first enemy standing other than by, else alone
@@ -109,18 +125,24 @@
             (sound.cue sound.Cue.ping)
             (log.line (at SAY SAY_MISSES_BOX) 0)
             (return)))
-    (apply (mv.effect row) by target (mv.amount row)))
+    (let extra u8 fight_extra)
+    (set fight_extra 0)
+    (apply (mv.effect row) by target (st.sum (mv.amount row) extra)))
 
 (fn apply ((effect ac.Effect) (by u8) (target u8) (n u8)) void
     (match effect
         (ac.Effect.hit
             (sound.cue sound.Cue.zap)
-            (hit.strike by target n false))
+            (hit.strike by target n false)
+            (play.drain))
         (ac.Effect.hit2
             (sound.cue sound.Cue.zap)
             (hit.strike by target n false)
+            (play.drain)
             (if (at state.actors target alive)
-                (hit.strike by target n false)))
+                (do
+                    (hit.strike by target n false)
+                    (play.drain))))
         (ac.Effect.shield
             (sound.cue sound.Cue.ping)
             (hit.add_stacks target (as u8 st.Status.shield) n)
@@ -159,9 +181,9 @@
                     (sound.cue sound.Cue.puff)
                     (set (at state.clogged n) true)
                     (log.line (at SAY SAY_HAIRBALL_CLOGS_SLOT) 0))))
-        (ac.Effect.fleas (fx.curse effect target n))
-        (ac.Effect.wet (fx.curse effect target n))
-        (ac.Effect.spook (fx.curse effect target n))
+        (ac.Effect.fleas (play.run (addr_of (at cards.FLEAS 0)) target n))
+        (ac.Effect.wet (play.run (addr_of (at cards.WET 0)) target n))
+        (ac.Effect.spook (play.run (addr_of (at cards.SPOOK 0)) target n))
         (_)))
 
 ; n of by's kind's calls into empty spots, each waiting a round before its first move

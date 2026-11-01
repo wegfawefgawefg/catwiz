@@ -1,24 +1,20 @@
-; what the hero's faces do: the one match on the effect kind (content/action) for her items, the
-; boosts and the threes, the curses (hers and the enemies'), and her kittens. The enemies' moves
-; are content/foes.tsp. The rules are the balance sim's (tools/sim/items.py, rules.py): every
+; the rules her faces land by: a face's number, the boosts on it in their order, what playing
+; it pays and counts (a book's mana, its slot's count towards a three, what she played last),
+; and the kittens' pounce. What each face then does is its item's steps (content/cards.tsp, run
+; by content/play). The rules are the balance sim's (tools/sim/items.py, rules.py): every
 ; effect does exactly what its text says; the dice are the only luck. Every number is a byte and
 ; stops at 255 (st.sum) instead of wrapping (the owner, 2026-11-01).
 
 (import state)
 (import battle/hit)
-(import battle/log)
 (import content/action ac)
+(import content/cards)
 (import content/charms)
 (import content/encounters enc)
 (import content/items)
 (import content/statuses st)
-(import sound/sound)
-(import content/effects_said said)
 
-(const FLEA_TURNS u8 3)
-(const ZOOMIES_HITS u8 5)
-(const SCREAM_SELF u8 1)
-(const COMBO_AT u8 3)       ; the third face of a slot in a turn sets off its combo
+(const COMBO_AT u8 3)       ; the third face of a slot in a turn sets off its three
 (const KITTEN_HIT u8 1)     ; what a kitten's pounce does (kitten mittens add theirs)
 (const KITTENS_MOST u8 255) ; kittens at most (a byte: no cap)
 
@@ -58,12 +54,16 @@
         (set out (st.sum out n)))
     out)
 
-; item row's number at its slot's level: its amount, and its step more a level
+; item row's number at its slot's level: its amount, and its step more a level; one that grows
+; with her habit (ac.GROWS) that much more
 (fn number ((row u8)) u8
     (let slot ac.Slot (at items.ITEMS row slot))
     (if (= slot ac.Slot.junk)
         (return 0))
-    (number_at row (at state.levels (as u8 slot))))
+    (let n u8 (number_at row (at state.levels (as u8 slot))))
+    (if (!= (& (at cards.CARDS row tags) ac.GROWS) 0)
+        (set n (st.sum n (hero st.Status.habit))))
+    n)
 
 ; and at level (a card shows what an item would be)
 (fn number_at ((row u8) (level u8)) u8
@@ -91,7 +91,10 @@
             (set n (times n mult))
             (set counts mult)
             (if use
-                (set_hero st.Status.mult 0))))
+                (do
+                    ; a die took the times: a double or nothing's bet is won
+                    (set_hero st.Status.mult 0)
+                    (set_hero st.Status.gamble 0)))))
     (if (> (hero st.Status.plus_left) 0)
         (do
             (set n (st.sum n (hero st.Status.plus)))
@@ -127,239 +130,31 @@
         (- n spook)
         0))
 
-; the hero's face lands: a trick sets up the next dice; any other item lands with its boosts
-(fn land_face ((row u8) (target u8)) void
-    (if (= (at items.ITEMS row slot) ac.Slot.trick)
-        (do
-            (trick row target)
-            (return)))
-    (land_item row target false))
+; whether the face landing now is its slot's third this turn (its item's three steps run)
+(let three bool false)
 
-; item row (no trick) lands on target: its number, its slot's count towards a three, its mana
-; (a book's cost, bad milk's more; a copy of a book is free, as she may have spent the mana), its
-; effect, then its combo when this face makes the third. again: a copy (copycat), which is not
-; what she played last
-(fn land_item ((row u8) (target u8) (again bool)) void
+; item row (no trick) is about to land on target: its number after the boosts (given), its
+; slot's count towards a three, its mana (a book's cost, bad milk's more; a copy of a book is
+; free, as she may have spent the mana) and what she played last. again: a copy (copycat), which
+; is not what she played last
+(fn prepare ((row u8) (target u8) (again bool)) u8
     (let slot ac.Slot (at items.ITEMS row slot))
     (let n u8 (boosted row true))
     (let before u8 (at state.combo (as u8 slot)))
     (let after u8 (st.sum before counts))
     (set (at state.combo (as u8 slot)) after)
-    (let three bool (and (< before COMBO_AT) (>= after COMBO_AT)))
+    (set three (and (< before COMBO_AT) (>= after COMBO_AT)))
     (if (not again)
         (do
             (set state.last_face row)
             (set state.last_on target)))
     (if (and (= slot ac.Slot.book) (not again))
         (set_hero st.Status.mana (- (mana) (cost row))))
-    (effect (at items.ITEMS row effect) target n)
-    (if (and three (!= (at items.ITEMS row combo) ac.Combo.none))
-        (combo row target n)))
-
-; a trick: a rule for the next dice, till her turn ends
-(fn trick ((row u8) (target u8)) void
-    (let n u8 (number row))
-    (sound.cue sound.Cue.chime)
-    (match (at items.ITEMS row effect)
-        (ac.Effect.plus
-            ; the next die, on every hit of it; pluses add up (the owner, 2026-10-31)
-            (add_hero st.Status.plus n)
-            (set_hero st.Status.plus_left 1)
-            (log.line (at said.SAY said.SAY_NEXT_DIE) (hero st.Status.plus)))
-        (ac.Effect.double
-            ; played after a plus it doubles that too
-            (set_hero st.Status.plus (times (hero st.Status.plus) n))
-            (let mult u8 (hero st.Status.mult))
-            (if (= mult 0)
-                (set mult 1))
-            (set_hero st.Status.mult (times mult n))
-            (log.line (at said.SAY said.SAY_TIMES_NEXT) (hero st.Status.mult)))
-        (ac.Effect.copy
-            (if (= state.last_face state.NOTHING)
-                (do
-                    (log.line (at said.SAY said.SAY_NOTHING_COPY_YET) 0)
-                    (return)))
-            (if (> n 0)
-                (do
-                    (add_hero st.Status.plus n)
-                    (if (= (hero st.Status.plus_left) 0)
-                        (set_hero st.Status.plus_left 1))))
-            (let on u8 state.last_on)
-            (if (not (at state.actors on alive))
-                (set on target))
-            (log.line (at said.SAY said.SAY_COPYCAT) 0)
-            (land_item state.last_face on true))
-        (ac.Effect.catnip2
-            (add_hero st.Status.nip n)
-            (set_hero st.Status.nipped 1)
-            (log.line (at said.SAY said.SAY_CATNIP_NEXT_DICE) n))
-        (ac.Effect.knead
-            (set_hero st.Status.knead_fluff 1)
-            (add_hero st.Status.knead_wand n)
-            (log.line (at said.SAY said.SAY_KNEAD_NEXT_FLUFF) n))
-        (_)))
-
-(fn strike ((t u8) (n u8)) void
-    (hit.strike state.HERO t n false))
+    (set state.wand_on (= slot ac.Slot.wand))
+    n)
 
 (fn alive ((i u8)) bool
     (at state.actors i alive))
-
-(fn effect ((e ac.Effect) (t u8) (n u8)) void
-    (match e
-        (ac.Effect.hit
-            (sound.cue sound.Cue.zap)
-            (strike t n))
-        (ac.Effect.shield
-            (sound.cue sound.Cue.ping)
-            (add_hero st.Status.shield n)
-            (log.who state.HERO (at said.SAY said.SAY_SHIELDS) n))
-        (ac.Effect.mana
-            (sound.cue sound.Cue.chime)
-            (st.gain_mana n)
-            (log.line (at said.SAY said.SAY_MANA_NOW) (mana)))
-        (ac.Effect.yarn
-            (sound.cue sound.Cue.zap)
-            (strike t n)
-            (if (alive t)
-                (curse ac.Effect.tangled t 1)))
-        (ac.Effect.spray
-            (sound.cue sound.Cue.zap)
-            (strike t n)
-            (if (alive t)
-                (curse ac.Effect.wet t 1)))
-        (ac.Effect.feather
-            (sound.cue sound.Cue.zap)
-            (strike t n)
-            (pounce t))
-        (ac.Effect.pierce
-            (sound.cue sound.Cue.zap)
-            (hit.strike state.HERO t n true))
-        (ac.Effect.string
-            (sound.cue sound.Cue.zap)
-            (strike t n)
-            (let t2 u8 (next_standing t))
-            (if (!= t2 state.NOTHING)
-                (strike t2 n)))
-        (ac.Effect.shoot
-            (sound.cue sound.Cue.zap)
-            (st.gain_mana 1)
-            (strike t n))
-        (ac.Effect.moon
-            (sound.cue sound.Cue.ping)
-            (st.gain_mana 1)
-            (add_hero st.Status.shield n)
-            (log.who state.HERO (at said.SAY said.SAY_SHIELDS_1_MANA) n))
-        (ac.Effect.wish
-            (sound.cue sound.Cue.chime)
-            (st.gain_mana n)
-            (set_hero st.Status.wish 1)
-            (log.line (at said.SAY said.SAY_WISH_NEXT_WAND) 0))
-        (ac.Effect.litter
-            (sound.cue sound.Cue.chime)
-            (st.gain_mana (st.sum n (hero st.Status.kittens)))
-            (log.line (at said.SAY said.SAY_MANA_NOW) (mana)))
-        (ac.Effect.kittens
-            (sound.cue sound.Cue.meow)
-            (add_kittens n)
-            (log.line (at said.SAY said.SAY_KITTENS_JOIN_YOU) (hero st.Status.kittens)))
-        (ac.Effect.laserall
-            (sound.cue sound.Cue.zap)
-            (for i u8 1 state.ACTORS
-                (if (alive i)
-                    (do
-                        (strike i n)
-                        (if (alive i)
-                            (state.set_stack i (as u8 st.Status.laser) 1))))))
-        (ac.Effect.knock
-            (sound.cue sound.Cue.zap)
-            (strip t)
-            (strike t n))
-        (ac.Effect.cannon (cannon t n))
-        (ac.Effect.pile
-            (sound.cue sound.Cue.ping)
-            (let kittens u8 (hero st.Status.kittens))
-            (let shield u8 (st.sum (st.sum n kittens) kittens))
-            (add_hero st.Status.shield shield)
-            (log.who state.HERO (at said.SAY said.SAY_SHIELDS) shield))
-        (ac.Effect.zoomies
-            (sound.cue sound.Cue.zap)
-            (let at u8 0)
-            (for k u8 0 ZOOMIES_HITS
-                (set at (next_standing at))
-                (if (!= at state.NOTHING)
-                    (strike at n))))
-        (ac.Effect.scream
-            (sound.cue sound.Cue.wobble)
-            (for i u8 1 state.ACTORS
-                (if (alive i)
-                    (strike i n)))
-            (hit.lose state.HERO SCREAM_SELF)
-            (log.who state.HERO (at said.SAY said.SAY_TAKES_FROM_SCREAMING) SCREAM_SELF))
-        (ac.Effect.nothing
-            (sound.cue sound.Cue.puff)
-            (log.line (at said.SAY said.SAY_HAIRBALL_NOTHING_HAPPENS) 0))
-        (ac.Effect.fleas (curse e t n))
-        (ac.Effect.wet (curse e t n))
-        (ac.Effect.tangled (curse e t n))
-        (ac.Effect.brand (curse e t n))
-        (_)))
-
-; the knock: it drops its shield, its cheer, its strength and what it sends back
-(fn strip ((t u8)) void
-    (state.set_stack t (as u8 st.Status.shield) 0)
-    (state.set_stack t (as u8 st.Status.cheer) 0)
-    (state.set_stack t (as u8 st.Status.strength) 0)
-    (state.set_stack t (as u8 st.Status.reflect) 0)
-    (log.who t (at said.SAY said.SAY_DROPS_ITS_SHIELD) 0))
-
-; what the third face of a slot in a turn adds (the item's combo, combo_n), n the face's number
-(fn combo ((row u8) (t u8) (n u8)) void
-    (let k u8 (at items.ITEMS row combo_n))
-    (sound.cue sound.Cue.chime)
-    (match (at items.ITEMS row combo)
-        (ac.Combo.sweep ; the third hits every other enemy too
-            (log.line (at said.SAY said.SAY_THREE_HITS_ALL) 0)
-            (for i u8 1 state.ACTORS
-                (if (and (alive i) (!= i t))
-                    (strike i n))))
-        (ac.Combo.keep ; the shield stays through her next turn's start
-            (set_hero st.Status.keep 1)
-            (log.line (at said.SAY said.SAY_THREE_SHIELD_STAYS) 0))
-        (ac.Combo.thorns
-            (if (> k (hero st.Status.thorns))
-                (set_hero st.Status.thorns k))
-            (log.line (at said.SAY said.SAY_THREE_SPIKY) k))
-        (ac.Combo.box ; hit-alls miss, and a kitten
-            (set_hero st.Status.box 1)
-            (add_kittens k)
-            (log.line (at said.SAY said.SAY_THREE_BOX) 0))
-        (ac.Combo.heal
-            (log.line (at said.SAY said.SAY_THREE_WARM) 0)
-            (hit.heal state.HERO k))
-        (ac.Combo.static ; k to every enemy, twice that to a wet one
-            (log.line (at said.SAY said.SAY_THREE_STATIC) 0)
-            (for i u8 1 state.ACTORS
-                (if (alive i)
-                    (strike i (if (> (state.stack i (as u8 st.Status.wet)) 0)
-                        (<< k 1)
-                        k)))))
-        (ac.Combo.ward
-            (add_hero st.Status.ward k)
-            (log.line (at said.SAY said.SAY_THREE_WARD) 0))
-        (_))
-    ; a purrfect trio: each three hits every enemy too
-    (let trio u8 (charms.amount enc.CharmKind.trio))
-    (if (> trio 0)
-        (for i u8 1 state.ACTORS
-            (if (alive i)
-                (hit.plain i trio)))))
-
-(fn add_kittens ((n u8)) void
-    (let k u8 (st.sum (hero st.Status.kittens) n))
-    (if (> k KITTENS_MOST)
-        (set k KITTENS_MOST))
-    (set_hero st.Status.kittens k))
 
 ; every kitten pounces on t: KITTEN_HIT each, more with mittens and on a mark
 (fn pounce ((t u8)) void
@@ -368,51 +163,6 @@
         (if (not (alive t))
             (return))
         (hit.plain t (st.sum bite (state.stack t (as u8 st.Status.brand))))))
-
-; the kitten cannon: every kitten is launched at t for n, at the next enemy standing when t
-; falls, and they are all gone
-(fn cannon ((t u8) (n u8)) void
-    (sound.cue sound.Cue.zap)
-    (let kittens u8 (hero st.Status.kittens))
-    (set_hero st.Status.kittens 0)
-    (log.line (at said.SAY said.SAY_KITTENS_LAUNCHED) kittens)
-    (for k u8 0 kittens
-        (if (not (alive t))
-            (set t (next_standing t)))
-        (if (= t state.NOTHING)
-            (return))
-        (strike t n)))
-
-; her turn ends: still water's mana; the turn's boosts go, a waiting plus and times too (the
-; owner, 2026-11-01); the kittens pounce (a marked enemy first, else the leftmost), twice with
-; catnip
-(fn turn_end () void
-    (charms.still_water)
-    (set_hero st.Status.plus 0)
-    (set_hero st.Status.plus_left 0)
-    (set_hero st.Status.mult 0)
-    (let times u8 (if (> (hero st.Status.nipped) 0)
-        2
-        1))
-    (set_hero st.Status.nipped 0)
-    (set_hero st.Status.nip 0)
-    (set_hero st.Status.knead_fluff 0)
-    (set_hero st.Status.knead_wand 0)
-    (if (= (hero st.Status.kittens) 0)
-        (return))
-    (for k u8 0 times
-        (let t u8 state.NOTHING)
-        (for i u8 1 state.ACTORS
-            (if (and (alive i) (= t state.NOTHING))
-                (set t i)))
-        (for i u8 1 state.ACTORS
-            (if (and (alive i) (> (state.stack i (as u8 st.Status.brand)) 0))
-                (if (or (= t state.NOTHING) (= (state.stack t (as u8 st.Status.brand)) 0))
-                    (set t i))))
-        (if (!= t state.NOTHING)
-            (do
-                (log.line (at said.SAY said.SAY_KITTENS_POUNCE) 0)
-                (pounce t)))))
 
 ; the next enemy standing after t, left to right and round again; NOTHING when none is
 (fn next_standing ((t u8)) u8
@@ -426,43 +176,3 @@
         (if (alive t)
             (return t)))
     state.NOTHING)
-
-; a curse always lands: on a ward it breaks one pip instead of taking effect (a rubber duck
-; shields her then)
-(fn curse ((e ac.Effect) (target u8) (n u8)) void
-    (sound.cue sound.Cue.hiss)
-    (let ward u8 (state.stack target (as u8 st.Status.ward)))
-    (if (> ward 0)
-        (do
-            (state.set_stack target (as u8 st.Status.ward) (- ward 1))
-            (log.who target (at said.SAY said.SAY_WARD_BROKEN_NO) 0)
-            (charms.ward_blocked)
-            (return)))
-    (match e
-        (ac.Effect.fleas
-            (hit.add_stacks target (as u8 st.Status.poison) n)
-            (state.set_stack target (as u8 st.Status.flea_turns) FLEA_TURNS)
-            (log.who target
-                (at said.SAY said.SAY_GETS_FLEAS_TURN)
-                (state.stack target (as u8 st.Status.poison))))
-        (ac.Effect.wet
-            ; its turns add to what it has, at least 1 (the owner, 2026-10-31)
-            (if (= n 0)
-                (set n 1))
-            (let turns u8 (st.sum (state.stack target (as u8 st.Status.wet)) n))
-            (state.set_stack target (as u8 st.Status.wet) turns)
-            (log.who target (at said.SAY said.SAY_WET_HALF_HITS) turns))
-        (ac.Effect.spook
-            (hit.add_stacks target (as u8 st.Status.spook) n)
-            (log.who target (at said.SAY said.SAY_SPOOKED_DICE) n))
-        (ac.Effect.brand
-            (hit.add_stacks target (as u8 st.Status.brand) n)
-            (log.who target
-                (at said.SAY said.SAY_MARKED_HITS)
-                (state.stack target (as u8 st.Status.brand))))
-        (ac.Effect.tangled
-            (hit.add_stacks target (as u8 st.Status.tangle) n)
-            (log.who target
-                (at said.SAY said.SAY_TANGLED_HITS)
-                (state.stack target (as u8 st.Status.tangle))))
-        (_)))

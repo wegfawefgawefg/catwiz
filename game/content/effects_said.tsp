@@ -1,8 +1,8 @@
 ; what the hero's faces (content/effects) say in the log: its sentences, in aux memory (battle/log
 ; reads them there), by name
 
-(const SAY (array (ptr u8) 29)
-    (make (array (ptr u8) 29)
+(const SAY (array (ptr u8) 40)
+    (make (array (ptr u8) 40)
         "The next die gets +#."
         "Times: the next die x#."
         "Nothing to copy yet."
@@ -31,7 +31,18 @@
         " is wet: half hits, # turns."
         " is spooked: dice -#."
         " is marked: hits +#."
-        " is tangled: hits -#.")
+        " is tangled: hits -#."
+        " has a red dot: # times."
+        " wants a catfight: +#."
+        " gets a flea circus: #."
+        " catches the fleas: #."
+        "You get a free re-roll."
+        "Your next die is x#. Use it or pay!"
+        " loses the bet: # hp."
+        "There is nothing to mimic."
+        " gets spiky: # back."
+        " comes back with # hp!"
+        " takes # bounced back.")
     :strings aux)
 
 (const SAY_NEXT_DIE u8 0)
@@ -63,3 +74,14 @@
 (const SAY_SPOOKED_DICE u8 26)
 (const SAY_MARKED_HITS u8 27)
 (const SAY_TANGLED_HITS u8 28)
+(const SAY_RED_DOT u8 29)
+(const SAY_CATFIGHT u8 30)
+(const SAY_FLEA_CIRCUS u8 31)
+(const SAY_FLEAS_JUMP u8 32)
+(const SAY_FREE_REROLL u8 33)
+(const SAY_DOUBLE_NEXT u8 34)
+(const SAY_BET_LOST u8 35)
+(const SAY_NO_MIMIC u8 36)
+(const SAY_SPIKY u8 37)
+(const SAY_NINE_LIVES u8 38)
+(const SAY_BOUNCED u8 39)

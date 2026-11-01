@@ -309,7 +309,7 @@
         (state.Pick.nap_slot (describe_card (+ UP c)))
         (state.Pick.charms
             (title (enc.charm_name c) false)
-            (row_aux 1 (enc.charm_text c) 0)
+            (item_aux 1 (enc.charm_text c) (enc.charm_amount c))
             (row 2 (at SAY SAY_ALL_RUN) 0))
         (state.Pick.nap
             (if (= c 0)

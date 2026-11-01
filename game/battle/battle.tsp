@@ -10,6 +10,8 @@
 (import content/encounters enc)
 (import content/items)
 (import content/statuses st)
+(import content/play)
+(import content/steps)
 (import draw/screen)
 (import draw/scene)
 (import draw/stage)
@@ -45,7 +47,8 @@
 (const WIN_AT_ONCE bool false)
 (const SEED u16 0)
 
-; a new run: the starting items, no levels or charms, full hit points, the first fight
+; a new run: the starting items, no levels or charms (none spent), no kittens kept, full hit
+; points, the first fight
 (fn enter () void
     (if (!= SEED 0)
         (set random.seed SEED))
@@ -53,10 +56,12 @@
     (for k u8 0 state.SLOTS
         (set (at state.items k) (at items.STARTING_ITEMS k))
         (set (at state.levels k) 0))
-    (for c u8 0 10
-        (set (at state.charms c) 0))
+    (for c u8 0 charms.CHARM_COUNT
+        (set (at state.charms c) 0)
+        (set (at state.spent c) false))
+    (set state.kept 0)
     (let charm u8 START_CHARM)
-    (if (< charm 10)
+    (if (< charm charms.CHARM_COUNT)
         (set (at state.charms charm) 1))
     (set state.hero_hp enc.HERO.hp)
     (set state.stage START_STAGE)
@@ -100,7 +105,8 @@
         (set (at state.floaters i time) 0))
     (set_hero)
     (st.start state.HERO state.NOTHING)
-    (charms.fight_start)
+    (charms.hook steps.When.fight_start)
+    (play.drain)
     (let count u8 (enc.count state.fight))
     (for i u8 1 state.ACTORS
         (if (> i count)

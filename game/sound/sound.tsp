@@ -104,6 +104,16 @@
         (return))
     (card_play c))
 
+; the same for cue number c (a card's steps name their sounds by number: content/play)
+(fn cue_byte ((c u8)) void
+    (if (not mb.found)
+        (do
+            (sfx.play (at SPEAKER_FIRST c) (at SPEAKER_COUNT c))
+            (return)))
+    (if (and (not (at CUE_WAITS c)) (mb.effect_playing))
+        (return))
+    (mb.effect (at CARD_EFFECT c) (at CUE_VOICE c) 1))
+
 ; each song in aux memory, in Song's order
 (const SONG_BYTES (array (ptr u8) 4)
     (make (array (ptr u8) 4)

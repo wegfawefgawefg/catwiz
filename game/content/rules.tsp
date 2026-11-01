@@ -1,4 +1,4 @@
-; the rules page's text (battle/rules): twelve pages, each a title and up to fifteen lines of 35
+; the rules page's text (battle/rules): thirteen pages, each a title and up to fifteen lines of 35
 ; columns, on the disk (:on disk; read with lib/disk while the page is open), since aux memory is
 ; full. Every rule here is the engine's as it is (content/effects, statuses, charms, battle/turn,
 ; reward, offer): change them together. page lays a page out: the title in inverse, every line
@@ -6,7 +6,7 @@
 
 (const PAGE_LINES u8 15)
 (const PAGE_BYTES u16 560) ; the title and PAGE_LINES lines, 35 bytes each
-(const PAGE_COUNT u8 12)
+(const PAGE_COUNT u8 13)
 
 ; line s as 35 bytes, each with flag added (128: inverse)
 (macro line_bytes (s flag)
@@ -72,7 +72,8 @@
     "Don't like your dice? Press R to"
     "re-roll. Every die you haven't"
     "played yet is thrown again. You"
-    "get two re-rolls a turn."
+    "get two re-rolls a turn. Cards can"
+    "give more, up to 9."
     ""
     "The turn ends when every die is"
     "played, or when you press E."
@@ -161,7 +162,7 @@
     ""
     "The count starts over each turn.")
 
-(page RULES_STATUS1 "STATUSES (1 OF 2)"
+(page RULES_STATUS1 "STATUSES (1 OF 3)"
     "Statuses are effects on a fighter."
     "The badge under each fighter shows"
     "its hp and its statuses."
@@ -177,7 +178,7 @@
     "SPOOKED N: Catwiz's dice are N"
     "lower until her turn ends.")
 
-(page RULES_STATUS2 "STATUSES (2 OF 2)"
+(page RULES_STATUS2 "STATUSES (2 OF 3)"
     "SHIELD N: blocks N damage. It is"
     "gone at its owner's next turn."
     "WARD: each pip blocks one curse."
@@ -192,6 +193,22 @@
     ""
     "No number goes above 255.")
 
+(page RULES_STATUS3 "STATUSES (3 OF 3)"
+    "RED DOT N: when a wand hits it, all"
+    "your dice come back, even played"
+    "ones, and roll again. It uses one"
+    "dot. Dice come back 5 times a turn"
+    "at most."
+    "CATFIGHT N: its next attack hits"
+    "one of its friends instead, N more."
+    "MIRROR N: damage her shield blocks"
+    "goes back to the attacker, N at"
+    "most, until her next turn."
+    "FLEA CIRCUS: when it is beaten, its"
+    "fleas jump to the next enemy, x2."
+    "HABIT N: her Scratching Habit hits"
+    "N harder for the rest of the fight.")
+
 (page RULES_REWARDS "REWARDS AND CHARMS"
     "After each fight, pick one of three"
     "rewards: a new item or a level."
@@ -205,7 +222,9 @@
     "Press B to read your charms."
     ""
     "Catwiz's hp carries over from one"
-    "fight to the next.")
+    "fight to the next."
+    "Nine Lives brings Catwiz back once"
+    "when her hp reaches 0.")
 
 (page RULES_RUN "THE RUN"
     "A run is ten fights in three"
@@ -233,5 +252,6 @@
         (7 (addr_of (at RULES_THREES 0)))
         (8 (addr_of (at RULES_STATUS1 0)))
         (9 (addr_of (at RULES_STATUS2 0)))
-        (10 (addr_of (at RULES_REWARDS 0)))
+        (10 (addr_of (at RULES_STATUS3 0)))
+        (11 (addr_of (at RULES_REWARDS 0)))
         (_ (addr_of (at RULES_RUN 0)))))

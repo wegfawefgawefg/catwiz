@@ -44,9 +44,19 @@
     (set (at state.face_of d) f)
     (set (at state.hand d) (item_on f)))
 
-; a re-roll: the hairballs the unplayed dice show are coughed up, their slots back on every die
+; every die she rolls comes back to be played again (a red dot: content/cards), used or not, but
+; one an enemy holds; then they roll (battle/turn start_roll)
+(fn back () void
+    (for d u8 0 state.dice_n
+        (if (= (at state.held d) state.NOTHING)
+            (do
+                (set (at state.played d) false)
+                (set state.hud_dice (| state.hud_dice (<< 1 d))))))
+    (cough))
+
+; a re-roll or the dice coming back: the hairballs the unplayed dice show are coughed up, their
+; slots back on every die (coming back is not a re-roll: battle/turn's reroll says it is one)
 (fn cough () void
-    (set state.rerolled true)
     (for d u8 0 state.DICE_MOST
         (if (and (not (at state.played d)) (= (at state.hand d) items.HAIRBALL))
             (do
