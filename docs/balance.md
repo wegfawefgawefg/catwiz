@@ -207,7 +207,7 @@ now). The nap: the hit points she is missing back (NAP_HEAL_SHIFT 0; 1 is half),
 a slot of her choice instead. Catwiz: 30 hit points; starts with Twig Wand, Fluff, Star,
 Zoomies, Fleas, Plus One.
 
-The woods' elite, new (one enemy, three moves; the engine's stand-in is "Old gnome"):
+The woods' elite, new (one enemy, three moves; in the game since 2026-11-01, on the puffcap's figure until it has art):
 
 | enemy | hp | ward | moves | twist |
 |---|---|---|---|---|
@@ -1072,25 +1072,39 @@ that was followed by a re-learned draft and a retune of the elites and the king.
 
 ## What the engine needs for these tables
 
-The item model is in the game (Catwiz main, from f403880's tables). For the tuned tables, on
-top of it:
+The item model is in the game (Catwiz main, from f403880's tables). The tuned tables went in on
+2026-11-01 (branch `tuned`); each of the list below is in now:
 
-1. The new tables' numbers: `python3 tools/sim/tablediff.py` lists them (items, enemies, moves,
-   charms, the fights, the pools, the constants).
-2. KITTEN_HIT (1) and KITTENS_MOST (255: no cap but the byte) as content constants where the
-   pounce and the kitten cap read them.
-3. Bad Milk: wands +2 (its amount), books cost 1 more for each bad milk held; no fleas.
-4. A waiting plus and times cleared at the turn's end (after still water's turn), and every
-   number saturating at 255 instead of wrapping: the times, the plus, a face's boosted number,
-   a hit's damage (after the brand), shield, kittens, status turns, wet's adding, the
-   three-count.
-5. THE OLD SHROOM: an enemy row and three moves (calls 2 sporelets, cap slam 8, spore cap
-   shield 5), its art; in the engine's stand-in's place.
-6. Kitten Cannon as a cash-out wand (no mana, 5 each, a level +1): every kitten launched at
-   the picked enemy for the face's number, on to the next standing enemy when it falls, then
-   the kittens are 0.
-7. The pools as `OFFER_CARDS` and `OFFER_CHARMS` (the game's shape: the sims' tables carry
-   only the cards in the pool; the rest weigh 0), NAP_HEAL_SHIFT 0.
+1. In: the new tables' numbers (`python3 tools/sim/tablediff.py` lists them): items, enemies,
+   moves, the charms' amounts and texts, the fights as the sim's run (the nightflap is in no
+   fight now), the constants.
+2. In: KITTEN_HIT (1) and KITTENS_MOST (255) in content/effects.tsp, where the pounce and the
+   kitten cap read them.
+3. In: Bad Milk, wands +2 (its amount), books cost 1 more for each bad milk held (`fx.cost`; the
+   kit page shows the cost with it, the book's own line still says its base); no fleas.
+4. In: a waiting plus and times cleared at the turn's end (after still water's mana, as the
+   sim), and every number saturating at 255 (`st.sum`, `fx.times`): the times, the plus, a
+   face's boosted number, a hit's damage (after the mark), stacks (shield, kittens, statuses),
+   wet's adding, the three-count, mana gained. The hud's badges show three digits; a floating
+   number shows 99 at most (the log has the whole number).
+5. In: THE OLD SHROOM, an enemy row and three moves (calls 2 sporelets, cap slam 8, spore cap
+   shield 5). No art yet: it stands in on the puffcap's figure.
+6. In: Kitten Cannon as a cash-out wand (no mana, 5 each, a level +1): every kitten launched at
+   the picked enemy for the face's number (a wand's boosts count), on to the next standing enemy
+   when it falls, then the kittens are 0.
+7. In: the pools as `OFFER_CARDS` (the sim's 33 rows; the start items are not in it) and
+   `OFFER_CHARMS`, NAP_HEAL_SHIFT 0.
+
+Kept as the game had it (the owner): a Copycat copy of a book is free (the sim makes it pay,
+a dud without the mana). The sim's proposed new numbers for Wishing Star, Yarn and Spray are
+not in (proposals, not in the tables).
+
+`validate.py` (the sim against the machine, above) is the bag game's: it does not run on the
+item game (it stops reading the game's tables, before booting) and was not ported, so the
+2026-11-01 rules were checked by hand in the machine (scripted dice in a test copy): a plus
+used up by one die, a times gone the next turn, wet 1, 2, 3 on one enemy, the Cannon (3 kittens
+for 15; 255 kittens through both enemies), a Times Two stack to x64 hitting for 255, the old
+shroom's fight and moves, Bad Milk's costs.
 
 The sims' draw: three different cards by weight among those whose `from` is at most the
 fights won and that give the kit something (a held item or a slot at two levels is left out),
