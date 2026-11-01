@@ -3,7 +3,7 @@
 
 (const ACTORS u8 4) ; the hero, then up to three enemies
 (const HERO u8 0)
-(const STATUS_SLOTS u8 32)
+(const STATUS_SLOTS u8 33)
 (const DICE u8 5)      ; dice she rolls (a charm adds one)
 (const DICE_MOST u8 6) ; and at most: the tray's six slots
 (const SLOTS u8 6)     ; item slots: a die's six faces
@@ -99,7 +99,7 @@
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
-(let stacks (array u8 128)) ; status stacks: actor * STATUS_SLOTS + status
+(let stacks (array u8 132)) ; status stacks: actor * STATUS_SLOTS + status
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
 ; stage's, or its other door), the hero's hit points between fights, and her kit: the item in
 ; each of the six slots (rows of content/items), each slot's level, and how many of each charm
@@ -110,7 +110,8 @@
 (let hero_hp u8)
 (let items (array u8 6))
 (let levels (array u8 6))
-(let charms (array u8 10))
+(let charms (array u8 12))
+(let spent (array bool 12)) ; a charm that works once a run has (nine lives)
 ; the fight's dice: dice_n of them roll each turn (die d in tray slot d). A die an enemy holds
 ; (held: its actor, NOTHING) stays out until that enemy is beaten; a slot a hairball clogs shows
 ; the hairball on every die until a re-roll coughs it up
@@ -127,6 +128,8 @@
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)
 (let wand_on bool)   ; a wand face's steps are running (a hook on a wand hit: content/hooks)
+(let back_due bool)  ; her dice come back once this play is done (a red dot)
+(let refreshes u8)   ; times her dice came back this turn (cards.BACK_MOST at most)
 (let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
 (let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8)    ; the die picked to play next, or NOTHING
@@ -172,7 +175,7 @@
 (let glow_time u8)
 
 ; actor who's first stack, and its bit in the hud's flags
-(const FIRST_STACK (array u8 4) (make (array u8 4) 0 32 64 96))
+(const FIRST_STACK (array u8 4) (make (array u8 4) 0 33 66 99))
 (const BIT (array u8 4) (make (array u8 4) 1 2 4 8))
 
 (fn stack ((who u8) (status u8)) u8

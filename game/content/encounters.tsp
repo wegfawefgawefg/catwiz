@@ -163,10 +163,10 @@
 ; upgrade levels them
 (struct Offer ((card u8) (weight u8) (from u8)))
 
-(const OFFER_CARD_COUNT u8 33)
+(const OFFER_CARD_COUNT u8 42)
 
-(const OFFER_CARDS (array Offer 33)
-    (make (array Offer 33)
+(const OFFER_CARDS (array Offer 42)
+    (make (array Offer 42)
         (make Offer :card items.YARN_WAND :weight 4 :from 1)
         (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
         (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
@@ -199,7 +199,16 @@
         (make Offer :card items.COPYCAT :weight 2 :from 4)
         (make Offer :card items.WISHING_STAR :weight 2 :from 5)
         (make Offer :card items.KNEAD :weight 2 :from 4)
-        (make Offer :card UP_TRICK :weight 2 :from 5))
+        (make Offer :card UP_TRICK :weight 2 :from 5)
+        (make Offer :card items.RED_DOT :weight 3 :from 3)
+        (make Offer :card items.LUCKY_PAW :weight 3 :from 1)
+        (make Offer :card items.SUNBEAM :weight 3 :from 1)
+        (make Offer :card items.MIMIC :weight 3 :from 3)
+        (make Offer :card items.CATFIGHT :weight 3 :from 1)
+        (make Offer :card items.MIRROR_FUR :weight 3 :from 1)
+        (make Offer :card items.FLEA_CIRCUS :weight 3 :from 1)
+        (make Offer :card items.SCRATCHING_HABIT :weight 3 :from 1)
+        (make Offer :card items.DOUBLE_OR_NOTHING :weight 2 :from 3))
     :in aux)
 
 ; charms: passives kept all run. kind says what it is (the sim's rules.py has each), amount
@@ -207,7 +216,7 @@
 ; v its amount, times the ones she holds); one that changes a rule (when none) is read where
 ; the rule is, by its kind (content/charms amount: the dice, the re-rolls, the shield, the
 ; kittens' bite, a wand's number, a book's cost)
-(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio))
+(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio litterbox lives9))
 
 (struct Charm ((name (ptr u8))
         (text (ptr u8))
@@ -226,9 +235,11 @@
 (const CHARM_GRUMPY u8 7)
 (const CHARM_RUBBER_DUCK u8 8)
 (const CHARM_BAD_MILK u8 9)
+(const CHARM_LITTER_BOX u8 10)
+(const CHARM_NINE_LIVES u8 11)
 
-(const CHARMS (array Charm 10)
-    (make (array Charm 10)
+(const CHARMS (array Charm 12)
+    (make (array Charm 12)
         (make Charm
             :name "SCRATCH POST"
             :text "Two more re-rolls every turn"
@@ -298,13 +309,27 @@
             :kind CharmKind.badmilk
             :amount 2
             :when steps.When.none
-            :fx (addr_of (at cards.NOTHING 0))))
+            :fx (addr_of (at cards.NOTHING 0)))
+        (make Charm
+            :name "LITTER BOX"
+            :text "Your kittens stay between fights."
+            :kind CharmKind.litterbox
+            :amount 1
+            :when steps.When.fight_start
+            :fx (addr_of (at cards.LITTER_BOX 0)))
+        (make Charm
+            :name "NINE LIVES"
+            :text "You come back once with # hp."
+            :kind CharmKind.lives9
+            :amount 10
+            :when steps.When.dies
+            :fx (addr_of (at cards.NINE_LIVES 0))))
     :in aux)
 
-(const OFFER_CHARM_COUNT u8 10)
+(const OFFER_CHARM_COUNT u8 12)
 
-(const OFFER_CHARMS (array Offer 10)
-    (make (array Offer 10)
+(const OFFER_CHARMS (array Offer 12)
+    (make (array Offer 12)
         (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
         (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
         (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
@@ -314,13 +339,16 @@
         (make Offer :card CHARM_FLUFFY_TAIL :weight 2 :from 1)
         (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
         (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
-        (make Offer :card CHARM_BAD_MILK :weight 2 :from 1))
+        (make Offer :card CHARM_BAD_MILK :weight 2 :from 1)
+        (make Offer :card CHARM_LITTER_BOX :weight 2 :from 1)
+        (make Offer :card CHARM_NINE_LIVES :weight 2 :from 1))
     :in aux)
 
 ; each charm's mark on its card (the hud font, tools/dhgr/game_hud.py), so they tell apart: a plus
 ; (a re-roll more), 6, a drop, 3, a kitten's head, a heart, a shield, a lit star, a ward pip, a
-; flea. In main memory: the tray reads them
-(const MARKS (array (ptr u8) 10) (make (array (ptr u8) 10) "+" "6" "%" "3" "_" "*" "#" "'" ";" ","))
+; flea, a box (the litter box), 9 (nine lives). In main memory: the tray reads them
+(const MARKS (array (ptr u8) 12)
+    (make (array (ptr u8) 12) "+" "6" "%" "3" "_" "*" "#" "'" ";" "," "&" "9"))
 
 ; FIGHTS, CHARMS and the OFFER tables are in aux memory (:in aux: main memory is full): their
 ; fields are read here, one at a time (the offers' in battle/offer)

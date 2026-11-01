@@ -15,11 +15,11 @@
 
 (const SAY_KITTEN_RUNS_OFF u8 0)
 
-(const CHARM_COUNT u8 10)
+(const CHARM_COUNT u8 12)
 
 ; each kind's row of enc.CHARMS
-(const KIND_ROW (array u8 10)
-    (make (array u8 10)
+(const KIND_ROW (array u8 12)
+    (make (array u8 12)
         enc.CHARM_BAD_MILK
         enc.CHARM_RUBBER_DUCK
         enc.CHARM_GRUMPY
@@ -29,7 +29,9 @@
         enc.CHARM_STILL_WATER
         enc.CHARM_FLUFFY_TAIL
         enc.CHARM_SIXTH_TOE
-        enc.CHARM_TRIO))
+        enc.CHARM_TRIO
+        enc.CHARM_LITTER_BOX
+        enc.CHARM_NINE_LIVES))
 
 ; how much of charm c the run holds: its amount, once for each one held
 (fn of ((c u8)) u8
@@ -72,6 +74,7 @@
     (state.set_stack state.HERO shield 0)
     (state.set_stack state.HERO (as u8 st.Status.box) 0)
     (state.set_stack state.HERO (as u8 st.Status.thorns) 0)
+    (state.set_stack state.HERO (as u8 st.Status.mirror) 0)
     (if (> (state.stack state.HERO (as u8 st.Status.keep)) 0)
         (do
             (state.set_stack state.HERO shield old)
@@ -80,6 +83,19 @@
         (if (> (>> old 1) (state.stack state.HERO shield))
             (state.set_stack state.HERO shield (>> old 1))))
     (- (+ 2 (amount enc.CharmKind.pocket)) (amount enc.CharmKind.toe)))
+
+; she would fall: a charm for it not spent this run (nine lives) brings her back, with its
+; amount of hit points (given; 0 for none), and its steps run (the log)
+(fn saved () u8
+    (for c u8 0 CHARM_COUNT
+        (if (and (> (at state.charms c) 0) (not (at state.spent c)))
+            (if (= (enc.charm_when c) steps.When.dies)
+                (do
+                    (set (at state.spent c) true)
+                    (let hp u8 (enc.charm_amount c))
+                    (hooks.add (enc.charm_fx c) state.HERO hp)
+                    (return hp)))))
+    0)
 
 ; she lost hit points: a kitten runs off; the charms for it (a grumpy face's mana)
 (fn hero_hurt () void

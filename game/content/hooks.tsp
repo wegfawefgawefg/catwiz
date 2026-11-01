@@ -46,9 +46,12 @@
     (at fx_of k))
 
 ; the hooks of moment when that holder's statuses set off, run on t: each whose status holder
-; carries, with v its value stack
+; carries, with v its value stack (none when that is 0)
 (fn status ((when steps.When) (holder u8) (t u8)) void
     (for k u8 0 cards.HOOK_COUNT
         (if (= (cards.hook_when k) when)
             (if (> (state.stack holder (cards.hook_status k)) 0)
-                (add (cards.hook_fx k) t (state.stack holder (cards.hook_value k)))))))
+                (do
+                    (let v u8 (state.stack holder (cards.hook_value k)))
+                    (if (> v 0)
+                        (add (cards.hook_fx k) t v)))))))

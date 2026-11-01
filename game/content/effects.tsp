@@ -8,6 +8,7 @@
 (import state)
 (import battle/hit)
 (import content/action ac)
+(import content/cards)
 (import content/charms)
 (import content/encounters enc)
 (import content/items)
@@ -53,12 +54,16 @@
         (set out (st.sum out n)))
     out)
 
-; item row's number at its slot's level: its amount, and its step more a level
+; item row's number at its slot's level: its amount, and its step more a level; one that grows
+; with her habit (ac.GROWS) that much more
 (fn number ((row u8)) u8
     (let slot ac.Slot (at items.ITEMS row slot))
     (if (= slot ac.Slot.junk)
         (return 0))
-    (number_at row (at state.levels (as u8 slot))))
+    (let n u8 (number_at row (at state.levels (as u8 slot))))
+    (if (!= (& (at cards.CARDS row tags) ac.GROWS) 0)
+        (set n (st.sum n (hero st.Status.habit))))
+    n)
 
 ; and at level (a card shows what an item would be)
 (fn number_at ((row u8) (level u8)) u8
@@ -86,7 +91,10 @@
             (set n (times n mult))
             (set counts mult)
             (if use
-                (set_hero st.Status.mult 0))))
+                (do
+                    ; a die took the times: a double or nothing's bet is won
+                    (set_hero st.Status.mult 0)
+                    (set_hero st.Status.gamble 0)))))
     (if (> (hero st.Status.plus_left) 0)
         (do
             (set n (st.sum n (hero st.Status.plus)))

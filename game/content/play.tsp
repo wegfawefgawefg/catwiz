@@ -12,12 +12,13 @@
 (import content/effects fx)
 (import content/hooks)
 (import content/items)
+(import content/moves mv)
 (import content/statuses st)
 (import content/steps)
 (import content/effects_said said)
 (import sound/sound)
 
-(const CALLS u8 3) ; steps calling steps (do, a hook, a copy), this deep at most
+(const CALLS u8 3) ; steps calling steps (call, a hook, a copy, mimic), this deep at most
 (const LOOPS u8 3)
 (const ALL u8 0) ; a loop's kind: every enemy standing, all but t, v times
 (const OTHERS u8 1)
@@ -38,6 +39,9 @@
 (let loop_t (array u8 3))
 (let loops u8 0)
 (let threes bool false) ; a three's steps ran: the charms' threes come when the face is done
+; Mimic's: the steps the move it looked at is for her (cards.MIMICRY), and that move's number
+(let mimicked (ptr u8))
+(let mimicked_v u8 0)
 
 ; the byte at p + pc, in aux memory
 (fn byte ((p (ptr u8)) (pc u8)) u8
@@ -58,7 +62,8 @@
     state.NOTHING)
 
 ; the steps at start run, on t0 with number n (content/steps.tsp says what each does); then the
-; charms' threes and whatever waits (content/hooks)
+; charms' threes and whatever waits (content/hooks). A step that runs other steps (call, copy,
+; mimic) or sets off a hook enters them as a call: to, on to_t with to_v, and back after
 (fn run ((start (ptr u8)) (t0 u8) (n0 u8)) void
     (let p (ptr u8) start)
     (let pc u8 0)
@@ -74,23 +79,30 @@
         (let a u8 (byte p (+ pc 1)))
         (set pc (+ pc 2))
         (let go bool true)
+        (let to (ptr u8) p) ; steps to enter, when not p
+        (let to_t u8 t)
+        (let to_v u8 v)
+        ; a stack step's stack: hers or t's, as it is, and what it becomes (write)
         (let s u8 (& a 0x7F))
         (let who u8 (if (>= a steps.ON_T)
             t
             state.HERO))
+        (let old u8 (state.stack who s))
+        (let now u8 old)
+        (let write bool false)
         (match op
             (steps.NUM (set v n))
             (steps.LIT (set v a))
             (steps.KITS
                 (for k u8 0 a
                     (set v (st.sum v (fx.hero st.Status.kittens)))))
-            (steps.GET (set v (state.stack who s)))
+            (steps.GET (set v old))
             (steps.LEAST
                 (if (< v a)
                     (set v a)))
             (steps.KEPT (set v state.kept))
             (steps.IF
-                (if (= (state.stack who s) 0)
+                (if (= old 0)
                     (set pc (+ pc 2))))
             (steps.IF_UP
                 (if (not (at state.actors t alive))
@@ -101,23 +113,43 @@
                 (if fx.three
                     (do
                         (set threes true)
-                        (sound.cue sound.Cue.chime))
+                        (sound.cue_byte (as u8 sound.Cue.chime)))
                     (set go false)))
             (steps.CALM
                 (if state.rerolled
                     (set go false)))
-            (steps.ADD (hit.add_stacks who s v))
-            (steps.SET (state.set_stack who s v))
+            (steps.ADD
+                (set now (st.sum old v))
+                (set write true))
+            (steps.SET
+                (set now v)
+                (set write true))
             (steps.MAX
-                (if (> v (state.stack who s))
-                    (state.set_stack who s v)))
-            (steps.TIMES (state.set_stack who s (fx.times (state.stack who s) v)))
+                (set now v)
+                (set write (> v old)))
+            (steps.TIMES
+                (set now (fx.times old v))
+                (set write true))
             (steps.SUB
-                (let h u8 (state.stack who s))
-                (state.set_stack who s (if (> h v)
-                    (- h v)
-                    0)))
+                (set now (if (> old v)
+                    (- old v)
+                    0))
+                (set write true))
             (steps.MANA (st.gain_mana v))
+            (steps.SPILL
+                (let m u8 (st.sum (fx.mana) v))
+                (set v 0)
+                (if (> m st.MOST_MANA)
+                    (do
+                        (set v (- m st.MOST_MANA))
+                        (set m st.MOST_MANA)))
+                (fx.set_hero st.Status.mana m))
+            (steps.REROLLS
+                (let r u8 (st.sum state.rerolls v))
+                (if (> r cards.REROLLS_MOST)
+                    (set r cards.REROLLS_MOST))
+                (set state.rerolls r)
+                (set state.hud_rerolls true))
             (steps.HEAL (hit.heal state.HERO v))
             (steps.HIT (hit.strike state.HERO t v false))
             (steps.PIERCE (hit.strike state.HERO t v true))
@@ -182,7 +214,30 @@
             (steps.ME (set t state.HERO))
             (steps.BLOCKED
                 (if (> v hooks.blocked)
-                    (set v hooks.blocked)))
+                    (set v hooks.blocked))
+                (if (= v 0)
+                    (set go false)))
+            (steps.BACK
+                (if state.back_due
+                    (set go false)
+                    (set state.back_due true)))
+            (steps.MIMIC
+                (if (= a 0)
+                    ; look: what t's shown move would be for her
+                    (do
+                        (let row u8 (at state.actors t move))
+                        (let k u8 (cards.mimicry (mv.effect row) (= (mv.aim row) state.Aim.all)))
+                        (if (= k state.NOTHING)
+                            (do
+                                (log.line (at said.SAY said.SAY_NO_MIMIC) 0)
+                                (set go false))
+                            (do
+                                (set mimicked (cards.mimicry_fx k))
+                                (set mimicked_v (mv.amount row)))))
+                    ; mimic: do it, with its number
+                    (do
+                        (set to mimicked)
+                        (set to_v mimicked_v))))
             (steps.COPY
                 ; copycat: her last face again (free), its number plus this one's, on whom it
                 ; went (or t, when that one is down)
@@ -201,23 +256,31 @@
                             (set on t))
                         (log.line (at said.SAY said.SAY_COPYCAT) 0)
                         (let row u8 state.last_face)
-                        (set v (fx.prepare row on true))
-                        (if (< calls CALLS)
-                            (do
-                                (set (at call_p calls) p)
-                                (set (at call_pc calls) pc)
-                                (set (at call_t calls) t)
-                                (set (at call_v calls) v)
-                                (set (at call_n calls) n)
-                                (set (at call_loops calls) loops)
-                                (set calls (+ calls 1))
-                                (set base loops)
-                                (set p (at items.ITEMS row fx))
-                                (set pc 0)
-                                (set t on)
-                                (set n v))))))
-            (steps.DO
-                (if (< calls CALLS)
+                        (set to (at cards.CARDS row fx))
+                        (set to_t on)
+                        (set to_v (fx.prepare row on true)))))
+            (steps.DO (set to (at cards.SUBS a)))
+            (steps.CUE (sound.cue_byte a))
+            (steps.SAY
+                (let line (ptr u8) (at said.SAY (& a steps.SAY_LINE)))
+                (let named u8 (if (!= (& a steps.SAY_IT) 0)
+                    t
+                    state.HERO))
+                (if (= (& a (| steps.SAY_IT steps.SAY_ME)) 0)
+                    (log.line line v)
+                    (log.who named line v)))
+            (_ (set go false)))
+        (if write
+            (state.set_stack who s now))
+        (if go
+            (do
+                ; what this step set off (a hook, a charm) runs now, then the steps go on
+                (if (and (and (= to p) (hooks.waiting)) (< calls CALLS))
+                    (do
+                        (set to (hooks.take))
+                        (set to_t hooks.on_now)
+                        (set to_v hooks.value_now)))
+                (if (and (!= to p) (< calls CALLS))
                     (do
                         (set (at call_p calls) p)
                         (set (at call_pc calls) pc)
@@ -227,35 +290,11 @@
                         (set (at call_loops calls) loops)
                         (set calls (+ calls 1))
                         (set base loops)
-                        (set p (at cards.SUBS a))
+                        (set p to)
                         (set pc 0)
-                        (set n v))))
-            (steps.CUE (sound.cue_byte a))
-            (steps.SAY
-                (let line (ptr u8) (at said.SAY (& a steps.SAY_LINE)))
-                (if (!= (& a steps.SAY_IT) 0)
-                    (log.who t line v)
-                    (if (!= (& a steps.SAY_ME) 0)
-                        (log.who state.HERO line v)
-                        (log.line line v))))
-            (_ (set go false)))
-        (if go
-            ; what this step set off (a hook, a charm) runs now, then the steps go on
-            (if (and (hooks.waiting) (< calls CALLS))
-                (do
-                    (set (at call_p calls) p)
-                    (set (at call_pc calls) pc)
-                    (set (at call_t calls) t)
-                    (set (at call_v calls) v)
-                    (set (at call_n calls) n)
-                    (set (at call_loops calls) loops)
-                    (set calls (+ calls 1))
-                    (set base loops)
-                    (set p (hooks.take))
-                    (set pc 0)
-                    (set t hooks.on_now)
-                    (set v hooks.value_now)
-                    (set n v)))
+                        (set t to_t)
+                        (set v to_v)
+                        (set n to_v))))
             (if (> calls 0)
                 ; back to the steps that called these
                 (do
@@ -308,7 +347,7 @@
 ; the hero's face lands on target: a trick's steps with its number (no boosts on a trick); any
 ; other item's with its number after the boosts, its mana paid, its count towards a three
 (fn land_face ((row u8) (target u8)) void
-    (let p (ptr u8) (at items.ITEMS row fx))
+    (let p (ptr u8) (at cards.CARDS row fx))
     (if (= (at items.ITEMS row slot) ac.Slot.trick)
         (do
             (run p target (fx.number row))

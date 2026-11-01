@@ -104,7 +104,14 @@
     (let hp u8 (at state.actors who hp))
     (if (> n hp)
         (set n hp))
-    (set (at state.actors who hp) (- hp n))
+    (let left u8 (- hp n))
+    ; she would fall: a charm may bring her back (nine lives), her max at most
+    (if (and (and (= left 0) (> n 0)) (= who state.HERO))
+        (do
+            (set left (charms.saved))
+            (if (> left (at state.actors who max_hp))
+                (set left (at state.actors who max_hp)))))
+    (set (at state.actors who hp) left)
     (set state.hud_pills (| state.hud_pills (<< 1 who)))
     (set (at state.actors who flash) FLASH_FRAMES)
     (set (at state.actors who mood) state.Mood.hurt)
@@ -127,7 +134,7 @@
         (do
             (sound.cue sound.Cue.thump)
             (add_stacks who (as u8 st.Status.hurt) n)))
-    (if (= (- hp n) 0)
+    (if (= left 0)
         (die who)))
 
 ; at 0 hit points: the hooks of its statuses for a fall wait; the dice it held come back; an enemy with a next form gets up as it (with a

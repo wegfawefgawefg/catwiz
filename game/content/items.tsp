@@ -13,7 +13,6 @@
 
 (import state)
 (import content/action ac)
-(import content/cards)
 (import art/icons)
 
 (const ITEM_MOST u8 2)
@@ -53,10 +52,20 @@
 (const CATNIP u8 31)
 (const KNEAD u8 32)
 (const HAIRBALL u8 33)
-(const ITEM_COUNT u8 34)
+; the chain and combo cards (2026-11-01, the owner's picks of the sim's round)
+(const RED_DOT u8 34)
+(const MIMIC u8 35)
+(const CATFIGHT u8 36)
+(const MIRROR_FUR u8 37)
+(const LUCKY_PAW u8 38)
+(const FLEA_CIRCUS u8 39)
+(const SUNBEAM u8 40)
+(const SCRATCHING_HABIT u8 41)
+(const DOUBLE_OR_NOTHING u8 42)
+(const ITEM_COUNT u8 43)
 
-(const ITEMS (array ac.Item 34)
-    (make (array ac.Item 34)
+(const ITEMS (array ac.Item 43)
+    (make (array ac.Item 43)
         (make ac.Item
             :name "TWIG WAND"
             :text "#. 3 in a turn: the 3rd hits all"
@@ -64,8 +73,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.TWIG_WAND 0))
-            :tags ac.THREE
             :aim state.Aim.foe
             :icon icons.TILE_TWIG)
         (make ac.Item
@@ -75,8 +82,6 @@
             :amount 3
             :step 1
             :cost 0
-            :fx (addr_of (at cards.YARN_WAND 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_YARNWAND)
         (make ac.Item
@@ -86,8 +91,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.SPRAY_BOTTLE 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_SPRAY)
         (make ac.Item
@@ -97,8 +100,6 @@
             :amount 4
             :step 1
             :cost 0
-            :fx (addr_of (at cards.FEATHER_TOY 0))
-            :tags ac.KITTENS
             :aim state.Aim.foe
             :icon icons.TILE_FEATHER)
         (make ac.Item
@@ -108,8 +109,6 @@
             :amount 5
             :step 1
             :cost 0
-            :fx (addr_of (at cards.FISHBONE_WAND 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_FISHBONE)
         (make ac.Item
@@ -119,8 +118,6 @@
             :amount 3
             :step 1
             :cost 0
-            :fx (addr_of (at cards.MOUSE_STRING 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_MOUSE)
         (make ac.Item
@@ -130,8 +127,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.FLUFF 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_FLUFF)
         (make ac.Item
@@ -141,8 +136,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.SPIKY_FLUFF 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_SPIKY)
         (make ac.Item
@@ -152,8 +145,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.BOX 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_BOX)
         (make ac.Item
@@ -163,8 +154,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.WARM_BLANKET 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_BLANKET)
         (make ac.Item
@@ -174,8 +163,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.STATIC_FUR 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_STATIC)
         (make ac.Item
@@ -185,8 +172,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.BELL_COLLAR 0))
-            :tags ac.THREE
             :aim state.Aim.self
             :icon icons.TILE_BELL)
         (make ac.Item
@@ -196,8 +181,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.STAR 0))
-            :tags 0
             :aim state.Aim.self
             :icon icons.TILE_STAR)
         (make ac.Item
@@ -207,8 +190,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.SHOOTING_STAR 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_SHOOTING)
         (make ac.Item
@@ -218,8 +199,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.MOON_BOWL 0))
-            :tags 0
             :aim state.Aim.self
             :icon icons.TILE_MOONBOWL)
         (make ac.Item
@@ -229,8 +208,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.WISHING_STAR 0))
-            :tags 0
             :aim state.Aim.self
             :icon icons.TILE_WISHING)
         (make ac.Item
@@ -240,8 +217,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.LITTER_STAR 0))
-            :tags ac.KITTENS
             :aim state.Aim.self
             :icon icons.TILE_LITTER)
         (make ac.Item
@@ -251,8 +226,6 @@
             :amount 2
             :step 1
             :cost 2
-            :fx (addr_of (at cards.ZOOMIES 0))
-            :tags 0
             :aim state.Aim.all
             :icon icons.TILE_ZOOMIES)
         (make ac.Item
@@ -262,8 +235,6 @@
             :amount 3
             :step 1
             :cost 3
-            :fx (addr_of (at cards.MEOW_BOOK 0))
-            :tags ac.KITTENS
             :aim state.Aim.self
             :icon icons.TILE_MEOWBOOK)
         (make ac.Item
@@ -273,8 +244,6 @@
             :amount 6
             :step 1
             :cost 3
-            :fx (addr_of (at cards.LASER 0))
-            :tags 0
             :aim state.Aim.all
             :icon icons.TILE_LASER)
         (make ac.Item
@@ -284,8 +253,6 @@
             :amount 9
             :step 1
             :cost 3
-            :fx (addr_of (at cards.SCREAM 0))
-            :tags 0
             :aim state.Aim.all
             :icon icons.TILE_SCREAM)
         (make ac.Item
@@ -295,8 +262,6 @@
             :amount 12
             :step 1
             :cost 3
-            :fx (addr_of (at cards.KNOCK 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_KNOCK)
         (make ac.Item
@@ -306,8 +271,6 @@
             :amount 8
             :step 1
             :cost 2
-            :fx (addr_of (at cards.FITS 0))
-            :tags ac.KITTENS
             :aim state.Aim.self
             :icon icons.TILE_FITS)
         (make ac.Item
@@ -317,8 +280,6 @@
             :amount 5
             :step 1
             :cost 0
-            :fx (addr_of (at cards.CANNON 0))
-            :tags ac.KITTENS
             :aim state.Aim.foe
             :icon icons.TILE_CANNON)
         (make ac.Item
@@ -328,8 +289,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.FLEAS 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_FLEAS)
         (make ac.Item
@@ -339,8 +298,6 @@
             :amount 1
             :step 1
             :cost 0
-            :fx (addr_of (at cards.WET 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_WET)
         (make ac.Item
@@ -350,8 +307,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.TANGLE 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_YARNBALL)
         (make ac.Item
@@ -361,8 +316,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.MARK 0))
-            :tags 0
             :aim state.Aim.foe
             :icon icons.TILE_MARK)
         (make ac.Item
@@ -372,8 +325,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.PLUS 0))
-            :tags ac.CAP_PLUS
             :aim state.Aim.self
             :icon icons.TILE_PLUS1)
         (make ac.Item
@@ -383,8 +334,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.TIMES 0))
-            :tags ac.CAP_TIMES
             :aim state.Aim.self
             :icon icons.TILE_TIMES2)
         (make ac.Item
@@ -394,8 +343,6 @@
             :amount 0
             :step 1
             :cost 0
-            :fx (addr_of (at cards.COPYCAT 0))
-            :tags ac.CAP_PLUS
             :aim state.Aim.self
             :icon icons.TILE_COPYCAT)
         (make ac.Item
@@ -405,8 +352,6 @@
             :amount 4
             :step 1
             :cost 0
-            :fx (addr_of (at cards.CATNIP 0))
-            :tags 0
             :aim state.Aim.self
             :icon icons.TILE_CATNIP)
         (make ac.Item
@@ -416,8 +361,6 @@
             :amount 2
             :step 1
             :cost 0
-            :fx (addr_of (at cards.KNEAD 0))
-            :tags ac.CAP_PLUS
             :aim state.Aim.self
             :icon icons.TILE_KNEAD)
         (make ac.Item
@@ -427,10 +370,89 @@
             :amount 0
             :step 0
             :cost 0
-            :fx (addr_of (at cards.HAIRBALL 0))
-            :tags ac.CAP_NONE
             :aim state.Aim.self
-            :icon icons.TILE_HAIRBALL))
+            :icon icons.TILE_HAIRBALL)
+        (make ac.Item
+            :name "RED DOT"
+            :text "# wand hits on it bring dice back."
+            :slot ac.Slot.curse
+            :amount 2
+            :step 1
+            :cost 0
+            :aim state.Aim.foe
+            :icon icons.TILE_LASER)
+        (make ac.Item
+            :name "MIMIC"
+            :text "2 mana: copy its next move # times"
+            :slot ac.Slot.book
+            :amount 1
+            :step 1
+            :cost 2
+            :aim state.Aim.foe
+            :icon icons.TILE_COPYCAT)
+        (make ac.Item
+            :name "CATFIGHT"
+            :text "It hits a friend next, # harder."
+            :slot ac.Slot.curse
+            :amount 4
+            :step 1
+            :cost 0
+            :aim state.Aim.foe
+            :icon icons.TILE_KNOCK)
+        (make ac.Item
+            :name "MIRROR FUR"
+            :text "Shield #. Blocked hits bounce back."
+            :slot ac.Slot.fluff
+            :amount 3
+            :step 1
+            :cost 0
+            :aim state.Aim.self
+            :icon icons.TILE_STATIC)
+        (make ac.Item
+            :name "LUCKY PAW"
+            :text "Shield #. You get a free re-roll."
+            :slot ac.Slot.fluff
+            :amount 2
+            :step 1
+            :cost 0
+            :aim state.Aim.self
+            :icon icons.TILE_KNEAD)
+        (make ac.Item
+            :name "FLEA CIRCUS"
+            :text "Fleas #. They jump x2 when it dies."
+            :slot ac.Slot.curse
+            :amount 2
+            :step 1
+            :cost 0
+            :aim state.Aim.foe
+            :icon icons.TILE_FLEAS)
+        (make ac.Item
+            :name "SUNBEAM"
+            :text "+# mana. Extra mana gives re-rolls."
+            :slot ac.Slot.star
+            :amount 2
+            :step 1
+            :cost 0
+            :aim state.Aim.self
+            :icon icons.TILE_STAR)
+        (make ac.Item
+            :name "SCRATCHING HABIT"
+            :text "#. It gains +1 each use this fight."
+            :slot ac.Slot.wand
+            :amount 2
+            :step 1
+            :cost 0
+            :aim state.Aim.foe
+            :icon icons.TILE_TWIG)
+        (make ac.Item
+            :name "DOUBLE OR NOTHING"
+            :text "Next die x#. Unused, you lose # hp."
+            :slot ac.Slot.trick
+            :amount 3
+            :step 1
+            :cost 0
+            :aim state.Aim.self
+            :icon icons.TILE_TIMES2))
     :strings aux)
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot

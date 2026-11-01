@@ -25,7 +25,7 @@
 ; junk: the hairball, on no slot
 (enum Slot (wand fluff star book curse trick junk))
 
-; an item's tags: THREE it has a three (what the third face of its slot in a turn adds: its
+; an item's tags (content/cards CARDS): THREE it has a three (what the third face of its slot in a turn adds: its
 ; steps after three), KITTENS her kit page shows her kittens by it, GROWS its number grows with
 ; her habit stack (Scratching Habit), and how the tray's caption shows its number: CAP_PLUS
 ; (+n), CAP_TIMES (Xn), CAP_NONE (none)
@@ -38,17 +38,15 @@
 
 ; an item: what a face does (content/items.tsp). name: the log's and the card's name; text: the
 ; card's item line (# its number); slot: which face it sits on; amount: its number, step more a
-; level; cost: mana; fx: its steps (content/cards.tsp); tags (above); aim: who it goes to; icon:
-; its picture on the card (art/icons). A face for an enemy is thrown at it, one for the hero is a
-; hop (battle/act)
+; level; cost: mana; aim: who it goes to; icon: its picture on the card (art/icons). What it does
+; is its steps (content/cards CARDS, by row). A face for an enemy is thrown at it, one for the
+; hero is a hop (battle/act)
 (struct Item ((name (ptr u8))
         (text (ptr u8))
         (slot Slot)
         (amount u8)
         (step u8)
         (cost u8)
-        (fx (ptr u8))
-        (tags u8)
         (aim state.Aim)
         (icon u8)))
 
