@@ -6,8 +6,9 @@
 ; (NAP_HEAL_SHIFT) or a bonus upgrade (a level on a slot of her choice). A spot is an enemy and
 ; the byte column of its sprite's left edge (even, so its colours hold); a fight's spots past its
 ; count are where its summons come in. backdrop: the screen it is fought on (0 the clearing, 1 the
-; path); zone: the place, for the map at the top of the stage. Fights 3-10 are stand-ins on fight
-; 1-2's screens and figures until their art is drawn (the old shroom on the puffcap's).
+; path, 2 the clearing with the old shroom's figure); zone: the place, for the map at the top of
+; the stage. Fights 4-10 are stand-ins on fight 1-2's screens and figures until their art is
+; drawn.
 
 (import state)
 (import content/enemies en)
@@ -57,7 +58,7 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 0
+            :backdrop 2
             :zone Zone.woods
             :count 1
             :spots (make (array Spot 3)

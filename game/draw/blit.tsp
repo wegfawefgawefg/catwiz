@@ -27,10 +27,10 @@
 (let sprite_aux (array u8 8192) :in aux)
 
 ; where each kind's runs are now (an address, and dhgr.runs' flags saying in which memory)
-(let aux_at (array u16 6))
-(let aux_flags (array u8 6))
-(let card_at (array u16 6))
-(let card_flags (array u8 6))
+(let aux_at (array u16 7))
+(let aux_flags (array u8 7))
+(let card_at (array u16 7))
+(let card_flags (array u8 7))
 ; and where the next ones go
 (let aux_next u16 0)
 (let card2_next u16 0xD000)

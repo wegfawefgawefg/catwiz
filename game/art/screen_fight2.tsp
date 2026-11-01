@@ -6,7 +6,7 @@
 ; the kinds' numbers (art/sprites KIND_), the runs' order
 (const KINDS (array u8 4)
     (make (array u8 4)
-        0 4 1 2))
+        0 5 1 2))
 
 ; the picture: its aux half, its main half
 (packs.packs PICTURE

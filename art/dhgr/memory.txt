@@ -8,11 +8,13 @@ cat           5356+5186       6294+6197       +1949   2940 -> 2873
 puffcap       1251+1203       1886+1895       +1327   790 -> 862
 sporelet      1175+1039       1540+1540        +866   700 -> 681
 nightflap     1667+1733       2022+2038        +660   1126 -> 1109
+shroom        1967+2134       2938+2921       +1758   1342 -> 1367
 misc           993+936         993+936           +0   641 -> 641
 cat        of it the flash frame: 2159
 puffcap    of it the flash frame: 733
 sporelet   of it the flash frame: 700
 nightflap  of it the flash frame: 692
+shroom     of it the flash frame: 1091
 
 fight 1 (clearing): cat, misc, puffcap, sporelet
   before  17139 bytes: bank 2 8364 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 8192: 7421 to spare
@@ -39,4 +41,17 @@ fight 2 (path): cat, misc, puffcap, sporelet
            puffcap aux 1886: bank 1
            sporelet aux 1540: bank 2
   backdrop, zlib: day 1204, night 510
+
+fight 3 (clearing): cat, misc, shroom, sporelet
+  before  18786 bytes: bank 2 10470 of 12272, bank 1 2960 of 4096, sprite_aux 5356 of 8192: 5774 to spare
+  after   23359 bytes: bank 2 11594 of 12272, bank 1 3931 of 4096, sprite_aux 7834 of 8192: 1201 to spare
+           cat main 6197: bank 2
+           misc main 936: bank 2
+           shroom main 2921: bank 2
+           sporelet main 1540: bank 2
+           cat aux 6294: sprite_aux
+           misc aux 993: bank 1
+           shroom aux 2938: bank 1
+           sporelet aux 1540: sprite_aux
+  backdrop, zlib: day 1034, night 771
 

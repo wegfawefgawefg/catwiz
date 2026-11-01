@@ -36,6 +36,9 @@ DAY = {
     "spore": ORANGE, "spore_sh": MAGENTA, "spore_hi": YELLOW, "spore_spot": WHITE,
     # both mushrooms' stems
     "stem": WHITE, "stem_sh": LBLUE, "gill": PINK,
+    # the old shroom
+    "old": PURPLE, "old_sh": DBLUE, "old_hi": PINK, "old_spot": WHITE, "moss": GREEN,
+    "beard": GREY, "beard_sh": WHITE, "stick": ORANGE,
     # nightflap
     "bat": PURPLE, "bat_sh": PURPLE, "bat_hi": PINK, "wing": BLACK, "wing_sh": BLACK,
     "bone": MAGENTA, "fang": WHITE, "bat_eye": WHITE,

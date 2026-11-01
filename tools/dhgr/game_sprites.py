@@ -26,7 +26,7 @@ import foes
 from canvas import Canvas
 from dhgr import BLACK, WHITE, YELLOW, GREY, LBLUE, PINK, ORANGE
 
-KINDS = ["cat", "puffcap", "sporelet", "nightflap", "misc"]
+KINDS = ["cat", "puffcap", "sporelet", "nightflap", "shroom", "misc"]
 
 # what the engine asks each kind for, and the frame that answers: (role, frame)
 ROLES = {
@@ -38,6 +38,8 @@ ROLES = {
                  ("surprised", None), ("flap", None), ("flash", "flash")],
     "nightflap": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
                   ("surprised", None), ("flap", "flap"), ("flash", "flash")],
+    "shroom": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
+               ("surprised", None), ("flap", None), ("flash", "flash")],
 }
 ROLE_NAMES = [r for r, _ in ROLES["cat"]]
 
