@@ -167,7 +167,7 @@
     ; a page over the stage: the fight waits under it
     (if (!= state.page state.Page.none)
         (do
-            (page.step key)
+            (page.step (turn.stage_key key))
             (return state.Screen.battle)))
     (look.tick)
     (if (> state.mana_shake 0)
@@ -188,7 +188,7 @@
                 (turn.after_action)))
         (state.Phase.enemies (turn.enemies_step))
         (state.Phase.reward
-            (if (reward.step key)
+            (if (reward.step (turn.stage_key key))
                 (do
                     (set state.stage (+ state.stage 1))
                     (set state.fight state.next_fight)

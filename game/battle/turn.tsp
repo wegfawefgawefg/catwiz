@@ -25,6 +25,7 @@
 (import battle/hit)
 (import battle/log)
 (import battle/look)
+(import battle/place)
 (import battle/words)
 (import sound/sound)
 
@@ -192,6 +193,41 @@
     (log.who state.HERO (at SAY SAY_MEOW) 0)
     (act.begin state.Source.meow 0 state.HERO state.HERO))
 
+; a tap on the stage (tools/phone/catwiz.json): the stage over the enemies is cut into strips
+; two columns wide, each sending one of these keys, so a tap picks the enemy standing nearest it
+; whatever the fight's layout (the owner, 2026-11-01: taps hit the wrong enemy in fight 2)
+(const STRIP_FIRST u8 0x21) ; '!': columns 14-15
+(const STRIP_LAST u8 0x2D)  ; '-': columns 38-39
+(const STRIP_COL u8 15)     ; the middle column of the first strip
+
+(fn is_strip ((key u8)) bool
+    (and (>= key STRIP_FIRST) (<= key STRIP_LAST)))
+
+; a key for the screens that only know a tap on the stage ('.')
+(fn stage_key ((key u8)) u8
+    (if (is_strip key)
+        '.'
+        key))
+
+; the standing enemy nearest column col, picked as Z X C would
+(fn tap_enemy ((col u8)) void
+    (let best u8 state.NOTHING)
+    (let gap u8 255)
+    (for i u8 1 state.ACTORS
+        (if (at state.actors i alive)
+            (do
+                (let m u8 (place.middle i))
+                (let d u8 (if (> m col)
+                    (- m col)
+                    (- col m)))
+                (if (< d gap)
+                    (do
+                        (set gap d)
+                        (set best i))))))
+    (if (= best state.NOTHING)
+        (deselect)
+        (choose_target best)))
+
 (fn player_key ((key u8)) void
     ; the beat before a turn ends by itself; a key in it still counts
     (if (> state.end_wait 0)
@@ -204,6 +240,10 @@
     (if (and (>= key KEY_1) (< key (+ KEY_1 state.DICE_MOST)))
         (do
             (select (- key KEY_1))
+            (return)))
+    (if (is_strip key)
+        (do
+            (tap_enemy (+ STRIP_COL (<< (- key STRIP_FIRST) 1)))
             (return)))
     (match (& key 0xDF) ; letters either case
         ('R' (reroll))
