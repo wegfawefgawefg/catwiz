@@ -373,7 +373,7 @@ class Battle:
         elif effect == "wet":
             # the item model's wet adds n turns (at least 1) to what it has (the owner,
             # 2026-10-31; was the longer of the two)
-            st[WET] = min(99, st[WET] + max(n, 1))
+            st[WET] = min(255, st[WET] + max(n, 1))
         elif effect == "hiss":
             st[HISS] = 1
         elif effect == "spook":
@@ -394,7 +394,8 @@ class Battle:
         cheer = st[CHEER]
         if use:
             st[CHEER] = 0
-        d = (damage + cheer + st[STRENGTH]) & 0xFF  # strength: PROPOSAL
+        d = damage + cheer + st[STRENGTH]  # strength: PROPOSAL
+        d = min(d, 255) if self.R.model == "items" else d & 0xFF  # items: saturates, the bag: wraps
         if st[TANGLE]:  # PROPOSAL: tangled, till its turn ends
             d = max(0, d - st[TANGLE])
         if st[WET] > 0:
@@ -407,6 +408,7 @@ class Battle:
         damage = self.dealt(by, amount, True)
         st = self.st[target]
         damage += st[MARK] + st[BRAND]  # PROPOSAL
+        damage = min(damage, 255)  # a hit is a byte: it saturates
         if st[REFLECT] and by == HERO:  # PROPOSAL
             back = min(st[REFLECT], damage)
             st[REFLECT] -= back
@@ -476,7 +478,7 @@ class Battle:
 
     def add(self, who, status, n):
         st = self.st[who]
-        st[status] = min(st[status] + n, 99)
+        st[status] = min(st[status] + n, 255 if self.R.model == "items" else 99)
 
     # ---- the enemies' turn: foes.py
 

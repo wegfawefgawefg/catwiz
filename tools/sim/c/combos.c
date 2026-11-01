@@ -23,6 +23,7 @@ int study_swings(int player, int runs, uint64_t seed, int jobs, int show);
 int study_luck(int player, int runs, uint64_t seed, int jobs);
 int study_boosts(int player, int runs, uint64_t seed, int jobs);
 int study_kittens(int player, int runs, uint64_t seed, int jobs);
+int study_cards(int player, int runs, uint64_t seed, int jobs);
 const char *LIFT_WITH = NULL; /* --with NAME: the lift's pairs with this part only */
 const char *SWING_FACE = NULL; /* --face NAME: the swings' turns that played this face */
 
@@ -216,6 +217,8 @@ int combos_main(int argc, char **argv) {
     }
     if (!strcmp(what, "lift"))
         return study_lift(player, runs, seed, jobs, top);
+    if (!strcmp(what, "cards"))
+        return study_cards(player, runs, seed, jobs);
     if (!strcmp(what, "kittens"))
         return study_kittens(player, runs, seed, jobs);
     if (!strcmp(what, "boosts"))

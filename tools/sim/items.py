@@ -13,6 +13,13 @@ x2), then a spook takes away.
 """
 
 
+BYTE = 255  # every number saturates here, as the game keeps them in bytes (the owner, 2026-11-01)
+
+
+def sat(n):
+    return min(BYTE, n)
+
+
 def ru():
     import rules  # here: rules imports this module
 
@@ -86,30 +93,30 @@ def land(b, row, target, again=False):
         return
     counts = 1
     if st[r.MULT] and face.slot in MULT_SLOTS:
-        n *= st[r.MULT]
+        n = sat(n * st[r.MULT])
         counts = st[r.MULT]
         st[r.MULT] = 0
     if st[r.PLUS_LEFT]:
-        n += st[r.PLUS]
+        n = sat(n + st[r.PLUS])
         st[r.PLUS_LEFT] -= 1
         if not st[r.PLUS_LEFT]:
             st[r.PLUS] = 0
     if st[r.NIP]:
-        n += 1
+        n = sat(n + 1)
         st[r.NIP] -= 1
     if face.slot == "fluff" and st[r.KNEAD_FLUFF]:
-        n *= 2
+        n = sat(n * 2)
         st[r.KNEAD_FLUFF] = 0
     if face.slot == "wand":
-        n += st[r.KNEAD_WAND] + amount(b, "badmilk", 1)
+        n = sat(n + st[r.KNEAD_WAND] + amount(b, "badmilk", 1))
         st[r.KNEAD_WAND] = 0
         if st[r.WISH]:
-            n *= 2  # a wishing star: the next wand times 2
+            n = sat(n * 2)  # a wishing star: the next wand times 2
             st[r.WISH] = 0
     if st[r.SPOOK]:
         n = max(0, n - st[r.SPOOK])
     before = b.combo.get(face.slot, 0)
-    b.combo[face.slot] = before + counts
+    b.combo[face.slot] = sat(before + counts)
     three = before < COMBO_AT <= before + counts
     if not again:
         b.last_face = row
@@ -136,20 +143,20 @@ def trick(b, face, n):
     e = face.effect
     if e == "plus":
         # +1: the next die gets it, each hit and stack of it
-        st[r.PLUS] = min(99, st[r.PLUS] + n)  # +1s stack (the owner, 2026-10-31; was max)
+        st[r.PLUS] = sat(st[r.PLUS] + n)  # +1s stack (the owner, 2026-10-31; was max)
         st[r.PLUS_LEFT] = PLUS_DICE
     elif e == "double":
         # x2 is tall: the next die of any slot but a trick (a trick leaves it waiting), and it
         # counts as two towards a three; played after a +1 it doubles that too
-        st[r.PLUS] *= n
-        st[r.MULT] = max(st[r.MULT], 1) * n
+        st[r.PLUS] = sat(st[r.PLUS] * n)
+        st[r.MULT] = sat(max(st[r.MULT], 1) * n)
         cap = b.R.variant.get("multcap")
         if cap:
             st[r.MULT] = min(st[r.MULT], int(cap))  # a waiting times stacks this far at most
     elif e == "copy":
         if b.last_face != r.NOTHING:
             if n:
-                st[r.PLUS] += n
+                st[r.PLUS] = sat(st[r.PLUS] + n)
                 st[r.PLUS_LEFT] = max(st[r.PLUS_LEFT], 1)
             on = b.last_on if b.alive[b.last_on] else b.target
             land(b, b.last_face, on, again=True)
@@ -277,6 +284,10 @@ def turn_end(b):
     st = b.st[r.HERO]
     if "still" in b.charms and not b.rerolled:
         b.apply("mana", r.HERO, r.HERO, amount(b, "still", 2))
+    # a waiting plus and times last to the turn's end (the owner, 2026-11-01)
+    st[r.PLUS] = 0
+    st[r.PLUS_LEFT] = 0
+    st[r.MULT] = 0
     k = st[r.KITTENS]
     times = 2 if st[r.NIPPED] else 1
     st[r.NIPPED] = 0

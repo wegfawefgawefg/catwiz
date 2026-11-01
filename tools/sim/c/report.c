@@ -124,6 +124,14 @@ void print_report(int player, const RunResult *r, int n, double seconds, int by_
                row->net, row->turns, row->turns_max, row->lost_p90);
     }
     printf("runs won: %.1f%%, hp at the end of won runs %.1f\n", 100 * s.win, s.hp_end);
+    int stall = 0;
+    for (int i = 0; i < n; i++) {
+        int st = 0;
+        for (int f = 0; f < r[i].nfights; f++)
+            st |= r[i].fights[f].turns > 15;
+        stall += st;
+    }
+    printf("runs with a fight over 15 turns: %.1f%%\n", 100.0 * stall / n);
     printf("runs lost in fight:");
     for (int f = 0; f <= FIGHT_COUNT; f++)
         if (s.deaths[f])
