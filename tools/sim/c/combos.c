@@ -5,7 +5,8 @@
            and in every pair (and the best pairs with a third); the rest of the run drafted as
            usual, the same seeds for every cell. A pair's lift is its win rate's log-odds less
            what its parts give apart: logit(AB) - logit(A) - logit(B) + logit(none). Positive:
-           they win together more than the parts say.
+           they win together more than the parts say. --with NAME: only its pairs;
+           --without NAME: triples without it; --lift-from FILE: reuse an earlier run's cells.
    swings  the natural runs (swings.c): the turns that did the most with three systems or
            more touching, told; how often a run sets a pair up and plays it in one turn.
    picks   every pick forced in turn (study.c). */
@@ -23,7 +24,11 @@ int study_swings(int player, int runs, uint64_t seed, int jobs, int show);
 int study_luck(int player, int runs, uint64_t seed, int jobs);
 int study_boosts(int player, int runs, uint64_t seed, int jobs);
 int study_kittens(int player, int runs, uint64_t seed, int jobs);
+int study_cards(int player, int runs, uint64_t seed, int jobs);
 const char *LIFT_WITH = NULL; /* --with NAME: the lift's pairs with this part only */
+const char *LIFT_WITHOUT = NULL; /* --without NAME: the lift's triples leave this part out */
+const char *LIFT_FROM = NULL; /* --lift-from FILE: an earlier lift's output (the same tables,
+                                 runs and seed); the cells it has are read, not run again */
 const char *SWING_FACE = NULL; /* --face NAME: the swings' turns that played this face */
 
 int combo_parts(Part *out) {
@@ -80,6 +85,31 @@ static double cell(int player, int runs, uint64_t seed, int jobs, const Kit *k) 
     return (double)won / runs;
 }
 
+/* a cell's win share from LIFT_FROM: the line that starts "  KEY" and then "won X%" (after
+   spaces, for a part alone); -1 if it is not there */
+static double cell_from(const char *key, int runs) {
+    if (!LIFT_FROM)
+        return -1;
+    FILE *f = fopen(LIFT_FROM, "r");
+    if (!f)
+        return -1;
+    char line[512];
+    double w = -1;
+    size_t n = strlen(key);
+    while (w < 0 && fgets(line, sizeof line, f)) {
+        if (strncmp(line, "  ", 2) || strncmp(line + 2, key, n))
+            continue;
+        const char *rest = line + 2 + n;
+        while (*rest == ' ')
+            rest++;
+        double pct;
+        if (sscanf(rest, "won %lf%%", &pct) == 1)
+            w = floor(pct * runs / 100 + 0.5) / runs;
+    }
+    fclose(f);
+    return w;
+}
+
 static double logit(double p, int n) {
     double q = (p * n + 0.5) / (n + 1.0);
     return log(q / (1 - q));
@@ -113,7 +143,9 @@ static int study_lift(int player, int runs, uint64_t seed, int jobs, int top) {
     int n = combo_parts(parts);
     Kit base;
     kit_start(&base);
-    double w0 = cell(player, runs, seed, jobs, &base);
+    double w0 = cell_from("none:", runs);
+    if (w0 < 0)
+        w0 = cell(player, runs, seed, jobs, &base);
     printf("lift: %s, %d runs a cell, parts given from fight 1 (slot locked)\n",
            PLAYER_NAME[player], runs);
     printf("  none: won %.1f%%\n", 100 * w0);
@@ -125,7 +157,9 @@ static int study_lift(int player, int runs, uint64_t seed, int jobs, int top) {
     for (int i = 0; i < n; i++) {
         Kit k = base;
         kit_add(&k, &parts[i]);
-        solo[i] = cell(player, runs, seed, jobs, &k);
+        solo[i] = cell_from(part_name(&parts[i]), runs);
+        if (solo[i] < 0)
+            solo[i] = cell(player, runs, seed, jobs, &k);
         printf("  %-18s won %5.1f%%  (%+.2f log-odds)\n", part_name(&parts[i]), 100 * solo[i],
                logit(solo[i], runs) - logit(w0, runs));
         fflush(stdout);
@@ -141,7 +175,11 @@ static int study_lift(int player, int runs, uint64_t seed, int jobs, int top) {
             Kit k = base;
             kit_add(&k, &parts[i]);
             kit_add(&k, &parts[j]);
-            double w = cell(player, runs, seed, jobs, &k);
+            char key[128];
+            snprintf(key, sizeof key, "pair %s + %s:", part_name(&parts[i]), part_name(&parts[j]));
+            double w = cell_from(key, runs);
+            if (w < 0)
+                w = cell(player, runs, seed, jobs, &k);
             PairOut *p = &pairs[np++];
             p->a = i;
             p->b = j;
@@ -160,10 +198,18 @@ static int study_lift(int player, int runs, uint64_t seed, int jobs, int top) {
     for (int i = np - 1; i >= 0 && i >= np - 10; i--)
         print_pair(&pairs[i], parts, solo);
     printf("triples (the best pairs and a third that lifts with both):\n");
-    for (int t = 0; t < 8 && t < np; t++) {
+    int without = -1;
+    for (int i = 0; LIFT_WITHOUT && i < n; i++)
+        if (!strcmp(part_name(&parts[i]), LIFT_WITHOUT))
+            without = i;
+    for (int t = 0, seeds = 0; seeds < 8 && t < np; t++) {
         int a = pairs[t].a, b = pairs[t].b;
+        if (a == without || b == without)
+            continue;
+        seeds++;
         for (int c = 0; c < n; c++) {
-            if (c == a || c == b || clash(&parts[c], &parts[a]) || clash(&parts[c], &parts[b]))
+            if (c == a || c == b || c == without || clash(&parts[c], &parts[a]) ||
+                clash(&parts[c], &parts[b]))
                 continue;
             if (pair_lift(pairs, np, a, c) < 0.3 || pair_lift(pairs, np, b, c) < 0.3)
                 continue;
@@ -197,6 +243,10 @@ int combos_main(int argc, char **argv) {
             top = atoi(argv[i + 1]);
         else if (!strcmp(argv[i], "--with"))
             LIFT_WITH = argv[i + 1];
+        else if (!strcmp(argv[i], "--without"))
+            LIFT_WITHOUT = argv[i + 1];
+        else if (!strcmp(argv[i], "--lift-from"))
+            LIFT_FROM = argv[i + 1];
         else if (!strcmp(argv[i], "--face"))
             SWING_FACE = argv[i + 1];
         else if (!strcmp(argv[i], "--only"))
@@ -216,6 +266,8 @@ int combos_main(int argc, char **argv) {
     }
     if (!strcmp(what, "lift"))
         return study_lift(player, runs, seed, jobs, top);
+    if (!strcmp(what, "cards"))
+        return study_cards(player, runs, seed, jobs);
     if (!strcmp(what, "kittens"))
         return study_kittens(player, runs, seed, jobs);
     if (!strcmp(what, "boosts"))

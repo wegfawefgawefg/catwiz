@@ -4,7 +4,7 @@
 #include "sim.h"
 #include "tell.h"
 
-Rules RULES = {1, 16, 0}; /* the sixth toe's die, a waiting times x16 at most (main.c) */
+Rules RULES = {1, 0, 0}; /* the sixth toe's die; no cap on a waiting times (255, main.c) */
 
 void b_set_enemy(Battle *b, int i, int k) {
     const KindRow *kind = &KINDS[k];
@@ -344,7 +344,7 @@ void b_curse(Battle *b, int effect, int target, int n) {
         break;
     case E_wet: { /* adds its turns, at least 1 (the owner; was the longer of the two) */
         int w = st[ST_WET] + (n > 1 ? n : 1);
-        st[ST_WET] = (int32_t)(w < 99 ? w : 99);
+        st[ST_WET] = (int32_t)(w < 255 ? w : 255);
         break;
     }
     case E_spook:
@@ -371,7 +371,9 @@ static int dealt(Battle *b, int who, int damage) {
     int32_t *st = b->st[who];
     int cheer = st[ST_CHEER];
     st[ST_CHEER] = 0;
-    int d = (damage + cheer + st[ST_STRENGTH]) & 0xFF;
+    int d = damage + cheer + st[ST_STRENGTH];
+    if (d > 255)
+        d = 255; /* a hit is a byte: it saturates (the owner, 2026-11-01; it wrapped) */
     if (st[ST_TANGLE]) {
         d -= st[ST_TANGLE];
         if (d < 0)
@@ -388,6 +390,8 @@ void b_strike(Battle *b, int by, int target, int amount, int pierce) {
     int damage = dealt(b, by, amount);
     int32_t *st = b->st[target];
     damage += st[ST_BRAND];
+    if (damage > 255)
+        damage = 255;
     if (st[ST_BRAND] && by == HERO)
         b->t_sys |= SYS_STATUS; /* a marked hit */
     if (st[ST_REFLECT] && by == HERO) {
@@ -480,7 +484,7 @@ void b_heal(Battle *b, int who, int n) {
 
 void b_add(Battle *b, int who, int status, int n) {
     int v = b->st[who][status] + n;
-    b->st[who][status] = (int32_t)(v < 99 ? v : 99);
+    b->st[who][status] = (int32_t)(v < 255 ? v : 255); /* bytes, saturating (99 before) */
 }
 
 void b_end_turn(Battle *b) {

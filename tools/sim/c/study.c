@@ -314,3 +314,76 @@ int study_kittens(int player, int runs, uint64_t seed, int jobs) {
     free(r);
     return 0;
 }
+
+/* cards (--study cards): every card of the pool: taken when offered, the share of runs that
+   held it (a +1 card: took it) and how they did; Times Two by its level; the stalls */
+int study_cards(int player, int runs, uint64_t seed, int jobs) {
+    RunResult *r = run_batch(player, runs, seed, jobs, 0, NULL);
+    int won = 0, stall = 0;
+    for (int i = 0; i < runs; i++) {
+        won += r[i].won;
+        int s = 0;
+        for (int f = 0; f < r[i].nfights; f++)
+            s |= r[i].fights[f].turns > 15;
+        stall += s;
+    }
+    printf("cards: %s, %d runs, won %.1f%%; runs with a fight over 15 turns %.1f%%\n",
+           PLAYER_NAME[player], runs, 100.0 * won / runs, 100.0 * stall / runs);
+    printf("  card: taken when offered (times offered), runs that held it (won)\n");
+    char buf[64];
+    for (int o = 0; o < OFFER_COUNT; o++) {
+        int c = OFFERS[o].what;
+        if (!OFFERS[o].weight)
+            continue;
+        int offered = 0, taken = 0, held = 0, hw = 0;
+        for (int i = 0; i < runs; i++) {
+            int h = 0;
+            for (int j = 0; j < r[i].npicks; j++) {
+                const Pick *pk = &r[i].picks[j];
+                if (pk->what != PK_ITEM && pk->what != PK_LEVEL)
+                    continue;
+                int f = pk->after;
+                if (f < 1 || f > FIGHT_COUNT)
+                    continue;
+                int in = 0;
+                for (int k = 0; k < 3; k++)
+                    in |= r[i].offer[f - 1][k] == c;
+                offered += in;
+                taken += in && pk->card == c;
+                h |= in && pk->card == c;
+            }
+            if (c < ITEM_COUNT)
+                for (int f = 0; f < r[i].nfights; f++)
+                    h |= r[i].kit_at[f].items[ITEMS[c].slot] == c;
+            held += h;
+            hw += h && r[i].won;
+        }
+        if (c >= UP_CARD)
+            snprintf(buf, sizeof buf, "+1 %s", (const char *[]){"WAND", "FLUFF", "STAR", "BOOK",
+                                                                "CURSE", "TRICK"}[c - UP_CARD]);
+        else
+            snprintf(buf, sizeof buf, "%s", ITEMS[c].name);
+        printf("    %-16s %3.0f%% (%5d)  %5.1f%% of runs (won %5.1f%%)\n", buf,
+               offered ? 100.0 * taken / offered : 0, offered, 100.0 * held / runs,
+               held ? 100.0 * hw / held : 0);
+    }
+    int times = -1;
+    for (int q = 0; q < ITEM_COUNT; q++)
+        if (!strcmp(ITEMS[q].name, "TIMES TWO"))
+            times = q;
+    for (int lv = 0; times >= 0 && lv <= ITEM_MOST; lv++) {
+        int n = 0, w = 0;
+        for (int i = 0; i < runs; i++) {
+            int h = 0;
+            for (int f = 0; f < r[i].nfights; f++)
+                h |= r[i].kit_at[f].items[S_trick] == times && r[i].kit_at[f].level[S_trick] >= lv;
+            n += h;
+            w += h && r[i].won;
+        }
+        printf("  runs that held Times Two at x%d or more: %.1f%% (won %.1f%%)\n",
+               ITEMS[times].amount + lv * ITEMS[times].step, 100.0 * n / runs,
+               n ? 100.0 * w / n : 0);
+    }
+    free(r);
+    return 0;
+}

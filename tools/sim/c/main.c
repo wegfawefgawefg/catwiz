@@ -9,8 +9,9 @@
      ./catwiz-sim --combos ...                          the combos study (combos.c)
 
    Seeds: run n of --seed s is seed s * 100000 + n, as the Python sim. --jobs (8 at most).
-   Rules: the sixth toe rolls a sixth die and a waiting times stacks to x16 at most (the rule
-   changes in docs/balance.md); --no-toe-fix --mult-cap 0 plays the Python sim's old rules. */
+   Rules: the rule changes in docs/balance.md (the sixth toe rolls a sixth die; boosts last to
+   the turn's end; every number saturates at 255); --no-toe-fix plays the Python sim's old
+   bag of five, --mult-cap N caps a waiting times. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

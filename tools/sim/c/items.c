@@ -45,12 +45,9 @@ void items_round_start(Battle *b) {
     b->rerolls = (int8_t)(b->rerolls + charm_amount(b, K_pocket) - charm_amount(b, K_toe));
 }
 
-/* a number past 2^20 (times two stacked for many turns: the Python sim's numbers have no
-   end) kept the same mod 256 (a hit's damage is a byte) and above every cap (99) */
-static int32_t fold(int64_t n) {
-    if (n < (1 << 20))
-        return (int32_t)n;
-    return (int32_t)((n & 0xFF) + (1 << 20));
+/* every number saturates at 255: the game keeps them in bytes (the owner, 2026-11-01) */
+static int32_t sat(int64_t n) {
+    return n > 255 ? 255 : (int32_t)n;
 }
 
 static void effect(Battle *b, int e, int t, int n);
@@ -61,15 +58,15 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     switch (face->effect) {
     case E_plus:
         /* +1: the next die gets it, each hit and stack of it */
-        st[ST_PLUS] = st[ST_PLUS] + n < 99 ? st[ST_PLUS] + n : 99; /* +1s stack (the owner) */
+        st[ST_PLUS] = sat((int64_t)st[ST_PLUS] + n); /* +1s stack (the owner) */
         st[ST_PLUS_LEFT] = PLUS_DICE;
         break;
     case E_double: {
         /* x2 is tall: the next die but a trick, counted as two towards a three; played
            after a +1 it doubles that too */
-        st[ST_PLUS] = fold((int64_t)st[ST_PLUS] * n);
+        st[ST_PLUS] = sat((int64_t)st[ST_PLUS] * n);
         int m = st[ST_MULT] > 1 ? st[ST_MULT] : 1;
-        st[ST_MULT] = fold((int64_t)m * n);
+        st[ST_MULT] = sat((int64_t)m * n);
         if (RULES.mult_cap && st[ST_MULT] > RULES.mult_cap)
             st[ST_MULT] = RULES.mult_cap; /* a waiting times stacks this far at most */
         break;
@@ -77,7 +74,7 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     case E_copy:
         if (b->last_face != NOTHING) {
             if (n) {
-                st[ST_PLUS] = (int32_t)(st[ST_PLUS] + n);
+                st[ST_PLUS] = sat((int64_t)st[ST_PLUS] + n);
                 if (st[ST_PLUS_LEFT] < 1)
                     st[ST_PLUS_LEFT] = 1;
             }
@@ -116,29 +113,29 @@ void items_land(Battle *b, int row, int target, int again) {
     int base = n;
     int took = (st[ST_MULT] && face->slot != S_trick) || st[ST_PLUS_LEFT];
     if (st[ST_MULT] && face->slot != S_trick) { /* the next die of any slot (the owner) */
-        n = fold((int64_t)n * st[ST_MULT]);
+        n = sat((int64_t)n * st[ST_MULT]);
         counts = st[ST_MULT];
         st[ST_MULT] = 0;
     }
     if (st[ST_PLUS_LEFT]) {
-        n += st[ST_PLUS];
+        n = sat((int64_t)n + st[ST_PLUS]);
         st[ST_PLUS_LEFT]--;
         if (!st[ST_PLUS_LEFT])
             st[ST_PLUS] = 0;
     }
     if (st[ST_NIP]) {
-        n += 1;
+        n = sat(n + 1);
         st[ST_NIP]--;
     }
     if (face->slot == S_fluff && st[ST_KNEAD_FLUFF]) {
-        n *= 2;
+        n = sat(n * 2);
         st[ST_KNEAD_FLUFF] = 0;
     }
     if (face->slot == S_wand) {
-        n += st[ST_KNEAD_WAND] + charm_amount(b, K_badmilk);
+        n = sat((int64_t)n + st[ST_KNEAD_WAND] + charm_amount(b, K_badmilk));
         st[ST_KNEAD_WAND] = 0;
         if (st[ST_WISH]) {
-            n *= 2; /* a wishing star: the next wand times 2 */
+            n = sat(n * 2); /* a wishing star: the next wand times 2 */
             st[ST_WISH] = 0;
         }
     }
@@ -156,7 +153,7 @@ void items_land(Battle *b, int row, int target, int again) {
             n = 0;
     }
     int before = b->combo[face->slot];
-    b->combo[face->slot] = (uint8_t)(before + counts);
+    b->combo[face->slot] = (uint8_t)sat(before + counts);
     int three = before < COMBO_AT && COMBO_AT <= before + counts;
     if (!again) {
         b->last_face = (uint8_t)row;
@@ -362,6 +359,10 @@ void items_turn_end(Battle *b) {
         add_mana(b, charm_amount(b, K_still));
         b->t_sys |= SYS_CHARM;
     }
+    /* a waiting plus and times last to the turn's end (the owner, 2026-11-01) */
+    st[ST_PLUS] = 0;
+    st[ST_PLUS_LEFT] = 0;
+    st[ST_MULT] = 0;
     int k = st[ST_KITTENS];
     int times = st[ST_NIPPED] ? 2 : 1;
     st[ST_NIPPED] = 0;

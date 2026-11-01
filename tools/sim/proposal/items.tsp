@@ -459,16 +459,16 @@
             :icon art.TILE_LINT)
         (make ac.Item
             :name "KITTEN CANNON"
-            :text "3 MANA: LAUNCH ALL KITTENS, # EACH"
-            :slot Slot.book
+            :text "LAUNCH ALL KITTENS, # EACH"
+            :slot Slot.wand
             :effect ac.Effect.cannon
-            :amount 3
+            :amount 5
             :step 1
-            :cost 3
+            :cost 0
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.foe
-            :icon art.TILE_BOOK)))
+            :icon art.TILE_WAND)))
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))
