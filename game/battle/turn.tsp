@@ -19,6 +19,7 @@
 (import content/play)
 (import content/foes)
 (import content/moves mv)
+(import content/move_looks looks)
 (import content/statuses st)
 (import battle/act)
 (import battle/dice)
@@ -442,7 +443,7 @@
             (log.uses i (foes.intent_text i (at state.actors i move)) 0)
             (return)))
     (let row u8 (at state.actors i move))
-    (sound.cue sound.Cue.growl)
+    (sound.cue_byte (looks.cue row))
     (log.uses i (mv.text row) (foes.intent_amount i row))
     (act.begin state.Source.move row i (foes.move_target i row true)))
 

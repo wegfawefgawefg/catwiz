@@ -46,8 +46,12 @@ def build(changes):
 
 def ticks_at(disk, keys, frame, address):
     card = ["--mockingboard", os.environ["MB"]] if os.environ.get("MB") else []
+    # the second disk beside it (tisple build writes measure2.dsk), in drive 2
+    disk2 = disk[:-4] + "2.dsk"
+    second = ["--disk2", disk2] if os.path.exists(disk2) else []
     out = subprocess.run([TISPLE, "machine", "--disk", disk, "--frames", str(frame), "--keys", keys,
-                          "--peek", "0x%04X:2" % address] + card, capture_output=True, text=True, check=True).stdout
+                          "--peek", "0x%04X:2" % address] + card + second, capture_output=True, text=True,
+                         check=True).stdout
     m = re.search(r"peek \$[0-9A-F]+: [0-9A-F]{2} [0-9A-F]{2}  \(u16 (\d+)\)", out)
     if not m:
         sys.exit("no peek in: " + out)

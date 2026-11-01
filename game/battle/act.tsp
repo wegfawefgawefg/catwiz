@@ -16,6 +16,7 @@
 (import content/moves mv)
 (import content/cards)
 (import content/shows)
+(import content/move_looks looks)
 (import battle/place)
 (import battle/look)
 
@@ -43,11 +44,21 @@
     (set state.act_time 0)
     (set state.act_done false)
     (set state.phase state.Phase.acting)
-    ; the card's show, or the bolt for an enemy's shot; nothing for the meow
+    ; the card's show, or the move's (content/move_looks: the bolt unless it has its own, and
+    ; the bolt when a lunge is shot over someone in the way); nothing for the meow. A FOE
+    ; show's sprites are roles of the mover's kind
     (shows.start (match source
         (state.Source.face (cards.show row))
-        (state.Source.move shows.BOLT)
+        (state.Source.move
+            (if (and (= (mv.motion row) state.Motion.lunge) (blocked by target))
+                shows.BOLT
+                (looks.show row)))
         (state.Source.meow shows.NONE)))
+    (if (!= (& state.show_flags shows.FOE) 0)
+        (do
+            (let kind u8 (at state.actors by figure))
+            (set state.show_a (look.frame kind state.show_a))
+            (set state.show_b (look.frame kind state.show_b))))
     (set state.bolt_sprite state.show_a)
     (if (!= (& state.show_flags shows.ANGRY) 0)
         (look.show_mood target state.Mood.angry ANGRY_FRAMES))
@@ -119,11 +130,11 @@
     (let gap u8 0)
     (if (< by_home target_home)
         (do
-            (let edge u8 (+ by_home (at art.KIND_COLS (at state.actors by figure))))
+            (let edge u8 (+ by_home (at art.tab.kcols (at state.actors by figure))))
             (if (> target_home edge)
                 (set gap (- target_home edge))))
         (do
-            (let edge u8 (+ target_home (at art.KIND_COLS (at state.actors target figure))))
+            (let edge u8 (+ target_home (at art.tab.kcols (at state.actors target figure))))
             (if (> by_home edge)
                 (set gap (- by_home edge)))))
     ; a step short of touching: its frames are wider than its spot, and boxes that meet draw
@@ -159,9 +170,18 @@
             (set (at state.actors by lift) 0)
             (land)
             (return false)))
-    ; hold on contact, then step back home
+    ; hold on contact, then step back home; a move's ON show plays over its target meanwhile
+    ; (the mower's grass flying), a step every 2 frames
     (if (< t HOLD)
-        (return false))
+        (do
+            (if (and (> state.show_steps 0) (= (& t 1) 0))
+                (do
+                    (let k u8 (>> t 1))
+                    (if (< k state.show_steps)
+                        (place_on k)
+                        (set state.bolt_on false))))
+            (return false)))
+    (set state.bolt_on false)
     (if (> moved 0)
         (do
             (let n u8 moved)
@@ -226,12 +246,16 @@
             (set state.bolt_on false)
             (land)
             (return false)))
+    (place_on k)
+    false)
+
+; step k of the action's ON show over whoever it is for: its place, its sprite by turns
+(fn place_on ((k u8)) void
     (let who u8 state.act_on)
     (shows.place (+ state.show_first k))
     (set state.bolt_sprite (if (= (& k 1) 0)
         state.show_a
         state.show_b))
     (set state.bolt_col (+ (at state.actors who home) state.show_col))
-    (set state.bolt_top (+ (at art.KIND_TOP (at state.actors who figure)) state.show_row))
-    (set state.bolt_on true)
-    false)
+    (set state.bolt_top (+ (at art.tab.ktop (at state.actors who figure)) state.show_row))
+    (set state.bolt_on true))

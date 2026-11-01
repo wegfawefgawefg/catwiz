@@ -41,75 +41,67 @@ def day_shadow(P):
 
 
 def fights():
-    # the fights: the build's two at night (night.py, the fighters solid on black), the day
-    # ones of the old plan after them; each in both looks, a luma check, one contact sheet
+    # each fight screen's backdrop with everyone at their spots in their idle frames, both
+    # looks (the game's own screenshots show the rest), one contact sheet
+    import figures
+    import game_sprites as gs
+    import screens
     cells = []
-    for F in palettes.FIGHTS:
-        P = F["P"]
-        if F["zone"] == "night":
-            bd = night.picture(F["variant"], F["n"])
-            c, lines = screen.build(bd, "night", F["foes"], night.no_shadow, U=hud.U_NIGHT)
-        else:
-            bd = forest.picture(P, F["variant"])
-            c, lines = screen.build(bd, F["zone"], F["foes"], day_shadow(P))
-        name = "fight%d_%s" % (F["n"], F["variant"])
-        p = emu.show(c.px, SHOTS, name, lines=lines)
-        emu.grey_of(p["color"], os.path.join(SHOTS, name + "_grey.png"))
-        cells += [("fight %d %s - NTSC" % (F["n"], F["variant"]), p["ntsc"]),
-                  ("fight %d %s - colour" % (F["n"], F["variant"]), p["color"])]
+    for F in screens.fights():
+        c = night.picture_for(F).copy()
+        cast = [("cat", 4)] + [(f, col) for _, f, col in F["cast"]]
+        for name, col in cast:
+            K = figures.KINDS[name]
+            fig = light.lit(figures.BLOCKS[K.block].draw(K.roles["idle"]), "night")
+            base = gs.block_sprites(K.block)[0]
+            c.paste(fig, col * 7 // 2 - base.col * 7 // 2, 0)
+        name = "screen_fight%d" % F["n"]
+        p = emu.show(c.px, SHOTS, name)
+        cells += [("fight %d %s - NTSC" % (F["n"], F["zone"]), p["ntsc"]),
+                  ("fight %d %s - colour" % (F["n"], F["zone"]), p["color"])]
     print(emu.sheet(cells, 2, os.path.join(SHOTS, "fights.png")))
 
 
 def lane_pictures():
-    # each build fight's backdrop with its lanes tinted by what they are for (lanes.py), and
-    # a check that every lane is black
+    # each fight's backdrop with its lanes tinted by what they are for (lanes.py), and a check
+    # that every lane is black
     import lanes
-    for F in palettes.FIGHTS:
-        if F["n"] not in lanes.SPOTS:
-            continue
-        bd = night.picture(F["variant"], F["n"])
+    import screens
+    for F in screens.fights():
+        bd = night.picture_for(F)
         bad = lanes.check(F["n"], bd.px)
-        print(lanes.debug_image(F["n"], bd.px, os.path.join(SHOTS, "lanes_fight%d_%s.png" % (F["n"], F["variant"]))),
+        print(lanes.debug_image(F["n"], bd.px, os.path.join(SHOTS, "lanes_screen_fight%d.png" % F["n"])),
               "pixels not black in a lane: %d" % bad)
         if bad:
             raise SystemExit("make.py: fight %d has scenery in a lane" % F["n"])
 
 
-def frames_of(kind):
-    return cat.FRAMES if kind == "cat" else foes.FRAMES[kind]
-
-
-def drawing(kind, frame):
-    return screen.figure(kind, frame)
-
-
 def cast():
-    # every frame of everyone, lit by day, dusk and night, in the flat look and enlarged
+    # every frame of every figure, lit by night, enlarged
     from PIL import Image
-    kinds = ["cat", "puffcap", "sporelet", "nightflap", "shroom"]
-    bgs = {"day": dhgr.AQUA, "dusk": dhgr.PURPLE, "night": dhgr.BLACK}
-    for zone in ("day", "dusk", "night"):
-        tiles = []
-        for k in kinds:
-            for f in frames_of(k):
-                c = light.lit(drawing(k, f), zone)
-                x0, y0, x1, y1 = c.bbox()
-                ox, oy = (x0 + x1) // 2 - 28, y1 - 98
-                im = Image.new("RGB", (56, 104), dhgr.RGB[bgs[zone]])
-                for y in range(104):
-                    for x in range(56):
-                        v = c.get(x + ox, y + oy)
-                        if v is not None:
-                            im.putpixel((x, y), dhgr.RGB[v])
-                tiles.append(im.resize((56 * 4, 104 * 2), Image.NEAREST))
-        cols = 5
-        w, h = tiles[0].size
-        sheet = Image.new("RGB", (cols * (w + 6) + 6, ((len(tiles) + cols - 1) // cols) * (h + 6) + 6), (30, 30, 34))
-        for i, t in enumerate(tiles):
-            sheet.paste(t, (6 + (i % cols) * (w + 6), 6 + (i // cols) * (h + 6)))
-        path = os.path.join(SHOTS, "cast_%s.png" % zone)
-        sheet.save(path)
-        print(path)
+    import figures
+    tiles = []
+    for name, b in figures.BLOCKS.items():
+        for f in b.frames:
+            c = light.lit(b.draw(f), "night")
+            x0, y0, x1, y1 = c.bbox()
+            w, h = 64, 112
+            ox, oy = (x0 + x1) // 2 - w // 2, y1 - (h - 6)
+            im = Image.new("RGB", (w, h), dhgr.RGB[dhgr.BLACK])
+            for y in range(h):
+                for x in range(w):
+                    v = c.get(x + ox, y + oy)
+                    if v is not None:
+                        im.putpixel((x, y), dhgr.RGB[v])
+            tiles.append(im.resize((w * 4, h * 2), Image.NEAREST))
+    cols = 6
+    w, h = tiles[0].size
+    sheet = Image.new("RGB", (cols * (w + 6) + 6, ((len(tiles) + cols - 1) // cols) * (h + 6) + 6), (30, 30, 34))
+    for i, t in enumerate(tiles):
+        sheet.paste(t, (6 + (i % cols) * (w + 6), 6 + (i // cols) * (h + 6)))
+    path = os.path.join(SHOTS, "cast_night.png")
+    sheet.save(path)
+    print(path)
 
 
 def icon_sheet():
@@ -214,7 +206,9 @@ def palette_sheet():
 
 
 def main():
-    what = sys.argv[1:] or ["fights", "cast", "icons", "font", "light", "palettes", "lanes", "memory", "game"]
+    # font, light and palettes are the old plan's day previews (their tray's icons are gone
+    # since the items round): by name only
+    what = sys.argv[1:] or ["fights", "cast", "icons", "lanes", "memory", "game"]
     os.makedirs(SHOTS, exist_ok=True)
     for w in what:
         if w == "fights":

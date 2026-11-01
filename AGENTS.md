@@ -132,7 +132,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   stay in main memory (`text.add`, `add_n`): only those lib/dhgr_pixels' glyphs read (the tray's
   captions, `battle/hud.tsp` DIGITS...; the buttons' words; the map's places; the charms'
   marks). A pointer cannot tell which, so a function that takes one takes one kind.
-- The rules page's text is on the disk (`content/rules.tsp`, `:on disk`; its `page` macro pads
+- The rules page's text is on the second disk (`content/rules.tsp`, `:on disk2`; its `page` macro pads
   each line to 35 columns and fails a longer one), read a page at a time into aux memory's text
   page 1 (`$0400`, free: the game shows no text page). Every rule there is the engine's: change
   them together.
@@ -164,17 +164,29 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   pixels (a pixel is 4 dots, 1.83 rows wide).
 - Sprites are cut on 7-pixel steps (4 bytes: aux, main, aux, main) so their colours hold, and
   move on them (2 byte columns a step); up and down at any row. Each half is stored as lib/dhgr
-  runs (skips, opaque runs, edged runs with masks). A screen's art is on the disk (2026-10-31,
-  `art/screen_*.tsp`: `draw/packs.tsp` tables, each part packed while compiling): its picture
-  (read into `sprite_aux`, unpacked onto the spare page and shown there) and its kinds' runs
-  (read into page 1's aux memory, not shown then, and unpacked: `draw/blit.tsp`): the main halves
-  into the aux language card's bank 2, the aux halves into its bank 1, the rest of bank 2, then
-  `sprite_aux` in aux memory, as they fit; then the spare page is copied onto page 1. A fight
-  screen has every kind its fights use (the clearing and the path: the cat, the small sprites,
-  the puffcap, the sporelet; the elite's clearing: the cat, the small sprites, the old shroom,
-  the sporelet). Frames are whole (no face patches): a mood shows as a
-  kind's frame by role (idle, attack, hurt, happy, surprised, flap, flash; `battle/look.tsp`),
-  its idle one when it has none.
+  runs (skips, opaque runs, edged runs with masks). Frames are whole (no face patches): a mood
+  shows as a kind's frame by role (idle, attack, hurt, happy, surprised, flap, flash, and shot,
+  shot2: the small sprites its moves throw; `battle/look.tsp`), its idle one when it has none.
+- Figures (2026-11-01, `tools/dhgr/figures.py`): a block is a figure's frames drawn as one run
+  of sprites; a kind is a role table over a block, and may borrow another's (the possum that
+  faked it, the Bulldog King's phases): a phase costs only the frames it adds. An enemy names
+  its figure (`content/enemies.tsp :figure art.FIG_...`); `spawn` turns it into its kind on the
+  screen (`art.tab.figure`).
+- Screens (2026-11-01, `tools/dhgr/screens.py`): one a row of `encounters` FIGHTS, made from
+  the table itself (the sim's `tools/sim/tsp.py` reads it): the figures of its spots up to the
+  count, the spots past it when someone there (or what it becomes) calls friends, every then.
+  Reorder the fights and run `make.py game` again. Each is on the second disk
+  (`art/screen_fightN.tsp`, `draw/packs` tables): PICTURE (read into `sprite_aux` past the
+  hero's runs, unpacked onto the spare page and shown there) and RUNS: the screen's tables
+  (`art/sprites` `tab`, main memory: every sprite's box and runs' place, every kind's place and
+  role frames, the blocks' sizes, the figures' kinds; the largest screen's size) and its
+  enemies' blocks' runs (read into page 1's aux memory, not shown then, and unpacked:
+  `draw/blit.tsp`). The hero's and the small sprites' blocks (`art/hero.tsp`, blocks 0 and 1 of
+  every fight screen) are unpacked once and stay while fights follow (the title's glow puts them
+  out): every block's main halves into the aux language card's bank 2, the aux halves into its
+  bank 1, the rest of bank 2, then `sprite_aux`, as they fit (`art/dhgr/memory.txt` checks each
+  screen, and that its picture fits `sprite_aux` past the hero's); then the spare page is copied
+  onto page 1.
 - Midnight (2026-10-31): the whole game is night, for speed. The fighters stand on pure black
   and every fighter frame is solid: the figure flattened onto black over its whole box, only
   opaque runs (`SOLID` in `art/sprites`). One copy of a frame erases the last pose and draws the
@@ -256,11 +268,24 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Building and running
 
 ```sh
-TISPLE=~/Coding/LangDev/tisple/build/tisple          # Tisple main (34fde5b on 2026-10-31)
-$TISPLE build                        # build/catwiz.dsk; $TISPLE build --disk x.dsk --asm > x.asm
-$TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --screenshot shots/x.png
-$TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --ntsc --screenshot x.png
+TISPLE=~/Coding/LangDev/tisple/build/tisple          # Tisple with the second disk (drive2 branch)
+$TISPLE build                        # build/catwiz.dsk and build/catwiz2.dsk; --tables: where each went
+D="--disk build/catwiz.dsk --disk2 build/catwiz2.dsk"
+$TISPLE machine $D --frames 1500 --keys "950f:RETURN" --screenshot shots/x.png
+$TISPLE machine $D --frames 1500 --keys "950f:RETURN" --ntsc --screenshot x.png
+# a machine with one drive: the prompt, the swap, RETURN
+$TISPLE machine --disk build/catwiz.dsk --drives 1 --swap 1300f:build/catwiz2.dsk \
+    --keys "950f:RETURN,1400f:RETURN" --frames 2000 --screenshot x.png
+# the phone player (Tisple's web/publish.py)
+python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.json --disk2 build/catwiz2.dsk
 ```
+
+- Two disks (2026-11-01): disk 1 is the boot and the title's art; disk 2 (Tisple's `:on disk2`)
+  everything read during play: every fight screen, the hero's runs, the rules pages, a label,
+  and the title's art again for the titles after a run. A run's start finds disk 2
+  (`title/disk2.tsp`): its label from drive 2, else from drive 1, else the text lines say "Put
+  CATWIZ DISK 2 in drive N, then press RETURN" and it looks again; a machine with one drive swaps
+  once, after the first title, and never back. Two drives: no prompt.
 
 - The game needs Tisple main with lib/dhgr's runs, lib/auxcard, lib/dhgr_pixels, `:strings
   aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged).
@@ -427,3 +452,17 @@ splits a memory would not build.
   the bank 1 crossing: a pass waiting for a key, flat out, 5,641 cycles (was 5,727; measure.py
   "950f:RETURN" 1500 3000); the scripted turn (passlog SEED=5, 1395-2300) 928 frames (928); a pick
   shows in 2 frames (2) and is drawn by 9 (13); the title at the same frame.
+- 2026-11-01, all the art's engine (branch all-art, Tisple drive2 c3ea362): the two disks, the
+  screens' tables per screen (`art/sprites` `tab`: 511 bytes for today's 43 sprites, 4 kinds, 4
+  blocks; the 679 bytes of const tables gone), the hero's runs read once, the card pictures
+  packed in aux memory (`draw/paint`: unpacked to main memory to draw), the cues' tables in aux
+  memory (`sound.cue_byte`, one with_aux). Tisple's libraries load their code at their homes
+  (820 bytes of main memory and the card freed). Before (64cf790): squeeze 10, 17 functions
+  (3,255 bytes) in bank 1, the card 12,189; aux 6,143 at `$0800` and 24,012 at `$6000`; the disk
+  boots 72,219 bytes in 10 segments, 32 sectors free, 21 tables on it. After: squeeze 10, 15
+  functions (2,449 bytes) in bank 1, the card 12,141; aux 6,142 and 22,714 (1.3 KB more free);
+  disk 1 boots 70,883 bytes in 10 segments, 160 sectors free, 2 tables (the title); disk 2: 39
+  tables in tracks 1-12. Speed (measure.py, SEED 5): a pass waiting for a key 5,685 cycles (was
+  5,717), the scripted turn's actions 11,968 (11,968) and the enemies' 6,129 (6,170). The first
+  fight's art is on screen 312 frames after RETURN (was 296: the label and the hero's table are
+  read first); later fights skip the hero's runs.
