@@ -42,7 +42,7 @@
 ; the draws. The kit: items.STARTING_ITEMS
 (const START_STAGE u8 0)
 (const START_FIGHT u8 0)
-(const STOP_STAGE u8 2)
+(const STOP_STAGE u8 enc.FIGHT_COUNT)
 (const START_CHARM u8 state.NOTHING)
 (const WIN_AT_ONCE bool false)
 (const SEED u16 0)

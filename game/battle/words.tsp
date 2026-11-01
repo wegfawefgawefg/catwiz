@@ -18,7 +18,7 @@
 ; the rows' words, in aux memory (text.add_aux): SAY_ and their words
 (const SAY (array (ptr u8) 15)
     (make (array (ptr u8) 15)
-        "The woods go quiet."
+        "All is quiet again."
         " hp"
         "# damage"
         "Shield #"
