@@ -346,9 +346,10 @@
 
 ; each charm's mark on its card (the hud font, tools/dhgr/game_hud.py), so they tell apart: a plus
 ; (a re-roll more), 6, a drop, 3, a kitten's head, a heart, a shield, a lit star, a ward pip, a
-; flea, a box (the litter box), 9 (nine lives). In main memory: the tray reads them
+; flea, a litter tray (the litter box), a cat with a halo (nine lives). In main memory: the tray
+; reads them
 (const MARKS (array (ptr u8) 12)
-    (make (array (ptr u8) 12) "+" "6" "%" "3" "_" "*" "#" "'" ";" "," "&" "9"))
+    (make (array (ptr u8) 12) "+" "6" "%" "3" "_" "*" "#" "'" ";" "," "e" "f"))
 
 ; FIGHTS, CHARMS and the OFFER tables are in aux memory (:in aux: main memory is full): their
 ; fields are read here, one at a time (the offers' in battle/offer)

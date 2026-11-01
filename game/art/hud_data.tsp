@@ -66,8 +66,8 @@
 (const GLOW_ROWS u8 2)
 (const CAPTION_Y u8 148)
 ; from ' ' to '_': width, colour (0: the ink's), 6 rows of bits
-(const HUD_FONT (array u8 512)
-    (make (array u8 512)
+(const HUD_FONT (array u8 568)
+    (make (array u8 568)
         3 0 0 0 0 0 0 0 3 15 4 2 3 1 0 0 3 11 0 6 6 0 0 0
         3 7 7 7 7 2 0 0 5 5 4 14 31 14 10 17 3 6 2 7 7 2 0 0
         3 9 7 5 7 0 0 0 5 13 4 14 31 14 10 17 3 12 6 7 3 1 0 0
@@ -89,7 +89,9 @@
         3 0 5 5 5 5 2 0 3 0 5 5 7 7 5 0 3 0 5 5 2 5 5 0
         3 0 5 5 2 2 2 0 3 0 7 4 2 1 7 0 3 11 2 5 7 2 0 0
         3 9 5 0 7 7 0 0 3 13 7 5 7 0 0 0 3 9 4 2 3 1 0 0
-        3 9 5 7 5 7 0 0))
+        3 9 5 7 5 7 0 0 3 1 2 7 2 0 0 0 3 11 1 3 6 4 0 0
+        3 7 7 5 7 2 0 0 3 13 5 2 0 7 0 0 3 1 5 5 5 5 0 0
+        3 9 2 5 7 0 0 0 3 13 7 0 5 7 7 0))
 
 ; 95 glyphs from ' ': 8 rows of 3 pixels, a byte a row, bit 0 the leftmost
 (const FONT35 (array u8 760)

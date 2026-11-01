@@ -77,7 +77,7 @@ def misc_sizes():
 # the glyphs a badge can hold (by hand, from content/statuses.tsp GLYPH and SHOW, the moves'
 # icons in content/moves.tsp and content/foes.tsp intent_icon): the heart, digits, statuses
 # shown, the moves' glyphs
-BADGE_GLYPHS = "*0123456789#,%@<;&+>!^)\"(-./:=?[\\]_"
+BADGE_GLYPHS = "*0123456789#,%@<;&+>!^)\"(-./:=?[\\]_`abcd"
 
 
 def glyph_widest():

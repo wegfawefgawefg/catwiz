@@ -380,7 +380,7 @@
             :step 1
             :cost 0
             :aim state.Aim.foe
-            :icon icons.TILE_LASER)
+            :icon icons.TILE_REDDOT)
         (make ac.Item
             :name "MIMIC"
             :text "2 mana: copy its next move # times"
@@ -389,7 +389,7 @@
             :step 1
             :cost 2
             :aim state.Aim.foe
-            :icon icons.TILE_COPYCAT)
+            :icon icons.TILE_MIMIC)
         (make ac.Item
             :name "CATFIGHT"
             :text "It hits a friend next, # harder."
@@ -398,7 +398,7 @@
             :step 1
             :cost 0
             :aim state.Aim.foe
-            :icon icons.TILE_KNOCK)
+            :icon icons.TILE_CATFIGHT)
         (make ac.Item
             :name "MIRROR FUR"
             :text "Shield #. Blocked hits bounce back."
@@ -407,7 +407,7 @@
             :step 1
             :cost 0
             :aim state.Aim.self
-            :icon icons.TILE_STATIC)
+            :icon icons.TILE_MIRRORFUR)
         (make ac.Item
             :name "LUCKY PAW"
             :text "Shield #. You get a free re-roll."
@@ -416,7 +416,7 @@
             :step 1
             :cost 0
             :aim state.Aim.self
-            :icon icons.TILE_KNEAD)
+            :icon icons.TILE_LUCKYPAW)
         (make ac.Item
             :name "FLEA CIRCUS"
             :text "Fleas #. They jump x2 when it dies."
@@ -425,7 +425,7 @@
             :step 1
             :cost 0
             :aim state.Aim.foe
-            :icon icons.TILE_FLEAS)
+            :icon icons.TILE_FLEACIRCUS)
         (make ac.Item
             :name "SUNBEAM"
             :text "+# mana. Past 5, up to 2 re-rolls."
@@ -434,7 +434,7 @@
             :step 1
             :cost 0
             :aim state.Aim.self
-            :icon icons.TILE_STAR)
+            :icon icons.TILE_SUNBEAM)
         (make ac.Item
             :name "SCRATCHING HABIT"
             :text "Hits #. +1 each use this fight."
@@ -443,7 +443,7 @@
             :step 1
             :cost 0
             :aim state.Aim.foe
-            :icon icons.TILE_TWIG)
+            :icon icons.TILE_HABIT)
         (make ac.Item
             :name "DOUBLE OR NOTHING"
             :text "Next die x#. It costs you 1 hp."
@@ -452,7 +452,7 @@
             :step 1
             :cost 0
             :aim state.Aim.self
-            :icon icons.TILE_TIMES2))
+            :icon icons.TILE_DOUBLE))
     :strings aux)
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot

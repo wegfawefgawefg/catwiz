@@ -65,13 +65,13 @@
 ; drop), < cheered, ; a ward pip, & in a box, + the next dice's plus, > times, ? spooked, :
 ; sends back (an arrow), " lasered (a red dot), / spiky, ^ strength (an orange sword), _
 ; kittens (a kitten's head), [ tangled (yarn), ] marked, ( catnip (a leaf), \ knead (a paw), =
-; shield stays, ' wished (a star); the chain cards' borrow these till they have their own: "
-; a red dot (the laser's), ! catfight (a sword), : mirror (the arrow), , a flea circus (the
-; flea), ^ her habit (the orange sword)
+; shield stays, ' wished (a star); past _ the chain cards' own: ` a red dot, a catfight (a
+; swipe), b mirror fur (a hand mirror), c a flea circus (a flea over its stand), d her habit
+; (claw marks)
 (const GLYPH (array u8 33)
     (make (array u8 33)
         '#' ',' ' ' '%' '<' ';' '&' ' ' '+' ' ' '>' '?' ':' '"' '/' '^' '_' '[' ']' '(' ' ' '\\'
-        '\\' '=' '\'' ' ' ' ' '"' '!' ':' ',' ' ' '^'))
+        '\\' '=' '\'' ' ' ' ' '`' 'a' 'b' 'c' ' ' 'd'))
 
 ; in words, for the bottom text: a name, then the stack's number for counts
 (const NAME (array (ptr u8) 33)

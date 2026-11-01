@@ -94,6 +94,14 @@ HUD_ICONS = {
     "_": (["#.#", "###", "#.#", "###"], ORANGE), # kittens: a kitten's head
     "'": (hud.STAR, YELLOW),           # mana, lit
     "$": (hud.STAR, GREY),             # mana, not yet
+    # past '_': the chain cards' statuses and charms (2026-11-01)
+    "`": ([".#.", "###", ".#."], MAGENTA),        # red dot: a wand hit brings her dice back
+    "a": (["#..", "##.", ".##", "..#"], PINK),    # catfight: a swipe, its next hit at a friend
+    "b": (["###", "#.#", "###", ".#."], LBLUE),   # mirror fur: a hand mirror, hits go back
+    "c": (["#.#", ".#.", "...", "###"], YELLOW),  # flea circus: a flea over its stand
+    "d": (["#.#", "#.#", "#.#", "#.#"], MAGENTA), # scratching habit: claw marks
+    "e": ([".#.", "#.#", "###"], ORANGE),         # the litter box (a charm's mark)
+    "f": (["###", "...", "#.#", "###", "###"], YELLOW),  # nine lives: a cat with a halo
 }
 
 
@@ -104,7 +112,7 @@ def glyph_rows(ch):
     return fonts.FONT3.get(ch, fonts.FONT3[" "]), 0
 
 
-HUD_CODES = [chr(c) for c in range(32, 96)]   # ' ' to '_'
+HUD_CODES = [chr(c) for c in range(32, 103)]   # ' ' to 'f': past '_' only icons
 
 
 def hud_font():

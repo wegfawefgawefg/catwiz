@@ -200,12 +200,12 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
   picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
   (`battle/kit.tsp`).
-- The chain cards borrow card pictures until they have their own (`content/items.tsp` icon):
-  Red Dot the laser pointer's, Mimic the copycat's, Catfight Knock It Off's, Mirror Fur the
-  static fur's, Lucky Paw the knead's, Flea Circus the fleas', Sunbeam the star's, Scratching
-  Habit the twig wand's, Double or Nothing Times Two's; the charm marks are & (Litter Box) and 9
-  (Nine Lives); the statuses' hud glyphs borrow too (`statuses.tsp` GLYPH: red dot ", catfight
-  !, mirror :, flea circus ,, habit ^).
+- The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
+  mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
+  cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a
+  coin (Double or Nothing). Their statuses and the two charms have hud glyphs past `_` in the
+  hud font (`game_hud.py` HUD_ICONS: `` ` `` red dot, a catfight, b mirror fur, c flea circus, d
+  habit, e the litter box, f nine lives); `pix.glyph` reads any code the table holds.
 - NTSC (the TV look) is the real target and the web player starts in it (`"look": "ntsc"` in
   `tools/phone/catwiz.json`); judge the art and take screenshots there first, colour second. In
   NTSC every colour but black, white and grey shows fine stripes, the dark ones worst: big areas
