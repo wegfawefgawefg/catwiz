@@ -180,10 +180,11 @@ def trick(b, face, n):
     elif e == "gamble":
         # double or nothing: the next die times n; left unused at the turn's end, n hp
         st[r.MULT] = sat(max(st[r.MULT], 1) * n)
+        price = b.R.fx.get("GAMBLE_PRICE", 0) or n
         if b.R.fx.get("GAMBLE_UPFRONT", 0):
-            b.lose(r.HERO, n)  # the price, paid now
+            b.lose(r.HERO, price)  # the price, paid now
         else:
-            st[r.GAMBLE] = sat(st[r.GAMBLE] + n)
+            st[r.GAMBLE] = sat(st[r.GAMBLE] + price)
     else:
         raise ValueError("trick the sim does not know: " + e)
 

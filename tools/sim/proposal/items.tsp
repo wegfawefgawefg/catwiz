@@ -576,7 +576,7 @@
             :icon art.TILE_WAND)
         (make ac.Item
             :name "DOUBLE OR NOTHING"
-            :text "NEXT DIE X#; A DUD COSTS # HP"
+            :text "NEXT DIE X#; IT COSTS YOU 1 HP"
             :slot Slot.trick
             :effect ac.Effect.gamble
             :amount 3

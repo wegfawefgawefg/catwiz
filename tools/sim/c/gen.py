@@ -77,6 +77,7 @@ def main():
         ("REFRESH_MOST", R.fx.get("REFRESH_MOST", 255)),
         ("SUNBEAM_REROLLS", R.fx.get("SUNBEAM_REROLLS", 255)),
         ("GAMBLE_UPFRONT", R.fx.get("GAMBLE_UPFRONT", 0)),
+        ("GAMBLE_PRICE", R.fx.get("GAMBLE_PRICE", 0)),
         ("REROLLS", R.rerolls),
         ("HAND", R.hand),
         ("HAIRBALL", R.junk_row),
