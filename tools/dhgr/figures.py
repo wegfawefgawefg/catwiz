@@ -14,8 +14,10 @@ import beasts
 import cat
 import foes
 import garden_foes as gf
+import house_foes as hf
+import king as kg
 
-ROLE_NAMES = ["idle", "attack", "hurt", "happy", "surprised", "flap", "flash", "shot", "shot2"]
+ROLE_NAMES = ["idle", "attack", "hurt", "happy", "surprised", "flap", "flash", "shot", "shot2", "shot3"]
 
 
 class Block:
@@ -101,6 +103,34 @@ block("gnome", at(gf.gnome, 70, 108), gf.FRAMES["gnome"], flash="hurt", shots=gf
 block("mailman", at(gf.mailman, 70, 108), gf.FRAMES["mailman"], flash="hurt",
       shots=gf.SHOTS["mailman"][:2],
       roles={"attack": "attack", "hurt": "hurt", "happy": "cross", "shot": "parcel", "shot2": "heavy"})
+
+# the house
+block("dustbunny", at(hf.dustbunny, 70, 108), hf.FRAMES["dustbunny"], flash="hurt",
+      shots=hf.SHOTS["dustbunny"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "sneeze", "shot2": "hairball"})
+block("roomba", at(hf.roomba, 70, 108), hf.FRAMES["roomba"], flash="hurt", shots=hf.SHOTS["roomba"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "beep", "shot2": "bump"})
+block("hoover", at(hf.hoover, 70, 108), hf.FRAMES["hoover"], flash="hurt", shots=hf.SHOTS["hoover"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "suck", "shot2": "honk"})
+block("vet", at(hf.vet, 70, 108), hf.FRAMES["vet"], flash="hurt", shots=hf.SHOTS["vet"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "needle", "shot2": "thermo"})
+block("bath", at(hf.bath, 70, 108), hf.FRAMES["bath"], flash="hurt", shots=hf.SHOTS["bath"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "splash", "shot2": "hairball"})
+block("gremlin", at(hf.gremlin, 70, 108), hf.FRAMES["gremlin"], flash="hurt", shots=hf.SHOTS["gremlin"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "bubbles"})
+
+# the Bulldog King: asleep on his couch throne (his first phase), cross on it (his second, the
+# same block), then furious off it (his third, a block of its own with its own flash); and
+# the royal pugs he calls
+block("king", at(kg.king, 70, 108), kg.FRAMES["king"], flash="hurt", shots=kg.SHOTS["king"],
+      roles={"attack": "attack", "hurt": "hurt", "shot": "bark", "shot2": "chomp", "shot3": "zzz"})
+borrow("king_cross", "king", {"idle": "cross", "attack": "attack", "hurt": "hurt", "happy": "cross",
+                              "shot": "slobber", "shot2": "chomp"})
+block("king_furious", at(kg.king_off, 70, 108), kg.FRAMES["king_furious"], flash="furious",
+      shots=kg.SHOTS["king_furious"],
+      roles={"attack": "flop", "hurt": "furious", "happy": "furious", "shot": "impact"})
+block("pug", at(kg.pug, 70, 108), kg.FRAMES["pug"], flash="hurt", shots=kg.SHOTS["pug"],
+      roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "yap"})
 
 
 def frame_names(b):

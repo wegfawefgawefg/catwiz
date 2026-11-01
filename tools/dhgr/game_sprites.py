@@ -140,12 +140,22 @@ def block_sprites(block, zone="night"):
     if key in _BLOCKS:
         return _BLOCKS[key]
     b = figures.BLOCKS[block]
+    import screens
+    room = screens.room_of(block)
     best = None
     for dx in (range(7) if b.align else (0,)):
         out = [fighter(block, f, zone, dx) for f in b.frames] + [flash(block, dx)]
         size = sum(len(s.aux) + len(s.main) for s in out)
+        base = out[0]
+        if room is not None:
+            left, right = room
+            if any(s.col - base.col < -left or s.col - base.col + s.cols > right for s in out):
+                continue
         if best is None or size < best[0]:
             best = (size, out)
+    if best is None:
+        raise SystemExit("game_sprites.py: %s's frames are too wide for its spots (they reach past "
+                         "the screen's edge from %s): narrow it or move the spot" % (block, room))
     out = best[1] + [shot(block, n, rows) for n, rows in b.shots]
     _BLOCKS[key] = out
     return out

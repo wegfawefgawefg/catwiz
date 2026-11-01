@@ -23,6 +23,7 @@
 (const FOE u8 2)  ; a and b are roles of the mover's kind (an enemy's move: its shot, shot2)
 (const SHOT u8 7) ; the roles (battle/look ROLE_SHOT, ROLE_SHOT2)
 (const SHOT2 u8 8)
+(const SHOT3 u8 9)
 
 (struct Show ((way u8) (a u8) (b u8) (first u8) (steps u8) (flags u8)))
 

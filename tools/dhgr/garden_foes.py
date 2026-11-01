@@ -63,27 +63,27 @@ def sprinkler(x, feet, frame="idle"):
     c.poly([(x - 1, feet - 7), (x + 2, feet - 7), (x + 0.5, feet)], "spike")
     # the dome: a squat green bell, darker round its foot, a face on its front
     by = feet - 14
-    inked(c, x, by, 9.0, 8.0, "spr")
-    c.ellipse(x - 2, by - 3, 4.5, 3.0, "spr_hi")
-    c.rect(x - 8, by + 5, x + 9, by + 7, "spr_sh")
+    inked(c, x, by, 8.0, 8.0, "spr")
+    c.ellipse(x - 2, by - 3, 4.0, 3.0, "spr_hi")
+    c.rect(x - 7, by + 5, x + 8, by + 7, "spr_sh")
     if hurt:
         c.ellipse(x + 5, by - 4, 2.0, 2.0, "ink")       # a dent
     # the stem up to the arm, the arm across, a nozzle each end
     c.rect(x, by - 13, x + 2, by - 6, "brass")
     tilt = {"attack": 2, "hurt": -3}.get(frame, 0)
-    ax0, ay0, ax1, ay1 = x - 9, by - 13 + tilt, x + 11, by - 13 - tilt
+    ax0, ay0, ax1, ay1 = x - 7, by - 13 + tilt, x + 8, by - 13 - tilt
     if hurt:
-        ax1, ay1 = x + 9, by - 6                       # bent down
+        ax1, ay1 = x + 7, by - 6                       # bent down
     c.line(ax0, ay0, ax1, ay1, "brass", 2, 2)
     for nx, ny in ((ax0, ay0), (ax1, ay1)):
         c.ellipse(nx, ny, 1.8, 2.2, "brass_hi")
     c.ellipse(x + 1, by - 13, 2.0, 2.4, "brass_hi")
     if frame == "attack":
         # water off both nozzles, in arcs of drops
-        for k in range(1, 5):
-            c.set(ax0 - k * 2, ay0 - 3 + k * k // 3, "water")
-            c.set(ax0 - k * 2 - 1, ay0 - 1 + k * k // 3, "water_hi")
-            c.set(ax1 + k * 2, ay1 - 3 + k * k // 3, "water")
+        for k in range(1, 4):
+            c.set(ax0 - k, ay0 - 3 + k * k, "water")
+            c.set(ax0 - k - 1, ay0 - 1 + k * k, "water_hi")
+            c.set(ax1 + k, ay1 - 3 + k * k, "water")
     if frame == "happy":
         for k in range(1, 6):
             c.set(ax0 + (k % 2), ay0 - k * 2, "water")
@@ -278,8 +278,8 @@ def mailman(x, feet, frame="idle"):
     # the head: round and red-cheeked, a big moustache, a cap with a badge
     hx, hy = x - 2, feet - 46 + sq * 2
     inked(c, hx, hy, 8.0, 9.0, "skin_cross" if cross else "skin_m")
-    c.poly([(hx - 9, hy - 5), (hx + 9, hy - 5), (hx + 8, hy - 12), (hx - 6, hy - 13)], "cap")
-    c.rect(hx - 13, hy - 6, hx + 2, hy - 4, "cap")                     # the peak, towards the cat
+    c.poly([(hx - 9, hy - 5), (hx + 9, hy - 5), (hx + 8, hy - 12), (hx - 6, hy - 13)], "mcap")
+    c.rect(hx - 13, hy - 6, hx + 2, hy - 4, "mcap")                     # the peak, towards the cat
     c.rect(hx - 2, hy - 11, hx + 1, hy - 8, "badge")
     c.ellipse(hx - 3, hy + 4.5, 5.0, 2.0, "stache")
     c.ellipse(hx + 2, hy + 4.5, 3.0, 1.6, "stache")
@@ -287,7 +287,7 @@ def mailman(x, feet, frame="idle"):
     if hurt:
         c.stamp(hx - 6, hy - 2, ["KK...", "..KK.", "KK..."], KEY)
         c.stamp(hx + 2, hy - 2, ["..KK", "KK..", "..KK"], KEY)
-        c.ellipse(hx - 12, hy - 15, 3, 2, "cap")                      # the cap knocked off
+        c.ellipse(hx - 12, hy - 15, 3, 2, "mcap")                      # the cap knocked off
         c.stamp(hx - 3, hy + 7, [".KK.", "K..K"], KEY)
     elif cross or throw:
         c.stamp(hx - 7, hy - 4, ["KKK..", "..KKK", ".KKWK", ".KKKK"], KEY)

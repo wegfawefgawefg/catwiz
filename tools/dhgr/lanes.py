@@ -169,13 +169,16 @@ def boxes(n):
             # its lunge's steps, each maybe knocked back 2 (only if that stays on the screen)
             far = reach(home, K, HERO_COL, hero)
             steps = list(range(home - far, home + 1, 2))
-            cols = sorted(set(steps + [c + 2 for c in steps if c + 2 + K.cols <= 40]))
+            cols = sorted(set(steps + [c + 2 for c in steps if c + 2 + K.reach <= 40]))
         bobs = range(0, 3) if K.flyer else (0,)
         for col in cols:
             for lift in range(0, LIFT_MOST + 1):
                 for bob in bobs:
                     top = K.top - lift - bob
                     for dc, dt, w, h in K.frames:
+                        if col + dc < 0 or col + dc + w > 40:
+                            raise SystemExit("lanes.py: fight %d: %s at column %d reaches columns %d-%d, "
+                                             "off the screen (0-39)" % (n, name, home, col + dc, col + dc + w - 1))
                         out.append((col + dc, top + dt, w, h, "fighter"))
         # the poofs (look.tsp show_actor): at its middle, a quarter down from its top
         if i > 0:

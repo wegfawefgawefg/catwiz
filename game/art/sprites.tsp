@@ -7,7 +7,7 @@
 (const KIND_MISC u8 1)
 (const KIND_GLOW u8 0) ; on the title
 (const NONE u8 255) ; no sprite, no kind
-(const ROLE_COUNT u8 9) ; idle attack hurt happy surprised flap flash shot shot2
+(const ROLE_COUNT u8 10) ; idle attack hurt happy surprised flap flash shot shot2 shot3
 (const SPRITES_MOST u8 54)
 (const KINDS_MOST u8 5)
 (const BLOCKS_MOST u8 5)
@@ -65,7 +65,17 @@
 (const FIG_CUCUMBER u8 9)
 (const FIG_GNOME u8 10)
 (const FIG_MAILMAN u8 11)
-(const FIGURE_COUNT u8 12)
+(const FIG_DUSTBUNNY u8 12)
+(const FIG_ROOMBA u8 13)
+(const FIG_HOOVER u8 14)
+(const FIG_VET u8 15)
+(const FIG_BATH u8 16)
+(const FIG_GREMLIN u8 17)
+(const FIG_KING u8 18)
+(const FIG_KING_CROSS u8 19)
+(const FIG_KING_FURIOUS u8 20)
+(const FIG_PUG u8 21)
+(const FIGURE_COUNT u8 22)
 
 ; a screen's tables: blocks the number of its blocks (the hero's 0, the small sprites' 1,
 ; then the enemies'); by sprite its box (byte columns, rows; dcol, dtop from its block's
@@ -90,11 +100,11 @@
         (kcols (array u8 5))
         (kreach (array u8 5))
         (kleft (array u8 5))
-        (frame (array u8 45))
+        (frame (array u8 50))
         (aux_size_lo (array u8 5))
         (aux_size_hi (array u8 5))
         (main_size_lo (array u8 5))
         (main_size_hi (array u8 5))
-        (figure (array u8 12))))
+        (figure (array u8 22))))
 
 (let tab Tables)

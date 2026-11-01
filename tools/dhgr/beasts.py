@@ -60,18 +60,18 @@ def squirrel(x, feet, frame="idle"):
         return feet - v * squash
 
     # the tail: an S up the back, over the head, its tip curling forward
-    tail = [(x + 3, y(2)), (x + 10, y(4)), (x + 15, y(12)), (x + 16, y(24)), (x + 14, y(34)),
-            (x + 9, y(42)), (x + 3, y(44)), (x - 1, y(41)), (x + 2, y(37)), (x + 7, y(35)),
-            (x + 9, y(28)), (x + 8, y(18)), (x + 4, y(10))]
+    tail = [(x + 3, y(2)), (x + 9, y(4)), (x + 13, y(12)), (x + 14, y(24)), (x + 12, y(34)),
+            (x + 8, y(42)), (x + 3, y(44)), (x - 1, y(41)), (x + 2, y(37)), (x + 6, y(35)),
+            (x + 8, y(28)), (x + 7, y(18)), (x + 4, y(10))]
     c.poly(tail, "tail")
     # its fur lighter inside the curl: an inner band, the tip
-    inner = [(x + 6, y(6)), (x + 11, y(11)), (x + 13, y(22)), (x + 12, y(32)), (x + 9, y(38)),
-             (x + 7, y(34)), (x + 10, y(28)), (x + 10, y(18)), (x + 7, y(10))]
+    inner = [(x + 6, y(6)), (x + 10, y(11)), (x + 11, y(22)), (x + 10, y(32)), (x + 8, y(38)),
+             (x + 6, y(34)), (x + 9, y(28)), (x + 9, y(18)), (x + 6, y(10))]
     c.poly(inner, "tail_hi")
     c.poly([(x + 9, y(40)), (x + 4, y(42.5)), (x + 0.5, y(41)), (x + 3, y(38.5)), (x + 7, y(36.5))], "tail_tip")
     if frame == "hurt":
         # the fur stands on end: spikes cut into the tail's edge
-        for dx, dv in ((14, 14), (15, 24), (13, 33)):
+        for dx, dv in ((12, 14), (13, 24), (11, 33)):
             c.line(x + dx - 1, y(dv), x + dx + 1, y(dv + 2), "ink", 1, 1)
     # the body, sitting up: orange with a white belly, feet out in front
     by = y(9)
