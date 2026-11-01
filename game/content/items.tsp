@@ -73,7 +73,7 @@
             :text "#, and it is tangled 1"
             :slot ac.Slot.wand
             :effect ac.Effect.yarn
-            :amount 1
+            :amount 3
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -97,7 +97,7 @@
             :text "#, and your kittens pounce it"
             :slot ac.Slot.wand
             :effect ac.Effect.feather
-            :amount 1
+            :amount 4
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -109,7 +109,7 @@
             :text "#, and no shield stops it"
             :slot ac.Slot.wand
             :effect ac.Effect.pierce
-            :amount 1
+            :amount 5
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -121,7 +121,7 @@
             :text "#, then # to the next enemy"
             :slot ac.Slot.wand
             :effect ac.Effect.string
-            :amount 1
+            :amount 3
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -142,14 +142,14 @@
             :icon icons.TILE_FLUFF)
         (make ac.Item
             :name "SPIKY FLUFF"
-            :text "3 in a turn: who hits you takes 2"
+            :text "3 in a turn: who hits you takes 3"
             :slot ac.Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.thorns
-            :combo_n 2
+            :combo_n 3
             :aim state.Aim.self
             :icon icons.TILE_SPIKY)
         (make ac.Item
@@ -157,7 +157,7 @@
             :text "3 in a turn: hit-alls miss, +kitten"
             :slot ac.Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.box
@@ -178,26 +178,26 @@
             :icon icons.TILE_BLANKET)
         (make ac.Item
             :name "STATIC FUR"
-            :text "3 in a turn: 2 to all, 4 if wet"
+            :text "3 in a turn: 5 to all, 10 if wet"
             :slot ac.Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.static
-            :combo_n 2
+            :combo_n 5
             :aim state.Aim.self
             :icon icons.TILE_STATIC)
         (make ac.Item
             :name "BELL COLLAR"
-            :text "3 in a turn: a ward pip"
+            :text "3 in a turn: 2 ward pips"
             :slot ac.Slot.fluff
             :effect ac.Effect.shield
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.ward
-            :combo_n 1
+            :combo_n 2
             :aim state.Aim.self
             :icon icons.TILE_BELL)
         (make ac.Item
@@ -205,7 +205,7 @@
             :text "+# mana"
             :slot ac.Slot.star
             :effect ac.Effect.mana
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -217,7 +217,7 @@
             :text "+1 mana, and # damage"
             :slot ac.Slot.star
             :effect ac.Effect.shoot
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -229,7 +229,7 @@
             :text "+1 mana, and shield #"
             :slot ac.Slot.star
             :effect ac.Effect.moon
-            :amount 2
+            :amount 1
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -253,7 +253,7 @@
             :text "+# mana, and 1 more a kitten"
             :slot ac.Slot.star
             :effect ac.Effect.litter
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -265,7 +265,7 @@
             :text "2 mana: # to foes 5 times, L to R"
             :slot ac.Slot.book
             :effect ac.Effect.zoomies
-            :amount 1
+            :amount 2
             :step 1
             :cost 2
             :combo ac.Combo.none
@@ -277,7 +277,7 @@
             :text "3 mana: # kittens join you"
             :slot ac.Slot.book
             :effect ac.Effect.kittens
-            :amount 2
+            :amount 3
             :step 1
             :cost 3
             :combo ac.Combo.none
@@ -289,7 +289,7 @@
             :text "3 mana: # to all; they hit friends"
             :slot ac.Slot.book
             :effect ac.Effect.laserall
-            :amount 1
+            :amount 6
             :step 1
             :cost 3
             :combo ac.Combo.none
@@ -301,7 +301,7 @@
             :text "3 mana: # to all foes, 1 to you"
             :slot ac.Slot.book
             :effect ac.Effect.scream
-            :amount 3
+            :amount 9
             :step 1
             :cost 3
             :combo ac.Combo.none
@@ -310,12 +310,12 @@
             :icon icons.TILE_SCREAM)
         (make ac.Item
             :name "KNOCK IT OFF"
-            :text "2 mana: it drops shield, buffs; #"
+            :text "3 mana: it drops shield, buffs; #"
             :slot ac.Slot.book
             :effect ac.Effect.knock
-            :amount 3
+            :amount 12
             :step 1
-            :cost 2
+            :cost 3
             :combo ac.Combo.none
             :combo_n 0
             :aim state.Aim.foe
@@ -325,7 +325,7 @@
             :text "2 mana: shield #, +2 a kitten"
             :slot ac.Slot.book
             :effect ac.Effect.pile
-            :amount 2
+            :amount 8
             :step 1
             :cost 2
             :combo ac.Combo.none
@@ -334,12 +334,12 @@
             :icon icons.TILE_FITS)
         (make ac.Item
             :name "KITTEN CANNON"
-            :text "2 mana: # to it for each kitten"
-            :slot ac.Slot.book
+            :text "Launch all kittens, # each"
+            :slot ac.Slot.wand
             :effect ac.Effect.cannon
-            :amount 2
+            :amount 5
             :step 1
-            :cost 2
+            :cost 0
             :combo ac.Combo.none
             :combo_n 0
             :aim state.Aim.foe
@@ -373,7 +373,7 @@
             :text "Tangled #: its hits # less"
             :slot ac.Slot.curse
             :effect ac.Effect.tangled
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -385,7 +385,7 @@
             :text "Marked #: hits on it # more"
             :slot ac.Slot.curse
             :effect ac.Effect.brand
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -394,10 +394,10 @@
             :icon icons.TILE_MARK)
         (make ac.Item
             :name "PLUS ONE"
-            :text "Next 2 dice +#, each hit and star"
+            :text "Next die +#, each hit and star"
             :slot ac.Slot.trick
             :effect ac.Effect.plus
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -433,7 +433,7 @@
             :text "Next # dice +1; kittens act twice"
             :slot ac.Slot.trick
             :effect ac.Effect.catnip2
-            :amount 2
+            :amount 4
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -445,7 +445,7 @@
             :text "Next fluff times 2, next wand +#"
             :slot ac.Slot.trick
             :effect ac.Effect.knead
-            :amount 1
+            :amount 2
             :step 1
             :cost 0
             :combo ac.Combo.none
@@ -463,7 +463,8 @@
             :combo ac.Combo.none
             :combo_n 0
             :aim state.Aim.self
-            :icon icons.TILE_HAIRBALL)) :strings aux)
+            :icon icons.TILE_HAIRBALL))
+    :strings aux)
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))

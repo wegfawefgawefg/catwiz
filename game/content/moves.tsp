@@ -9,8 +9,8 @@
 (import state)
 (import content/action ac)
 
-(const MOVES (array ac.Move 55)
-    (make (array ac.Move 55)
+(const MOVES (array ac.Move 58)
+    (make (array ac.Move 58)
         ; puffcap
         (make ac.Move
             :text "Headbutt for #"
@@ -74,7 +74,7 @@
         (make ac.Move
             :text "Rod poke for #"
             :effect ac.Effect.hit
-            :amount 3
+            :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -112,7 +112,7 @@
         (make ac.Move
             :text "Acorn for #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -134,7 +134,7 @@
         (make ac.Move
             :text "Full speed bump #"
             :effect ac.Effect.hit
-            :amount 8
+            :amount 12
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -164,7 +164,7 @@
         (make ac.Move
             :text "Rolls at you for #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -172,7 +172,7 @@
         (make ac.Move
             :text "Sprays all for #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 3
             :aim state.Aim.all
             :motion state.Motion.throw
             :icon ')')
@@ -194,14 +194,14 @@
         (make ac.Move
             :text "Sucks for #"
             :effect ac.Effect.hit
-            :amount 6
+            :amount 9
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
             :text "Sucks for #"
             :effect ac.Effect.hit
-            :amount 6
+            :amount 9
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -209,14 +209,14 @@
         (make ac.Move
             :text "Revs up: +# for good"
             :effect ac.Effect.grow
-            :amount 2
+            :amount 1
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
         (make ac.Move
             :text "Mows for #"
             :effect ac.Effect.hit
-            :amount 7
+            :amount 14
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -224,7 +224,7 @@
         (make ac.Move
             :text "Parcel for #"
             :effect ac.Effect.hit
-            :amount 6
+            :amount 10
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -238,7 +238,7 @@
         (make ac.Move
             :text "Heavy parcel for #"
             :effect ac.Effect.hit
-            :amount 8
+            :amount 12
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -267,7 +267,7 @@
         (make ac.Move
             :text "Checkup for #"
             :effect ac.Effect.hit
-            :amount 9
+            :amount 18
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -296,7 +296,7 @@
         (make ac.Move
             :text "Splash for #"
             :effect ac.Effect.hit
-            :amount 8
+            :amount 18
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -311,7 +311,7 @@
         (make ac.Move
             :text "Glug glug # twice"
             :effect ac.Effect.hit2
-            :amount 4
+            :amount 8
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -333,7 +333,7 @@
         (make ac.Move
             :text "Chomp for #"
             :effect ac.Effect.hit
-            :amount 9
+            :amount 26
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -355,14 +355,14 @@
         (make ac.Move
             :text "Slobber all for #"
             :effect ac.Effect.hit
-            :amount 4
+            :amount 8
             :aim state.Aim.all
             :motion state.Motion.throw
             :icon ')')
         (make ac.Move
             :text "Chomp for #"
             :effect ac.Effect.hit
-            :amount 10
+            :amount 28
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -391,7 +391,7 @@
         (make ac.Move
             :text "Belly flop all #"
             :effect ac.Effect.hit
-            :amount 18
+            :amount 36
             :aim state.Aim.all
             :motion state.Motion.lunge
             :icon ')')
@@ -406,7 +406,7 @@
         (make ac.Move
             :text "Yap for #"
             :effect ac.Effect.hit
-            :amount 2
+            :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -416,7 +416,29 @@
             :amount 2
             :aim state.Aim.friend
             :motion state.Motion.hop
-            :icon '<'))
+            :icon '<')
+        ; the old shroom
+        (make ac.Move
+            :text "Calls # sporelets"
+            :effect ac.Effect.summon
+            :amount 2
+            :aim state.Aim.self
+            :motion state.Motion.hop
+            :icon '+')
+        (make ac.Move
+            :text "Cap slam for #"
+            :effect ac.Effect.hit
+            :amount 8
+            :aim state.Aim.foe
+            :motion state.Motion.lunge
+            :icon '!')
+        (make ac.Move
+            :text "Spore cap: shield #"
+            :effect ac.Effect.shield
+            :amount 5
+            :aim state.Aim.self
+            :motion state.Motion.hop
+            :icon '#'))
     :in aux)
 
 ; MOVES is in aux memory (:in aux, with its text: main memory is full): its fields are read here,
