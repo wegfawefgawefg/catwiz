@@ -22,7 +22,7 @@
         " grabs a die: beat it back."
         " hits # harder for good."
         " will send # back."
-        "A hairball clogs a slot. Re-roll!"
+        "A hairball clogs a face. Re-roll!"
         " comes along.")
     :strings aux)
 

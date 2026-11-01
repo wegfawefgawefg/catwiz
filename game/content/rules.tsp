@@ -1,4 +1,4 @@
-; the rules page's text (battle/rules): ten pages, each a title and up to fifteen lines of 35
+; the rules page's text (battle/rules): twelve pages, each a title and up to fifteen lines of 35
 ; columns, on the disk (:on disk; read with lib/disk while the page is open), since aux memory is
 ; full. Every rule here is the engine's as it is (content/effects, statuses, charms, battle/turn,
 ; reward, offer): change them together. page lays a page out: the title in inverse, every line
@@ -6,7 +6,7 @@
 
 (const PAGE_LINES u8 15)
 (const PAGE_BYTES u16 560) ; the title and PAGE_LINES lines, 35 bytes each
-(const PAGE_COUNT u8 10)
+(const PAGE_COUNT u8 12)
 
 ; line s as 35 bytes, each with flag added (128: inverse)
 (macro line_bytes (s flag)
@@ -36,180 +36,202 @@
                     0))))
     `(const ,name (array u8 560) (make (array u8 560) ,@bytes) :on disk))
 
-(page RULES_TURN "A TURN"
-    "Catwiz has five dice. Each die"
-    "has six faces, one for each slot:"
-    "wand, fluff, star, book, curse and"
-    "trick."
+(page RULES_GOAL "HOW TO PLAY"
+    "You are Catwiz, a cat witch. Beat"
+    "every enemy in a fight to win it."
+    "Win all ten fights to win the run."
+    "If her hit points (hp) reach 0,"
+    "the run is over."
     ""
-    "Pick a die, then pick an enemy."
-    "Dice for Catwiz or for all enemies"
-    "play when you pick them twice."
-    "Keys: 1-6 dice, Z X C enemies."
+    "Each turn Catwiz rolls five dice."
+    "Every die shows a picture, and the"
+    "picture says what the die does:"
+    "hit an enemy, shield Catwiz, make"
+    "mana, cast a spell, and more."
     ""
-    "You get two re-rolls a turn (R)."
-    "A re-roll throws all unplayed dice."
-    "The turn ends when all dice are"
-    "played or you press E. Then the"
-    "enemies take their turn.")
+    "Pick a die to read what it does"
+    "at the bottom of the screen.")
 
-(page RULES_SLOTS "SLOTS, ITEMS, LEVELS"
-    "Each slot holds one item. The item"
-    "decides what its face does: wands"
-    "hit, fluffs shield, stars make"
-    "mana, books cast spells, curses go"
-    "on enemies, and tricks boost the"
-    "next dice."
+(page RULES_PLAY "PLAYING A DIE"
+    "Pick a die with its number key, or"
+    "tap it. Then choose who it is for."
     ""
-    "A face's number is its item's"
-    "number, +1 per level of its slot."
-    "A slot can have up to two levels."
+    "A die that hits one enemy: pick"
+    "that enemy with Z, X or C."
     ""
-    "Levels stay with the slot. A new"
-    "item in that slot keeps them."
-    "Her kit (B) shows her slots, their"
-    "levels and what each one does.")
+    "A die for Catwiz herself, or one"
+    "that hits every enemy: press the"
+    "same die again."
+    ""
+    "ESC puts a picked die back down."
+    ""
+    "Each die can be played once a"
+    "turn.")
 
-(page RULES_THREES "THREES"
-    "Play three faces of the same slot"
-    "in one turn and the third one sets"
-    "off the item's three. For example,"
-    "a third twig wand hits every"
-    "enemy. Each item's card says what"
-    "its three does."
+(page RULES_TURN "RE-ROLLS AND THE TURN"
+    "Don't like your dice? Press R to"
+    "re-roll. Every die you haven't"
+    "played yet is thrown again. You"
+    "get two re-rolls a turn."
     ""
-    "Times Two counts as its number: a"
-    "wand at x2 counts as two wands."
+    "The turn ends when every die is"
+    "played, or when you press E."
+    ""
+    "Then the enemies act. The badge"
+    "over each enemy shows what it will"
+    "do next: a sword and a number is"
+    "an attack, a shield blocks damage."
+    ""
+    "Plan your dice around their moves.")
+
+(page RULES_KINDS "THE SIX FACES"
+    "Every die has the same six faces:"
+    ""
+    "WAND: hits an enemy."
+    "FLUFF: shields Catwiz."
+    "STAR: makes mana."
+    "BOOK: a spell that costs mana."
+    "CURSE: puts a status on an enemy."
+    "TRICK: boosts the next die."
+    ""
+    "Catwiz has one item for each face:"
+    "her wand, her fluff, her star and"
+    "so on. The item decides what that"
+    "face does. Two different wands hit"
+    "in different ways.")
+
+(page RULES_ITEMS "ITEMS AND LEVELS"
+    "The number on a face is how strong"
+    "it is: its damage, shield or mana."
+    ""
+    "After each fight you pick a reward:"
+    "a new item for one of the faces (it"
+    "replaces the old one) or a level."
+    "A level adds 1 to a face's number."
+    "Each face can have two levels, and"
+    "they stay when its item changes."
+    ""
+    "Press B to see Catwiz's kit: her"
+    "items, their levels and her charms.")
+
+(page RULES_MANA "MANA AND BOOKS"
+    "Star faces give mana. Mana stays"
+    "for the whole fight, up to 5. The"
+    "stars next to the dice show it."
+    ""
+    "Book faces are spells. A book costs"
+    "mana to play; its card says how"
+    "much. Without enough mana you"
+    "can't play it: re-roll it, or play"
+    "a star first."
+    ""
+    "Mana goes back to 0 each fight.")
+
+(page RULES_TRICKS "TRICKS AND BOOSTS"
+    "A trick face makes the next die"
+    "you play stronger: a boost."
+    ""
+    "PLUS ONE: the next die gets +2. If"
+    "it hits more than once, every hit"
+    "gets +2."
+    "TIMES TWO: the next die's number"
+    "is doubled."
+    ""
+    "Boosts add up: two Times Twos make"
+    "x4. A boost waits for the next die"
+    "you play, but it is lost when the"
+    "turn ends."
+    ""
+    "A trick can't boost another trick.")
+
+(page RULES_THREES "THREE OF A KIND"
+    "Play three faces of the same kind"
+    "in one turn, like three wands, and"
+    "the third one does something"
+    "extra. Each item's card says what."
+    ""
+    "For example, with the twig wand,"
+    "the third wand hits every enemy."
+    ""
+    "A die at x2 counts as two of its"
+    "kind, and a die at x3 as three."
     ""
     "Tricks never count, and some items"
     "have no three."
     ""
     "The count starts over each turn.")
 
-(page RULES_TRICKS "TRICKS AND BOOSTS"
-    "Tricks boost the next dice. A trick"
-    "can't be boosted itself."
-    ""
-    "PLUS ONE: the next die gets +2 on"
-    "every hit. Pluses add up: +2 and +2"
-    "make +4."
-    ""
-    "TIMES TWO: the next die is doubled,"
-    "any slot but a trick. It doubles a"
-    "waiting plus too. Times add up: x2"
-    "then x2 is x4."
-    ""
-    "Boosts last until her turn ends."
-    "Catnip, Knead and wishes boost too."
-    "Spooked takes from every die.")
-
-(page RULES_MANA "MANA AND BOOKS"
-    "Stars make mana. Catwiz keeps her"
-    "mana all fight, five at most. The"
-    "stars next to the dice show it."
-    ""
-    "Books are spells. Playing a book"
-    "costs its mana, then the spell"
-    "happens."
-    ""
-    "Without enough mana a book can't be"
-    "played. Re-roll it or get mana."
-    ""
-    "Some stars do more: a hit, a"
-    "shield or a wish."
-    ""
-    "Each fight starts with no mana.")
-
 (page RULES_STATUS1 "STATUSES (1 OF 2)"
+    "Statuses are effects on a fighter."
     "The badge under each fighter shows"
-    "its hit points and statuses."
+    "its hp and its statuses."
     ""
     "FLEAS N: N damage at the end of"
     "each of its turns, for 3 turns."
-    "More fleas add up and restart the"
-    "3 turns."
-    "WET N: its hits do half damage for"
-    "N turns. More wet adds turns."
-    "TANGLED N: its hits do N less until"
-    "its turn ends."
-    "MARKED N: hits on it do N more, all"
-    "fight. Kittens attack it first."
-    "SPOOKED N: her dice are N lower"
-    "until her turn ends.")
+    "WET N: its attacks do half damage,"
+    "for N turns. More wet adds turns."
+    "TANGLED N: its attacks do N less"
+    "until its turn ends."
+    "MARKED N: every hit on it does N"
+    "more. Kittens attack it first."
+    "SPOOKED N: Catwiz's dice are N"
+    "lower until her turn ends.")
 
 (page RULES_STATUS2 "STATUSES (2 OF 2)"
-    "WARD: each pip blocks one curse."
-    "The pip breaks and the curse fails."
     "SHIELD N: blocks N damage. It is"
     "gone at its owner's next turn."
-    "KITTENS N: each one pounces for 1"
-    "at the end of her turn. One runs"
-    "off each time she gets hurt."
-    "STRENGTH N: its hits do N more, all"
-    "fight."
-    "CHEERED N: its next hit is N more."
-    "Numbers stop at 255."
+    "WARD: each pip blocks one curse."
+    "KITTENS N: Catwiz's kittens. Each"
+    "one pounces on an enemy for 1 at"
+    "the end of her turn. One runs away"
+    "each time she gets hurt."
+    "STRENGTH N: its attacks do N more"
+    "for the rest of the fight."
+    "CHEERED N: its next attack does N"
+    "more."
     ""
-    "The badge over each enemy shows its"
-    "next move: a sword and its damage"
-    "for a hit, a shield, or a cheer.")
+    "No number goes above 255.")
 
-(page RULES_CHARMS "CHARMS"
-    "A charm works for the whole run."
-    ""
-    "After each elite, pick one of three"
-    "random charms she doesn't have yet."
-    ""
-    "Her kit (B) shows her charms. Pick"
-    "one there to read it."
-    ""
-    "Each charm's card has a mark so you"
-    "can tell them apart: + for Scratch"
-    "Post's re-rolls, 6 for Sixth Toe's"
-    "sixth die, and so on.")
-
-(page RULES_REWARDS "REWARDS"
+(page RULES_REWARDS "REWARDS AND CHARMS"
     "After each fight, pick one of three"
-    "random cards: an item for a slot"
-    "(it replaces the old one, the"
-    "levels stay) or +1 level on a slot."
-    "Taking an item she already has"
-    "gives its slot +1. A slot at two"
-    "levels can't go higher."
+    "rewards: a new item or a level."
     ""
-    "After an elite: a card, then a"
-    "charm, then a nap (heal) or a bonus"
-    "(+1 level on any slot)."
+    "After an elite (a harder fight at"
+    "the end of each place) you also get"
+    "a charm, then a choice: a nap that"
+    "heals Catwiz, or a bonus level."
     ""
-    "Hit points carry over between"
-    "fights.")
+    "A charm helps for the whole run."
+    "Press B to read your charms."
+    ""
+    "Catwiz's hp carries over from one"
+    "fight to the next.")
 
 (page RULES_RUN "THE RUN"
-    "A run is ten fights: three in the"
-    "woods, three in the garden, three"
-    "in the yard, each place ending with"
-    "an elite. Then the Bulldog King."
+    "A run is ten fights in three"
+    "places: the woods, the garden and"
+    "the yard. Each place ends with an"
+    "elite. The last fight is the"
+    "Bulldog King."
     ""
     "Before the yard's elite, pick a"
     "door: the vet or the big bath."
     ""
-    "The map at the top shows the place,"
-    "its three fights (an elite has a"
-    "bigger mark) and the king's crown."
-    ""
-    "If Catwiz runs out of hit points,"
-    "the run is over.")
+    "The map at the top of the screen"
+    "shows where you are in the run.")
 
 ; page n's place on the disk, for lib/disk
 (fn page_table ((n u8)) (ptr u8)
     (match n
-        (0 (addr_of (at RULES_TURN 0)))
-        (1 (addr_of (at RULES_SLOTS 0)))
-        (2 (addr_of (at RULES_THREES 0)))
-        (3 (addr_of (at RULES_TRICKS 0)))
-        (4 (addr_of (at RULES_MANA 0)))
-        (5 (addr_of (at RULES_STATUS1 0)))
-        (6 (addr_of (at RULES_STATUS2 0)))
-        (7 (addr_of (at RULES_CHARMS 0)))
-        (8 (addr_of (at RULES_REWARDS 0)))
+        (0 (addr_of (at RULES_GOAL 0)))
+        (1 (addr_of (at RULES_PLAY 0)))
+        (2 (addr_of (at RULES_TURN 0)))
+        (3 (addr_of (at RULES_KINDS 0)))
+        (4 (addr_of (at RULES_ITEMS 0)))
+        (5 (addr_of (at RULES_MANA 0)))
+        (6 (addr_of (at RULES_TRICKS 0)))
+        (7 (addr_of (at RULES_THREES 0)))
+        (8 (addr_of (at RULES_STATUS1 0)))
+        (9 (addr_of (at RULES_STATUS2 0)))
+        (10 (addr_of (at RULES_REWARDS 0)))
         (_ (addr_of (at RULES_RUN 0)))))
