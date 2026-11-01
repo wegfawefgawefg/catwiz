@@ -187,7 +187,7 @@
             :stall 0)
         (make Enemy
             :name "THE VET"
-            :hp 86
+            :hp 66
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 32

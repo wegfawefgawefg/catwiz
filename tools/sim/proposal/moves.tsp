@@ -251,7 +251,7 @@
         (make ac.Move
             :text "NEEDLE: FLEAS #"
             :effect ac.Effect.fleas
-            :amount 6
+            :amount 4
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon ',')
@@ -265,7 +265,7 @@
         (make ac.Move
             :text "CHECKUP FOR #"
             :effect ac.Effect.hit
-            :amount 26
+            :amount 30
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
