@@ -31,6 +31,7 @@
 (import battle/page)
 (import random)
 (import sound/sound)
+(import title/disk2)
 
 (const BANNER_AFTER u8 56) ; frames from the last blow to the end: the poof has finished
 
@@ -48,9 +49,10 @@
 (const WIN_AT_ONCE bool false)
 (const SEED u16 0)
 
-; a new run: the starting items, no levels or charms (none spent), no kittens kept, full hit
-; points, the first fight
+; a new run: the second disk found (the first time: title/disk2), the starting items, no
+; levels or charms (none spent), no kittens kept, full hit points, the first fight
 (fn enter () void
+    (disk2.find)
     (if (!= SEED 0)
         (set random.seed SEED))
     (set state.page state.Page.none)
@@ -81,7 +83,7 @@
     (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
-    (let n u8 (enc.backdrop state.fight))
+    (let n u8 state.fight)
     (stage.backdrop screen.SPARE n)
     (dhgr.show screen.SPARE)
     (meter.start (stage.runs_weight n))

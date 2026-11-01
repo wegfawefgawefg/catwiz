@@ -19,42 +19,12 @@
 # (marker, bolt, poofs, digits, the title's glow) stay masked.
 
 import dhgr
+import figures
 import light
-import screen
-import cat
-import foes
 from canvas import Canvas
 from dhgr import BLACK, WHITE, YELLOW, GREY, LBLUE, PINK, ORANGE
 
-KINDS = ["cat", "puffcap", "sporelet", "nightflap", "shroom", "misc"]
-
-# what the engine asks each kind for, and the frame that answers: (role, frame)
-ROLES = {
-    "cat": [("idle", "idle"), ("attack", "attack"), ("hurt", "hit"), ("happy", "meow"),
-            ("surprised", "ears"), ("flap", None), ("flash", "flash")],
-    "puffcap": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                ("surprised", None), ("flap", None), ("flash", "flash")],
-    "sporelet": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                 ("surprised", None), ("flap", None), ("flash", "flash")],
-    "nightflap": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-                  ("surprised", None), ("flap", "flap"), ("flash", "flash")],
-    "shroom": [("idle", "idle"), ("attack", "attack"), ("hurt", "hurt"), ("happy", None),
-               ("surprised", None), ("flap", None), ("flash", "flash")],
-}
-ROLE_NAMES = [r for r, _ in ROLES["cat"]]
-
-
-def frames(kind):
-    # the kind's drawn frames (the flash is made from one of them, after them in the tables)
-    return cat.FRAMES if kind == "cat" else foes.FRAMES[kind]
-
-
-def hurt_frame(kind):
-    # the frame the flash is the silhouette of: the kind's hurt one, else its idle one
-    for role, frame in ROLES[kind]:
-        if role == "hurt" and frame:
-            return frame
-    return frames(kind)[0]
+ROLE_NAMES = figures.ROLE_NAMES
 
 
 def opaque(out, bytes_):
@@ -130,18 +100,37 @@ class Sprite:
         self.main = runs_half(s.pic, s.mask, bw, s.h, 1)
 
 
-def fighter(kind, frame, zone):
-    return Sprite("%s_%s" % (kind, frame), light.lit(screen.figure(kind, frame), zone), solid=True)
+def fighter(block, frame, zone):
+    return Sprite("%s_%s" % (block, frame), light.lit(figures.BLOCKS[block].draw(frame), zone),
+                  solid=True)
 
 
-def flash(kind):
-    # the white silhouette of the kind's hurt frame, outline and all, on black in its box
-    c = screen.figure(kind, hurt_frame(kind))
+def flash(block):
+    # the white silhouette of the block's hurt frame (its flash), outline and all, on black in
+    # its box
+    b = figures.BLOCKS[block]
+    c = b.draw(b.flash or b.frames[0])
     for row in c.px:
         for x, v in enumerate(row):
             if v is not None:
                 row[x] = WHITE
-    return Sprite("%s_flash" % kind, c, solid=True)
+    return Sprite("%s_flash" % block, c, solid=True)
+
+
+def shot(block, name, rows):
+    # one of a block's small masked sprites, its moves' shows: drawn like the cards' (show)
+    c = Canvas()
+    c.stamp(1, 1, rows, SHOW_KEY)
+    c.outline(BLACK, 1, 1)
+    w = max(len(r) for r in rows) + 2
+    return Sprite("%s_%s" % (block, name), c, (0, 0, 7 if w <= 7 else 14, len(rows) + 2))
+
+
+def block_sprites(block, zone="night"):
+    # a block's sprites in figures.frame_names order: its frames, its flash, its shots
+    b = figures.BLOCKS[block]
+    out = [fighter(block, f, zone) for f in b.frames] + [flash(block)]
+    return out + [shot(block, n, rows) for n, rows in b.shots]
 
 
 # ---- the shared small sprites, drawn here

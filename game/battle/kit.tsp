@@ -7,6 +7,7 @@
 (import auxmem)
 (import state)
 (import art/icons)
+(import draw/paint)
 (import content/items)
 (import draw/pix)
 (import draw/screen)
@@ -59,9 +60,7 @@
 ; white, the picture tile (art/icons) on it, and under it pips yellow pips, or the hud glyph mark
 ; (a charm's; "" for none)
 (fn card ((x u8) (top u8) (tile u8) (pips u8) (frame bool) (mark (ptr u8))) void
-    (auxmem.read (addr_of (at picture 0))
-        (addr_of (at icons.pixels (* (as u16 tile) icons.ICON_BYTES)))
-        icons.ICON_BYTES)
+    (paint.picture (addr_of (at picture 0)) tile)
     (let g u8 (at dhgr.X_GROUP x))
     (let gn u8 (- (+ (at dhgr.X_GROUP (+ x (- WIDE 1))) 1) g))
     (let rows u8 (if (= (load mark) 0)

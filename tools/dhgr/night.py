@@ -239,6 +239,13 @@ def path(n):
     return N.finish()
 
 
+def picture_for(F):
+    # fight F's backdrop (screens.fights): its zone's scenery round its own lanes. The garden's
+    # and the house's stand in on the woods' until they are drawn
+    variant = {0: "clearing", 1: "path", 2: "clearing"}[F["backdrop"]]
+    return picture(variant, F["n"])
+
+
 def picture(variant, n=None):
     # the variant's scenery outside the lanes of fight n (palettes.FIGHTS; the variant's own
     # fight when none: the woods' elite is fought on the clearing, its lanes its own)

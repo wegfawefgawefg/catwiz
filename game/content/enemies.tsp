@@ -48,7 +48,7 @@
             :name "Puffcap"
             :hp 20
             :ward 0
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 0
             :move_count 2
             :calls state.NOTHING
@@ -58,7 +58,7 @@
             :name "Sporelet"
             :hp 9
             :ward 0
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 2
             :move_count 2
             :calls state.NOTHING
@@ -68,7 +68,7 @@
             :name "Nightflap"
             :hp 7
             :ward 1
-            :figure art.KIND_NIGHTFLAP
+            :figure art.FIG_NIGHTFLAP
             :first_move 4
             :move_count 3
             :calls state.NOTHING
@@ -78,7 +78,7 @@
             :name "Garden gnome"
             :hp 14
             :ward 1
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 7
             :move_count 2
             :calls state.NOTHING
@@ -88,7 +88,7 @@
             :name "Possum"
             :hp 15
             :ward 0
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 9
             :move_count 2
             :calls state.NOTHING
@@ -98,7 +98,7 @@
             :name "Possum (faked it)"
             :hp 4
             :ward 0
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 11
             :move_count 1
             :calls state.NOTHING
@@ -108,7 +108,7 @@
             :name "Squirrel"
             :hp 9
             :ward 0
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 12
             :move_count 2
             :calls state.NOTHING
@@ -118,7 +118,7 @@
             :name "Roomba"
             :hp 42
             :ward 0
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 14
             :move_count 3
             :calls state.NOTHING
@@ -128,7 +128,7 @@
             :name "Dust bunny"
             :hp 5
             :ward 0
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 17
             :move_count 2
             :calls state.NOTHING
@@ -138,7 +138,7 @@
             :name "Cucumber"
             :hp 14
             :ward 1
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 19
             :move_count 2
             :calls state.NOTHING
@@ -148,7 +148,7 @@
             :name "Sprinkler"
             :hp 16
             :ward 0
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 21
             :move_count 2
             :calls state.NOTHING
@@ -158,7 +158,7 @@
             :name "Hoover Jr."
             :hp 50
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 23
             :move_count 3
             :calls DUST_BUNNY
@@ -168,7 +168,7 @@
             :name "Lawnmower"
             :hp 60
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 26
             :move_count 2
             :calls state.NOTHING
@@ -178,7 +178,7 @@
             :name "The mailman"
             :hp 80
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 28
             :move_count 4
             :calls state.NOTHING
@@ -188,7 +188,7 @@
             :name "The vet"
             :hp 66
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 32
             :move_count 5
             :calls state.NOTHING
@@ -198,7 +198,7 @@
             :name "The big bath"
             :hp 70
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 37
             :move_count 3
             :calls state.NOTHING
@@ -208,7 +208,7 @@
             :name "Drain gremlin"
             :hp 40
             :ward 1
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 40
             :move_count 2
             :calls state.NOTHING
@@ -218,7 +218,7 @@
             :name "Bulldog king"
             :hp 108
             :ward 2
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 42
             :move_count 3
             :calls state.NOTHING
@@ -228,7 +228,7 @@
             :name "Bulldog king, cross"
             :hp 108
             :ward 1
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 45
             :move_count 4
             :calls PUG
@@ -238,7 +238,7 @@
             :name "Bulldog king, furious"
             :hp 108
             :ward 0
-            :figure art.KIND_PUFFCAP
+            :figure art.FIG_PUFFCAP
             :first_move 49
             :move_count 4
             :calls state.NOTHING
@@ -248,7 +248,7 @@
             :name "Royal pug"
             :hp 8
             :ward 0
-            :figure art.KIND_SPORELET
+            :figure art.FIG_SPORELET
             :first_move 53
             :move_count 2
             :calls state.NOTHING
@@ -258,7 +258,7 @@
             :name "The old shroom"
             :hp 60
             :ward 1
-            :figure art.KIND_SHROOM
+            :figure art.FIG_SHROOM
             :first_move 55
             :move_count 3
             :calls SPORELET

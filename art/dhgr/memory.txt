@@ -1,57 +1,99 @@
-Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)
-before: masked day frames, no flash (the build before 2026-10-31); after: solid night
-frames and a flash frame a fighter kind. Room: the aux language card's bank 2 12272 and
-bank 1 4096, then sprite_aux 9232 (game/draw/blit.tsp): 25600 in all.
+Catwiz double hi-res: each fight screen's sprites in memory (python3 tools/dhgr/make.py memory)
+Room: the aux language card's bank 2 12272 and bank 1 4096, then sprite_aux 9232 (game/draw/
+blit.tsp): 25600 in all. The hero's and the small sprites' blocks stay; each screen's enemies'
+blocks go after them.
 
-kind       before aux+main  after aux+main   growth   zlib before -> after
-cat           5356+5186       6294+6197       +1949   2940 -> 2873
-puffcap       1251+1203       1886+1895       +1327   790 -> 862
-sporelet      1175+1039       1540+1540        +866   700 -> 681
-nightflap     1667+1733       2022+2038        +660   1126 -> 1109
-shroom        1967+2134       2938+2921       +1758   1342 -> 1367
-misc          1575+1441       1575+1441          +0   1005 -> 1005
-cat        of it the flash frame: 2159
-puffcap    of it the flash frame: 733
-sporelet   of it the flash frame: 700
-nightflap  of it the flash frame: 692
-shroom     of it the flash frame: 1091
+block             aux+main  sprites     zlib   of it the flash
+cat            6294+6197          6     2912   2159
+misc           1575+1441         29     1034   -
+puffcap        1886+1895          4      865   733
+sporelet       1540+1540          4      687   700
+shroom         2938+2921          4     1374   1091
 
-fight 1 (clearing): cat, misc, puffcap, sporelet
-  before  18226 bytes: bank 2 8869 of 12272, bank 1 4001 of 4096, sprite_aux 5356 of 9232: 7374 to spare
-  after   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
+the screen's tables (art/sprites tab, main memory): 43 sprites, 4 kinds, 4 blocks at most
+the hero's blocks: bank 2 7638, bank 1 1575, sprite_aux 6294
+
+fight 1 (woods): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
+  the picture, zlib 771, into sprite_aux's 2938 after the hero's
            puffcap main 1895: bank 2
            sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
            puffcap aux 1886: bank 1
            sporelet aux 1540: sprite_aux
-  backdrop, zlib: day 1034, night 771
 
-fight 2 (path): cat, misc, puffcap, sporelet
-  before  18226 bytes: bank 2 8869 of 12272, bank 1 4001 of 4096, sprite_aux 5356 of 9232: 7374 to spare
-  after   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
-           puffcap main 1895: bank 2
+fight 2 (woods): cat, misc, sporelet, puffcap
+   22368 bytes: bank 2 11073 of 12272, bank 1 3115 of 4096, sprite_aux 8180 of 9232: 3232 to spare
+  the picture, zlib 517, into sprite_aux's 2938 after the hero's
            sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
-           puffcap aux 1886: bank 1
-           sporelet aux 1540: sprite_aux
-  backdrop, zlib: day 1204, night 510
+           puffcap main 1895: bank 2
+           sporelet aux 1540: bank 1
+           puffcap aux 1886: sprite_aux
 
-fight 3 (clearing): cat, misc, shroom, sporelet
-  before  19873 bytes: bank 2 10975 of 12272, bank 1 3542 of 4096, sprite_aux 5356 of 9232: 5727 to spare
-  after   24446 bytes: bank 2 12099 of 12272, bank 1 3115 of 4096, sprite_aux 9232 of 9232: 1154 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
+fight 3 (woods): cat, misc, shroom, sporelet
+   24446 bytes: bank 2 12099 of 12272, bank 1 3115 of 4096, sprite_aux 9232 of 9232: 1154 to spare
+  the picture, zlib 579, into sprite_aux's 2938 after the hero's
            shroom main 2921: bank 2
            sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
            shroom aux 2938: sprite_aux
            sporelet aux 1540: bank 1
-  backdrop, zlib: day 1034, night 771
+
+fight 4 (garden): cat, misc, sporelet, puffcap
+   22368 bytes: bank 2 11073 of 12272, bank 1 3115 of 4096, sprite_aux 8180 of 9232: 3232 to spare
+  the picture, zlib 517, into sprite_aux's 2938 after the hero's
+           sporelet main 1540: bank 2
+           puffcap main 1895: bank 2
+           sporelet aux 1540: bank 1
+           puffcap aux 1886: sprite_aux
+
+fight 5 (garden): cat, misc, sporelet, puffcap
+   22368 bytes: bank 2 11073 of 12272, bank 1 3115 of 4096, sprite_aux 8180 of 9232: 3232 to spare
+  the picture, zlib 704, into sprite_aux's 2938 after the hero's
+           sporelet main 1540: bank 2
+           puffcap main 1895: bank 2
+           sporelet aux 1540: bank 1
+           puffcap aux 1886: sprite_aux
+
+fight 6 (garden): cat, misc, puffcap
+   19288 bytes: bank 2 9533 of 12272, bank 1 3461 of 4096, sprite_aux 6294 of 9232: 6312 to spare
+  the picture, zlib 532, into sprite_aux's 2938 after the hero's
+           puffcap main 1895: bank 2
+           puffcap aux 1886: bank 1
+
+fight 7 (yard): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
+  the picture, zlib 654, into sprite_aux's 2938 after the hero's
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           puffcap aux 1886: bank 1
+           sporelet aux 1540: sprite_aux
+
+fight 8 (yard): cat, misc, sporelet, puffcap
+   22368 bytes: bank 2 11073 of 12272, bank 1 3115 of 4096, sprite_aux 8180 of 9232: 3232 to spare
+  the picture, zlib 500, into sprite_aux's 2938 after the hero's
+           sporelet main 1540: bank 2
+           puffcap main 1895: bank 2
+           sporelet aux 1540: bank 1
+           puffcap aux 1886: sprite_aux
+
+fight 9 (yard): cat, misc, puffcap
+   19288 bytes: bank 2 9533 of 12272, bank 1 3461 of 4096, sprite_aux 6294 of 9232: 6312 to spare
+  the picture, zlib 723, into sprite_aux's 2938 after the hero's
+           puffcap main 1895: bank 2
+           puffcap aux 1886: bank 1
+
+fight 10 (yard): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
+  the picture, zlib 512, into sprite_aux's 2938 after the hero's
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           puffcap aux 1886: bank 1
+           sporelet aux 1540: sprite_aux
+
+fight 11 (yard): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
+  the picture, zlib 532, into sprite_aux's 2938 after the hero's
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           puffcap aux 1886: bank 1
+           sporelet aux 1540: sprite_aux
 

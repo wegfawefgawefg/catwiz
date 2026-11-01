@@ -222,7 +222,7 @@
     (if (= who state.HERO)
         (do
             (set col
-                (& (+ (at state.actors who home) (at art.KIND_COLS (at state.actors who figure)))
+                (& (+ (at state.actors who home) (at art.tab.kcols (at state.actors who figure)))
                     0xFE))
             (set top 44)))
     (set (at state.floaters slot)

@@ -119,11 +119,11 @@
     (let gap u8 0)
     (if (< by_home target_home)
         (do
-            (let edge u8 (+ by_home (at art.KIND_COLS (at state.actors by figure))))
+            (let edge u8 (+ by_home (at art.tab.kcols (at state.actors by figure))))
             (if (> target_home edge)
                 (set gap (- target_home edge))))
         (do
-            (let edge u8 (+ target_home (at art.KIND_COLS (at state.actors target figure))))
+            (let edge u8 (+ target_home (at art.tab.kcols (at state.actors target figure))))
             (if (> by_home edge)
                 (set gap (- by_home edge)))))
     ; a step short of touching: its frames are wider than its spot, and boxes that meet draw
@@ -232,6 +232,6 @@
         state.show_a
         state.show_b))
     (set state.bolt_col (+ (at state.actors who home) state.show_col))
-    (set state.bolt_top (+ (at art.KIND_TOP (at state.actors who figure)) state.show_row))
+    (set state.bolt_top (+ (at art.tab.ktop (at state.actors who figure)) state.show_row))
     (set state.bolt_on true)
     false)

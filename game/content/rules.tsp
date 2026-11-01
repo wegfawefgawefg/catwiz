@@ -1,7 +1,7 @@
 ; the rules page's text (battle/rules): thirteen pages, each a title and up to fifteen lines of 35
-; columns, on the disk (:on disk; read with lib/disk while the page is open), since aux memory is
-; full. Every rule here is the engine's as it is (content/effects, statuses, charms, battle/turn,
-; reward, offer): change them together. page lays a page out: the title in inverse, every line
+; columns, on the second disk (:on disk2; read with lib/disk while the page is open), since aux
+; memory is full. Every rule here is the engine's as it is (content/effects, statuses, charms,
+; battle/turn, reward, offer): change them together. page lays a page out: the title in inverse, every line
 ; padded to 35 with spaces, PAGE_BYTES in all.
 
 (const PAGE_LINES u8 15)
@@ -34,7 +34,7 @@
                         (nth lines i)
                         "")
                     0))))
-    `(const ,name (array u8 560) (make (array u8 560) ,@bytes) :on disk))
+    `(const ,name (array u8 560) (make (array u8 560) ,@bytes) :on disk2))
 
 (page RULES_GOAL "HOW TO PLAY"
     "You are Catwiz, a cat witch. Beat"
