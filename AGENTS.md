@@ -69,8 +69,8 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   hit) is done. The rows are plain s-expressions a tool like the sim's `tsp.py` can read: a
   step is `(word arg)`.
 - To add a card: its row in `content/items.tsp` (name, text with `#`, slot, amount, step,
-  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps and
-  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption) in the same order as `ITEMS`, its log lines
+  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps,
+  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption; and its show) in the same order as `ITEMS`, its log lines
   in `effects_said.tsp`, its pool row in `encounters` `OFFER_CARDS`. A status it needs: a row
   in `statuses.tsp` (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and,
   when it acts at a moment, a `HOOKS` row. Only an effect no step can make needs a new step
@@ -202,6 +202,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
   picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
   (`battle/kit.tsp`).
+- Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
+  or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
+  arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
+  step every 2 frames at a path's places, then the effect lands: the red dot skittering, claws
+  raking (Catfight, with its angry face; Scratching Habit), a glint down her fur, a lucky paw
+  waving, a sunbeam coming down, a coin flipping). NONE is the plain hop. A show is never longer
+  than what it replaces (her own cards' 3 steps are the hop's 6 frames; the rest land before
+  the bolt would), and an ON sprite stays inside its fighter's idle frame (a lane always). The
+  scene draws the fighter's rows again where a small look left it, with no black fill first
+  (`scene.restore_drawn`), so a show (or the bolt landing) never blinks a hole in a figure.
 - The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
   mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
   cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a

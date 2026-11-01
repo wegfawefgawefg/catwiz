@@ -19,18 +19,31 @@
     (disk.read at table disk.AUX)
     (screen.unpack_page page (packs.part at 0) (packs.part at 1)))
 
-(fn backdrop ((page u8) (n u8)) void
-    (match n
-        (0 (picture page (addr_of (at fight1.PICTURE 0))))
-        (1 (picture page (addr_of (at fight2.PICTURE 0))))
-        (_ (picture page (addr_of (at fight3.PICTURE 0))))))
+; the fight screens' tables, by number
+(const PICTURES (array (ptr u8) 3)
+    (make (array (ptr u8) 3)
+        (addr_of (at fight1.PICTURE 0))
+        (addr_of (at fight2.PICTURE 0))
+        (addr_of (at fight3.PICTURE 0))))
 
-; fight screen n's kinds' runs, ready to draw
+(const RUNS (array (ptr u8) 3)
+    (make (array (ptr u8) 3)
+        (addr_of (at fight1.RUNS 0))
+        (addr_of (at fight2.RUNS 0))
+        (addr_of (at fight3.RUNS 0))))
+
+(const KINDS (array (ptr u8) 3)
+    (make (array (ptr u8) 3)
+        (addr_of (at fight1.KINDS 0))
+        (addr_of (at fight2.KINDS 0))
+        (addr_of (at fight3.KINDS 0))))
+
+(fn backdrop ((page u8) (n u8)) void
+    (picture page (at PICTURES n)))
+
+; fight screen n's kinds' runs, ready to draw (each screen has 4 kinds)
 (fn fight_runs ((n u8)) void
-    (match n
-        (0 (blit.unpack_all (addr_of (at fight1.RUNS 0)) (addr_of (at fight1.KINDS 0)) 4))
-        (1 (blit.unpack_all (addr_of (at fight2.RUNS 0)) (addr_of (at fight2.KINDS 0)) 4))
-        (_ (blit.unpack_all (addr_of (at fight3.RUNS 0)) (addr_of (at fight3.KINDS 0)) 4))))
+    (blit.unpack_all (at RUNS n) (at KINDS n) 4))
 
 (fn title ((page u8)) void
     (picture page (addr_of (at title_art.PICTURE 0))))

@@ -1,7 +1,7 @@
 Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)
 before: masked day frames, no flash (the build before 2026-10-31); after: solid night
 frames and a flash frame a fighter kind. Room: the aux language card's bank 2 12272 and
-bank 1 4096, then sprite_aux 8192 (game/draw/blit.tsp): 24560 in all.
+bank 1 4096, then sprite_aux 9232 (game/draw/blit.tsp): 25600 in all.
 
 kind       before aux+main  after aux+main   growth   zlib before -> after
 cat           5356+5186       6294+6197       +1949   2940 -> 2873
@@ -9,7 +9,7 @@ puffcap       1251+1203       1886+1895       +1327   790 -> 862
 sporelet      1175+1039       1540+1540        +866   700 -> 681
 nightflap     1667+1733       2022+2038        +660   1126 -> 1109
 shroom        1967+2134       2938+2921       +1758   1342 -> 1367
-misc           993+936         993+936           +0   641 -> 641
+misc          1500+1375       1500+1375          +0   959 -> 959
 cat        of it the flash frame: 2159
 puffcap    of it the flash frame: 733
 sporelet   of it the flash frame: 700
@@ -17,41 +17,41 @@ nightflap  of it the flash frame: 692
 shroom     of it the flash frame: 1091
 
 fight 1 (clearing): cat, misc, puffcap, sporelet
-  before  17139 bytes: bank 2 8364 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 8192: 7421 to spare
-  after   21281 bytes: bank 2 12108 of 12272, bank 1 2879 of 4096, sprite_aux 6294 of 8192: 3279 to spare
+  before  18085 bytes: bank 2 8803 of 12272, bank 1 3926 of 4096, sprite_aux 5356 of 9232: 7515 to spare
+  after   22227 bytes: bank 2 11007 of 12272, bank 1 3386 of 4096, sprite_aux 7834 of 9232: 3373 to spare
            cat main 6197: bank 2
-           misc main 936: bank 2
+           misc main 1375: bank 2
            puffcap main 1895: bank 2
            sporelet main 1540: bank 2
            cat aux 6294: sprite_aux
-           misc aux 993: bank 1
+           misc aux 1500: bank 1
            puffcap aux 1886: bank 1
-           sporelet aux 1540: bank 2
+           sporelet aux 1540: sprite_aux
   backdrop, zlib: day 1034, night 771
 
 fight 2 (path): cat, misc, puffcap, sporelet
-  before  17139 bytes: bank 2 8364 of 12272, bank 1 3419 of 4096, sprite_aux 5356 of 8192: 7421 to spare
-  after   21281 bytes: bank 2 12108 of 12272, bank 1 2879 of 4096, sprite_aux 6294 of 8192: 3279 to spare
+  before  18085 bytes: bank 2 8803 of 12272, bank 1 3926 of 4096, sprite_aux 5356 of 9232: 7515 to spare
+  after   22227 bytes: bank 2 11007 of 12272, bank 1 3386 of 4096, sprite_aux 7834 of 9232: 3373 to spare
            cat main 6197: bank 2
-           misc main 936: bank 2
+           misc main 1375: bank 2
            puffcap main 1895: bank 2
            sporelet main 1540: bank 2
            cat aux 6294: sprite_aux
-           misc aux 993: bank 1
+           misc aux 1500: bank 1
            puffcap aux 1886: bank 1
-           sporelet aux 1540: bank 2
+           sporelet aux 1540: sprite_aux
   backdrop, zlib: day 1204, night 510
 
 fight 3 (clearing): cat, misc, shroom, sporelet
-  before  18786 bytes: bank 2 10470 of 12272, bank 1 2960 of 4096, sprite_aux 5356 of 8192: 5774 to spare
-  after   23359 bytes: bank 2 11594 of 12272, bank 1 3931 of 4096, sprite_aux 7834 of 8192: 1201 to spare
+  before  19732 bytes: bank 2 10909 of 12272, bank 1 3467 of 4096, sprite_aux 5356 of 9232: 5868 to spare
+  after   24305 bytes: bank 2 12033 of 12272, bank 1 3040 of 4096, sprite_aux 9232 of 9232: 1295 to spare
            cat main 6197: bank 2
-           misc main 936: bank 2
+           misc main 1375: bank 2
            shroom main 2921: bank 2
            sporelet main 1540: bank 2
            cat aux 6294: sprite_aux
-           misc aux 993: bank 1
-           shroom aux 2938: bank 1
-           sporelet aux 1540: sprite_aux
+           misc aux 1500: bank 1
+           shroom aux 2938: sprite_aux
+           sporelet aux 1540: bank 1
   backdrop, zlib: day 1034, night 771
 

@@ -259,7 +259,7 @@
                             (set on t))
                         (log.line (at said.SAY said.SAY_COPYCAT) 0)
                         (let row u8 state.last_face)
-                        (set to (at cards.CARDS row fx))
+                        (set to (cards.fx row))
                         (set to_t on)
                         (set to_v (fx.prepare row on true)))))
             (steps.DO (set to (at cards.SUBS a)))
@@ -350,7 +350,7 @@
 ; the hero's face lands on target: a trick's steps with its number (no boosts on a trick); any
 ; other item's with its number after the boosts, its mana paid, its count towards a three
 (fn land_face ((row u8) (target u8)) void
-    (let p (ptr u8) (at cards.CARDS row fx))
+    (let p (ptr u8) (cards.fx row))
     (if (= (at items.ITEMS row slot) ac.Slot.trick)
         (do
             (run p target (fx.number row))

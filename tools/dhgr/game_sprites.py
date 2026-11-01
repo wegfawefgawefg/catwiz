@@ -199,7 +199,51 @@ def poof(k):
     return Sprite("poof%d" % k, c)
 
 
+# the cards' shows (game/content/shows.tsp): small sprites that fly at or play over whoever a
+# card is for, each on one or two 7-pixel steps, with a black outline like the bolt's but the
+# sparse ones (claws, the glint: an outline would make them black boxes on a figure).
+# Letters: W white, Y yellow, O orange, R pink, M magenta, P purple, A aqua, L light blue
+SHOW_KEY = {"W": WHITE, "Y": YELLOW, "O": ORANGE, "R": PINK, "M": dhgr.MAGENTA, "P": dhgr.PURPLE,
+            "A": dhgr.AQUA, "L": LBLUE}
+
+SHOWS = {
+    # the red dot, and the dot glowing
+    "dot0": [".M.", "MWM", "MWM", "MWM", ".M."],
+    "dot1": [".MMM.", "MWWWM", "MWWWM", "MWWWM", ".MMM."],
+    # Mimic's mask: a cat face, purple, its eyes cut out (thrown)
+    "mask": ["P...P", "PP.PP", "PPPPP", "P.P.P", "PPPPP", ".PPP."],
+    # a paw's swipe: claws raking down, then the marks left
+    "claw0": ["W.W.W", "W.W.W", ".W.W.W", ".W.W.W", "..W.W.W", "..W.W.W"],
+    "claw1": ["M.M.M", "MWMWM", ".M.M.M", ".MWMWM", "..M.M.M", "..M.M.M", "...M.M.M"],
+    # a glint: a four-point sparkle
+    "shine": ["..W..", "..W..", ".AWA.", "WWWWW", ".AWA.", "..W..", "..W.."],
+    # a flea in the air (thrown)
+    "flea": [".O.O.", "..O..", ".OWO.", "O.O.O", ".O.O."],
+    # a sunbeam coming down: a shaft of light, bright in the middle
+    "beam": [".Y.", ".Y.", "YWY", "YWY", "YWY", "YWY", "YWY", "YWY", "YWY", "YWY", "YWY", "YWY",
+             ".Y."],
+    # a coin flipping: its face, then its edge
+    "coin0": [".YYY.", "YOOOY", "YOWOY", "YOOOY", "YOOOY", ".YYY."],
+    "coin1": [".Y.", "YWY", "YWY", "YWY", "YWY", ".Y."],
+    # a lucky paw waving: up, then tipped over
+    "paw0": ["R.R.R", "WWWWW", "WRRRW", "WRRRW", ".WWW.", ".WWW.", ".WWW."],
+    "paw1": ["..R.R", ".R.WW", "WWWWW", "WRRRW", "WRRRW", ".WWW.", ".WWW."],
+}
+SPARSE = ("claw0", "claw1", "shine")
+
+
+def show(name):
+    rows = SHOWS[name]
+    c = Canvas()
+    c.stamp(1, 1, rows, SHOW_KEY)
+    if name not in SPARSE:
+        c.outline(BLACK, 1, 1)
+    w = max(len(r) for r in rows) + 2
+    return Sprite(name, c, (0, 0, 7 if w <= 7 else 14, len(rows) + 2))
+
+
 def misc():
     out = [marker(), bolt(), poof(0), poof(1)]
     out += [digit(ch) for ch in "0123456789+"]
+    out += [show(n) for n in SHOWS]
     return out

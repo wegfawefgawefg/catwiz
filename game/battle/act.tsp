@@ -1,9 +1,12 @@
 ; the action in flight: a die face, an enemy's move or the meow, from its start to its effect
 ; landing and the actor settling back. Its look comes from the action's motion:
 ;   lunge  the actor jumps at the target in 2-column steps and lands the effect on contact
-;   throw  the actor winds up, a bolt arcs across to the target, the effect lands with it
+;   throw  the actor winds up, a bolt arcs across to the target, the effect lands with it (a
+;          card's ARC show throws its own sprites)
 ;   hop    the actor shows its happy (hero) or idle face a moment, then the effect lands (no
-;          lift: the hero is 87 rows, each height a redraw of her on both pages)
+;          lift: the hero is 87 rows, each height a redraw of her on both pages); a card's ON
+;          show plays over the target meanwhile (content/shows: her own cards' plain hop is
+;          the show with no steps)
 
 (import state)
 (import art/sprites art)
@@ -11,6 +14,8 @@
 (import content/foes)
 (import content/items)
 (import content/moves mv)
+(import content/cards)
+(import content/shows)
 (import battle/place)
 (import battle/look)
 
@@ -26,7 +31,8 @@
 ; how high the bolt rides over the straight line, by step of its flight
 (const ARC (array u8 9) (make (array u8 9) 0 7 11 13 14 13 11 7 0))
 
-(const HOP_WAIT u8 6) ; frames of the face before the effect lands
+(const HOP_WAIT u8 6)      ; frames of the face before the effect lands
+(const ANGRY_FRAMES u8 12) ; a show's angry face on its target
 
 ; by starts the action in row row of source's table, aimed at target
 (fn begin ((source state.Source) (row u8) (by u8) (target u8)) void
@@ -37,26 +43,33 @@
     (set state.act_time 0)
     (set state.act_done false)
     (set state.phase state.Phase.acting)
-    (let hop bool (= (action_motion) state.Motion.hop))
+    ; the card's show, or the bolt for an enemy's shot; nothing for the meow
+    (shows.start (match source
+        (state.Source.face (cards.show row))
+        (state.Source.move shows.BOLT)
+        (state.Source.meow shows.NONE)))
+    (set state.bolt_sprite state.show_a)
+    (if (!= (& state.show_flags shows.ANGRY) 0)
+        (look.show_mood target state.Mood.angry ANGRY_FRAMES))
     (if (= by state.HERO)
         (look.show_mood by
-            (if hop
+            (if (= target by)
                 state.Mood.happy
                 state.Mood.attack)
             24)
         (look.show_mood by
-            (if hop
+            (if (= (action_motion) state.Motion.hop)
                 state.Mood.idle
                 state.Mood.angry)
             24)))
 
-; the action in flight's motion: a move's from its table, a face thrown at an enemy (or a hop
-; when it is for her); a lunge with another fighter standing between the two is thrown instead,
+; the action in flight's motion: a move's from its table, a face's from its show (thrown on an
+; ARC, else a hop with the show played over the target); a lunge with another fighter standing between the two is thrown instead,
 ; so no one is ever drawn through another (their frames are solid)
 (fn action_motion () state.Motion
     (let m state.Motion (match state.act_source
         (state.Source.face
-            (if (= (at items.ITEMS state.act_row aim) state.Aim.self)
+            (if (= state.show_way shows.ON)
                 state.Motion.hop
                 state.Motion.throw))
         (state.Source.move (mv.motion state.act_row))
@@ -188,14 +201,37 @@
     (if (= (& k 1) 0)
         (do
             (set state.bolt_col (& (as u8 col) 0xFE))
-            (set state.bolt_top (- (as u8 top) (at ARC k)))))
+            (set state.bolt_top (- (as u8 top) (at ARC k)))
+            (set state.bolt_sprite (if (= (& k 2) 0)
+                state.show_a
+                state.show_b))))
     (set state.bolt_on true)
     false)
 
+; a hop: the face a moment, then the effect lands; with a card's ON show, a step every 2 frames
+; at the show's places over the target (its sprites by turns), then the effect lands
 (fn hop_step ((t u8)) bool
     (if state.act_done
         (return (>= t SETTLE)))
-    (if (< t HOP_WAIT)
+    (if (= state.show_steps 0)
+        (do
+            (if (>= t HOP_WAIT)
+                (land))
+            (return false)))
+    (if (!= (& t 1) 0)
         (return false))
-    (land)
+    (let k u8 (>> t 1))
+    (if (>= k state.show_steps)
+        (do
+            (set state.bolt_on false)
+            (land)
+            (return false)))
+    (let who u8 state.act_on)
+    (shows.place (+ state.show_first k))
+    (set state.bolt_sprite (if (= (& k 1) 0)
+        state.show_a
+        state.show_b))
+    (set state.bolt_col (+ (at state.actors who home) state.show_col))
+    (set state.bolt_top (+ (at art.KIND_TOP (at state.actors who figure)) state.show_row))
+    (set state.bolt_on true)
     false)

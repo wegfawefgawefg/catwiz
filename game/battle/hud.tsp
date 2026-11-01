@@ -172,7 +172,7 @@
     (let small u8 n)
     (if (> small 9)
         (set small 9))
-    (let tags u8 (at cards.CARDS row tags))
+    (let tags u8 (cards.tags row))
     (if (!= (& tags ac.CAP_NONE) 0)
         (return ""))
     (if (!= (& tags ac.CAP_TIMES) 0)

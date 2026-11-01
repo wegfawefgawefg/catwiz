@@ -51,52 +51,72 @@
 (const DIGIT_8 u8 35) ; 2 x 11
 (const DIGIT_9 u8 36) ; 2 x 11
 (const DIGIT_PLUS u8 37) ; 2 x 11
-(const GLOW0 u8 38) ; 32 x 32
-(const GLOW1 u8 39) ; 32 x 32
-(const GLOW2 u8 40) ; 32 x 32
-(const GLOW3 u8 41) ; 32 x 32
-(const SPRITE_COUNT u8 42)
+(const DOT0 u8 38) ; 2 x 7
+(const DOT1 u8 39) ; 2 x 7
+(const MASK u8 40) ; 2 x 8
+(const CLAW0 u8 41) ; 4 x 8
+(const CLAW1 u8 42) ; 4 x 9
+(const SHINE u8 43) ; 2 x 9
+(const FLEA u8 44) ; 2 x 7
+(const BEAM u8 45) ; 2 x 15
+(const COIN0 u8 46) ; 2 x 8
+(const COIN1 u8 47) ; 2 x 8
+(const PAW0 u8 48) ; 2 x 9
+(const PAW1 u8 49) ; 2 x 9
+(const GLOW0 u8 50) ; 32 x 32
+(const GLOW1 u8 51) ; 32 x 32
+(const GLOW2 u8 52) ; 32 x 32
+(const GLOW3 u8 53) ; 32 x 32
+(const SPRITE_COUNT u8 54)
 
-(const COLS (array u8 42)
-    (make (array u8 42)
+(const COLS (array u8 54)
+    (make (array u8 54)
         10 14 12 10 10 12 12 10 10 10 8 8 8 8 14 14 16 14 14 14 12 12 12 4
-        2 6 6 2 2 2 2 2 2 2 2 2 2 2 32 32 32 32))
+        2 6 6 2 2 2 2 2 2 2 2 2 2 2 2 2 2 4 4 2 2 2 2 2
+        2 2 32 32 32 32))
 
-(const ROWS (array u8 42)
-    (make (array u8 42)
+(const ROWS (array u8 54)
+    (make (array u8 54)
         87 87 83 87 102 83 42 42 36 36 42 42 35 35 27 33 27 27 27 57 57 49 49 12
-        11 18 15 11 11 11 11 11 11 11 11 11 11 11 32 32 32 32))
+        11 18 15 11 11 11 11 11 11 11 11 11 11 11 7 7 8 8 9 9 7 15 8 8
+        9 9 32 32 32 32))
 
-(const DCOL (array i8 42)
-    (make (array i8 42)
+(const DCOL (array i8 54)
+    (make (array i8 54)
         0 0 -2 0 0 -2 0 0 2 2 0 -2 0 0 0 0 -2 0 0 0 0 2 2 0
-        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0))
 
-(const DTOP (array i8 42)
-    (make (array i8 42)
+(const DTOP (array i8 54)
+    (make (array i8 54)
         0 0 3 -5 -15 3 0 0 6 6 0 0 7 7 0 0 2 0 0 0 0 8 8 0
-        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0))
 
-(const AUX_AT (array u16 42)
-    (make (array u16 42)
+(const AUX_AT (array u16 54)
+    (make (array u16 54)
         0 963 2101 3152 4115 5210 0 588 1092 1524 0 420 840 1190 0 385 865 1306 1675 0 912 1710 2396 0
-        82 133 283 399 459 518 573 629 679 735 791 843 899 953 0 1142 2284 3426))
+        82 133 283 399 459 518 573 629 679 735 791 843 899 953 993 1025 1059 1098 1136 1180 1218 1255 1335 1373
+        1411 1456 0 1142 2284 3426))
 
-(const MAIN_AT (array u16 42)
-    (make (array u16 42)
+(const MAIN_AT (array u16 54)
+    (make (array u16 54)
         0 929 2071 3002 3920 5122 0 588 1092 1524 0 420 840 1190 0 386 859 1323 1693 0 899 1697 2372 0
-        80 128 270 376 434 479 533 585 639 692 744 793 847 900 0 1436 2872 4308))
+        80 128 270 376 434 479 533 585 639 692 744 793 847 900 936 959 991 1029 1067 1112 1144 1178 1225 1261
+        1287 1331 0 1436 2872 4308))
 
-(const KIND_OF (array u8 42)
-    (make (array u8 42)
+(const KIND_OF (array u8 54)
+    (make (array u8 54)
         0 0 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 3 4 4 4 4 5
-        5 5 5 5 5 5 5 5 5 5 5 5 5 5 6 6 6 6))
+        5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+        5 5 6 6 6 6))
 
 ; 1: a solid frame (only opaque runs over its whole box, the figure on black); 0: masked
-(const SOLID (array u8 42)
-    (make (array u8 42)
+(const SOLID (array u8 54)
+    (make (array u8 54)
         1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0))
 
 (const ROLE_COUNT u8 7) ; idle attack hurt happy surprised flap flash
 (const KIND_COL (array u8 7)
@@ -126,11 +146,11 @@
 
 (const KIND_AUX_SIZE (array u16 7)
     (make (array u16 7)
-        6294 1886 1540 2022 2938 993 4568))
+        6294 1886 1540 2022 2938 1500 4568))
 
 (const KIND_MAIN_SIZE (array u16 7)
     (make (array u16 7)
-        6197 1895 1540 2038 2921 936 5744))
+        6197 1895 1540 2038 2921 1375 5744))
 
 ; kind * ROLE_COUNT + role
 (const KIND_FRAME (array u8 49)

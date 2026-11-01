@@ -39,6 +39,13 @@
     (set (at key_line key_tail) (& k 0x7F))
     (set key_tail next))
 
+; whether a key waits: in the line, or on the keyboard with no card (a look, no call: the loop
+; asks every pass)
+(macro key_waiting ()
+    `(if mb.found
+        (!= key_head key_tail)
+        (>= (io_read u8 a2.KBD) 0x80)))
+
 (fn next_key () u8
     (if (not mb.found)
         (return (keys.read)))
@@ -94,9 +101,10 @@
         ; read keys, only when the screen takes them: a key pressed during her own action or
         ; the dice landing waits in the line (so dice can be played one after another as fast
         ; as they are tapped), one in the enemies' turn is dropped (battle.wants_key)
-        (let key u8 (if (or (= state.screen state.Screen.title) (battle.wants_key))
-            (next_key)
-            0))
+        (let key u8
+            (if (and (key_waiting) (or (= state.screen state.Screen.title) (battle.wants_key)))
+                (next_key)
+                0))
         ; step the screen we are on, and change screens when it asks
         (let steps u8 (steps_due))
         (let next state.Screen (match state.screen
