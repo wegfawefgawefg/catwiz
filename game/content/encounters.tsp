@@ -12,6 +12,8 @@
 (import state)
 (import content/enemies en)
 (import content/items)
+(import content/cards)
+(import content/steps)
 (import art/sprites art)
 
 (struct Hero ((name (ptr u8)) (hp u8) (figure u8) (col u8)))
@@ -200,11 +202,19 @@
         (make Offer :card UP_TRICK :weight 2 :from 5))
     :in aux)
 
-; charms: passives kept all run. kind says what it does (the sim's rules.py has each), amount
-; how much
+; charms: passives kept all run. kind says what it is (the sim's rules.py has each), amount
+; how much. A charm that acts at a moment (when) runs its steps then (fx, content/cards.tsp:
+; v its amount, times the ones she holds); one that changes a rule (when none) is read where
+; the rule is, by its kind (content/charms amount: the dice, the re-rolls, the shield, the
+; kittens' bite, a wand's number, a book's cost)
 (enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio))
 
-(struct Charm ((name (ptr u8)) (text (ptr u8)) (kind CharmKind) (amount u8)))
+(struct Charm ((name (ptr u8))
+        (text (ptr u8))
+        (kind CharmKind)
+        (amount u8)
+        (when steps.When)
+        (fx (ptr u8))))
 
 (const CHARM_SCRATCH_POST u8 0)
 (const CHARM_SIXTH_TOE u8 1)
@@ -223,52 +233,72 @@
             :name "SCRATCH POST"
             :text "Two more re-rolls every turn"
             :kind CharmKind.pocket
-            :amount 2)
+            :amount 2
+            :when steps.When.none
+            :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "SIXTH TOE"
             :text "Roll 6 dice, but 1 re-roll less"
             :kind CharmKind.toe
-            :amount 1)
+            :amount 1
+            :when steps.When.none
+            :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "STILL WATER"
             :text "A turn with no re-roll: +2 mana"
             :kind CharmKind.still
-            :amount 2)
+            :amount 2
+            :when steps.When.turn_end
+            :fx (addr_of (at cards.STILL_WATER 0)))
         (make Charm
             :name "PURRFECT TRIO"
             :text "Each 3 in a turn also hits all 1"
             :kind CharmKind.trio
-            :amount 1)
+            :amount 1
+            :when steps.When.three
+            :fx (addr_of (at cards.TRIO 0)))
         (make Charm
             :name "KITTEN MITTENS"
             :text "Your kittens hit 1 harder"
             :kind CharmKind.mittens
-            :amount 1)
+            :amount 1
+            :when steps.When.none
+            :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "MOTHER CAT"
             :text "Each fight starts with a kitten"
             :kind CharmKind.mother
-            :amount 1)
+            :amount 1
+            :when steps.When.fight_start
+            :fx (addr_of (at cards.MOTHER_CAT 0)))
         (make Charm
             :name "FLUFFY TAIL"
             :text "Your shield halves, not gone"
             :kind CharmKind.tail
-            :amount 1)
+            :amount 1
+            :when steps.When.none
+            :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "GRUMPY FACE"
             :text "A hit that hurts you: +1 mana"
             :kind CharmKind.grumpy
-            :amount 1)
+            :amount 1
+            :when steps.When.hurt
+            :fx (addr_of (at cards.GRUMPY 0)))
         (make Charm
             :name "RUBBER DUCK"
             :text "A curse a ward blocks: shield 3"
             :kind CharmKind.duck
-            :amount 3)
+            :amount 3
+            :when steps.When.warded
+            :fx (addr_of (at cards.RUBBER_DUCK 0)))
         (make Charm
             :name "BAD MILK"
             :text "Wands +2; books cost 1 more"
             :kind CharmKind.badmilk
-            :amount 2))
+            :amount 2
+            :when steps.When.none
+            :fx (addr_of (at cards.NOTHING 0))))
     :in aux)
 
 (const OFFER_CHARM_COUNT u8 10)
@@ -310,13 +340,17 @@
     (with_aux true false
         (at (at FIGHTS f spots) k col)))
 
-(fn charm_kind ((c u8)) CharmKind
-    (with_aux true false
-        (at CHARMS c kind)))
-
 (fn charm_amount ((c u8)) u8
     (with_aux true false
         (at CHARMS c amount)))
+
+(fn charm_when ((c u8)) steps.When
+    (with_aux true false
+        (at CHARMS c when)))
+
+(fn charm_fx ((c u8)) (ptr u8)
+    (with_aux true false
+        (at CHARMS c fx)))
 
 (fn elite ((f u8)) bool
     (with_aux true false

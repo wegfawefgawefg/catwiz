@@ -10,6 +10,8 @@
 (import battle/spawn)
 (import battle/place)
 (import battle/log)
+(import content/hooks)
+(import content/steps)
 (import sound/sound)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
@@ -43,10 +45,14 @@
 (const FLOAT_FRAMES u8 26)
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
 
-; by hits target for amount: by's statuses (content/statuses dealt), then a mark on target
-; adds (255 at most); an enemy sending hits back returns its share to the hero; then target's shield, unless
-; pierce, and what is left comes off its hit points. Who hits a spiky hero takes some back
+; by hits target for amount: a wand of hers sets off the hooks of target's statuses for it; by's
+; statuses (content/statuses dealt), then a mark on target adds (255 at most); an enemy sending
+; hits back returns its share to the hero; then target's shield, unless pierce, and what is left
+; comes off its hit points. An enemy's hit on her sets off the hooks of her statuses for it (who
+; hits a spiky hero takes some back); what her shield took is hooks.blocked
 (fn strike ((by u8) (target u8) (amount u8) (pierce bool)) void
+    (if (and (= by state.HERO) state.wand_on)
+        (hooks.status steps.When.wand_hit target target))
     (let damage u8 (st.sum (st.dealt by amount true) (state.stack target (as u8 st.Status.brand))))
     (if (= by state.HERO)
         (do
@@ -61,17 +67,21 @@
                     (set damage (- damage back))
                     (log.who target (at SAY SAY_SENDS_BACK) back)
                     (plain state.HERO back)))))
+    (let at_her bool (and (= target state.HERO) (!= by state.HERO)))
+    (if at_her
+        (do
+            (let shield u8 (state.stack state.HERO (as u8 st.Status.shield)))
+            (set hooks.blocked (if (> shield damage)
+                damage
+                shield))))
     (if pierce
         (do
             (set state.hud_pills (| state.hud_pills (<< 1 target)))
             (log.who target (at SAY SAY_TAKES) damage)
             (lose target damage))
         (plain target damage))
-    (if (and (= target state.HERO) (!= by state.HERO))
-        (do
-            (let thorns u8 (state.stack state.HERO (as u8 st.Status.thorns)))
-            (if (> thorns 0)
-                (lose by thorns)))))
+    (if at_her
+        (hooks.status steps.When.hit_her state.HERO by)))
 
 ; damage on target, its shield first (a kitten's pounce, a trio, what is sent back)
 (fn plain ((target u8) (damage u8)) void
@@ -120,9 +130,12 @@
     (if (= (- hp n) 0)
         (die who)))
 
-; at 0 hit points: the dice it held come back; an enemy with a next form gets up as it (with a
+; at 0 hit points: the hooks of its statuses for a fall wait; the dice it held come back; an enemy with a next form gets up as it (with a
 ; round to get up), any other is beaten
 (fn die ((who u8)) void
+    ; the hooks of its statuses for its fall wait, with its stacks as they are now
+    (if (!= who state.HERO)
+        (hooks.status steps.When.falls who who))
     (for d u8 0 state.DICE_MOST
         (if (= (at state.held d) who)
             (set (at state.held d) state.NOTHING)))

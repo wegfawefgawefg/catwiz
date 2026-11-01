@@ -7,7 +7,7 @@
 
 (import state)
 (import art/sprites art)
-(import content/effects fx)
+(import content/play)
 (import content/foes)
 (import content/items)
 (import content/moves mv)
@@ -84,7 +84,7 @@
 
 (fn land () void
     (match state.act_source
-        (state.Source.face (fx.land_face state.act_row state.act_on))
+        (state.Source.face (play.land_face state.act_row state.act_on))
         (state.Source.move (foes.land_move state.act_row state.act_by state.act_on))
         (state.Source.meow))
     (set state.act_done true)

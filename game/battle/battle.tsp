@@ -10,6 +10,8 @@
 (import content/encounters enc)
 (import content/items)
 (import content/statuses st)
+(import content/play)
+(import content/steps)
 (import draw/screen)
 (import draw/scene)
 (import draw/stage)
@@ -100,7 +102,8 @@
         (set (at state.floaters i time) 0))
     (set_hero)
     (st.start state.HERO state.NOTHING)
-    (charms.fight_start)
+    (charms.hook steps.When.fight_start)
+    (play.drain)
     (let count u8 (enc.count state.fight))
     (for i u8 1 state.ACTORS
         (if (> i count)

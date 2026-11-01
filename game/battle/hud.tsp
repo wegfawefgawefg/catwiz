@@ -169,13 +169,14 @@
     (let small u8 n)
     (if (> small 9)
         (set small 9))
-    (match (at items.ITEMS row effect)
-        (ac.Effect.nothing "")
-        (ac.Effect.double (at TIMESES small))
-        (ac.Effect.plus (at PLUSES small))
-        (ac.Effect.copy (at PLUSES small))
-        (ac.Effect.knead (at PLUSES small))
-        (_ (at DIGITS n))))
+    (let tags u8 (at items.ITEMS row tags))
+    (if (!= (& tags ac.CAP_NONE) 0)
+        (return ""))
+    (if (!= (& tags ac.CAP_TIMES) 0)
+        (return (at TIMESES small)))
+    (if (!= (& tags ac.CAP_PLUS) 0)
+        (return (at PLUSES small)))
+    (at DIGITS n))
 
 ; die d's card: none past the dice she rolls or while an enemy holds it, a blank card once it
 ; is played

@@ -15,6 +15,7 @@
 (import content/charms)
 (import content/items)
 (import content/effects fx)
+(import content/play)
 (import content/foes)
 (import content/moves mv)
 (import content/statuses st)
@@ -53,7 +54,7 @@
 (const DEAL_SHIFT u8 2)
 (const ENEMY_PAUSE u8 10)
 (const KEY_1 u8 '1')
-(const END_BEAT u8 20) ; frames from the last play to a turn that ends by itself
+(const END_BEAT u8 20)  ; frames from the last play to a turn that ends by itself
 (const MANA_SHAKE u8 8) ; steps the mana stars shake, a book played short of mana
 
 (fn any_enemy_alive () bool
@@ -327,11 +328,16 @@
             state.Mood.ko)
         1))
 
-; statuses that hurt at the end of who's turn
+; statuses that hurt at the end of who's turn: fleas bite (and say so)
 (fn turn_end ((who u8)) void
+    (let fleas bool (> (state.stack who (as u8 st.Status.flea_turns)) 0))
     (let hurt u8 (st.turn_end who))
+    (if fleas
+        (log.who who (at st.SAY st.SAY_TAKES_FROM_FLEAS) hurt))
     (if (> hurt 0)
-        (hit.lose who hurt)))
+        (do
+            (hit.lose who hurt)
+            (play.drain))))
 
 ; her turn ends: her kittens pounce (content/effects), her statuses tick, a spook wears off;
 ; then the enemies' turn begins: their shields from last turn go
@@ -339,7 +345,7 @@
     (set state.end_wait 0)
     (deselect)
     (sound.cue sound.Cue.turn_off)
-    (fx.turn_end)
+    (play.turn_end)
     (if (not (any_enemy_alive))
         (do
             (end_battle state.Phase.won)

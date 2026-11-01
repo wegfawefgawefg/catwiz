@@ -126,6 +126,8 @@
 (let last_face u8)       ; the item played last (copycat), and on whom
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)
+(let wand_on bool)   ; a wand face's steps are running (a hook on a wand hit: content/hooks)
+(let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
 (let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8)    ; the die picked to play next, or NOTHING
 (let target u8)      ; the enemy the dice go to
@@ -155,7 +157,7 @@
 (let hud_intents u8) ; a bit for each enemy whose intent changed
 (let hud_dice u8)    ; a bit for each die to draw again
 (let hud_rerolls bool)
-(let mana_shake u8) ; steps the mana stars shake for: a book played with too little mana
+(let mana_shake u8)  ; steps the mana stars shake for: a book played with too little mana
 (let hud_words bool) ; the bottom text's top two lines
 ; the badges' glyphs (badge * BADGE_MOST + k), how many, and a count of their changes
 (let badge_glyphs (array u8 56) :address 0x0724)

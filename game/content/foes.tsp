@@ -7,7 +7,8 @@
 (import battle/log)
 (import battle/spawn)
 (import content/action ac)
-(import content/effects fx)
+(import content/cards)
+(import content/play)
 (import content/enemies en)
 (import content/moves mv)
 (import content/statuses st)
@@ -115,12 +116,16 @@
     (match effect
         (ac.Effect.hit
             (sound.cue sound.Cue.zap)
-            (hit.strike by target n false))
+            (hit.strike by target n false)
+            (play.drain))
         (ac.Effect.hit2
             (sound.cue sound.Cue.zap)
             (hit.strike by target n false)
+            (play.drain)
             (if (at state.actors target alive)
-                (hit.strike by target n false)))
+                (do
+                    (hit.strike by target n false)
+                    (play.drain))))
         (ac.Effect.shield
             (sound.cue sound.Cue.ping)
             (hit.add_stacks target (as u8 st.Status.shield) n)
@@ -159,9 +164,9 @@
                     (sound.cue sound.Cue.puff)
                     (set (at state.clogged n) true)
                     (log.line (at SAY SAY_HAIRBALL_CLOGS_SLOT) 0))))
-        (ac.Effect.fleas (fx.curse effect target n))
-        (ac.Effect.wet (fx.curse effect target n))
-        (ac.Effect.spook (fx.curse effect target n))
+        (ac.Effect.fleas (play.run (addr_of (at cards.FLEAS 0)) target n))
+        (ac.Effect.wet (play.run (addr_of (at cards.WET 0)) target n))
+        (ac.Effect.spook (play.run (addr_of (at cards.SPOOK 0)) target n))
         (_)))
 
 ; n of by's kind's calls into empty spots, each waiting a round before its first move

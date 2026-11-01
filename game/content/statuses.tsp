@@ -1,9 +1,9 @@
 ; the statuses an actor can carry, as stacks (state.stack), and when each one acts. The engine
 ; calls the hooks below at the right moments and never names a status itself; the hud shows
-; them by the tables here.
+; them by the tables here. (No log here: content/steps' macro needs this module, and the log
+; needs the content's names; battle/turn writes the fleas' line.)
 
 (import state)
-(import battle/log)
 (import content/enemies en)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
@@ -93,7 +93,7 @@
     (state.set_stack who (as u8 Status.reflect) 0))
 
 ; at the end of who's turn: wet dries a turn, tangles come loose, fleas bite. Gives the damage
-; for the engine to take off
+; for the engine to take off (battle/turn logs the bite)
 (fn turn_end ((who u8)) u8
     (let wet u8 (state.stack who (as u8 Status.wet)))
     (if (> wet 0)
@@ -106,7 +106,6 @@
     (state.set_stack who (as u8 Status.flea_turns) (- turns 1))
     (if (= turns 1)
         (state.set_stack who (as u8 Status.poison) 0))
-    (log.who who (at SAY SAY_TAKES_FROM_FLEAS) bite)
     bite)
 
 ; whether who skips the move it was going to make: it just came in or got up
