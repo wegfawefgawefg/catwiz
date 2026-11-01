@@ -39,6 +39,12 @@ DAY = {
     # the old shroom
     "old": PURPLE, "old_sh": DBLUE, "old_hi": PINK, "old_spot": WHITE, "moss": GREEN,
     "beard": GREY, "beard_sh": WHITE, "stick": ORANGE,
+    # the squirrel
+    "sq": ORANGE, "sq_sh": BROWN, "sq_hi": YELLOW, "tail": ORANGE, "tail_sh": BROWN, "tail_hi": YELLOW, "tail_tip": WHITE,
+    "belly": WHITE, "belly_hi": WHITE, "acorn": YELLOW, "acorn_hi": WHITE, "cap": BROWN,
+    # the possum
+    "pos": GREY, "pos_sh": DBLUE, "pos_hi": WHITE, "pos_face": WHITE, "mask": GREY, "ptail": PINK,
+    "paw_p": PINK, "tongue": PINK, "leaf": GREEN, "leaf_hi": AQUA,
     # nightflap
     "bat": PURPLE, "bat_sh": PURPLE, "bat_hi": PINK, "wing": BLACK, "wing_sh": BLACK,
     "bone": MAGENTA, "fang": WHITE, "bat_eye": WHITE,

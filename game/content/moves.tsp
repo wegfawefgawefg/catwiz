@@ -114,7 +114,7 @@
             :effect ac.Effect.hit
             :amount 3
             :aim state.Aim.foe
-            :motion state.Motion.lunge
+            :motion state.Motion.throw
             :icon '!')
         ; roomba
         (make ac.Move

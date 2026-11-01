@@ -100,16 +100,18 @@ class Sprite:
         self.main = runs_half(s.pic, s.mask, bw, s.h, 1)
 
 
-def fighter(block, frame, zone):
-    return Sprite("%s_%s" % (block, frame), light.lit(figures.BLOCKS[block].draw(frame), zone),
-                  solid=True)
+def fighter(block, frame, zone, dx=0):
+    c = figures.BLOCKS[block].draw(frame)
+    return Sprite("%s_%s" % (block, frame), light.lit(c.shifted(dx, 0) if dx else c, zone), solid=True)
 
 
-def flash(block):
+def flash(block, dx=0):
     # the white silhouette of the block's hurt frame (its flash), outline and all, on black in
     # its box
     b = figures.BLOCKS[block]
     c = b.draw(b.flash or b.frames[0])
+    if dx:
+        c = c.shifted(dx, 0)
     for row in c.px:
         for x, v in enumerate(row):
             if v is not None:
@@ -126,11 +128,27 @@ def shot(block, name, rows):
     return Sprite("%s_%s" % (block, name), c, (0, 0, 7 if w <= 7 else 14, len(rows) + 2))
 
 
+_BLOCKS = {}
+
+
 def block_sprites(block, zone="night"):
-    # a block's sprites in figures.frame_names order: its frames, its flash, its shots
+    # a block's sprites in figures.frame_names order: its frames, its flash, its shots. A
+    # fighter is drawn a few pixels over where its bytes are fewest: its boxes are whole 7-pixel
+    # groups, so where the figure falls in them changes their width (the game stands it at its
+    # spot's column whatever the shift). The hero and the old figures stay as they were drawn
+    key = (block, zone)
+    if key in _BLOCKS:
+        return _BLOCKS[key]
     b = figures.BLOCKS[block]
-    out = [fighter(block, f, zone) for f in b.frames] + [flash(block)]
-    return out + [shot(block, n, rows) for n, rows in b.shots]
+    best = None
+    for dx in (range(7) if b.align else (0,)):
+        out = [fighter(block, f, zone, dx) for f in b.frames] + [flash(block, dx)]
+        size = sum(len(s.aux) + len(s.main) for s in out)
+        if best is None or size < best[0]:
+            best = (size, out)
+    out = best[1] + [shot(block, n, rows) for n, rows in b.shots]
+    _BLOCKS[key] = out
+    return out
 
 
 # ---- the shared small sprites, drawn here

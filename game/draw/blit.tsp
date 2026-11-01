@@ -21,14 +21,14 @@
 
 ; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
 ; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
-; each fits; the hero's blocks first, then the screen's (art/dhgr/memory.txt). The fighters are
-; solid (on black, fills of 8 or more): the elite's screen needs 9,232 bytes of sprite_aux, the
-; hero's aux half and the old shroom's. Keep it at the largest screen's need, as memory.py says
-(const AUX_BYTES u16 9232)
+; each fits; the hero's blocks first (their aux halves straight to sprite_aux, leaving the card
+; to the enemies' main halves, which can go nowhere else), then the screen's (art/dhgr/
+; memory.txt). Keep sprite_aux at what memory.py says the screens need
+(const AUX_BYTES u16 10752)
 (const CARD_START u16 0xD000)
 (const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
 (const CARD1_END u16 0xE000)
-(let sprite_aux (array u8 9232) :in aux)
+(let sprite_aux (array u8 10752) :in aux)
 
 ; where each block's runs are now (an address, and dhgr.runs' flags saying in which memory)
 (let aux_at (array u16 art.BLOCKS_MOST))
@@ -75,8 +75,8 @@
 
 ; blocks first to first + n - 1 from the table read at READ_AT: their main halves from part
 ; part on (they must go in the card), then their aux halves (interrupts are off while a half
-; unpacks into the card)
-(fn place_blocks ((part u8) (first u8) (n u8)) void
+; unpacks into the card), to sprite_aux first with aux_home
+(fn place_blocks ((part u8) (first u8) (n u8) (aux_home bool)) void
     (let read (ptr u8) (as (ptr u8) READ_AT))
     (for i u8 0 n
         (let b u8 (+ first i))
@@ -90,7 +90,9 @@
         (let b u8 (+ first i))
         (let size u16 (size_of (at art.tab.aux_size_lo b) (at art.tab.aux_size_hi b)))
         (let src (ptr u8) (packs.part read (+ (+ part n) i)))
-        (let flags u8 (into_card src size true))
+        (let flags u8 (if aux_home
+            0
+            (into_card src size true)))
         (set (at aux_flags b) flags)
         (set (at aux_at b) placed_at)
         (if (= flags 0)
@@ -116,7 +118,7 @@
     (set card2_next CARD_START)
     (set card1_next CARD_START)
     (read_tables (addr_of (at hero.RUNS 0)))
-    (place_blocks 1 art.KIND_CAT 2)
+    (place_blocks 1 art.KIND_CAT 2 true)
     (set hero_aux aux_next)
     (set hero_card2 card2_next)
     (set hero_card1 card1_next)
@@ -130,7 +132,7 @@
     (set aux_next hero_aux)
     (set card2_next hero_card2)
     (set card1_next hero_card1)
-    (place_blocks 1 2 (- art.tab.blocks 2)))
+    (place_blocks 1 2 (- art.tab.blocks 2) false))
 
 ; the title's runs: its tables and its glow, from the start (the hero's blocks are out)
 (fn title_runs ((table (ptr u8))) void
@@ -139,7 +141,7 @@
     (set aux_next 0)
     (set card2_next CARD_START)
     (set card1_next CARD_START)
-    (place_blocks 1 0 1))
+    (place_blocks 1 0 1 false))
 
 ; where a fight's picture is read before its runs: sprite_aux past the hero's halves (art/
 ; dhgr/memory.txt checks it fits), or its start while they are out

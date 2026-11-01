@@ -5,7 +5,7 @@
 # first (blocks 0 and 1, read once from the second disk and kept while fights follow), then
 # the screen's enemies' blocks; each time every main half into the aux language card (bank 2's
 # 12,272 bytes at $D000-$FFEF, else bank 1's 4,096), then every aux half into bank 1 first,
-# then bank 2, then blit.sprite_aux (9,232 bytes of aux memory). The fight's picture is read
+# then bank 2, then blit.sprite_aux (10,752 bytes of aux memory; the hero's aux halves straight there). The fight's picture is read
 # into what sprite_aux has after the hero's halves, before the enemies' runs go there: it must
 # fit. Keep the capacities and the order in step with blit.tsp.
 #
@@ -20,7 +20,7 @@ import game
 
 BANK2 = 0xFFF0 - 0xD000
 BANK1 = 0xE000 - 0xD000
-SPRITE_AUX = 9232
+SPRITE_AUX = 10752
 
 
 def packed(data):
@@ -32,8 +32,9 @@ class Room:
         self.used2 = self.used1 = self.aux = self.short = 0
         self.lines = []
 
-    def place(self, blocks):
-        # blit.tsp place_blocks: the main halves, then the aux halves
+    def place(self, blocks, aux_home=False):
+        # blit.tsp place_blocks: the main halves, then the aux halves (aux_home: those straight
+        # to sprite_aux, as the hero's)
         halves = {b: game.runs_halves(game.sprites_of(b)) for b in blocks}
         for b in blocks:
             n = len(halves[b][1])
@@ -49,7 +50,10 @@ class Room:
                 self.lines.append("%s main %d: fits nowhere (the game gives up on it)" % (b, n))
         for b in blocks:
             n = len(halves[b][0])
-            if n <= BANK1 - self.used1:
+            if aux_home:
+                self.aux += n
+                self.lines.append("%s aux %d: sprite_aux" % (b, n))
+            elif n <= BANK1 - self.used1:
                 self.used1 += n
                 self.lines.append("%s aux %d: bank 1" % (b, n))
             elif n <= BANK2 - self.used2:
@@ -91,7 +95,7 @@ def run(art):
                                          len(fl[0].aux) + len(fl[0].main) if fl else "-"))
     say("")
     hero = Room()
-    hero.place(game.HERO_BLOCKS)
+    hero.place(game.HERO_BLOCKS, True)
     sizes = game.table_sizes(fight_screens + [game.title_screen()])
     say("the screen's tables (art/sprites tab, main memory): %d sprites, %d kinds, %d blocks at most" % sizes)
     say("the hero's blocks: bank 2 %d, bank 1 %d, sprite_aux %d" % (hero.used2, hero.used1, hero.aux))

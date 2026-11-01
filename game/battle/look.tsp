@@ -20,6 +20,8 @@
 (const ROLE_SURPRISED u8 4)
 (const ROLE_FLAP u8 5)
 (const ROLE_FLASH u8 6) ; a solid kind's white shape, for the hit flash
+(const ROLE_SHOT u8 7)  ; the small sprites its moves throw or play (content/shows FOE)
+(const ROLE_SHOT2 u8 8)
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void

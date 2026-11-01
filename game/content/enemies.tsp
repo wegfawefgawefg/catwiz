@@ -2,9 +2,9 @@
 ; round and round, from its first. calls: the kind its summon brings into empty spots (they wait
 ; a round); then: what it becomes when beaten, with that kind's full hit points, after a round to
 ; get up (the possum that faked it, the big bath's gremlin, the boss's phases); stall: it skips
-; its move after losing this many hit points in one of your turns (the lawnmower). Figures past
-; the nightflap but the old shroom's are stand-ins (the puffcap's, the sporelet's) until their
-; art is drawn. The old shroom calls sporelets, who cheer it
+; its move after losing this many hit points in one of your turns (the lawnmower). figure: its
+; art (tools/dhgr/figures.py); the ones still on the puffcap's or the sporelet's stand in until
+; theirs is drawn. The old shroom calls sporelets, who cheer it
 
 (import state)
 (import art/sprites art)
@@ -88,7 +88,7 @@
             :name "Possum"
             :hp 15
             :ward 0
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_POSSUM
             :first_move 9
             :move_count 2
             :calls state.NOTHING
@@ -98,7 +98,7 @@
             :name "Possum (faked it)"
             :hp 4
             :ward 0
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_POSSUM_UP
             :first_move 11
             :move_count 1
             :calls state.NOTHING
@@ -108,7 +108,7 @@
             :name "Squirrel"
             :hp 9
             :ward 0
-            :figure art.FIG_SPORELET
+            :figure art.FIG_SQUIRREL
             :first_move 12
             :move_count 2
             :calls state.NOTHING
