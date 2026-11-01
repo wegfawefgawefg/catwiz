@@ -212,9 +212,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
   from `art/icons`), the buttons, the text. The card pictures (`tools/dhgr/icons.py`, 11 x 15, one
-  an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
-  picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
-  (`battle/kit.tsp`).
+  an item, the hairball, a charm, the nap, a door, a grabbed die) live in aux memory, each packed
+  (`draw/packs` aux_packs, 2,039 bytes less than plain); each tray slot unpacks its picture when
+  it changes (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
+  cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
 - Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
   or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
   arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
@@ -340,7 +341,9 @@ splits a memory would not build.
   floaters, the dice, the badges, the counter; and since the kit round the text's glyph tables
   `$0424`, `$0600-$0668`, the log's waiting lines `$0447-$0476`, the hud's `was` `$0700`, the
   kit's picture `$0780`). Each such let says so. The screen shows no text page (`dhgr_text2` is
-  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer.
+  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer (and
+  where a song is read from the disk), `$0630-$07F6` the log's history (13 lines of 35:
+  `battle/log` writes each line there, `battle/history`, H, shows them).
 - The tray's copies of its cards' pictures are on the spare page (rows 160-174, 6 bytes a slot
   each: `tray.picture_at`), which nothing reads once a fight's picture is shown: main memory is
   full. Numbers are split into digits by subtraction (`text.digits`): no division routines.

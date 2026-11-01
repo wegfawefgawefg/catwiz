@@ -45,6 +45,7 @@
                     (between)
                     (fight)))
             (state.Page.bag (kit_page))
+            (state.Page.log (close_button))
             (_ (rules_page))))
     (if (= hit 0)
         '.'

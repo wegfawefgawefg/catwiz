@@ -30,8 +30,9 @@
 ; after an elite (the nap or a bonus upgrade), the slot the upgrade levels, one of two doors
 (enum Pick (cards charms nap nap_slot door))
 
-; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules)
-(enum Page (none bag rules))
+; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules), the
+; log's history (battle/history)
+(enum Page (none bag rules log))
 
 ; the face an actor shows (battle/look turns it into a frame of the art)
 (enum Mood (idle angry worried hurt attack happy ko surprised))

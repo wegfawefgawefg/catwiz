@@ -14,6 +14,7 @@
 (import battle/bag)
 (import battle/reward)
 (import battle/rules)
+(import battle/history)
 (import battle/map)
 (import battle/log)
 (import battle/tray)
@@ -42,11 +43,15 @@
 (let fresh bool false)
 
 (fn opens ((key u8) (in_turn bool)) bool
-    (let p state.Page (if (= (& key 0xDF) 'B')
-        state.Page.bag
-        (if (and in_turn (= key '?'))
-            state.Page.rules
-            state.Page.none)))
+    (let p state.Page state.Page.none)
+    (if (= (& key 0xDF) 'B')
+        (set p state.Page.bag))
+    (if in_turn
+        (do
+            (if (= key '?')
+                (set p state.Page.rules))
+            (if (= (& key 0xDF) 'H')
+                (set p state.Page.log))))
     (if (= p state.Page.none)
         (return false))
     (set state.page p)
@@ -89,14 +94,17 @@
 (fn open ((p state.Page)) void
     (sound.cue sound.Cue.confirm)
     ; the rules' lines cover the stage's first 120 rows whole: only the rest is filled black
-    (let top u8 (if (= p state.Page.bag)
-        0
-        STAGE_LINES))
+    (let top u8 (if (= p state.Page.rules)
+        STAGE_LINES
+        0))
     (dhgr.box screen.PAGE 0 top 40 (- COVER_ROWS top) BLACK)
     (scene.mark 0 top 40 (- COVER_ROWS top))
     (match p
         (state.Page.bag
             (bag.open)
+            (buttons false))
+        (state.Page.log
+            (history.open)
             (buttons false))
         (_
             (rules.open)
@@ -109,9 +117,10 @@
             (set fresh false)
             (open state.page)
             (return)))
-    (let close bool (if (= state.page state.Page.bag)
-        (bag.key key)
-        (rules.key key)))
+    (let close bool (match state.page
+        (state.Page.bag (bag.key key))
+        (state.Page.log (history.key key))
+        (_ (rules.key key))))
     (if close
         (shut)))
 

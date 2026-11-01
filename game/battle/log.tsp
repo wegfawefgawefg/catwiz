@@ -2,6 +2,7 @@
 ; at the bottom. Each new line makes the enemies wait a moment (state.log_hold), so it can be
 ; read before the next one pushes it up.
 
+(import auxmem)
 (import state)
 (import draw/text)
 (import content/encounters enc)
@@ -28,6 +29,8 @@
     (en.name (at state.actors who kind)))
 
 (fn clear () void
+    (set hist_next 0)
+    (set hist_count 0)
     (set waiting 0)
     (set unshown false)
     (text.start)
@@ -69,11 +72,28 @@
     (set unshown true)
     (set state.log_hold HOLD_FRAMES))
 
-; the line text.line holds now, under the one before
+; the fight's last HISTORY lines, for the history page (battle/history): in aux memory's text
+; page 1 past the rules page's buffer (free: the game shows no text page), a line of 35 screen
+; codes each, in turn; hist_next is the one the next line writes over
+(const HISTORY u8 13)
+(const HIST_AT u16 0x0630) ; to $07F6
+(let hist_next u8 0)
+(let hist_count u8 0)
+
+(fn hist_line ((k u8)) (ptr u8)
+    (as (ptr u8) (+ HIST_AT (* (as u16 k) (as u16 text.COLUMNS)))))
+
+; the line text.line holds now, under the one before, and kept in the history
 (fn push () void
     (for i u8 0 text.COLUMNS
         (set (at older i) (at newer i)))
-    (text.save (addr_of (at newer 0))))
+    (text.save (addr_of (at newer 0)))
+    (auxmem.write (hist_line hist_next) (addr_of (at text.line 0)) (as u16 text.COLUMNS))
+    (set hist_next (+ hist_next 1))
+    (if (= hist_next HISTORY)
+        (set hist_next 0))
+    (if (< hist_count HISTORY)
+        (set hist_count (+ hist_count 1))))
 
 ; the lines waiting made and the two rows drawn again, if a line came since they were
 (fn flush () void

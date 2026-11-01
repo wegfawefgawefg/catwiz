@@ -15,10 +15,12 @@
 (import state)
 (import art/hud_data hud)
 (import art/icons)
+(import draw/packs)
 (import draw/screen)
 (import draw/pix)
 (import draw/scene)
 (import dhgr)
+(import battle/kit)
 
 (const BLACK u8 0)
 (const GREY u8 5)
@@ -82,9 +84,13 @@
         (set faces_only false))
     (if (and (!= (at icon n) tile) (!= tile state.NOTHING))
         (do
-            (let from u16 (* (as u16 tile) icons.ICON_BYTES))
+            ; unpacked (art/icons) into the kit's scratch, then its rows to the spare page
+            (packs.unpack_part (addr_of (at icons.pixels 0)) tile (addr_of (at kit.picture 0)))
+            (let from u8 0)
             (for r u8 0 ICON_H
-                (auxmem.read (picture_at n r) (addr_of (at icons.pixels from)) 6)
+                (let to (ptr u8) (picture_at n r))
+                (for i u8 0 6
+                    (store (+ to i) (at kit.picture (+ from i))))
                 (set from (+ from 6)))))
     (set (at card n) has_card)
     (set (at icon n) tile)

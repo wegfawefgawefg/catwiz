@@ -248,11 +248,14 @@ def hud_module():
 def icons_module():
     H = game_hud
     data = b"".join(H.icon_pixels(n) for n in H.ICON_ORDER)
-    text = HEAD + "; the card pictures, 15 rows of 11 pixels as nibbles (6 bytes a row), in aux memory (the\n; tray and the stage copy one out to draw it): %s\n\n" % " ".join(H.ICON_ORDER)
-    text += "(const ICON_BYTES u16 90)\n"
+    text = HEAD + ("; the card pictures, 15 rows of 11 pixels as nibbles (6 bytes a row), each packed (ZX0) in\n"
+                   "; aux memory (draw/packs aux_packs; the tray and the stage unpack one to draw it): %s\n\n"
+                   % " ".join(H.ICON_ORDER))
+    text += "(import draw/packs)\n\n(const ICON_BYTES u16 90)\n"
     for i, n in enumerate(H.ICON_ORDER):
         text += "(const TILE_%s u8 %d)\n" % (n.upper(), i)
-    text += "(let pixels (array u8 %d) (make (array u8 %d)\n%s) :in aux)\n" % (len(data), len(data), numbers(data))
+    text += "\n(packs.aux_packs pixels\n"
+    text += "\n".join("    (\n%s)" % numbers(H.icon_pixels(n)) for n in H.ICON_ORDER) + ")\n"
     return text
 
 

@@ -120,6 +120,7 @@
     (set state.pick pick)
     (set state.picked state.NOTHING)
     (set due state.NOTHING)
+    (set staged state.NOTHING)
     (set choices 0)
     (match pick
         (state.Pick.cards (add_drawn))
@@ -398,6 +399,7 @@
     (let c u8 (at choice n))
     ; a pick not drawn yet is not drawn: the step changes or ends
     (set due state.NOTHING)
+    (set staged state.NOTHING)
     (match state.pick
         (state.Pick.cards
             (if (not (card_ok c))
@@ -448,21 +450,30 @@
     (sound.cue sound.Cue.blip)
     false)
 
-; the text and the stage of the choice picked, drawn the frame after its card lifts, so the
-; pick shows at once
+; the text and the stage of the choice picked, drawn after its card lifts, so the pick shows at
+; once: its text at the next step (here: code only these steps reach loads with them, an overlay
+; group, out of main memory), the slot it changes on the stage in that frame's drawing (refresh)
 (let due u8 255)
+(let staged u8 255)
 
-(fn refresh () void
+(fn describe_due () void
     (if (= due state.NOTHING)
         (return))
-    (show_change due)
     (describe due)
+    (set staged due)
     (set due state.NOTHING))
+
+(fn refresh () void
+    (if (= staged state.NOTHING)
+        (return))
+    (show_change staged)
+    (set staged state.NOTHING))
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
 (fn step ((key u8)) bool :overlay
     (if reshow
         (show_again))
+    (describe_due)
     (if (and (>= key '1') (< key (+ '1' choices)))
         (return (pick (- key '1'))))
     (match key

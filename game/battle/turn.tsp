@@ -33,7 +33,7 @@
 (const SAY (array (ptr u8) 9)
     (make (array (ptr u8) 9)
         "Pick a die 1-5, then who it is for."
-        "E ends the turn. B: kit. ?: rules."
+        "E ends turn. B kit, ? rules, H log."
         "Your turn: pick a die (1-5)."
         "R re-roll or E end turn."
         "No playable dice."
