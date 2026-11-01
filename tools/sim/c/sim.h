@@ -1,5 +1,5 @@
-/* The C balance sim of Catwiz's item-slot model: one battle (battle.c, hit.c, foes.c, items.c, cards.c), the
-   players (judge.c, players.c, search.c), the run with its rewards (rewards.c, run.c), the
+/* The C balance sim of Catwiz's item-slot model: one battle (battle.c, hit.c, foes.c,
+   items.c, cards.c), the players (judge.c, players.c, search.c), the run with its rewards (rewards.c, run.c), the
    report (report.c), the combos study (combos.c) and the readable turn logs (tell.c).
    It ports tools/sim/rules.py, foes.py, items.py, policy.py and rewards.py; each function
    says which Python function it copies. The content is gen_content.h, from the proposal. */

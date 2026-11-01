@@ -198,7 +198,9 @@ void tell_status(Battle *b, int target, int effect, int n) {
     }
     const char *what = effect == E_fleas ? "fleas" : effect == E_wet ? "wet"
                      : effect == E_spook ? "spooked" : effect == E_brand ? "marked"
-                     : effect == E_tangled ? "tangled" : "shield gone";
+                     : effect == E_tangled ? "tangled" : effect == E_dot ? "red dot"
+                     : effect == E_catfight ? "catfight" : effect == E_haunt ? "haunted"
+                     : "shield gone";
     after(t, "; %s %s %d", who(b, target), what, n);
 }
 
@@ -298,7 +300,7 @@ void tell_back(Battle *b) {
     for (int s = 0; s < b->hand_n; s++)
         if (!b->played[s])
             sprintf(now + strlen(now), "%s%s", now[0] ? ", " : "", ITEMS[b->hand[s]].name);
-    tell_line(b, "  all back -> %s", now);
+    tell_line(b, "  back -> %s", now);
     if (pylog())
         tell_line(b, "  ALL BACK: %s", now);
 }

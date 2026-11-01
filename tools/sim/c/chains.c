@@ -4,7 +4,8 @@
    2. the chains, on the turns of fights where the card was held: dice back by red dot, big
       stretch and second wind, finishing swat's dice come back, re-rolls got from lucky paw
       and sunbeam (median, top tenth, most a turn), and every refresh a turn;
-   3. how big a card's turns are: the turns that played its face (a charm: the turns of the
+   3. the turn with the longest chain, told (its run played again with a log);
+   4. how big a card's turns are: the turns that played its face (a charm: the turns of the
       fights that held it), their damage (mean, top tenth, most) and the share that touched
       three systems or more (combos.c's swings counts them the same way). */
 #include <stdio.h>
@@ -95,6 +96,48 @@ static int chain_of(const TurnRec *t, int what) {
     return t->dot + t->stretch + t->nine;
 }
 
+/* the lines of fight f's turn t in a run's log */
+static void print_turn(const char *log, int f, int t) {
+    char head[32], next[32];
+    snprintf(head, sizeof head, "== fight %d ", f);
+    const char *p = strstr(log, head);
+    if (!p)
+        return;
+    snprintf(head, sizeof head, "\nturn %d ", t);
+    snprintf(next, sizeof next, "\nturn %d ", t + 1);
+    const char *a = strstr(p, head), *z = a ? strstr(a + 1, next) : NULL;
+    const char *end = a ? strstr(a + 1, "\n==") : NULL;
+    if (!a)
+        return;
+    if (!z || (end && end < z))
+        z = end;
+    printf("%.*s\n", z ? (int)(z - a) : (int)strlen(a), a + 1);
+}
+
+static void longest(const RunResult *r, int runs, int player, uint64_t seed) {
+    int bi = -1, bj = 0, bv = 0;
+    for (int i = 0; i < runs; i++)
+        for (int j = 0; j < r[i].nturns; j++) {
+            int v = chain_of(&r[i].turns[j], 5) + r[i].turns[j].swat;
+            if (v > bv) {
+                bv = v;
+                bi = i;
+                bj = j;
+            }
+        }
+    if (bi < 0)
+        return;
+    const TurnRec *t = &r[bi].turns[bj];
+    printf("  the longest chain: %d refreshes and swats, run %d, fight %d turn %d, %d damage\n",
+           bv, bi, t->fight, t->turn, t->dmg);
+    RunResult *one = calloc(1, sizeof *one);
+    run_one(player, seed * 100000 + (uint64_t)bi, one, 1);
+    if (one->log)
+        print_turn(one->log, t->fight, t->turn);
+    free(one->log);
+    free(one);
+}
+
 static void chains(const RunResult *r, int runs, int *buf) {
     static const char *const NAME[] = {"RED DOT", "BIG STRETCH", "SECOND WIND",
                                        "FINISHING SWAT", "LUCKY PAW", "SUNBEAM"};
@@ -181,6 +224,7 @@ int study_chains(int player, int runs, uint64_t seed, int jobs) {
     int *buf = malloc(sizeof(int) * (nt + 1));
     takes(r, runs);
     chains(r, runs, buf);
+    longest(r, runs, player, seed);
     swings(r, runs, buf);
     free(buf);
     free(r);
