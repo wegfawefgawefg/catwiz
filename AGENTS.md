@@ -36,14 +36,19 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (`items.tsp` the hero's items, `enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the
   run's fights (`FIGHTS`: zone, elite, the other door), the draws' pools (`OFFER_CARDS`,
   `OFFER_CHARMS`: a card or charm, its weight, the first fight it can come after; the sim's
-  tuned weights drop in there as data), the charms and the nap's `NAP_HEAL_SHIFT`; `rules.tsp`
+  tuned weights, 2026-11-01), the charms and the nap's `NAP_HEAL_SHIFT`; `rules.tsp`
   the rules page's text), and the `match` on the effect kind
   (`effects.tsp` the hero's faces, the boosts and threes, the curses, the kittens; `foes.tsp`
   the enemies' moves; `charms.tsp` what the charms do; `statuses.tsp` the statuses and their
   hooks). No macros, no separate data format, no parser, no Python step for it (one small
   macro lays the rules page's text out: `content/rules.tsp` `page`; `draw/packs` packs the
   generated art). The rules are
-  the balance sim's (`tools/sim/items.py`, `rules.py`; docs/balance.md, the item-slot model).
+  the balance sim's (`tools/sim/items.py`, `rules.py`; docs/balance.md, the item-slot model), its
+  tuned tables since 2026-11-01 (`python3 tools/sim/tablediff.py`; docs/balance.md "What the
+  engine needs").
+- Every number is a byte and stops at 255 instead of wrapping (the owner, 2026-11-01): add with
+  `st.sum` (content/statuses), multiply with `fx.times`, stacks with `hit.add_stacks`. The
+  badges show three digits; a floating number two (99 at most, the log has the whole number).
 - The engine (`battle/`, `draw/`) never names a specific enemy, item, effect or status. It reads
   the tables and calls the hooks in `content/`, so the content files can be replaced without
   touching the engine.
@@ -56,7 +61,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   different, no level on a slot at its most; the item she holds is a level, the same card to a
   draw as the slot's upgrade); after an elite also one of three charms drawn the same way (ones
   she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
-  choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`).
+  choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
+  fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM stands in on
+  the puffcap's figure until it has art, and the nightflap is in no fight.
 - The map of the run (`battle/map.tsp`) at the top of the stage, over the cat, drawn once a
   fight: the place, a mark a fight (an elite's bigger, hers lit), the king's crown. Its box is a
   lane (`tools/dhgr/lanes.py` MAP), so the scenery stays out of it.
@@ -305,3 +312,11 @@ splits a memory would not build.
   the key (was about 2 s: the runs are read from the disk, 1.2 s). The rules page: its first
   line 0.37 s after ?, the page 0.93 s, the buttons 1.3 s; a page turn 0.7 s. The kit page
   1.0 s; closing a page puts the fight back in 1.2 s.
+- 2026-11-01, the tuned tables (branch tuned, Tisple 34fde5b): the sim's numbers, fights and
+  pools, the old shroom (an enemy and three moves in aux memory), the rules of 2026-11-01
+  (`st.sum` on every add, the turn's end clearing the boosts, the Cannon's launch, Bad Milk's
+  cost), three-digit badges, two-digit tray captions (`hud.DIGITS` to 15, in main memory).
+  Squeeze 10 as before, now 16 functions (3,083 bytes) in the card's bank 1 (was 14, 2,336;
+  `look.update` and `words.their_turn` joined); bank 2 11,882 of 12,288 (was 12,229); aux
+  memory 6,142 at `$0800` and 17,058 at `$6000`; the disk 64,773 bytes. A pass waiting for a
+  key in fight 1, flat out: 5,812 cycles (was 5,740, measure.py "900f:RETURN" 1500 1800).

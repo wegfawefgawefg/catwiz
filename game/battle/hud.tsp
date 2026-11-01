@@ -50,9 +50,12 @@
             (set (at state.badge_glyphs (+ (* filling state.BADGE_MOST) n)) c)
             (set (at state.badge_count filling) (+ n 1)))))
 
+; n in up to three digits (every number is a byte: 255 at most)
 (fn put_number ((n u8)) void
+    (if (>= n 100)
+        (put (+ '0' (/ n 100))))
     (if (>= n 10)
-        (put (+ '0' (/ n 10))))
+        (put (+ '0' (% (/ n 10) 10))))
     (put (+ '0' (% n 10))))
 
 ; the badge just filled, centred on pixel cx with its top at top, as look: its box the groups
@@ -148,8 +151,9 @@
 ; the number under a face's picture: its number at its slot's level (a plus, a copy, a knead
 ; with a +, a times with an X), none for the hairball. The same text the same pointer, so the
 ; tray sees a change
-(const DIGITS (array (ptr u8) 10)
-    (make (array (ptr u8) 10) "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
+(const DIGITS (array (ptr u8) 16)
+    (make (array (ptr u8) 16)
+        "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15"))
 
 (const PLUSES (array (ptr u8) 10)
     (make (array (ptr u8) 10) "+0" "+1" "+2" "+3" "+4" "+5" "+6" "+7" "+8" "+9"))
@@ -157,16 +161,20 @@
 (const TIMESES (array (ptr u8) 10)
     (make (array (ptr u8) 10) "X0" "X1" "X2" "X3" "X4" "X5" "X6" "X7" "X8" "X9"))
 
+; (the most a face's number is at two levels: 14, Knock It Off's; a trick's 4)
 (fn caption ((row u8)) (ptr u8)
     (let n u8 (fx.number row))
-    (if (> n 9)
-        (set n 9))
+    (if (> n 15)
+        (set n 15))
+    (let small u8 n)
+    (if (> small 9)
+        (set small 9))
     (match (at items.ITEMS row effect)
         (ac.Effect.nothing "")
-        (ac.Effect.double (at TIMESES n))
-        (ac.Effect.plus (at PLUSES n))
-        (ac.Effect.copy (at PLUSES n))
-        (ac.Effect.knead (at PLUSES n))
+        (ac.Effect.double (at TIMESES small))
+        (ac.Effect.plus (at PLUSES small))
+        (ac.Effect.copy (at PLUSES small))
+        (ac.Effect.knead (at PLUSES small))
         (_ (at DIGITS n))))
 
 ; die d's card: none past the dice she rolls or while an enemy holds it, a blank card once it

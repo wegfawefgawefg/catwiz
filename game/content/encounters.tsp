@@ -7,7 +7,7 @@
 ; the byte column of its sprite's left edge (even, so its colours hold); a fight's spots past its
 ; count are where its summons come in. backdrop: the screen it is fought on (0 the clearing, 1 the
 ; path); zone: the place, for the map at the top of the stage. Fights 3-10 are stand-ins on fight
-; 1-2's screens and figures until their art is drawn, and the woods' elite a stand-in enemy.
+; 1-2's screens and figures until their art is drawn (the old shroom on the puffcap's).
 
 (import state)
 (import content/enemies en)
@@ -49,17 +49,17 @@
             :zone Zone.woods
             :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.PUFFCAP :col 20)
-                (make Spot :enemy en.SPORELET :col 32)
-                (make Spot :enemy en.NIGHTFLAP :col 26))
+                (make Spot :enemy en.SQUIRREL :col 14)
+                (make Spot :enemy en.POSSUM :col 20)
+                (make Spot :enemy en.SQUIRREL :col 32))
             :elite false
             :other state.NOTHING)
         (make Fight
             :backdrop 0
             :zone Zone.woods
-            :count 3
+            :count 1
             :spots (make (array Spot 3)
-                (make Spot :enemy en.OLD_GNOME :col 14)
+                (make Spot :enemy en.SHROOM :col 14)
                 (make Spot :enemy en.SPORELET :col 26)
                 (make Spot :enemy en.SPORELET :col 32))
             :elite true
@@ -69,9 +69,9 @@
             :zone Zone.garden
             :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.SQUIRREL :col 14)
-                (make Spot :enemy en.POSSUM :col 20)
-                (make Spot :enemy en.SQUIRREL :col 32))
+                (make Spot :enemy en.DUST_BUNNY :col 14)
+                (make Spot :enemy en.ROOMBA :col 20)
+                (make Spot :enemy en.DUST_BUNNY :col 32))
             :elite false
             :other state.NOTHING)
         (make Fight
@@ -79,9 +79,9 @@
             :zone Zone.garden
             :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.DUST_BUNNY :col 14)
-                (make Spot :enemy en.ROOMBA :col 20)
-                (make Spot :enemy en.DUST_BUNNY :col 32))
+                (make Spot :enemy en.CUCUMBER :col 14)
+                (make Spot :enemy en.GNOME :col 20)
+                (make Spot :enemy en.SPRINKLER :col 32))
             :elite false
             :other state.NOTHING)
         (make Fight
@@ -157,52 +157,47 @@
 
 ; what the draws after a fight take from: a card (or a charm's row), its weight (its share of
 ; the draw, among the ones that can come) and the first fight it can come after (1 to 10). Three
-; different ones a draw (battle/offer)
+; different ones a draw (battle/offer). The items she starts with are not in it: their slot's
+; upgrade levels them
 (struct Offer ((card u8) (weight u8) (from u8)))
 
-(const OFFER_CARD_COUNT u8 39)
+(const OFFER_CARD_COUNT u8 33)
 
-(const OFFER_CARDS (array Offer 39)
-    (make (array Offer 39)
-        (make Offer :card items.TWIG_WAND :weight 1 :from 1)
-        (make Offer :card items.YARN_WAND :weight 1 :from 1)
-        (make Offer :card items.SPRAY_BOTTLE :weight 1 :from 1)
-        (make Offer :card items.FEATHER_TOY :weight 1 :from 1)
-        (make Offer :card items.FISHBONE_WAND :weight 1 :from 1)
-        (make Offer :card items.MOUSE_STRING :weight 1 :from 1)
-        (make Offer :card items.FLUFF :weight 1 :from 1)
-        (make Offer :card items.SPIKY_FLUFF :weight 1 :from 1)
-        (make Offer :card items.BOX :weight 1 :from 1)
-        (make Offer :card items.WARM_BLANKET :weight 1 :from 1)
-        (make Offer :card items.STATIC_FUR :weight 1 :from 1)
-        (make Offer :card items.BELL_COLLAR :weight 1 :from 1)
-        (make Offer :card items.STAR :weight 1 :from 1)
-        (make Offer :card items.SHOOTING_STAR :weight 1 :from 1)
-        (make Offer :card items.MOON_BOWL :weight 1 :from 1)
-        (make Offer :card items.WISHING_STAR :weight 1 :from 1)
-        (make Offer :card items.LITTER_STAR :weight 1 :from 1)
-        (make Offer :card items.ZOOMIES :weight 1 :from 1)
-        (make Offer :card items.MEOW_BOOK :weight 1 :from 1)
-        (make Offer :card items.LASER :weight 1 :from 1)
-        (make Offer :card items.SCREAM :weight 1 :from 1)
-        (make Offer :card items.KNOCK :weight 1 :from 1)
-        (make Offer :card items.FITS :weight 1 :from 1)
-        (make Offer :card items.CANNON :weight 1 :from 1)
-        (make Offer :card items.FLEAS :weight 1 :from 1)
-        (make Offer :card items.WET :weight 1 :from 1)
-        (make Offer :card items.TANGLE :weight 1 :from 1)
-        (make Offer :card items.MARK :weight 1 :from 1)
-        (make Offer :card items.PLUS :weight 1 :from 1)
-        (make Offer :card items.TIMES :weight 1 :from 1)
-        (make Offer :card items.COPYCAT :weight 1 :from 1)
-        (make Offer :card items.CATNIP :weight 1 :from 1)
-        (make Offer :card items.KNEAD :weight 1 :from 1)
-        (make Offer :card UP_WAND :weight 1 :from 1)
-        (make Offer :card UP_FLUFF :weight 1 :from 1)
-        (make Offer :card UP_STAR :weight 1 :from 1)
-        (make Offer :card UP_BOOK :weight 1 :from 1)
-        (make Offer :card UP_CURSE :weight 1 :from 1)
-        (make Offer :card UP_TRICK :weight 1 :from 1))
+(const OFFER_CARDS (array Offer 33)
+    (make (array Offer 33)
+        (make Offer :card items.YARN_WAND :weight 4 :from 1)
+        (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
+        (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
+        (make Offer :card items.FISHBONE_WAND :weight 3 :from 1)
+        (make Offer :card items.FEATHER_TOY :weight 3 :from 1)
+        (make Offer :card items.SPIKY_FLUFF :weight 4 :from 1)
+        (make Offer :card items.BOX :weight 4 :from 1)
+        (make Offer :card items.BELL_COLLAR :weight 3 :from 1)
+        (make Offer :card items.SHOOTING_STAR :weight 4 :from 1)
+        (make Offer :card items.MOON_BOWL :weight 4 :from 1)
+        (make Offer :card items.LITTER_STAR :weight 4 :from 1)
+        (make Offer :card items.WET :weight 4 :from 1)
+        (make Offer :card items.TANGLE :weight 4 :from 1)
+        (make Offer :card UP_WAND :weight 3 :from 1)
+        (make Offer :card UP_FLUFF :weight 3 :from 1)
+        (make Offer :card UP_STAR :weight 3 :from 1)
+        (make Offer :card items.MEOW_BOOK :weight 3 :from 3)
+        (make Offer :card items.MARK :weight 3 :from 3)
+        (make Offer :card items.STATIC_FUR :weight 3 :from 3)
+        (make Offer :card items.WARM_BLANKET :weight 2 :from 3)
+        (make Offer :card items.LASER :weight 3 :from 3)
+        (make Offer :card items.KNOCK :weight 3 :from 3)
+        (make Offer :card items.SCREAM :weight 3 :from 3)
+        (make Offer :card items.FITS :weight 2 :from 3)
+        (make Offer :card items.CATNIP :weight 3 :from 3)
+        (make Offer :card items.CANNON :weight 3 :from 3)
+        (make Offer :card UP_BOOK :weight 2 :from 3)
+        (make Offer :card UP_CURSE :weight 2 :from 3)
+        (make Offer :card items.TIMES :weight 2 :from 3)
+        (make Offer :card items.COPYCAT :weight 2 :from 4)
+        (make Offer :card items.WISHING_STAR :weight 2 :from 5)
+        (make Offer :card items.KNEAD :weight 2 :from 4)
+        (make Offer :card UP_TRICK :weight 2 :from 5))
     :in aux)
 
 ; charms: passives kept all run. kind says what it does (the sim's rules.py has each), amount
@@ -226,9 +221,9 @@
     (make (array Charm 10)
         (make Charm
             :name "SCRATCH POST"
-            :text "One more re-roll every turn"
+            :text "Two more re-rolls every turn"
             :kind CharmKind.pocket
-            :amount 1)
+            :amount 2)
         (make Charm
             :name "SIXTH TOE"
             :text "Roll 6 dice, but 1 re-roll less"
@@ -271,25 +266,25 @@
             :amount 3)
         (make Charm
             :name "BAD MILK"
-            :text "Wands +1; fights start with fleas 2"
+            :text "Wands +2; books cost 1 more"
             :kind CharmKind.badmilk
-            :amount 1))
+            :amount 2))
     :in aux)
 
 (const OFFER_CHARM_COUNT u8 10)
 
 (const OFFER_CHARMS (array Offer 10)
     (make (array Offer 10)
-        (make Offer :card CHARM_SCRATCH_POST :weight 1 :from 1)
-        (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 1)
-        (make Offer :card CHARM_STILL_WATER :weight 1 :from 1)
-        (make Offer :card CHARM_TRIO :weight 1 :from 1)
-        (make Offer :card CHARM_MITTENS :weight 1 :from 1)
-        (make Offer :card CHARM_MOTHER_CAT :weight 1 :from 1)
-        (make Offer :card CHARM_FLUFFY_TAIL :weight 1 :from 1)
-        (make Offer :card CHARM_GRUMPY :weight 1 :from 1)
-        (make Offer :card CHARM_RUBBER_DUCK :weight 1 :from 1)
-        (make Offer :card CHARM_BAD_MILK :weight 1 :from 1))
+        (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
+        (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
+        (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
+        (make Offer :card CHARM_TRIO :weight 1 :from 6)
+        (make Offer :card CHARM_MITTENS :weight 2 :from 1)
+        (make Offer :card CHARM_MOTHER_CAT :weight 2 :from 1)
+        (make Offer :card CHARM_FLUFFY_TAIL :weight 2 :from 1)
+        (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
+        (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
+        (make Offer :card CHARM_BAD_MILK :weight 2 :from 1))
     :in aux)
 
 ; each charm's mark on its card (the hud font, tools/dhgr/game_hud.py), so they tell apart: a plus

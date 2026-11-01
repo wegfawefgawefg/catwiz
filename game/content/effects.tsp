@@ -1,7 +1,8 @@
 ; what the hero's faces do: the one match on the effect kind (content/action) for her items, the
 ; boosts and the threes, the curses (hers and the enemies'), and her kittens. The enemies' moves
 ; are content/foes.tsp. The rules are the balance sim's (tools/sim/items.py, rules.py): every
-; effect does exactly what its text says; the dice are the only luck.
+; effect does exactly what its text says; the dice are the only luck. Every number is a byte and
+; stops at 255 (st.sum) instead of wrapping (the owner, 2026-11-01).
 
 (import state)
 (import battle/hit)
@@ -17,8 +18,9 @@
 (const FLEA_TURNS u8 3)
 (const ZOOMIES_HITS u8 5)
 (const SCREAM_SELF u8 1)
-(const PLUS_DICE u8 2) ; plus one: how many dice it boosts
-(const COMBO_AT u8 3)  ; the third face of a slot in a turn sets off its combo
+(const COMBO_AT u8 3)       ; the third face of a slot in a turn sets off its combo
+(const KITTEN_HIT u8 1)     ; what a kitten's pounce does (kitten mittens add theirs)
+(const KITTENS_MOST u8 255) ; kittens at most (a byte: no cap)
 
 (fn hero ((s st.Status)) u8
     (state.stack state.HERO (as u8 s)))
@@ -32,21 +34,28 @@
 (fn mana () u8
     (hero st.Status.mana))
 
+; the mana item row costs: a book's cost, 1 more for each bad milk she holds
+(fn cost ((row u8)) u8
+    (let c u8 (at items.ITEMS row cost))
+    (if (= (at items.ITEMS row slot) ac.Slot.book)
+        (set c (+ c (at state.charms enc.CHARM_BAD_MILK))))
+    c)
+
 ; whether item row is a book she has too little mana for: it can't be played (the owner,
 ; 2026-10-31: no fizzle; a re-roll, or a star first)
 (fn short_of_mana ((row u8)) bool
-    (and (= (at items.ITEMS row slot) ac.Slot.book) (< (mana) (at items.ITEMS row cost))))
+    (and (= (at items.ITEMS row slot) ac.Slot.book) (< (mana) (cost row))))
 
 ; whether the hero can play item row: not a hairball (a re-roll coughs it up), not a book she
 ; has too little mana for
 (fn can_play ((row u8)) bool
     (and (!= (at items.ITEMS row slot) ac.Slot.junk) (not (short_of_mana row))))
 
-; n times m, by adding (no multiply routine)
+; n times m, by adding (no multiply routine), 255 at most
 (fn times ((n u8) (m u8)) u8
     (let out u8 0)
     (for k u8 0 m
-        (set out (+ out n)))
+        (set out (st.sum out n)))
     out)
 
 ; item row's number at its slot's level: its amount, and its step more a level
@@ -66,10 +75,10 @@
 
 ; the number item row lands with: its number, then the boosts in their order (as
 ; tools/sim/items.py): a times waiting (the next die, any slot but a trick: the owner,
-; 2026-10-31, a star leaving it waiting was not right), a plus, catnip's 1, knead (a
-; fluff times 2, a wand more), bad milk (a wand +1), a wish (a wand times 2), then a spook takes
-; away. use: the boosts are used up (it lands); else only looked at (the bottom text). A trick
-; takes no boosts
+; 2026-10-31, a star leaving it waiting was not right), a plus (the next die, on every hit of
+; it), catnip's 1, knead (a fluff times 2, a wand more), bad milk (a wand more), a wish (a wand
+; times 2), then a spook takes away; 255 at most. use: the boosts are used up (it lands); else
+; only looked at (the bottom text). A trick takes no boosts
 (fn boosted ((row u8) (use bool)) u8
     (let slot ac.Slot (at items.ITEMS row slot))
     (let n u8 (number row))
@@ -83,34 +92,34 @@
             (set counts mult)
             (if use
                 (set_hero st.Status.mult 0))))
-    (let left u8 (hero st.Status.plus_left))
-    (if (> left 0)
+    (if (> (hero st.Status.plus_left) 0)
         (do
-            (set n (+ n (hero st.Status.plus)))
+            (set n (st.sum n (hero st.Status.plus)))
             (if use
                 (do
-                    (set_hero st.Status.plus_left (- left 1))
-                    (if (= left 1)
-                        (set_hero st.Status.plus 0))))))
+                    (set_hero st.Status.plus_left 0)
+                    (set_hero st.Status.plus 0)))))
     (let nip u8 (hero st.Status.nip))
     (if (> nip 0)
         (do
-            (set n (+ n 1))
+            (set n (st.sum n 1))
             (if use
                 (set_hero st.Status.nip (- nip 1)))))
     (if (and (= slot ac.Slot.fluff) (> (hero st.Status.knead_fluff) 0))
         (do
-            (set n (<< n 1))
+            (set n (st.sum n n))
             (if use
                 (set_hero st.Status.knead_fluff 0))))
     (if (= slot ac.Slot.wand)
         (do
-            (set n (+ n (+ (hero st.Status.knead_wand) (charms.amount enc.CharmKind.badmilk))))
+            (set n
+                (st.sum n
+                    (st.sum (hero st.Status.knead_wand) (charms.amount enc.CharmKind.badmilk))))
             (if use
                 (set_hero st.Status.knead_wand 0))
             (if (> (hero st.Status.wish) 0)
                 (do
-                    (set n (<< n 1))
+                    (set n (st.sum n n))
                     (if use
                         (set_hero st.Status.wish 0))))))
     (let spook u8 (hero st.Status.spook))
@@ -127,14 +136,14 @@
     (land_item row target false))
 
 ; item row (no trick) lands on target: its number, its slot's count towards a three, its mana
-; (a book's cost; a copy of a book is free, as she may have spent the mana), its effect, then its
-; combo when this face makes the third. again: a copy (copycat), which is not what she played
-; last
+; (a book's cost, bad milk's more; a copy of a book is free, as she may have spent the mana), its
+; effect, then its combo when this face makes the third. again: a copy (copycat), which is not
+; what she played last
 (fn land_item ((row u8) (target u8) (again bool)) void
     (let slot ac.Slot (at items.ITEMS row slot))
     (let n u8 (boosted row true))
     (let before u8 (at state.combo (as u8 slot)))
-    (let after u8 (+ before counts))
+    (let after u8 (st.sum before counts))
     (set (at state.combo (as u8 slot)) after)
     (let three bool (and (< before COMBO_AT) (>= after COMBO_AT)))
     (if (not again)
@@ -142,22 +151,21 @@
             (set state.last_face row)
             (set state.last_on target)))
     (if (and (= slot ac.Slot.book) (not again))
-        (set_hero st.Status.mana (- (mana) (at items.ITEMS row cost))))
+        (set_hero st.Status.mana (- (mana) (cost row))))
     (effect (at items.ITEMS row effect) target n)
     (if (and three (!= (at items.ITEMS row combo) ac.Combo.none))
         (combo row target n)))
 
-; a trick: a rule for the next dice
+; a trick: a rule for the next dice, till her turn ends
 (fn trick ((row u8) (target u8)) void
     (let n u8 (number row))
     (sound.cue sound.Cue.chime)
     (match (at items.ITEMS row effect)
         (ac.Effect.plus
-            ; pluses add up: +1 then +1 is +2 on the next two dice (the owner, 2026-10-31: a
-            ; second +1 only starting the two again "doesnt seem right")
+            ; the next die, on every hit of it; pluses add up (the owner, 2026-10-31)
             (add_hero st.Status.plus n)
-            (set_hero st.Status.plus_left PLUS_DICE)
-            (log.line (at said.SAY said.SAY_NEXT_2_DICE) (hero st.Status.plus)))
+            (set_hero st.Status.plus_left 1)
+            (log.line (at said.SAY said.SAY_NEXT_DIE) (hero st.Status.plus)))
         (ac.Effect.double
             ; played after a plus it doubles that too
             (set_hero st.Status.plus (times (hero st.Status.plus) n))
@@ -249,7 +257,7 @@
             (log.line (at said.SAY said.SAY_WISH_NEXT_WAND) 0))
         (ac.Effect.litter
             (sound.cue sound.Cue.chime)
-            (st.gain_mana (+ n (hero st.Status.kittens)))
+            (st.gain_mana (st.sum n (hero st.Status.kittens)))
             (log.line (at said.SAY said.SAY_MANA_NOW) (mana)))
         (ac.Effect.kittens
             (sound.cue sound.Cue.meow)
@@ -267,12 +275,11 @@
             (sound.cue sound.Cue.zap)
             (strip t)
             (strike t n))
-        (ac.Effect.cannon
-            (sound.cue sound.Cue.zap)
-            (strike t (times n (hero st.Status.kittens))))
+        (ac.Effect.cannon (cannon t n))
         (ac.Effect.pile
             (sound.cue sound.Cue.ping)
-            (let shield u8 (+ n (<< (hero st.Status.kittens) 1)))
+            (let kittens u8 (hero st.Status.kittens))
+            (let shield u8 (st.sum (st.sum n kittens) kittens))
             (add_hero st.Status.shield shield)
             (log.who state.HERO (at said.SAY said.SAY_SHIELDS) shield))
         (ac.Effect.zoomies
@@ -349,23 +356,41 @@
                 (hit.plain i trio)))))
 
 (fn add_kittens ((n u8)) void
-    (let k u8 (+ (hero st.Status.kittens) n))
-    (if (> k charms.KITTENS_MOST)
-        (set k charms.KITTENS_MOST))
+    (let k u8 (st.sum (hero st.Status.kittens) n))
+    (if (> k KITTENS_MOST)
+        (set k KITTENS_MOST))
     (set_hero st.Status.kittens k))
 
-; every kitten pounces on t: 1 each, more with mittens and on a mark
+; every kitten pounces on t: KITTEN_HIT each, more with mittens and on a mark
 (fn pounce ((t u8)) void
-    (let bite u8 (+ 1 (charms.amount enc.CharmKind.mittens)))
+    (let bite u8 (+ KITTEN_HIT (charms.amount enc.CharmKind.mittens)))
     (for k u8 0 (hero st.Status.kittens)
         (if (not (alive t))
             (return))
-        (hit.plain t (+ bite (state.stack t (as u8 st.Status.brand))))))
+        (hit.plain t (st.sum bite (state.stack t (as u8 st.Status.brand))))))
 
-; her turn ends: still water's mana; the kittens pounce (a marked enemy first, else the
-; leftmost), twice with catnip; the turn's boosts that wait for nothing more go
+; the kitten cannon: every kitten is launched at t for n, at the next enemy standing when t
+; falls, and they are all gone
+(fn cannon ((t u8) (n u8)) void
+    (sound.cue sound.Cue.zap)
+    (let kittens u8 (hero st.Status.kittens))
+    (set_hero st.Status.kittens 0)
+    (log.line (at said.SAY said.SAY_KITTENS_LAUNCHED) kittens)
+    (for k u8 0 kittens
+        (if (not (alive t))
+            (set t (next_standing t)))
+        (if (= t state.NOTHING)
+            (return))
+        (strike t n)))
+
+; her turn ends: still water's mana; the turn's boosts go, a waiting plus and times too (the
+; owner, 2026-11-01); the kittens pounce (a marked enemy first, else the leftmost), twice with
+; catnip
 (fn turn_end () void
     (charms.still_water)
+    (set_hero st.Status.plus 0)
+    (set_hero st.Status.plus_left 0)
+    (set_hero st.Status.mult 0)
     (let times u8 (if (> (hero st.Status.nipped) 0)
         2
         1))
@@ -421,11 +446,10 @@
                 (at said.SAY said.SAY_GETS_FLEAS_TURN)
                 (state.stack target (as u8 st.Status.poison))))
         (ac.Effect.wet
-            (let turns u8 (state.stack target (as u8 st.Status.wet)))
-            (if (< turns n)
-                (set turns n))
-            (if (= turns 0)
-                (set turns 1))
+            ; its turns add to what it has, at least 1 (the owner, 2026-10-31)
+            (if (= n 0)
+                (set n 1))
+            (let turns u8 (st.sum (state.stack target (as u8 st.Status.wet)) n))
             (state.set_stack target (as u8 st.Status.wet) turns)
             (log.who target (at said.SAY said.SAY_WET_HALF_HITS) turns))
         (ac.Effect.spook

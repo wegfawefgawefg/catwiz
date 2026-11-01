@@ -42,13 +42,12 @@
 (const HURT_HELD u8 255) ; until the enemies' turn ends (turn.end_enemies)
 (const FLOAT_FRAMES u8 26)
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
-(const MOST_STACKS u8 99)
 
 ; by hits target for amount: by's statuses (content/statuses dealt), then a mark on target
-; adds; an enemy sending hits back returns its share to the hero; then target's shield, unless
+; adds (255 at most); an enemy sending hits back returns its share to the hero; then target's shield, unless
 ; pierce, and what is left comes off its hit points. Who hits a spiky hero takes some back
 (fn strike ((by u8) (target u8) (amount u8) (pierce bool)) void
-    (let damage u8 (+ (st.dealt by amount true) (state.stack target (as u8 st.Status.brand))))
+    (let damage u8 (st.sum (st.dealt by amount true) (state.stack target (as u8 st.Status.brand))))
     (if (= by state.HERO)
         (do
             (let back u8 (state.stack target (as u8 st.Status.reflect)))
@@ -165,14 +164,15 @@
     (set state.hud_pills (| state.hud_pills (<< 1 who)))
     (float_number who n true))
 
+; n more of who's status, 255 at most
 (fn add_stacks ((who u8) (status u8) (n u8)) void
-    (let now u8 (state.stack who status))
-    (if (> n (- MOST_STACKS now))
-        (set n (- MOST_STACKS now)))
-    (state.set_stack who status (+ now n)))
+    (state.set_stack who status (st.sum (state.stack who status) n)))
 
-; a number rising from who's head: the hit points lost, or with plus the ones mended
+; a number rising from who's head: the hit points lost, or with plus the ones mended. Two
+; digits: a hit of 100 or more shows 99 (the log says the whole number)
 (fn float_number ((who u8) (n u8) (plus bool)) void
+    (if (> n 99)
+        (set n 99))
     (let slot u8 state.NOTHING)
     (for i u8 0 state.FLOATERS
         (if (= (at state.floaters i time) 0)

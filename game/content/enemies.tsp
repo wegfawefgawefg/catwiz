@@ -3,7 +3,8 @@
 ; a round); then: what it becomes when beaten, with that kind's full hit points, after a round to
 ; get up (the possum that faked it, the big bath's gremlin, the boss's phases); stall: it skips
 ; its move after losing this many hit points in one of your turns (the lawnmower). Figures past
-; the nightflap are stand-ins (the puffcap's, the sporelet's) until their art is drawn.
+; the nightflap are stand-ins (the puffcap's, the sporelet's) until their art is drawn. The old
+; shroom calls sporelets, who cheer it
 
 (import state)
 (import art/sprites art)
@@ -39,13 +40,13 @@
 (const KING_2 u8 18)
 (const KING_3 u8 19)
 (const PUG u8 20)
-(const OLD_GNOME u8 21) ; the woods' elite: a stand-in, the garden gnome with more hit points
+(const SHROOM u8 21) ; the woods' elite (no art yet: the puffcap's figure stands in)
 
 (const ENEMIES (array Enemy 22)
     (make (array Enemy 22)
         (make Enemy
             :name "Puffcap"
-            :hp 6
+            :hp 20
             :ward 0
             :figure art.KIND_PUFFCAP
             :first_move 0
@@ -55,7 +56,7 @@
             :stall 0)
         (make Enemy
             :name "Sporelet"
-            :hp 4
+            :hp 9
             :ward 0
             :figure art.KIND_SPORELET
             :first_move 2
@@ -65,7 +66,7 @@
             :stall 0)
         (make Enemy
             :name "Nightflap"
-            :hp 5
+            :hp 7
             :ward 1
             :figure art.KIND_NIGHTFLAP
             :first_move 4
@@ -75,7 +76,7 @@
             :stall 0)
         (make Enemy
             :name "Garden gnome"
-            :hp 11
+            :hp 14
             :ward 1
             :figure art.KIND_PUFFCAP
             :first_move 7
@@ -85,7 +86,7 @@
             :stall 0)
         (make Enemy
             :name "Possum"
-            :hp 9
+            :hp 15
             :ward 0
             :figure art.KIND_PUFFCAP
             :first_move 9
@@ -105,7 +106,7 @@
             :stall 0)
         (make Enemy
             :name "Squirrel"
-            :hp 5
+            :hp 9
             :ward 0
             :figure art.KIND_SPORELET
             :first_move 12
@@ -115,7 +116,7 @@
             :stall 0)
         (make Enemy
             :name "Roomba"
-            :hp 18
+            :hp 42
             :ward 0
             :figure art.KIND_PUFFCAP
             :first_move 14
@@ -125,7 +126,7 @@
             :stall 0)
         (make Enemy
             :name "Dust bunny"
-            :hp 3
+            :hp 5
             :ward 0
             :figure art.KIND_SPORELET
             :first_move 17
@@ -135,7 +136,7 @@
             :stall 0)
         (make Enemy
             :name "Cucumber"
-            :hp 8
+            :hp 14
             :ward 1
             :figure art.KIND_SPORELET
             :first_move 19
@@ -145,7 +146,7 @@
             :stall 0)
         (make Enemy
             :name "Sprinkler"
-            :hp 10
+            :hp 16
             :ward 0
             :figure art.KIND_SPORELET
             :first_move 21
@@ -155,8 +156,8 @@
             :stall 0)
         (make Enemy
             :name "Hoover Jr."
-            :hp 28
-            :ward 1
+            :hp 50
+            :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 23
             :move_count 3
@@ -165,17 +166,17 @@
             :stall 0)
         (make Enemy
             :name "Lawnmower"
-            :hp 32
+            :hp 60
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 26
             :move_count 2
             :calls state.NOTHING
             :then state.NOTHING
-            :stall 12)
+            :stall 16)
         (make Enemy
             :name "The mailman"
-            :hp 42
+            :hp 80
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 28
@@ -185,7 +186,7 @@
             :stall 0)
         (make Enemy
             :name "The vet"
-            :hp 48
+            :hp 76
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 32
@@ -195,7 +196,7 @@
             :stall 0)
         (make Enemy
             :name "The big bath"
-            :hp 30
+            :hp 70
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 37
@@ -205,8 +206,8 @@
             :stall 0)
         (make Enemy
             :name "Drain gremlin"
-            :hp 22
-            :ward 0
+            :hp 40
+            :ward 1
             :figure art.KIND_SPORELET
             :first_move 40
             :move_count 2
@@ -215,7 +216,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king"
-            :hp 26
+            :hp 98
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 42
@@ -225,7 +226,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, cross"
-            :hp 26
+            :hp 98
             :ward 1
             :figure art.KIND_PUFFCAP
             :first_move 45
@@ -235,7 +236,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, furious"
-            :hp 26
+            :hp 98
             :ward 0
             :figure art.KIND_PUFFCAP
             :first_move 49
@@ -245,7 +246,7 @@
             :stall 0)
         (make Enemy
             :name "Royal pug"
-            :hp 6
+            :hp 8
             :ward 0
             :figure art.KIND_SPORELET
             :first_move 53
@@ -254,13 +255,13 @@
             :then state.NOTHING
             :stall 0)
         (make Enemy
-            :name "Old gnome"
-            :hp 24
+            :name "The old shroom"
+            :hp 46
             :ward 1
             :figure art.KIND_PUFFCAP
-            :first_move 7
-            :move_count 2
-            :calls state.NOTHING
+            :first_move 55
+            :move_count 3
+            :calls SPORELET
             :then state.NOTHING
             :stall 0))
     :in aux)

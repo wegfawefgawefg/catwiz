@@ -12,8 +12,6 @@
 
 (const SAY_KITTEN_RUNS_OFF u8 0)
 
-(const KITTENS_MOST u8 5)
-
 ; how much of charm kind the run holds: its amount, once for each one held
 (fn amount ((kind enc.CharmKind)) u8
     (let n u8 0)
@@ -38,18 +36,11 @@
 
 (fn add ((status st.Status) (n u8)) void
     (let s u8 (as u8 status))
-    (state.set_stack state.HERO s (+ (state.stack state.HERO s) n)))
+    (state.set_stack state.HERO s (st.sum (state.stack state.HERO s) n)))
 
-; a fight starts: a mother cat's kittens, bad milk's fleas
+; a fight starts: a mother cat's kittens
 (fn fight_start () void
-    (let kittens u8 (amount enc.CharmKind.mother))
-    (if (> kittens KITTENS_MOST)
-        (set kittens KITTENS_MOST))
-    (state.set_stack state.HERO (as u8 st.Status.kittens) kittens)
-    (if (held enc.CharmKind.badmilk)
-        (do
-            (state.set_stack state.HERO (as u8 st.Status.poison) 2)
-            (state.set_stack state.HERO (as u8 st.Status.flea_turns) 3))))
+    (state.set_stack state.HERO (as u8 st.Status.kittens) (amount enc.CharmKind.mother)))
 
 ; her turn starts (turn.start_round): last turn's shield is gone, unless a fluff three kept it;
 ; a fluffy tail keeps half. Gives the re-rolls for the turn
