@@ -37,6 +37,7 @@
 (enum Mood (idle angry worried hurt attack happy ko surprised))
 
 ; how an action looks on screen: a jump at the target, a bolt thrown at it, or a hop in place
+; (a card's show played over whoever it is for meanwhile: content/shows)
 (enum Motion (lunge throw hop))
 
 ; who an action is for: an enemy the player picks (or the hero, for an enemy), the one doing
@@ -154,6 +155,16 @@
 (let bolt_on bool)
 (let bolt_sx i16) ; k steps of the way, times 8: see battle/act.tsp
 (let bolt_sy i16)
+(let bolt_sprite u8) ; what the bolt's look shows: the bolt, or a card show's sprite
+; the action's show (content/shows): its row, copied as it starts, and the step's place
+(let show_way u8)
+(let show_a u8)
+(let show_b u8)
+(let show_first u8)
+(let show_steps u8)
+(let show_flags u8)
+(let show_col u8)
+(let show_row u8)
 (let floaters (array Floater 4) :address 0x06BC)
 ; the hud parts that need drawing again
 (let hud_pills u8)   ; a bit for each actor whose hit points or statuses changed

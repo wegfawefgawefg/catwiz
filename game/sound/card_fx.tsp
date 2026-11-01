@@ -56,3 +56,32 @@
 
 ; the hero's meow: a mew sliding up, then down
 (tune.effect meow "v12 l2 g5 b5 d6 f6 l3 e6 d6 l10 k2 b5")
+
+; ---- the chain cards' own (2026-11-01), each named in its card's steps (content/cards.tsp)
+
+; Red Dot: a laser dot darting, three tiny high blips
+(tune.effect dart "l2 v12 k2 e7 r b6 r f7")
+
+; Mimic: a copycat's mew and its echo
+(tune.effect mimic "l2 v12 k2 g5 c6 l2 v8 g5 l6 k2 c6")
+
+; Catfight: a yowl, half a hiss
+(tune.effect yowl "l2 m3 n6 v13 f5 e5 m1 g5 f#5 l6 k2 d5")
+
+; Mirror Fur: a shimmer up, glassy
+(tune.effect shimmer "l2 v12 k1 e6 g#6 b6 l10 k1 e7")
+
+; Lucky Paw: a lucky cat's bell, twice
+(tune.effect lucky "l3 v12 k1 b6 r l10 k1 b6")
+
+; Flea Circus: fleas hopping on, hop hop hop
+(tune.effect hops "l2 v11 k3 g6 r a6 r l4 b6")
+
+; Sunbeam: a warm glow coming up
+(tune.effect glow "l3 v10 k1 c5 e5 g5 l12 k1 c6")
+
+; Scratching Habit: three quick scratches
+(tune.effect scratch "m2 n3 l2 v13 c4 r n2 c4 r n1 l4 k2 c4")
+
+; Double or Nothing: a coin flipped, ting, and caught
+(tune.effect coin "l2 v13 k1 b6 e7 r l10 k1 e7")

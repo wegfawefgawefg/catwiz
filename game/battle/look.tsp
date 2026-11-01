@@ -212,7 +212,7 @@
         (show_actor i))
     (set (at state.looks state.LOOK_BOLT sprite) state.NOTHING)
     (if state.bolt_on
-        (show state.LOOK_BOLT art.BOLT state.bolt_col state.bolt_top))
+        (show state.LOOK_BOLT state.bolt_sprite state.bolt_col state.bolt_top))
     (for k u8 0 state.MARKERS
         (set (at state.looks (+ state.LOOK_MARKER k) sprite) state.NOTHING))
     (if (= state.phase state.Phase.player)

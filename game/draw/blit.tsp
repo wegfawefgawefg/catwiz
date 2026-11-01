@@ -17,14 +17,15 @@
 
 ; where the runs go: the main halves in the aux language card (bank 2's 12 KB at $D000, then
 ; bank 1's 4 KB), the aux halves in bank 1, then what is left of bank 2, then sprite_aux, as
-; each fits. The fighters are solid (on black, fills of 8 or more): a fight needs 6,294 bytes of
-; sprite_aux, the hero's aux half (art/dhgr/memory.txt; it was 10,240 while the path carried the
-; nightflap, which is in no fight now). Keep it at the largest screen's need, as memory.py says
-(const AUX_BYTES u16 8192)
+; each fits. The fighters are solid (on black, fills of 8 or more): the elite's screen needs
+; 9,232 bytes of sprite_aux, the hero's aux half and the old shroom's (art/dhgr/memory.txt; it
+; was 10,240 while the path carried the nightflap, which is in no fight now). Keep it at the
+; largest screen's need, as memory.py says
+(const AUX_BYTES u16 9232)
 (const CARD_START u16 0xD000)
 (const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
 (const CARD1_END u16 0xE000)
-(let sprite_aux (array u8 8192) :in aux)
+(let sprite_aux (array u8 9232) :in aux)
 
 ; where each kind's runs are now (an address, and dhgr.runs' flags saying in which memory)
 (let aux_at (array u16 7))

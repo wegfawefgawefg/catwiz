@@ -69,8 +69,8 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   hit) is done. The rows are plain s-expressions a tool like the sim's `tsp.py` can read: a
   step is `(word arg)`.
 - To add a card: its row in `content/items.tsp` (name, text with `#`, slot, amount, step,
-  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps and
-  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption) in the same order as `ITEMS`, its log lines
+  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps,
+  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption; and its show) in the same order as `ITEMS`, its log lines
   in `effects_said.tsp`, its pool row in `encounters` `OFFER_CARDS`. A status it needs: a row
   in `statuses.tsp` (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and,
   when it acts at a moment, a `HOOKS` row. Only an effect no step can make needs a new step
@@ -202,6 +202,18 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
   picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
   (`battle/kit.tsp`).
+- Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
+  or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
+  arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
+  step every 2 frames at a path's places, then the effect lands: the red dot skittering, claws
+  raking (Catfight, with its angry face; Scratching Habit), a glint down her fur, a lucky paw
+  waving, a sunbeam coming down, a coin flipping; and the old cards' squirt of water (the spray
+  bottle, wet), streak (zoomies), flea (fleas) and puff (ball of yarn, mark territory)). NONE is
+  the plain hop. A show is never longer
+  than what it replaces (her own cards' 3 steps are the hop's 6 frames; the rest land before
+  the bolt would), and an ON sprite stays inside its fighter's idle frame (a lane always). The
+  scene draws the fighter's rows again where a small look left it, with no black fill first
+  (`scene.restore_drawn`), so a show (or the bolt landing) never blinks a hole in a figure.
 - The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
   mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
   cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a
@@ -228,6 +240,11 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
   music voice: 2 (left, the hero's side) or 5 (right, the enemies'), so the songs keep their
   least-missed parts there (the pad and the shaker).
+- The chain cards have their own cues (2026-11-01), named by a `(cue ...)` step in each card's
+  steps: dart (Red Dot), mimic, yowl (Catfight), shimmer (Mirror Fur), lucky (Lucky Paw), hops
+  (Flea Circus), glow (Sunbeam), scratch (Scratching Habit), coin (Double or Nothing). On the
+  speaker each borrows the sound it replaced (the zap, the ping, the chime), and the curses'
+  have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
 - The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
   copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
   which `tisple expand` shows).
@@ -393,3 +410,15 @@ splits a memory would not build.
   (passlog SEED=5, frames 1395-2300) 928 frames against 926: the heavier text passes a frame
   slower, others a frame faster. The hud's pill and the target's row read the stacks table
   straight (no `state.stack` call).
+- 2026-11-01, the art pass (branch art-pass, Tisple 34fde5b): the chain cards' pictures, hud
+  glyphs past `_`, the old shroom's figure and screen, the cards' shows and the chain cards'
+  sounds. Room: the path's screen dropped the nightflap (in no fight), so sprite_aux went from
+  10,240 to 9,232 bytes (the elite's screen: the hero's aux half and the old shroom's); CARDS and
+  the rules page's lines moved to aux memory, the screens' tables by number. Aux memory 6,144 at
+  `$0800` and 23,872 at `$6000` (704 left at `$BD40-$BFFF`, was 573); the language card 12,235
+  of 12,288, its bank 1 2,538 (was 1,919: `main.next_key`, `hud.start_glyphs`, `tray.flush`,
+  `words.their_turn`, `scene.restore_drawn` joined); the disk 71,419 bytes, 32 sectors free (was
+  64), 21 tables. The main loop asks for a key only when one waits (`key_waiting`), which pays for
+  the bank 1 crossing: a pass waiting for a key, flat out, 5,641 cycles (was 5,727; measure.py
+  "950f:RETURN" 1500 3000); the scripted turn (passlog SEED=5, 1395-2300) 928 frames (928); a pick
+  shows in 2 frames (2) and is drawn by 9 (13); the title at the same frame.

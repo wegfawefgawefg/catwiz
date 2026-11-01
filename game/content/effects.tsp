@@ -61,7 +61,7 @@
     (if (= slot ac.Slot.junk)
         (return 0))
     (let n u8 (number_at row (at state.levels (as u8 slot))))
-    (if (!= (& (at cards.CARDS row tags) ac.GROWS) 0)
+    (if (!= (& (cards.tags row) ac.GROWS) 0)
         (set n (st.sum n (hero st.Status.habit))))
     n)
 

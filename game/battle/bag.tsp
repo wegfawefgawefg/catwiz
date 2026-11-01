@@ -161,7 +161,7 @@
     (for d u8 0 state.DICE_MOST
         (if (and (!= (at state.held d) state.NOTHING) (= (at state.face_of d) slot))
             (text.add_aux (at SAY SAY_HELD))))
-    (let tags u8 (at cards.CARDS item tags))
+    (let tags u8 (cards.tags item))
     (if (!= (& tags ac.THREE) 0)
         (text.add_aux_n (at SAY SAY_THREE) (at state.combo slot)))
     (match (at items.ITEMS item slot)

@@ -10,7 +10,9 @@
 #               frame), marker (8 for the hero, else top - 25; bob 0 or 2), the poofs
 #   act.tsp     reach (lunges in 2-column steps), HOP (lift 2-6), lunge lift 4, throw_step's
 #               bolt (front to the target's middle, ARC over it); an enemy with another in
-#               front shoots it instead (place.tsp hand_y: from 14 rows over its head)
+#               front shoots it instead (place.tsp hand_y: from 14 rows over its head); the
+#               cards' shows (content/shows.tsp): ARC sprites no bigger than the bolt, ON ones
+#               inside the idle frame of whoever they are for (no lane of their own)
 #   hit.tsp     float_number (where a number starts, and its rise: 20 rows over 26 frames)
 #   hud.tsp     the badges (HP_TOP 112, or the feet + 2 for a flyer; intents 12 over the top)
 #   badge.tsp   9 rows; a badge's box is the 7-pixel groups its pill covers

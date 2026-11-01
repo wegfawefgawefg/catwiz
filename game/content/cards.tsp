@@ -8,14 +8,15 @@
 (import content/steps)
 (import content/action ac)
 (import content/statuses st)
+(import content/shows)
 
-(const FLEA_TURNS u8 3)   ; fleas bite for this many of its turns
-(const BACK_MOST u8 5)    ; her dice come back this many times a turn at most (the sim's cap)
-(const REROLLS_MOST u8 9) ; re-rolls she can hold at most (the tray shows one digit)
+(const FLEA_TURNS u8 3)      ; fleas bite for this many of its turns
+(const BACK_MOST u8 5)       ; her dice come back this many times a turn at most (the sim's cap)
+(const REROLLS_MOST u8 9)    ; re-rolls she can hold at most (the tray shows one digit)
 (const SUNBEAM_REROLLS u8 2) ; the re-rolls a sunbeam's mana past 5 gives at most (the sim's)
-(const GAMBLE_PRICE u8 1) ; the hit points a double or nothing costs when played (the sim's)
-(const ZOOMIES_HITS u8 5) ; Zoomies' hits, enemies left to right
-(const SCREAM_SELF u8 1)  ; what 3 AM Screaming does to her
+(const GAMBLE_PRICE u8 1)    ; the hit points a double or nothing costs when played (the sim's)
+(const ZOOMIES_HITS u8 5)    ; Zoomies' hits, enemies left to right
+(const SCREAM_SELF u8 1)     ; what 3 AM Screaming does to her
 
 ; ---- shared steps (call k, k a row of SUBS)
 
@@ -147,13 +148,14 @@
 ; ---- the chain and combo cards (docs/balance.md "The chain and combo cards", the owner's picks)
 
 ; Red Dot (curse): its dots; a wand hit on it brings her dice back (HOOKS: DOT_FIRES)
-(steps.steps RED_DOT (curse dot) (t_get dot) (say_it RED_DOT))
+(steps.steps RED_DOT (cue dart) (curse dot) (t_get dot) (say_it RED_DOT))
 
 ; Catfight (curse): its next hit on her goes to a friend, this much harder (content/foes)
-(steps.steps CATFIGHT (curse catfight) (t_get catfight) (say_it CATFIGHT))
+(steps.steps CATFIGHT (cue yowl) (curse catfight) (t_get catfight) (say_it CATFIGHT))
 
 ; Flea Circus (curse): fleas, and when it falls they jump on (HOOKS: CIRCUS_JUMPS)
 (steps.steps FLEA_CIRCUS
+    (cue hops)
     (curse poison)
     (lit FLEA_TURNS)
     (t_set flea_turns)
@@ -163,22 +165,28 @@
     (say_it FLEA_CIRCUS))
 
 ; Mirror Fur (fluff): a shield, and what it takes this round bounces back (HOOKS: MIRROR)
-(steps.steps MIRROR_FUR (call SUB_SHIELD) (add mirror))
+(steps.steps MIRROR_FUR (cue shimmer) (add shield) (say_me SHIELDS) (add mirror))
 
 ; Lucky Paw (fluff): a shield and a re-roll
-(steps.steps LUCKY_PAW (call SUB_SHIELD) (lit 1) (rerolls) (say FREE_REROLL))
+(steps.steps LUCKY_PAW
+    (cue lucky)
+    (add shield)
+    (say_me SHIELDS)
+    (lit 1)
+    (rerolls)
+    (say FREE_REROLL))
 
 ; Sunbeam (star): mana, and what goes past the most is re-rolls, SUNBEAM_REROLLS at most
-(steps.steps SUNBEAM (cue chime) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
+(steps.steps SUNBEAM (cue glow) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
 
 ; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
 ; for the fight
-(steps.steps SCRATCHING_HABIT (call SUB_ZAP_HIT) (lit 1) (add habit))
+(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (lit 1) (add habit))
 
 ; Double or Nothing (trick): the next die times #, and it costs her GAMBLE_PRICE hit points as
 ; it is played (the sim's final form: x3 for 1 hp)
 (steps.steps DOUBLE_OR_NOTHING
-    (cue chime)
+    (cue coin)
     (lit 1)
     (max mult)
     (num)
@@ -190,7 +198,7 @@
     (say DOUBLE_NEXT))
 
 ; Mimic (book): t's shown move, # times, done by her (MIMICRY says what each move is for her)
-(steps.steps MIMIC (cue zap) (look) (rep) (retarget) (mimic) (end))
+(steps.steps MIMIC (cue mimic) (look) (rep) (retarget) (mimic) (end))
 
 ; what an enemy's move is for her when she mimics it, v its number: its hit on t (a hit-all on
 ; them all), its shield, its healing on her, its call a kitten, its cheer or growing a waiting
@@ -287,56 +295,71 @@
 (steps.steps LITTER_BOX (kept) (add kittens))
 (steps.steps NINE_LIVES (cue chime) (say_me NINE_LIVES))
 
-; ---- each item's steps and tags (content/action: THREE, KITTENS, GROWS, the caption), in the
-; order of content/items ITEMS: a new item adds its row there and its card here
+; ---- each item's steps and tags (content/action: THREE, KITTENS, GROWS, the caption) and its
+; show (content/shows: how its play looks), in the order of content/items ITEMS: a new item adds
+; its row there and its card here
 
-(struct Card ((fx (ptr u8)) (tags u8)))
+(struct Card ((fx (ptr u8)) (tags u8) (show u8)))
 
 (const CARDS (array Card 43)
     (make (array Card 43)
-        (make Card :fx (addr_of (at TWIG_WAND 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at YARN_WAND 0)) :tags 0)
-        (make Card :fx (addr_of (at SPRAY_BOTTLE 0)) :tags 0)
-        (make Card :fx (addr_of (at FEATHER_TOY 0)) :tags ac.KITTENS)
-        (make Card :fx (addr_of (at FISHBONE_WAND 0)) :tags 0)
-        (make Card :fx (addr_of (at MOUSE_STRING 0)) :tags 0)
-        (make Card :fx (addr_of (at FLUFF 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at SPIKY_FLUFF 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at BOX 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at WARM_BLANKET 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at STATIC_FUR 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at BELL_COLLAR 0)) :tags ac.THREE)
-        (make Card :fx (addr_of (at STAR 0)) :tags 0)
-        (make Card :fx (addr_of (at SHOOTING_STAR 0)) :tags 0)
-        (make Card :fx (addr_of (at MOON_BOWL 0)) :tags 0)
-        (make Card :fx (addr_of (at WISHING_STAR 0)) :tags 0)
-        (make Card :fx (addr_of (at LITTER_STAR 0)) :tags ac.KITTENS)
-        (make Card :fx (addr_of (at ZOOMIES 0)) :tags 0)
-        (make Card :fx (addr_of (at MEOW_BOOK 0)) :tags ac.KITTENS)
-        (make Card :fx (addr_of (at LASER 0)) :tags 0)
-        (make Card :fx (addr_of (at SCREAM 0)) :tags 0)
-        (make Card :fx (addr_of (at KNOCK 0)) :tags 0)
-        (make Card :fx (addr_of (at FITS 0)) :tags ac.KITTENS)
-        (make Card :fx (addr_of (at CANNON 0)) :tags ac.KITTENS)
-        (make Card :fx (addr_of (at FLEAS 0)) :tags 0)
-        (make Card :fx (addr_of (at WET 0)) :tags 0)
-        (make Card :fx (addr_of (at TANGLE 0)) :tags 0)
-        (make Card :fx (addr_of (at MARK 0)) :tags 0)
-        (make Card :fx (addr_of (at PLUS 0)) :tags ac.CAP_PLUS)
-        (make Card :fx (addr_of (at TIMES 0)) :tags ac.CAP_TIMES)
-        (make Card :fx (addr_of (at COPYCAT 0)) :tags ac.CAP_PLUS)
-        (make Card :fx (addr_of (at CATNIP 0)) :tags 0)
-        (make Card :fx (addr_of (at KNEAD 0)) :tags ac.CAP_PLUS)
-        (make Card :fx (addr_of (at HAIRBALL 0)) :tags ac.CAP_NONE)
-        (make Card :fx (addr_of (at RED_DOT 0)) :tags 0)
-        (make Card :fx (addr_of (at MIMIC 0)) :tags 0)
-        (make Card :fx (addr_of (at CATFIGHT 0)) :tags 0)
-        (make Card :fx (addr_of (at MIRROR_FUR 0)) :tags 0)
-        (make Card :fx (addr_of (at LUCKY_PAW 0)) :tags 0)
-        (make Card :fx (addr_of (at FLEA_CIRCUS 0)) :tags 0)
-        (make Card :fx (addr_of (at SUNBEAM 0)) :tags 0)
-        (make Card :fx (addr_of (at SCRATCHING_HABIT 0)) :tags ac.GROWS)
-        (make Card :fx (addr_of (at DOUBLE_OR_NOTHING 0)) :tags ac.CAP_TIMES)))
+        (make Card :fx (addr_of (at TWIG_WAND 0)) :tags ac.THREE :show shows.BOLT)
+        (make Card :fx (addr_of (at YARN_WAND 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at SPRAY_BOTTLE 0)) :tags 0 :show shows.SPRAY)
+        (make Card :fx (addr_of (at FEATHER_TOY 0)) :tags ac.KITTENS :show shows.BOLT)
+        (make Card :fx (addr_of (at FISHBONE_WAND 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at MOUSE_STRING 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at FLUFF 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at SPIKY_FLUFF 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at BOX 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at WARM_BLANKET 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at STATIC_FUR 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at BELL_COLLAR 0)) :tags ac.THREE :show shows.NONE)
+        (make Card :fx (addr_of (at STAR 0)) :tags 0 :show shows.NONE)
+        (make Card :fx (addr_of (at SHOOTING_STAR 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at MOON_BOWL 0)) :tags 0 :show shows.NONE)
+        (make Card :fx (addr_of (at WISHING_STAR 0)) :tags 0 :show shows.NONE)
+        (make Card :fx (addr_of (at LITTER_STAR 0)) :tags ac.KITTENS :show shows.NONE)
+        (make Card :fx (addr_of (at ZOOMIES 0)) :tags 0 :show shows.STREAK)
+        (make Card :fx (addr_of (at MEOW_BOOK 0)) :tags ac.KITTENS :show shows.NONE)
+        (make Card :fx (addr_of (at LASER 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at SCREAM 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at KNOCK 0)) :tags 0 :show shows.BOLT)
+        (make Card :fx (addr_of (at FITS 0)) :tags ac.KITTENS :show shows.NONE)
+        (make Card :fx (addr_of (at CANNON 0)) :tags ac.KITTENS :show shows.BOLT)
+        (make Card :fx (addr_of (at FLEAS 0)) :tags 0 :show shows.FLEAS)
+        (make Card :fx (addr_of (at WET 0)) :tags 0 :show shows.SPRAY)
+        (make Card :fx (addr_of (at TANGLE 0)) :tags 0 :show shows.PUFF)
+        (make Card :fx (addr_of (at MARK 0)) :tags 0 :show shows.PUFF)
+        (make Card :fx (addr_of (at PLUS 0)) :tags ac.CAP_PLUS :show shows.NONE)
+        (make Card :fx (addr_of (at TIMES 0)) :tags ac.CAP_TIMES :show shows.NONE)
+        (make Card :fx (addr_of (at COPYCAT 0)) :tags ac.CAP_PLUS :show shows.NONE)
+        (make Card :fx (addr_of (at CATNIP 0)) :tags 0 :show shows.NONE)
+        (make Card :fx (addr_of (at KNEAD 0)) :tags ac.CAP_PLUS :show shows.NONE)
+        (make Card :fx (addr_of (at HAIRBALL 0)) :tags ac.CAP_NONE :show shows.NONE)
+        (make Card :fx (addr_of (at RED_DOT 0)) :tags 0 :show shows.RED_DOT)
+        (make Card :fx (addr_of (at MIMIC 0)) :tags 0 :show shows.MIMIC)
+        (make Card :fx (addr_of (at CATFIGHT 0)) :tags 0 :show shows.CATFIGHT)
+        (make Card :fx (addr_of (at MIRROR_FUR 0)) :tags 0 :show shows.MIRROR)
+        (make Card :fx (addr_of (at LUCKY_PAW 0)) :tags 0 :show shows.LUCKY_PAW)
+        (make Card :fx (addr_of (at FLEA_CIRCUS 0)) :tags 0 :show shows.FLEAS)
+        (make Card :fx (addr_of (at SUNBEAM 0)) :tags 0 :show shows.SUNBEAM)
+        (make Card :fx (addr_of (at SCRATCHING_HABIT 0)) :tags ac.GROWS :show shows.CLAWS)
+        (make Card :fx (addr_of (at DOUBLE_OR_NOTHING 0)) :tags ac.CAP_TIMES :show shows.COIN))
+    :in aux)
+
+; a card's fields, read from aux memory (CARDS is :in aux: main memory is full)
+(fn fx ((row u8)) (ptr u8)
+    (with_aux true false
+        (at CARDS row fx)))
+
+(fn tags ((row u8)) u8
+    (with_aux true false
+        (at CARDS row tags)))
+
+(fn show ((row u8)) u8
+    (with_aux true false
+        (at CARDS row show)))
 
 ; ---- the shared steps' rows, for call
 

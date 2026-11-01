@@ -4,7 +4,8 @@
 ; 0-120; the hud (the tray, the text) is drawn from row 121 down. The page remembers what it
 ; shows (state.drawn), so a frame only touches what changed:
 ;   1. the old boxes of the looks that changed are filled black (a solid fighter's only where
-;      its new box does not cover: it is drawn whole over its old pose, so it never blinks);
+;      its new box does not cover: it is drawn whole over its old pose, so it never blinks; a
+;      small look's not at all where it was wholly over a solid fighter, drawn again there);
 ;   2. every look that changed, met a filled box or sits on top of one being drawn, is drawn
 ;      again over the page, in order.
 
@@ -168,13 +169,30 @@
     (if (!= second state.NOTHING)
         (blit.draw page (+ col 2) top second false false rows)))
 
-; the old box of the look page shows as d, filled black
+; the old box of the look page shows as d, filled black; or, when it lies wholly inside a solid
+; fighter's box (one drawn whole, not cut), left for that fighter's rows drawn again over it (a
+; card's show, the bolt landing: no black blink on the figure)
 (fn restore_drawn ((page u8) (d u8)) void
     (box_of (at state.drawn d sprite)
         (at state.drawn d col)
         (at state.drawn d top)
         (at state.drawn d second)
         (at state.drawn d wide))
+    (if (>= d state.ACTORS)
+        (for k u8 0 state.ACTORS
+            (let s u8 (at state.looks k sprite))
+            (if (and (and (!= s state.NOTHING) (not (at cut k))) (= (at art.SOLID s) 1))
+                (if (and
+                        (and (<= (at box k col) the_box.col)
+                            (<= (+ the_box.col the_box.cols) (+ (at box k col) (at box k cols))))
+                        (and (<= (at box k top) the_box.top)
+                            (<= (+ the_box.top the_box.rows) (+ (at box k top) (at box k rows)))))
+                    (do
+                        (if (< restored_count MOST_RESTORED)
+                            (do
+                                (set (at restored restored_count) the_box)
+                                (set restored_count (+ restored_count 1))
+                                (return))))))))
     (restore_box page the_box.col the_box.top the_box.cols the_box.rows))
 
 ; whether look i is a solid frame (a fighter flattened onto black, art.SOLID) drawn where the

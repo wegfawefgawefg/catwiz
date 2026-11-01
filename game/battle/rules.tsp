@@ -17,6 +17,20 @@
 (let buffer u16 0x0400)
 (const COLUMNS u8 35)
 
+; the page's own lines, in aux memory (main memory is full)
+(const SAY_DISK u8 0)
+(const SAY_PAGE u8 1)
+(const SAY_TURN u8 2)
+(const SAY_CLOSE u8 3)
+
+(const SAY (array (ptr u8) 4)
+    (make (array (ptr u8) 4)
+        "The disk did not read (#)."
+        "Page #/"
+        "Arrows, BACK, NEXT: turn the page."
+        "ESC, ? or CLOSE: back to the fight.")
+    :strings aux)
+
 (let shown u8 0)          ; the page shown; the last one read comes up again next time
 (let drawn (array u8 15)) ; how many blocks of each line the stage shows
 
@@ -33,7 +47,7 @@
     (if (!= status disk.DONE)
         (do
             (text.start)
-            (text.add_n "The disk did not read (#)." status)
+            (text.add_aux_n (at SAY SAY_DISK) status)
             (text.show 0)
             (return)))
     ; each line as far as it or the one it replaces reaches (the stage's picture: all of it)
@@ -47,15 +61,15 @@
             b)))
     (fetch 0)
     (text.tab 25)
-    (text.add_n "Page #/" (+ shown 1))
+    (text.add_aux_n (at SAY SAY_PAGE) (+ shown 1))
     (text.number rules.PAGE_COUNT)
     (text.show 0)
     (text.start)
     (text.show 1)
-    (text.add "Arrows, BACK, NEXT: turn the page.")
+    (text.add_aux (at SAY SAY_TURN))
     (text.show 2)
     (text.start)
-    (text.add "ESC, ? or CLOSE: back to the fight.")
+    (text.add_aux (at SAY SAY_CLOSE))
     (text.show 3))
 
 (fn open () void
