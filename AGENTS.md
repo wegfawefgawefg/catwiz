@@ -105,8 +105,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   draw as the slot's upgrade); after an elite also one of three charms drawn the same way (ones
   she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
   choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
-  fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM stands in on
-  the puffcap's figure until it has art, and the nightflap is in no fight.
+  fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM has its own
+  figure and screen (the clearing's scenery round its lanes, `screen_fight3`), and the
+  nightflap is in no fight (no screen carries it).
 - The map of the run (`battle/map.tsp`) at the top of the stage, over the cat, drawn once a
   fight: the place, a mark a fight (an elite's bigger, hers lit), the king's crown. Its box is a
   lane (`tools/dhgr/lanes.py` MAP), so the scenery stays out of it.
@@ -169,8 +170,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (read into page 1's aux memory, not shown then, and unpacked: `draw/blit.tsp`): the main halves
   into the aux language card's bank 2, the aux halves into its bank 1, the rest of bank 2, then
   `sprite_aux` in aux memory, as they fit; then the spare page is copied onto page 1. A fight
-  screen has every kind its fights use (the clearing: the cat, the small sprites, the puffcap,
-  the sporelet; the path: and the nightflap). Frames are whole (no face patches): a mood shows as a
+  screen has every kind its fights use (the clearing and the path: the cat, the small sprites,
+  the puffcap, the sporelet; the elite's clearing: the cat, the small sprites, the old shroom,
+  the sporelet). Frames are whole (no face patches): a mood shows as a
   kind's frame by role (idle, attack, hurt, happy, surprised, flap, flash; `battle/look.tsp`),
   its idle one when it has none.
 - Midnight (2026-10-31): the whole game is night, for speed. The fighters stand on pure black
@@ -200,12 +202,12 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
   picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
   (`battle/kit.tsp`).
-- The chain cards borrow card pictures until they have their own (`content/items.tsp` icon):
-  Red Dot the laser pointer's, Mimic the copycat's, Catfight Knock It Off's, Mirror Fur the
-  static fur's, Lucky Paw the knead's, Flea Circus the fleas', Sunbeam the star's, Scratching
-  Habit the twig wand's, Double or Nothing Times Two's; the charm marks are & (Litter Box) and 9
-  (Nine Lives); the statuses' hud glyphs borrow too (`statuses.tsp` GLYPH: red dot ", catfight
-  !, mirror :, flea circus ,, habit ^).
+- The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
+  mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
+  cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a
+  coin (Double or Nothing). Their statuses and the two charms have hud glyphs past `_` in the
+  hud font (`game_hud.py` HUD_ICONS: `` ` `` red dot, a catfight, b mirror fur, c flea circus, d
+  habit, e the litter box, f nine lives); `pix.glyph` reads any code the table holds.
 - NTSC (the TV look) is the real target and the web player starts in it (`"look": "ntsc"` in
   `tools/phone/catwiz.json`); judge the art and take screenshots there first, colour second. In
   NTSC every colour but black, white and grey shows fine stripes, the dark ones worst: big areas

@@ -187,8 +187,8 @@ def ring_of_caps(N, spots):
             N.set(x, y + 1, WHITE)
 
 
-def clearing():
-    N = Night(FIGHT_OF["clearing"])
+def clearing(n):
+    N = Night(n)
     N.stars(11, 22)
     # the moon over the sporelet, in the one big pocket of the clearing's sky
     moon(N, 105, 26, 5.6, 10.5)
@@ -215,8 +215,8 @@ def clearing():
     return N.finish()
 
 
-def path():
-    N = Night(FIGHT_OF["path"])
+def path(n):
+    N = Night(n)
     N.stars(23, 22)
     # a thin crescent in the top right corner (the map of the run has the gap over the cat)
     crescent(N, 132, 5, 3.6, 5.0)
@@ -239,8 +239,10 @@ def path():
     return N.finish()
 
 
-def picture(variant):
-    return {"clearing": clearing, "path": path}[variant]()
+def picture(variant, n=None):
+    # the variant's scenery outside the lanes of fight n (palettes.FIGHTS; the variant's own
+    # fight when none: the woods' elite is fought on the clearing, its lanes its own)
+    return {"clearing": clearing, "path": path}[variant](n or FIGHT_OF[variant])
 
 
 def dusk():

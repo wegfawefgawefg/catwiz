@@ -1,7 +1,7 @@
 # each fight's palette: the backdrop's roles to colours, its zone (the fighters' lighting,
-# light.py), its variant of the forest and who is in it. Fights 1 and 2, the build's, are
-# night since 2026-10-31 (the whole game goes midnight: night.py draws them, P unused); fights
-# 3 and 4 are still the day of the old plan: a small palette each, high key, the darks kept
+# light.py), its variant of the forest and who is in it. Fights 1-3, the build's screens, are
+# night since 2026-10-31 (the whole game goes midnight: night.py draws them, P unused; 3 is the
+# woods' elite on the clearing); fights 4 and 5 are still the day of the old plan: a small palette each, high key, the darks kept
 # to small pieces.
 #
 # three tiers: the paper (white, the light blue band and far wood), the ground (aqua, one
@@ -22,9 +22,11 @@ AFTERNOON = dict(DAY, band=PINK, cloud=PINK, sun_rim=ORANGE, flower=(YELLOW, PIN
 
 FIGHTS = [
     dict(n=1, variant="clearing", P=DAY, zone="night", foes=["puffcap", "sporelet"]),
-    dict(n=2, variant="path", P=DAY, zone="night", foes=["puffcap", "sporelet", "nightflap"]),
-    dict(n=3, variant="brook", P=DAY, zone="day", foes=["sporelet", "nightflap"]),
-    dict(n=4, variant="thicket", P=AFTERNOON, zone="day", foes=["puffcap", "sporelet", "nightflap"]),
+    dict(n=2, variant="path", P=DAY, zone="night", foes=["puffcap", "sporelet"]),
+    # the woods' elite (fight 3 of the run): the clearing again, the old shroom and its sporelets
+    dict(n=3, variant="clearing", P=DAY, zone="night", foes=["shroom", "sporelet"]),
+    dict(n=4, variant="brook", P=DAY, zone="day", foes=["sporelet", "nightflap"]),
+    dict(n=5, variant="thicket", P=AFTERNOON, zone="day", foes=["puffcap", "sporelet", "nightflap"]),
 ]
 
 

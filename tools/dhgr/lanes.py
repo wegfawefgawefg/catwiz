@@ -40,6 +40,7 @@ HERO_COL = 4                     # content/encounters.tsp HERO :col
 SPOTS = {                        # content/encounters.tsp FIGHTS, by the fight's number
     1: [("puffcap", 20), ("sporelet", 32)],
     2: [("puffcap", 20), ("sporelet", 32), ("nightflap", 26)],
+    3: [("shroom", 14), ("sporelet", 26), ("sporelet", 32)],
 }
 MAP = (22, 0, 8, 12)             # battle/map.tsp: the map of the run, pixels 77-104, rows 0-11
 HOP_MOST = 6                     # act.tsp HOP
@@ -77,7 +78,7 @@ def misc_sizes():
 # the glyphs a badge can hold (by hand, from content/statuses.tsp GLYPH and SHOW, the moves'
 # icons in content/moves.tsp and content/foes.tsp intent_icon): the heart, digits, statuses
 # shown, the moves' glyphs
-BADGE_GLYPHS = "*0123456789#,%@<;&+>!^)\"(-./:=?[\\]_"
+BADGE_GLYPHS = "*0123456789#,%@<;&+>!^)\"(-./:=?[\\]_`abcd"
 
 
 def glyph_widest():

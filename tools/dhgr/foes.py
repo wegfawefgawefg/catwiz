@@ -2,6 +2,8 @@
 #   puffcap   a big pink cap mushroom with white spots, a face on its stem
 #   sporelet  a small orange cap, yellow spots, a cheeky face
 #   nightflap a round bat on wide wings, flying
+#   shroom    the old shroom, the woods' elite: a big drooping purple cap, warts, a white
+#             beard and brows, leaning on a crooked stick
 # frames: idle, attack (leaning in at the cat, mouth open), hurt (squashed, eyes shut), and
 # for the bat a second wingbeat (flap). Everyone faces left, towards the cat.
 
@@ -11,7 +13,7 @@ from canvas import ASPECT, Canvas, sticker
 from shade import lit_ellipse, shape_pixels, span_shade, volume
 
 FRAMES = {"puffcap": ["idle", "attack", "hurt"], "sporelet": ["idle", "attack", "hurt"],
-          "nightflap": ["idle", "flap", "attack", "hurt"]}
+          "nightflap": ["idle", "flap", "attack", "hurt"], "shroom": ["idle", "attack", "hurt"]}
 
 CAP_CUTS = (-2.0, 2.0)   # flat: the cap is one pink, its underside the shade
 STEM_CUTS = (0.3,)
@@ -104,6 +106,64 @@ def sporelet(x, feet, frame="idle", k=1.25):
     fx = int(round(x + lean * 0.5 - 1))
     fy = feet - int(10 * k * squash)
     face(c, fx, fy, frame)
+    sticker(c, "ink")
+    return c
+
+
+def shroom(x, feet, frame="idle", s=1.15):
+    # the old shroom: a squat wrinkled stem under a wide cap that droops at the rim, warts on
+    # it, a white beard, bushy brows, a crooked stick in its left hand (towards the cat)
+    c = Canvas()
+    squash = 0.85 if frame == "hurt" else 1.0
+    lean = {"attack": -3.0, "hurt": 1.5}.get(frame, -0.5) * s
+    sw = 6.0 * s
+    st = feet - int(24 * s * squash)
+    # the stick, behind the stem, planted ahead of it (raised over its head in front when it
+    # swings: drawn last then)
+    if frame != "attack":
+        c.line(x - sw - 3, st + 4, x - sw - 5, feet - 1, "stick", 2, 1)
+        c.ellipse(x - sw - 3, st + 3, 1.5, 2.5, "stick")
+    stem = [(x - sw, feet - 1), (x - sw - 0.8 * s, feet - 6 * s), (x - sw * 0.85 + lean, st),
+            (x + sw * 0.85 + lean, st), (x + sw + 0.8 * s, feet - 6 * s), (x + sw, feet - 1)]
+    c.poly(stem, "stem")
+    c.poly([(x + sw * 0.35, feet - 1), (x + sw + 0.8 * s, feet - 6 * s), (x + sw * 0.85 + lean, st),
+            (x + sw * 0.3 + lean, st)], "stem_sh")
+    c.rect(int(x - sw), feet - 1, int(x + sw) + 1, feet, "stem_sh")
+    # wrinkles down the stem
+    for dx in (-0.45, 0.05):
+        c.line(x + dx * sw + lean * 0.6, st + 4, x + dx * sw, feet - 4, "stem_sh", 1, 1)
+    # the cap: a wide dome, its rim drooping past the gills at both ends
+    cx = x + lean * 1.3
+    top = st + 1
+    rx, ry = 16 * s, 25 * s * squash
+    c.rect(int(cx - rx * 0.85), top, int(cx + rx * 0.85), top + 2, "gill")
+    lit_ellipse(c, cx, top, rx, ry, ("old_sh", "old", "old_hi"), CAP_CUTS,
+                test=lambda xx, yy: yy < top + 1)
+    for side in (-1, 1):
+        c.ellipse(cx + side * rx * 0.9, top + 1, 1.6, 2.4, "old")
+    c.ellipse(cx, top, rx, ry, "old_sh", test=lambda xx, yy: top - 1 <= yy < top + 1)
+    # warts, and a patch of moss on top
+    for dx, dy, r in ((-0.55, -0.4, 0.13), (0.15, -0.75, 0.11), (0.6, -0.35, 0.12), (-0.15, -0.3, 0.08),
+                      (0.35, -0.12, 0.07)):
+        sx, sy = cx + dx * rx, top + dy * ry
+        c.ellipse(sx, sy, max(1.1, r * rx), max(1.6, r * ry * 1.5), "old_spot",
+                  test=lambda xx, yy: yy < top - 1)
+    c.ellipse(cx - 0.1 * rx, top - ry + 1.5, 3.5, 2.0, "moss", test=lambda xx, yy: yy < top - 1)
+    # the face: brows over the eyes, a beard from under the nose to the feet's middle
+    fx = int(round(x + lean * 0.5 - 2 * s))
+    fy = feet - int(22 * s * squash)
+    beard = [(fx - 5, fy + 5), (fx + 7, fy + 5), (fx + 5, fy + 13 * squash), (fx + 1, fy + 17 * squash),
+             (fx - 3, fy + 13 * squash)]
+    c.poly(beard, "beard")
+    c.line(fx - 1, fy + 8, fx + 1, fy + 14 * squash, "beard_sh", 1, 1)
+    face(c, fx, fy, frame)
+    brow = {"attack": ["KK..", ".KKK"], "hurt": ["....", "KKKK"]}.get(frame, ["....", "KKKK"])
+    c.stamp(fx - 4, fy - 3, brow, {"K": "beard"})
+    c.stamp(fx + 1, fy - 3, [r[::-1] for r in brow], {"K": "beard"})
+    if frame == "attack":
+        c.stamp(fx - 1, fy + 6, ["KKKK", "KMMK", ".KK."], {"K": "eye", "M": "mouth"})
+        c.line(x - sw - 12, st - 6, x - sw + 2, st + 12, "stick", 2, 1)
+        c.ellipse(x - sw - 12, st - 7, 1.5, 2.5, "stick")
     sticker(c, "ink")
     return c
 

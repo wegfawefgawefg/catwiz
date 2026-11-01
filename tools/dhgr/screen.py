@@ -14,7 +14,7 @@ from dhgr import BLACK
 CAT = (30, 108)
 # the enemies far enough apart, and from the cat's widest frame (her wand out reaches column
 # 18), that no two boxes meet: a sprite drawn again then never draws its neighbour again too
-SLOTS = {"puffcap": (91, 108), "sporelet": (124, 106), "nightflap": (115, 44)}
+SLOTS = {"puffcap": (91, 108), "sporelet": (124, 106), "nightflap": (115, 44), "shroom": (75, 108)}
 
 HAND = [("wand", "3"), ("tuna", "2"), ("fluff", "3"), ("star", "1"), ("times2", "X2")]
 TEXT = [("GOLD WAND  3 damage to one enemy.", ((0, 9),)),
@@ -27,7 +27,8 @@ def figure(kind, frame="idle"):
     if kind == "cat":
         return cat.cat(*CAT, frame)
     x, y = SLOTS[kind]
-    return {"puffcap": foes.puffcap, "sporelet": foes.sporelet, "nightflap": foes.nightflap}[kind](x, y, frame)
+    return {"puffcap": foes.puffcap, "sporelet": foes.sporelet, "nightflap": foes.nightflap,
+            "shroom": foes.shroom}[kind](x, y, frame)
 
 
 def build(backdrop, zone, foes_here, shadow, frames=None, U=None, lights=None, target=0,
@@ -50,8 +51,8 @@ def build(backdrop, zone, foes_here, shadow, frames=None, U=None, lights=None, t
         lights(c, lit)
     for f in lit:
         c.paste(f)
-    hp = hp or {"cat": "30", "puffcap": "9", "sporelet": "6", "nightflap": "8"}
-    intents = intents or {"puffcap": "4", "sporelet": "2", "nightflap": "3"}
+    hp = hp or {"cat": "30", "puffcap": "9", "sporelet": "6", "nightflap": "8", "shroom": "60"}
+    intents = intents or {"puffcap": "4", "sporelet": "2", "nightflap": "3", "shroom": "14"}
     for k, (x0, y0, x1, y1) in zip(kinds, boxes):
         mid = CAT[0] if k == "cat" else SLOTS[k][0]
         foot = 112 if k != "nightflap" else y1 + 2

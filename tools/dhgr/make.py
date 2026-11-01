@@ -47,7 +47,7 @@ def fights():
     for F in palettes.FIGHTS:
         P = F["P"]
         if F["zone"] == "night":
-            bd = night.picture(F["variant"])
+            bd = night.picture(F["variant"], F["n"])
             c, lines = screen.build(bd, "night", F["foes"], night.no_shadow, U=hud.U_NIGHT)
         else:
             bd = forest.picture(P, F["variant"])
@@ -67,7 +67,7 @@ def lane_pictures():
     for F in palettes.FIGHTS:
         if F["n"] not in lanes.SPOTS:
             continue
-        bd = night.picture(F["variant"])
+        bd = night.picture(F["variant"], F["n"])
         bad = lanes.check(F["n"], bd.px)
         print(lanes.debug_image(F["n"], bd.px, os.path.join(SHOTS, "lanes_fight%d_%s.png" % (F["n"], F["variant"]))),
               "pixels not black in a lane: %d" % bad)
@@ -86,7 +86,7 @@ def drawing(kind, frame):
 def cast():
     # every frame of everyone, lit by day, dusk and night, in the flat look and enlarged
     from PIL import Image
-    kinds = ["cat", "puffcap", "sporelet", "nightflap"]
+    kinds = ["cat", "puffcap", "sporelet", "nightflap", "shroom"]
     bgs = {"day": dhgr.AQUA, "dusk": dhgr.PURPLE, "night": dhgr.BLACK}
     for zone in ("day", "dusk", "night"):
         tiles = []
@@ -181,7 +181,7 @@ def palette_sheet():
     for F in palettes.FIGHTS:
         P = F["P"]
         if F["zone"] == "night":
-            bd = night.picture(F["variant"])
+            bd = night.picture(F["variant"], F["n"])
             c, _ = screen.build(bd, "night", F["foes"], night.no_shadow, U=hud.U_NIGHT)
         else:
             bd = forest.picture(P, F["variant"])

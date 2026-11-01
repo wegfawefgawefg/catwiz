@@ -3,8 +3,8 @@
 ; a round); then: what it becomes when beaten, with that kind's full hit points, after a round to
 ; get up (the possum that faked it, the big bath's gremlin, the boss's phases); stall: it skips
 ; its move after losing this many hit points in one of your turns (the lawnmower). Figures past
-; the nightflap are stand-ins (the puffcap's, the sporelet's) until their art is drawn. The old
-; shroom calls sporelets, who cheer it
+; the nightflap but the old shroom's are stand-ins (the puffcap's, the sporelet's) until their
+; art is drawn. The old shroom calls sporelets, who cheer it
 
 (import state)
 (import art/sprites art)
@@ -40,7 +40,7 @@
 (const KING_2 u8 18)
 (const KING_3 u8 19)
 (const PUG u8 20)
-(const SHROOM u8 21) ; the woods' elite (no art yet: the puffcap's figure stands in)
+(const SHROOM u8 21) ; the woods' elite
 
 (const ENEMIES (array Enemy 22)
     (make (array Enemy 22)
@@ -258,7 +258,7 @@
             :name "The old shroom"
             :hp 60
             :ward 1
-            :figure art.KIND_PUFFCAP
+            :figure art.KIND_SHROOM
             :first_move 55
             :move_count 3
             :calls SPORELET
