@@ -26,6 +26,8 @@ STATUSES = [
     # PROPOSAL, the item model (items.py)
     "kittens", "nipped", "tangle", "brand", "knead_fluff", "knead_wand", "nip", "mult", "keep",
     "freebook", "wish", "plus_left",
+    # PROPOSAL, the chain cards (items.py after_play): red dot on an enemy, nine lives spent
+    "dot", "nine",
 ]
 for _i, _name in enumerate(STATUSES):
     globals()[_name.upper()] = _i
@@ -83,6 +85,16 @@ class Battle:
         self.hero_healed = 0  # hit points the hero got back this fight
         self.self_hits = 0  # zoomies outlasting the enemies, hitting the cat (as in the game)
         self.lost_this_round = 0
+        # the chain cards (items.after_play): the tray spots whose dice come back to be rolled
+        # (a bit a spot; a search's copy leaves them so, unrolled), refreshes this turn, enemies
+        # fallen (finishing swat), and what the play being landed set off
+        self.back = 0
+        self.refreshes = 0
+        self.falls = 0
+        self.wand_on = False
+        self.dot_fired = False
+        self.swat_back = False
+        self.stretch = 0
         items.fight_start(self)
 
     def clone(self):
@@ -171,6 +183,7 @@ class Battle:
         self.rerolls = self.R.rerolls
         self.last_played = NOTHING
         self.lost_this_round = 0
+        self.refreshes = 0
         items.round_start(self)
         if self.result is not None:
             return
@@ -193,7 +206,7 @@ class Battle:
         return self.st[HERO][MANA]
 
     def can_play(self, s):
-        if self.played[s]:
+        if self.played[s] or self.back >> s & 1:
             return False
         face = self.R.faces[self.hand[s]]
         if face.slot == "junk":
@@ -239,6 +252,8 @@ class Battle:
         else:
             self.land_face(row, t)
         self.after_action()
+        if self.R.model == "items":
+            items.after_play(self, s)
 
     def reroll(self):
         self.rerolls -= 1
@@ -384,6 +399,8 @@ class Battle:
             self.add(target, TANGLE, n)
         elif effect == "blink":
             st[LASER] = 1
+        elif effect == "dot":
+            self.add(target, DOT, n)
         else:
             st[SHIELD] = 0
 
@@ -405,8 +422,12 @@ class Battle:
     def strike(self, by, target, amount, pierce=False):
         if by == HERO and target == HERO:
             self.self_hits += 1
-        damage = self.dealt(by, amount, True)
         st = self.st[target]
+        if by == HERO and self.wand_on and st[DOT] and not self.dot_fired:
+            self.dot_fired = True  # PROPOSAL: a wand hit on a red dot: all dice back
+            if "dotcharges" in self.R.variant:
+                st[DOT] -= 1
+        damage = self.dealt(by, amount, True)
         damage += st[MARK] + st[BRAND]  # PROPOSAL
         damage = min(damage, 255)  # a hit is a byte: it saturates
         if st[REFLECT] and by == HERO:  # PROPOSAL
@@ -452,6 +473,7 @@ class Battle:
 
     def die(self, who):
         if who != HERO:
+            self.falls += 1  # PROPOSAL: finishing swat
             then = self.R.kinds[self.kind[who]].then
             self.release(who)
             if then != NOTHING:  # PROPOSAL: the possum gets up, the boss's next phase

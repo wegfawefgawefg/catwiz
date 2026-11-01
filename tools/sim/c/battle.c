@@ -4,7 +4,7 @@
 #include "sim.h"
 #include "tell.h"
 
-Rules RULES = {1, 0, 0}; /* the sixth toe's die; no cap on a waiting times (255, main.c) */
+Rules RULES = {1, 0, 0, 0, 0}; /* the sixth toe's die; no cap on a waiting times (255, main.c) */
 
 void b_set_enemy(Battle *b, int i, int k) {
     const KindRow *kind = &KINDS[k];
@@ -140,6 +140,8 @@ void b_start_round(Battle *b) {
     b->rerolls = REROLLS;
     b->last_played = NOTHING;
     b->lost_this_round = 0;
+    b->refreshes = 0;
+    b->t_dot = b->t_stretch = b->t_nine = b->t_swat = b->t_gain = 0;
     b->t_dmg = 0;
     b->t_sys = 0;
     b->t_played = 0;
@@ -153,7 +155,7 @@ void b_start_round(Battle *b) {
 }
 
 int b_can_play(const Battle *b, int s) {
-    if (b->played[s])
+    if (b->played[s] || (b->back >> s & 1))
         return 0;
     const ItemRow *face = &ITEMS[b->hand[s]];
     if (face->slot == S_junk)
@@ -204,6 +206,7 @@ void b_play(Battle *b, int s, int target) {
         tell_play(b, row, t);
     items_land(b, row, t, 0);
     b_after_action(b);
+    items_after_play(b, s);
     if (b->tell)
         tell_play_done(b);
 }
@@ -356,6 +359,9 @@ void b_curse(Battle *b, int effect, int target, int n) {
     case E_tangled:
         b_add(b, target, ST_TANGLE, n);
         break;
+    case E_dot:
+        b_add(b, target, ST_DOT, n);
+        break;
     default:
         st[ST_SHIELD] = 0;
     }
@@ -387,8 +393,13 @@ static int dealt(Battle *b, int who, int damage) {
 void b_strike(Battle *b, int by, int target, int amount, int pierce) {
     if (by == HERO && target == HERO)
         b->self_hits++;
-    int damage = dealt(b, by, amount);
     int32_t *st = b->st[target];
+    if (by == HERO && b->wand_on && st[ST_DOT] && !b->dot_fired) {
+        b->dot_fired = 1; /* a wand hit on a red dot: all dice back (items_after_play) */
+        if (RULES.dot_charges)
+            st[ST_DOT]--;
+    }
+    int damage = dealt(b, by, amount);
     damage += st[ST_BRAND];
     if (damage > 255)
         damage = 255;
@@ -437,6 +448,7 @@ static void die(Battle *b, int who) {
         return;
     }
     int then = KINDS[b->kind[who]].then;
+    b->falls++; /* finishing swat */
     release(b, who);
     if (then != NOTHING) {
         /* the possum gets up, the elites' second forms, the boss's next phase: a round to

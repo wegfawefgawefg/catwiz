@@ -12,7 +12,15 @@
       best few sets are looked at again with more rolls.
    3. She re-rolls when the best set beats the plan by MARGIN, else plays the plan.
 
-   After the re-roll her plan for the new dice may itself re-roll again (the loop). */
+   4. The chain cards: a play that brings dice back to be rolled (a red dot, big stretch,
+      nine lives) ends a line of the search. At the root those lines are not counted in the
+      plan; the best BACK_CANDS of them (by the position plus BACK_DIE a die) are worth the
+      mean of the best plan over the same imagined rolls, and she takes one when it beats the
+      plan and the re-roll. Deeper (in an imagined roll's plan) a line that brings dice back
+      is worth the position plus BACK_DIE a die.
+
+   After the re-roll or the dice coming back her plan for the new dice may itself re-roll
+   again (the loop). */
 #include <stdlib.h>
 
 #include "players.h"
@@ -25,20 +33,21 @@
 #define MORE_SAMPLES 30
 #define REFINE 3
 #define MARGIN 0.25
+#define BACK_CANDS 4
 
 typedef struct {
     uint64_t h1, h2;
     uint32_t gen;
     double value;
     uint8_t nplan;
-    Play plan[MAX_HAND];
+    Play plan[MAX_PLAYS];
 } Entry;
 
 typedef struct {
     int have;
     double value;
     uint8_t npath;
-    Play path[MAX_HAND];
+    Play path[MAX_PLAYS];
 } Cand;
 
 static _Thread_local struct {
@@ -47,7 +56,8 @@ static _Thread_local struct {
     int count;
     int collect;              /* the root search records the sets to re-roll after */
     Cand cand[1 << MAX_HAND]; /* by the mask of dice played */
-    Play path[MAX_HAND];
+    Cand back[BACK_CANDS];    /* the root's lines that bring dice back, the best first */
+    Play path[MAX_PLAYS];
     int depth;
 } S;
 
@@ -100,7 +110,30 @@ static Entry *search(const Battle *b) {
     if (e->gen == S.gen)
         return e;
     double best = value_after_turn(b);
-    if (S.collect && b->result == R_NONE && b_any_unplayed(b)) {
+    if (b->back && b->result == R_NONE) {
+        if (S.collect) { /* the root: kept aside to be rolled, not in the plan */
+            int i = BACK_CANDS;
+            while (i > 0 && (!S.back[i - 1].have || S.back[i - 1].value < best))
+                i--;
+            if (i < BACK_CANDS) {
+                memmove(&S.back[i + 1], &S.back[i], (BACK_CANDS - 1 - i) * sizeof(Cand));
+                S.back[i].have = 1;
+                S.back[i].value = best;
+                S.back[i].npath = (uint8_t)S.depth;
+                memcpy(S.back[i].path, S.path, S.depth * sizeof(Play));
+            }
+            best = -1e18;
+        }
+        e = memo_find(h1, h2);
+        e->h1 = h1;
+        e->h2 = h2;
+        e->gen = S.gen;
+        e->value = best;
+        e->nplan = 0;
+        S.count++;
+        return e;
+    }
+    if (S.collect && b->result == R_NONE && b->rerolls > 0 && b_any_unplayed(b)) {
         Cand *c = &S.cand[played_mask(b)];
         if (!c->have || best > c->value) {
             c->have = 1;
@@ -109,14 +142,15 @@ static Entry *search(const Battle *b) {
             memcpy(c->path, S.path, S.depth * sizeof(Play));
         }
     }
-    Play plan[MAX_HAND];
+    Play plan[MAX_PLAYS];
     int nplan = 0;
-    if (b->result == R_NONE && S.count < NODE_CAP) {
+    if (b->result == R_NONE && S.count < NODE_CAP && S.depth < MAX_PLAYS - 1) {
         Play opts[24];
         int n = options(b, opts);
         for (int i = 0; i < n; i++) {
             Battle c = *b;
             c.tell = NULL;
+            c.rng = NULL; /* dice that come back wait (above) */
             b_play(&c, opts[i].s, opts[i].t);
             S.path[S.depth++] = opts[i];
             Entry *ce = search(&c);
@@ -146,8 +180,10 @@ static double best_plan(const Battle *b, Play *plan, int *nplan, int collect) {
     memo_clear();
     S.collect = collect;
     S.depth = 0;
-    if (collect)
+    if (collect) {
         memset(S.cand, 0, sizeof S.cand);
+        memset(S.back, 0, sizeof S.back);
+    }
     Entry *e = search(b);
     S.collect = 0;
     if (plan) {
@@ -213,21 +249,18 @@ static void play_path(Battle *c, const Cand *cand) {
         b_play(c, cand->path[j].s, cand->path[j].t);
 }
 
-/* the set of dice to play before re-rolling (an index of cands), or -1 to play the plan */
-static int choose_reroll(Player *p, const Battle *b, double v0, Cand *cands) {
+/* the set of dice to play before re-rolling (an index of cands, its worth in *worth), or -1 */
+static int choose_reroll(const Battle *b, uint8_t (*samp)[MAX_HAND], Cand *cands, double *worth) {
     int n = 0;
     for (int m = 0; m < (1 << b->hand_n); m++)
         if (S.cand[m].have)
             cands[n++] = S.cand[m];
-    uint8_t samp[MORE_SAMPLES][MAX_HAND];
-    for (int j = 0; j < MORE_SAMPLES; j++)
-        for (int s = 0; s < b->hand_n; s++)
-            samp[j][s] = (uint8_t)((mt_bits(p->rng, 8) * 6) >> 8);
     double val[1 << MAX_HAND];
     int settled[1 << MAX_HAND];
     for (int i = 0; i < n; i++) {
         Battle c = *b;
         c.tell = NULL;
+        c.rng = NULL;
         play_path(&c, &cands[i]);
         settled[i] = unplayed_count(&c) <= 2;
         if (settled[i])
@@ -245,17 +278,55 @@ static int choose_reroll(Player *p, const Battle *b, double v0, Cand *cands) {
             break;
         Battle c = *b;
         c.tell = NULL;
+        c.rng = NULL;
         play_path(&c, &cands[top]);
         double more = sampled_reroll(&c, samp, SAMPLES, MORE_SAMPLES);
         val[top] = (val[top] * SAMPLES + more) / MORE_SAMPLES;
         settled[top] = 1;
     }
     int best = -1;
-    double bv = v0 + MARGIN;
     for (int i = 0; i < n; i++) {
-        if (settled[i] && val[i] > bv) {
-            bv = val[i];
+        if (settled[i] && (best < 0 || val[i] > val[best]))
             best = i;
+    }
+    if (best >= 0)
+        *worth = val[best];
+    return best;
+}
+
+/* c with its waiting dice rolled to these faces: the best plan's value */
+static double back_outcome(const Battle *c, const uint8_t *faces) {
+    Battle d = *c;
+    d.tell = NULL;
+    for (int s = 0; s < d.hand_n; s++) {
+        if (d.back >> s & 1) {
+            d.face_of[s] = faces[s];
+            d.hand[s] = d.faces[faces[s]];
+        }
+    }
+    d.back = 0;
+    return best_plan(&d, NULL, NULL, 0);
+}
+
+/* the line that brings dice back that is worth the most (an index of S.back, copied into
+   backs; its worth in *worth), or -1 */
+static int choose_back(const Battle *b, uint8_t (*samp)[MAX_HAND], Cand *backs, double *worth) {
+    int n = 0;
+    for (int i = 0; i < BACK_CANDS && S.back[i].have; i++)
+        backs[n++] = S.back[i];
+    int best = -1;
+    for (int i = 0; i < n; i++) {
+        Battle c = *b;
+        c.tell = NULL;
+        c.rng = NULL;
+        play_path(&c, &backs[i]);
+        double v = 0.0;
+        for (int j = 0; j < SAMPLES; j++)
+            v += back_outcome(&c, samp[j]);
+        v /= SAMPLES;
+        if (best < 0 || v > *worth) {
+            best = i;
+            *worth = v;
         }
     }
     return best;
@@ -263,12 +334,30 @@ static int choose_reroll(Player *p, const Battle *b, double v0, Cand *cands) {
 
 void search_turn(Player *p, Battle *b) {
     static _Thread_local Cand cands[1 << MAX_HAND];
+    Cand backs[BACK_CANDS];
     while (!b_turn_over(b)) {
-        Play plan[MAX_HAND];
+        Play plan[MAX_PLAYS];
         int nplan;
-        double v0 = best_plan(b, plan, &nplan, b->rerolls > 0);
-        if (b->rerolls > 0) {
-            int i = choose_reroll(p, b, v0, cands);
+        double v0 = best_plan(b, plan, &nplan, 1);
+        int any = S.back[0].have;
+        for (int m = 0; !any && m < (1 << b->hand_n); m++)
+            any = S.cand[m].have;
+        if (any) {
+            uint8_t samp[MORE_SAMPLES][MAX_HAND];
+            for (int j = 0; j < MORE_SAMPLES; j++)
+                for (int s = 0; s < b->hand_n; s++)
+                    samp[j][s] = (uint8_t)((mt_bits(p->rng, 8) * 6) >> 8);
+            double rv = 0.0, bv = 0.0;
+            int i = choose_reroll(b, samp, cands, &rv);
+            int k = choose_back(b, samp, backs, &bv);
+            if (i >= 0 && rv <= v0 + MARGIN)
+                i = -1;
+            if (k >= 0 && (bv <= v0 + MARGIN || (i >= 0 && bv <= rv)))
+                k = -1;
+            if (k >= 0) {
+                play_path(b, &backs[k]); /* its last play brings the dice back */
+                continue;
+            }
             if (i >= 0) {
                 play_path(b, &cands[i]);
                 if (b->result == R_NONE)

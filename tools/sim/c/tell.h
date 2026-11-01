@@ -27,6 +27,7 @@ void tell_pounce(Battle *b, int target, int n, int each);
 void tell_beaten(Battle *b, int who);
 void tell_move(Battle *b, int by, int row, int target);
 void tell_reroll(Battle *b, const uint8_t *before);
+void tell_back(Battle *b);
 void tell_printf(Tell *t, const char *fmt, ...);
 void tell_turn(Battle *b);
 const char *short_name(int kind);

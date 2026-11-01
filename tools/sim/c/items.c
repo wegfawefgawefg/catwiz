@@ -42,7 +42,7 @@ void items_round_start(Battle *b) {
     }
     if (has(b, K_tail) && st[ST_SHIELD] < b->old_shield / 2)
         st[ST_SHIELD] = (int32_t)(b->old_shield / 2);
-    b->rerolls = (int8_t)(b->rerolls + charm_amount(b, K_pocket) - charm_amount(b, K_toe));
+    b->rerolls = (int16_t)(b->rerolls + charm_amount(b, K_pocket) - charm_amount(b, K_toe));
 }
 
 /* every number saturates at 255: the game keeps them in bytes (the owner, 2026-11-01) */
@@ -91,6 +91,9 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     case E_knead:
         st[ST_KNEAD_FLUFF] = 1;
         b_add(b, HERO, ST_KNEAD_WAND, n);
+        break;
+    case E_stretch:
+        b->stretch = (uint8_t)sat(b->stretch + n); /* items_after_play picks the dice */
         break;
     default:
         tell_fail("trick the sim does not know: %s", EFFECT_NAME[face->effect]);
@@ -173,7 +176,10 @@ void items_land(Battle *b, int row, int target, int again) {
         st[ST_MANA] = (int32_t)(st[ST_MANA] - cost);
         b->t_sys |= SYS_MANA;
     }
+    uint8_t wand = b->wand_on;
+    b->wand_on = face->slot == S_wand; /* a red dot fires on a wand's hits (b_strike) */
     effect(b, face->effect, target, n);
+    b->wand_on = wand;
     if (three && face->combo != C_none) {
         if (b->tell)
             tell_combo(b, face->combo);
@@ -298,11 +304,114 @@ static void effect(Battle *b, int e, int t, int n) {
     case E_wet:
     case E_tangled:
     case E_brand:
+    case E_dot:
         b_curse(b, e, t, n);
         break;
+    case E_swat: {
+        int falls = b->falls;
+        b_strike(b, HERO, t, n, 0);
+        if (b->falls > falls)
+            b->swat_back = 1; /* it fell: the die comes back (items_after_play) */
+        break;
+    }
+    case E_paw:
+        b_add(b, HERO, ST_SHIELD, n);
+        b->rerolls = (int16_t)sat(b->rerolls + 1);
+        b->t_gain = (uint8_t)sat(b->t_gain + 1);
+        break;
+    case E_sunbeam: {
+        int m = sh[ST_MANA] + n, over = m > MOST_MANA ? m - MOST_MANA : 0;
+        sh[ST_MANA] = (int32_t)(m < MOST_MANA ? m : MOST_MANA);
+        b->rerolls = (int16_t)sat(b->rerolls + over); /* mana past the most */
+        b->t_gain = (uint8_t)sat(b->t_gain + over);
+        break;
+    }
     default:
         b_apply(b, e, HERO, t, n);
     }
+}
+
+/* after a die's face landed (and the battle checked who stands): what it set off. Its die
+   comes back as it is (finishing swat felled one); or dice come back to be rolled again:
+   every die (a wand hit on a red dot; nine lives when every die is used, once a fight) or
+   big stretch's few (the used ones first, then dice that cannot be played). A battle with no
+   rng (a search's copy) leaves them waiting in b->back. */
+void items_after_play(Battle *b, int s) {
+    int swat = b->swat_back, dot = b->dot_fired, stretch = b->stretch;
+    b->swat_back = b->dot_fired = b->stretch = 0;
+    if (b->result != R_NONE)
+        return;
+    if (swat) {
+        b->played[s] = 0;
+        b->t_swat = (uint8_t)sat(b->t_swat + 1);
+    }
+    int all = 0, mask = 0, used = 1, why = 0;
+    for (int x = 0; x < b->hand_n; x++) {
+        if (b->tray[x] == NOTHING)
+            continue;
+        all |= 1 << x;
+        used &= b->played[x];
+    }
+    if (dot) {
+        mask = all;
+        why = 1;
+    }
+    if (stretch) {
+        int k = 0;
+        for (int pass = 0; pass < 2; pass++)
+            for (int x = 0; x < b->hand_n && k < stretch; x++)
+                if ((all >> x & 1) && (pass == 0 ? b->played[x] : !b->played[x] && !b_can_play(b, x))) {
+                    mask |= 1 << x;
+                    k++;
+                }
+        if (!why && mask)
+            why = 2;
+    }
+    int32_t *st = b->st[HERO];
+    if (!mask && has(b, K_nine) && !st[ST_NINE] && used) {
+        st[ST_NINE] = 1;
+        mask = all;
+        why = 3;
+    }
+    if (!mask || b->refreshes >= (RULES.refresh_most ? RULES.refresh_most : 255))
+        return;
+    b->refreshes++;
+    if (why == 1)
+        b->t_dot = (uint8_t)sat(b->t_dot + 1);
+    else if (why == 2)
+        b->t_stretch = (uint8_t)sat(b->t_stretch + 1);
+    else
+        b->t_nine = (uint8_t)sat(b->t_nine + 1);
+    for (int x = 0; x < b->hand_n; x++)
+        if (mask >> x & 1)
+            b->played[x] = 0;
+    b->back = (uint8_t)(b->back | mask);
+    if (b->rng)
+        items_roll_back(b);
+}
+
+/* the dice waiting in b->back are rolled (a hairball on one is coughed up first) */
+void items_roll_back(Battle *b) {
+    for (int x = 0; b->nclogged && x < b->hand_n; x++) {
+        if ((b->back >> x & 1) && b->hand[x] == HAIRBALL) {
+            int slot = b->face_of[x];
+            if (b->clogged[slot] != NOTHING) {
+                b->faces[slot] = b->clogged[slot];
+                b->clogged[slot] = NOTHING;
+                b->nclogged--;
+            }
+        }
+    }
+    for (int x = 0; x < b->hand_n; x++) {
+        if (b->back >> x & 1) {
+            int f = (int)((mt_bits(b->rng, 8) * 6) >> 8);
+            b->face_of[x] = (uint8_t)f;
+            b->hand[x] = b->faces[f];
+        }
+    }
+    b->back = 0;
+    if (b->tell)
+        tell_back(b);
 }
 
 /* what the third fluff (or twig wand) in a turn adds; k: the item's combo_n, n: the face's

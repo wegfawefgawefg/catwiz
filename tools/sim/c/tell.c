@@ -292,6 +292,17 @@ void tell_move(Battle *b, int by, int row, int target) {
     tell_line(b, "  %s: %s%s", who(b, by), text, extra);
 }
 
+/* dice come back (the chain cards): what they rolled */
+void tell_back(Battle *b) {
+    char now[200] = "";
+    for (int s = 0; s < b->hand_n; s++)
+        if (!b->played[s])
+            sprintf(now + strlen(now), "%s%s", now[0] ? ", " : "", ITEMS[b->hand[s]].name);
+    tell_line(b, "  all back -> %s", now);
+    if (pylog())
+        tell_line(b, "  ALL BACK: %s", now);
+}
+
 void tell_reroll(Battle *b, const uint8_t *before) {
     char was[200] = "", now[200] = "";
     for (int s = 0; s < b->hand_n; s++) {

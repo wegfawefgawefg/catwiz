@@ -44,7 +44,12 @@
         reflect ; an enemy sends back the next amount damage you deal it, till its next turn
         hit2 ; amount damage twice
         grow ; an enemy hits amount harder for the rest of the fight
-        junk)) ; an enemy clogs your slot amount with a hairball for the fight
+        junk ; an enemy clogs your slot amount with a hairball for the fight
+        dot ; curse: red dot for amount turns (or amount times): a wand hit on it, all dice back
+        swat ; wand: amount damage; if it falls, the die comes back to be played again
+        paw ; fluff: amount shield, and a re-roll
+        sunbeam ; star: amount mana; mana past the most is re-rolls
+        stretch)) ; trick: re-roll amount dice, the used ones first, and play them again
 
 ; an item: what a face does (content/items.tsp). name: the log's and the card's name; text: the
 ; card's item line; slot: which face it sits on; effect, amount: what it does, step more a

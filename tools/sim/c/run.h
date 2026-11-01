@@ -29,6 +29,7 @@ typedef struct {
     uint64_t played;
     uint16_t dmg;
     uint8_t fight, turn, sys;
+    uint8_t dot, stretch, nine, swat, gain; /* the chain cards (Battle's t_ counts) */
 } TurnRec;
 
 typedef struct {

@@ -128,7 +128,10 @@ def land(b, row, target, again=False):
         if st[r.MANA] < cost:
             return
         st[r.MANA] -= cost
+    wand = b.wand_on
+    b.wand_on = face.slot == "wand"  # a red dot fires on a wand's hits (rules.strike)
     effect(b, face.effect, target, n)
+    b.wand_on = wand
     if three and face.combo and face.combo != "none":
         combo(b, face.combo, face.combo_n, target, n)
         if "trio" in b.charms:
@@ -166,6 +169,8 @@ def trick(b, face, n):
     elif e == "knead":
         st[r.KNEAD_FLUFF] = 1
         b.add(r.HERO, r.KNEAD_WAND, n)
+    elif e == "stretch":
+        b.stretch = sat(b.stretch + n)  # after_play picks the dice
     else:
         raise ValueError("trick the sim does not know: " + e)
 
@@ -226,8 +231,20 @@ def effect(b, e, t, n):
             b.strike(H, t, n)
     elif e == "pile":
         b.add(H, r.SHIELD, n + 2 * st[H][r.KITTENS])
-    elif e in ("wet", "tangled", "brand"):
+    elif e in ("wet", "tangled", "brand", "dot"):
         b.curse(e, t, n)
+    elif e == "swat":
+        falls = b.falls
+        b.strike(H, t, n)
+        if b.falls > falls:
+            b.swat_back = True  # it fell: the die comes back (after_play)
+    elif e == "paw":
+        b.add(H, r.SHIELD, n)
+        b.rerolls = sat(b.rerolls + 1)
+    elif e == "sunbeam":
+        m = st[H][r.MANA] + n
+        st[H][r.MANA] = min(m, b.R.most_mana)
+        b.rerolls = sat(b.rerolls + max(0, m - b.R.most_mana))  # mana past the most
     else:
         b.apply(e, H, t, n)
 
@@ -339,6 +356,75 @@ def clog(b, slot):
     b.clogged[slot] = faces[slot]
     faces[slot] = b.R.junk_row
     b.dice = [faces] * len(b.dice)
+
+
+REFRESH_MOST = 255  # refreshes a turn at most (a byte; the variant refresh=N tries a limit)
+
+
+def after_play(b, s):
+    """after a die's face landed (and the battle checked who stands): what it set off. Its
+    die comes back as it is (finishing swat felled one); or dice come back to be rolled again:
+    every die (a wand hit on a red dot; nine lives when every die is used, once a fight) or
+    big stretch's few (the used ones first, then dice that cannot be played). A battle with
+    no random numbers (a search's copy) leaves them waiting in b.back."""
+    r = ru()
+    swat, dot, stretch = b.swat_back, b.dot_fired, b.stretch
+    b.swat_back = False
+    b.dot_fired = False
+    b.stretch = 0
+    if b.result is not None:
+        return
+    if swat:
+        b.played[s] = False
+    spots = [x for x in range(b.hand_n) if b.tray[x] != r.NOTHING]
+    mask = 0
+    if dot:
+        for x in spots:
+            mask |= 1 << x
+    if stretch:
+        picked = [x for x in spots if b.played[x]] + [
+            x for x in spots if not b.played[x] and not b.can_play(x)]
+        for x in picked[:stretch]:
+            mask |= 1 << x
+    st = b.st[r.HERO]
+    if not mask and "nine" in b.charms and not st[r.NINE] and all(b.played[x] for x in spots):
+        st[r.NINE] = 1
+        for x in spots:
+            mask |= 1 << x
+    if not mask:
+        return
+    most = int(b.R.variant.get("refresh") or REFRESH_MOST)
+    if b.refreshes >= most:
+        return
+    b.refreshes += 1
+    for x in spots:
+        if mask >> x & 1:
+            b.played[x] = False
+    b.back |= mask
+    if b.rng is not None:
+        roll_back(b)
+
+
+def roll_back(b):
+    """the dice waiting in b.back are rolled (a hairball on one is coughed up first)"""
+    r = ru()
+    if b.clogged:
+        for x in range(b.hand_n):
+            if b.back >> x & 1 and b.hand[x] == b.R.junk_row:
+                slot = b.face_of[x]
+                if slot in b.clogged:
+                    faces = list(b.dice[0])
+                    faces[slot] = b.clogged.pop(slot)
+                    b.dice = [faces] * len(b.dice)
+    for x in range(b.hand_n):
+        if b.back >> x & 1:
+            f = (b.rng.byte() * 6) >> 8
+            b.face_of[x] = f
+            b.hand[x] = b.dice[b.tray[x]][f]
+    b.back = 0
+    if b.log is not None:
+        b.say("  ALL BACK: " + ", ".join(
+            b.R.faces[b.hand[x]].name for x in range(b.hand_n) if not b.played[x]))
 
 
 def cough(b):

@@ -166,6 +166,8 @@ double value_after_turn(const Battle *b) {
     Battle c = *b;
     c.tell = NULL;
     b_end_turn(&c);
+    if (b->back) /* dice coming back, in a search's copy */
+        return value_of(&c) + BACK_DIE * __builtin_popcount(b->back);
     return value_of(&c);
 }
 

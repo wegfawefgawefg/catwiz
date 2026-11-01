@@ -5,6 +5,7 @@ difference is a rule or a player that differs.
 
     python3 tools/sim/c/check.py --player greedy --runs 300
     python3 tools/sim/c/check.py --player strong --runs 40 --seed 3
+    python3 tools/sim/c/check.py --tables DIR --bin BUILT   # other tables (BUILT made from them)
 
 It prints the first runs that differ and a count.
 """
@@ -42,8 +43,13 @@ def main():
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--toe-fix", action="store_true")
     ap.add_argument("--mult-cap", type=int, default=0)
+    ap.add_argument("--tables", default=None)  # the proposal's tables from this folder
+    ap.add_argument("--bin", default=os.path.join(HERE, "catwiz-sim"))  # a C sim built from them
     a = ap.parse_args()
-    cmd = [os.path.join(HERE, "catwiz-sim"), "--player", a.player, "--runs", str(a.runs),
+    if a.tables:
+        import content
+        content.DIRS["proposal"] = [os.path.abspath(a.tables)]
+    cmd = [a.bin, "--player", a.player, "--runs", str(a.runs),
            "--seed", str(a.seed), "--dump", "--mult-cap", str(a.mult_cap)]
     cmd += [] if a.toe_fix else ["--no-toe-fix"]
     variant = []

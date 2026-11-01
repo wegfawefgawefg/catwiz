@@ -23,6 +23,8 @@ static int status_end(Battle *b, int who) {
     if (st[ST_WET] > 0)
         st[ST_WET]--;
     st[ST_TANGLE] = 0;
+    if (!RULES.dot_charges && st[ST_DOT] > 0)
+        st[ST_DOT]--; /* red dot's turns */
     int turns = st[ST_FLEA_TURNS];
     if (turns == 0)
         return 0;

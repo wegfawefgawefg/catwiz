@@ -15,16 +15,18 @@
 #define HERO 0
 #define ACTORS 4
 #define MAX_HAND 7
+#define MAX_PLAYS 16 /* plays a turn's plan holds (a finishing swat's die comes back) */
 #define TURN_CAP 60 /* a fight this long counts as lost: the player is stuck */
 #define COMBO_AT 3
 #define PLUS_DICE 1 /* plus one boosts the next die (the owner, 2026-10-31; was 2) */
+#define BACK_DIE 3.0 /* a die coming back to be rolled, in a search's copy (judge, value) */
 
 /* statuses an actor has (rules.py STATUSES, the ones the item model uses) */
 enum {
     ST_SHIELD, ST_POISON, ST_FLEA_TURNS, ST_WET, ST_CHEER, ST_WARD, ST_BOX, ST_MANA, ST_PLUS,
     ST_SPOOK, ST_REFLECT, ST_LASER, ST_THORNS, ST_HURT, ST_FRESH, ST_STRENGTH, ST_KITTENS,
     ST_NIPPED, ST_TANGLE, ST_BRAND, ST_KNEAD_FLUFF, ST_KNEAD_WAND, ST_NIP, ST_MULT, ST_KEEP,
-    ST_WISH, ST_PLUS_LEFT, NS
+    ST_WISH, ST_PLUS_LEFT, ST_DOT, ST_NINE, NS
 };
 
 enum { R_NONE, R_WON, R_LOST };
@@ -52,7 +54,7 @@ typedef struct Battle {
     int32_t hp[ACTORS], maxhp[ACTORS];
     uint8_t alive[ACTORS], kind[ACTORS], move[ACTORS], made[ACTORS];
     int32_t st[ACTORS][NS];
-    int8_t rerolls;
+    int16_t rerolls;
     uint8_t target, last_played, last_face, last_on, rerolled, result;
     uint8_t combo[S_COUNT]; /* faces of each slot played this turn */
     int32_t old_shield;
@@ -66,6 +68,13 @@ typedef struct Battle {
        added to its number */
     uint16_t boosts[ITEM_COUNT], boost_gain[ITEM_COUNT];
     uint8_t kitten_peak; /* the most kittens she had at once this fight */
+    /* the chain cards (items_after_play): the tray spots whose dice come back to be rolled
+       (a bit a spot; a search's copy, with no rng, leaves them so), refreshes this turn,
+       enemies fallen (finishing swat), what the play being landed set off */
+    uint8_t back, refreshes, falls, wand_on, dot_fired, swat_back, stretch;
+    /* this turn, for the chains study: dice back by red dot, big stretch, nine lives; swats
+       come back; re-rolls got (lucky paw, sunbeam) */
+    uint8_t t_dot, t_stretch, t_nine, t_swat, t_gain;
 } Battle;
 
 /* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a
@@ -110,6 +119,8 @@ void items_hero_hurt(Battle *b);
 void items_ward_blocked(Battle *b);
 void items_clog(Battle *b, int slot);
 void items_cough(Battle *b);
+void items_after_play(Battle *b, int s);
+void items_roll_back(Battle *b);
 
 /* the run's kit (rewards.py Kit): an item a slot, a level a slot, the charms in order */
 typedef struct {
@@ -118,6 +129,7 @@ typedef struct {
     uint8_t charms[8];
     int ncharms;
     uint8_t locked; /* slots whose item no card replaces (a bit a slot: the combos bench) */
+    uint8_t kittens; /* kept from the last fight (the litter box charm) */
 } Kit;
 
 extern const Kit *START_KIT; /* the kit runs start with instead of the starting items */
@@ -132,6 +144,8 @@ typedef struct {
     int mult_cap; /* a waiting times stacks to this at most (0: 255, the byte; the default) */
     int kitten_rule; /* 0: a kitten runs off each time she loses hit points; 1: when a
                         hit-all lands on her */
+    int dot_charges; /* red dot's # is how many times it fires (0: the turns it lasts) */
+    int refresh_most; /* refreshes a turn at most (0: 255, a byte) */
 } Rules;
 extern Rules RULES;
 

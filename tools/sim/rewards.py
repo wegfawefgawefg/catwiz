@@ -42,6 +42,7 @@ class Kit:
         self.levels = {}
         self.charms = []
         self.lives = 0
+        self.kittens = 0  # kept from the last fight (the litter box charm)
 
     @property
     def dice(self):
@@ -65,6 +66,7 @@ class Kit:
         k.levels = dict(self.levels)
         k.charms = list(self.charms)
         k.lives = self.lives
+        k.kittens = self.kittens
         return k
 
     def level(self, slot):

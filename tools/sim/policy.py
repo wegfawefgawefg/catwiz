@@ -19,6 +19,8 @@ from rules import HERO, ACTORS, NOTHING
 # standing costs its threat (damage a turn) THREAT_TURNS times more
 W_HP = 2.0
 THREAT_TURNS = 2.5
+# a die coming back to be rolled again (the chain cards), in a search's copy where it waits
+BACK_DIE = 3.0
 
 
 def kind_threat(rules):
@@ -92,12 +94,23 @@ class Judge:
         return v
 
     def after_turn(self, b):
-        """b as the turn would end now: the enemies move, then the position"""
+        """b as the turn would end now: the enemies move, then the position (and the dice
+        coming back, in a search's copy)"""
         if b.result is not None:
             return self.value(b)
         c = b.clone()
         c.end_turn()
+        if b.back:
+            return self.value(c) + BACK_DIE * bin(b.back).count("1")
         return self.value(c)
+
+
+def tried(b, s, t):
+    """b's copy with the play made, its rolls left waiting (no random numbers)"""
+    c = b.clone()
+    c.rng = None
+    c.play(s, t)
+    return c
 
 
 def options(b):
@@ -154,8 +167,7 @@ class Greedy:
             best = J.after_turn(b)
             pick = None
             for s, t in options(b):
-                c = b.clone()
-                c.play(s, t)
+                c = tried(b, s, t)
                 v = J.after_turn(c)
                 if v > best + 1e-9:
                     best = v
@@ -180,7 +192,7 @@ class Strong:
 
     def key(self, b):
         return (tuple(b.played), tuple(b.hp), tuple(b.alive), tuple(b.kind),
-                tuple(tuple(s) for s in b.st), tuple(b.held))
+                tuple(tuple(s) for s in b.st), tuple(b.held), b.back)
 
     def search(self, b, memo):
         """the best value of the turn from b with no more re-rolls, and its plays"""
@@ -189,10 +201,9 @@ class Strong:
             return memo[k]
         best = self.judge.after_turn(b)
         plan = []
-        if b.result is None and len(memo) < self.NODE_CAP:
+        if b.result is None and not b.back and len(memo) < self.NODE_CAP:
             for s, t in options(b):
-                c = b.clone()
-                c.play(s, t)
+                c = tried(b, s, t)
                 v, p = self.search(c, memo)
                 if v > best + 1e-9:
                     best = v
@@ -220,10 +231,11 @@ class Strong:
                 best_j = None
                 best_v = v0
                 c = b.clone()
+                c.rng = None
                 for j in range(len(plan) + 1):
                     if j > 0:
                         c.play(*plan[j - 1])
-                        if c.result is not None:
+                        if c.result is not None or c.back:
                             break
                     if not c.any_unplayed():
                         break
@@ -239,10 +251,17 @@ class Strong:
                     continue
             if not plan:
                 break
+            fresh = False
             for s, t in plan:
+                before = b.refreshes
                 b.play(s, t)
                 if b.result is not None:
                     break
+                if b.refreshes != before:
+                    fresh = True  # dice came back: plan again
+                    break
+            if fresh:
+                continue
             break
 
 

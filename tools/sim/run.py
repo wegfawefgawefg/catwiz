@@ -21,7 +21,8 @@ import content
 import policy as po
 import report
 import rewards
-from rules import Battle, HERO, NOTHING
+import items
+from rules import Battle, HERO, KITTENS, NOTHING
 
 TURN_CAP = 60  # a fight this long counts as lost: the policy is stuck
 
@@ -41,6 +42,9 @@ def play_fight(rules, pol, kit, hp, index, rng, trace=None):
     b = Battle(rules, kit.dice, hp, fight.enemies, rng, charms=tuple(kit.charms),
                levels=kit.battle_levels(), zone=fight.zone, lives=kit.lives)
     b.maxhp[HERO] = kit.max_hp()
+    if "litterbox" in kit.charms:  # PROPOSAL: the kittens kept from the last fight
+        st = b.st[HERO]
+        st[KITTENS] = min(items.kittens_most(b), st[KITTENS] + kit.kittens)
     b.log = trace
     b.start_round()
     usage = []
@@ -107,6 +111,7 @@ def one_run(args):
                     u[0] += 1
                     u[1] += 1 if played else 0
         kit.lives = b.lives
+        kit.kittens = b.st[HERO][KITTENS] if "litterbox" in kit.charms else 0
         out["fights"].append({"index": index, "won": b.result == "won", "hp_in": hp,
                               "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost,
                               "self_hits": b.self_hits, "bag": len(kit.dice),

@@ -57,10 +57,15 @@
 (const KNEAD u8 31)
 (const HAIRBALL u8 32)
 (const CANNON u8 33) ; after the hairball, so the other rows keep their numbers
-(const ITEM_COUNT u8 34)
+(const RED_DOT u8 34)
+(const SWAT u8 35)
+(const LUCKY_PAW u8 36)
+(const SUNBEAM u8 37)
+(const STRETCH u8 38)
+(const ITEM_COUNT u8 39)
 
-(const ITEMS (array ac.Item 34)
-    (make (array ac.Item 34)
+(const ITEMS (array ac.Item 39)
+    (make (array ac.Item 39)
         (make ac.Item
             :name "TWIG WAND"
             :text "#. 3 IN A TURN: THE 3RD HITS ALL"
@@ -468,7 +473,67 @@
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.foe
-            :icon art.TILE_WAND)))
+            :icon art.TILE_WAND)
+        (make ac.Item
+            :name "RED DOT"
+            :text "# TURNS: A WAND HIT ON IT, ALL BACK"
+            :slot Slot.curse
+            :effect ac.Effect.dot
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_HISS)
+        (make ac.Item
+            :name "FINISHING SWAT"
+            :text "#; IF IT FALLS, THIS DIE COMES BACK"
+            :slot Slot.wand
+            :effect ac.Effect.swat
+            :amount 3
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_WAND)
+        (make ac.Item
+            :name "LUCKY PAW"
+            :text "SHIELD #, AND A FREE RE-ROLL"
+            :slot Slot.fluff
+            :effect ac.Effect.paw
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.self
+            :icon art.TILE_KIBBLE)
+        (make ac.Item
+            :name "SUNBEAM"
+            :text "+# MANA; MANA PAST 5 IS RE-ROLLS"
+            :slot Slot.star
+            :effect ac.Effect.sunbeam
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.self
+            :icon art.TILE_GEM)
+        (make ac.Item
+            :name "BIG STRETCH"
+            :text "RE-ROLL # DICE, USED ONES TOO"
+            :slot Slot.trick
+            :effect ac.Effect.stretch
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.self
+            :icon art.TILE_PLUS1)))
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))
