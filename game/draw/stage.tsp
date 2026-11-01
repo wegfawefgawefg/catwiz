@@ -26,7 +26,7 @@
 (fn fight_runs ((n u8)) void
     (match n
         (0 (blit.unpack_all (addr_of (at fight1.RUNS 0)) (addr_of (at fight1.KINDS 0)) 4))
-        (_ (blit.unpack_all (addr_of (at fight2.RUNS 0)) (addr_of (at fight2.KINDS 0)) 5))))
+        (_ (blit.unpack_all (addr_of (at fight2.RUNS 0)) (addr_of (at fight2.KINDS 0)) 4))))
 
 (fn title ((page u8)) void
     (picture page (addr_of (at title_art.PICTURE 0))))

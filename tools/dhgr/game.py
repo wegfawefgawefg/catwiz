@@ -257,9 +257,10 @@ def main():
         return [(k, sprites[k]) for k in names], [ids[k] for k in names]
 
     # the fights' kinds in the order battle.load_art wanted them (the hero, the small sprites,
-    # then the enemies' figures): the order they are placed in (tools/dhgr/memory.py)
+    # then the enemies' figures): the order they are placed in (tools/dhgr/memory.py). The
+    # nightflap is in no fight of the run, so no screen carries it (2026-11-01)
     for F in FIGHTS:
-        names = ["cat", "misc", "puffcap", "sporelet"] + (["nightflap"] if F["n"] == 2 else [])
+        names = ["cat", "misc"] + F["foes"]
         ks, ns = cast(names)
         print(write("screen_fight%d.tsp" % F["n"], screen_module("fight %d" % F["n"], fight_picture(F).px, ks, ns)))
     ks, ns = cast(["glow"])

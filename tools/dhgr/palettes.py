@@ -22,7 +22,7 @@ AFTERNOON = dict(DAY, band=PINK, cloud=PINK, sun_rim=ORANGE, flower=(YELLOW, PIN
 
 FIGHTS = [
     dict(n=1, variant="clearing", P=DAY, zone="night", foes=["puffcap", "sporelet"]),
-    dict(n=2, variant="path", P=DAY, zone="night", foes=["puffcap", "sporelet", "nightflap"]),
+    dict(n=2, variant="path", P=DAY, zone="night", foes=["puffcap", "sporelet"]),
     dict(n=3, variant="brook", P=DAY, zone="day", foes=["sporelet", "nightflap"]),
     dict(n=4, variant="thicket", P=AFTERNOON, zone="day", foes=["puffcap", "sporelet", "nightflap"]),
 ]
