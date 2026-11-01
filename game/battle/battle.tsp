@@ -14,6 +14,7 @@
 (import content/steps)
 (import draw/screen)
 (import draw/scene)
+(import draw/meter)
 (import draw/stage)
 (import draw/text)
 (import battle/place)
@@ -73,7 +74,9 @@
 ; and shown there (so it never shows half unpacked) while the screen's runs (the hero's, the small
 ; sprites', the enemies' figures) are read through the page (draw/blit) and unpacked; then copied
 ; onto the page, shown again. The spare page keeps the picture all fight (battle/page puts the
-; stage back from it). The music stops first: the card's half unpacks with interrupts off
+; stage back from it). The music stops first: the card's half unpacks with interrupts off.
+; While the runs load, paw prints along the foot of the stage show how far it is (draw/meter),
+; cleared before the copy
 (fn load_art () void
     (sound.quiet)
     (screen.wait_frame)
@@ -81,7 +84,9 @@
     (let n u8 (enc.backdrop state.fight))
     (stage.backdrop screen.SPARE n)
     (dhgr.show screen.SPARE)
+    (meter.start (stage.runs_weight n))
     (stage.fight_runs n)
+    (meter.stop)
     (screen.copy_page screen.SPARE screen.PAGE)
     (dhgr.show screen.PAGE)
     (scene.forget)

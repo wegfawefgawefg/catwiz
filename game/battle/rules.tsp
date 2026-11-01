@@ -7,6 +7,7 @@
 (import apple2 a2)
 (import auxmem)
 (import disk)
+(import draw/meter)
 (import draw/text)
 (import content/rules)
 (import sound/sound)
@@ -43,7 +44,7 @@
 
 ; page shown read and drawn: its lines down the stage, its title and how to go on in the text
 (fn show () void
-    (let status u8 (disk.read (as (ptr u8) buffer) (rules.page_table shown) disk.AUX))
+    (let status u8 (meter.read (as (ptr u8) buffer) (rules.page_table shown)))
     (if (!= status disk.DONE)
         (do
             (text.start)
