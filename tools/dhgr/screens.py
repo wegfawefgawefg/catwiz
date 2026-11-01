@@ -92,6 +92,25 @@ def fights():
     return out
 
 
+_ROOM = {}
+
+
+def room_of(block):
+    # how far a block's frames may reach from its idle frame's column, left and right, on every
+    # screen it stands on: (the least spot column, 40 less the greatest); None when it is on
+    # none. A sprite past column 39 would wrap to the left edge 64 rows down (the hi-res
+    # memory map), so the frames must fit: game_sprites.block_sprites keeps them in
+    if not _ROOM:
+        for F in fights():
+            for col, ks in F["spots"]:
+                for k in ks:
+                    b = figures.KINDS[k].block
+                    left, right = _ROOM.get(b, (40, 40))
+                    _ROOM[b] = (min(left, col), min(right, 40 - col))
+        _ROOM["cat"] = (4, 36)
+    return _ROOM.get(block)
+
+
 def then_chain(enemies, e):
     # the figures enemy e shows as: its own, then what it becomes when beaten, and on
     out = []

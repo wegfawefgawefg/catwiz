@@ -78,7 +78,7 @@
             :name "Garden gnome"
             :hp 14
             :ward 1
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_GNOME
             :first_move 7
             :move_count 2
             :calls state.NOTHING
@@ -118,7 +118,7 @@
             :name "Roomba"
             :hp 62
             :ward 0
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_ROOMBA
             :first_move 14
             :move_count 3
             :calls state.NOTHING
@@ -128,7 +128,7 @@
             :name "Dust bunny"
             :hp 5
             :ward 0
-            :figure art.FIG_SPORELET
+            :figure art.FIG_DUSTBUNNY
             :first_move 17
             :move_count 2
             :calls state.NOTHING
@@ -138,7 +138,7 @@
             :name "Cucumber"
             :hp 14
             :ward 1
-            :figure art.FIG_SPORELET
+            :figure art.FIG_CUCUMBER
             :first_move 19
             :move_count 2
             :calls state.NOTHING
@@ -148,7 +148,7 @@
             :name "Sprinkler"
             :hp 16
             :ward 0
-            :figure art.FIG_SPORELET
+            :figure art.FIG_SPRINKLER
             :first_move 21
             :move_count 2
             :calls state.NOTHING
@@ -158,7 +158,7 @@
             :name "Hoover Jr."
             :hp 50
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_HOOVER
             :first_move 23
             :move_count 3
             :calls DUST_BUNNY
@@ -168,7 +168,7 @@
             :name "Lawnmower"
             :hp 34
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_MOWER
             :first_move 26
             :move_count 2
             :calls state.NOTHING
@@ -178,7 +178,7 @@
             :name "The mailman"
             :hp 80
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_MAILMAN
             :first_move 28
             :move_count 4
             :calls state.NOTHING
@@ -188,7 +188,7 @@
             :name "The vet"
             :hp 66
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_VET
             :first_move 32
             :move_count 5
             :calls state.NOTHING
@@ -198,7 +198,7 @@
             :name "The big bath"
             :hp 70
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_BATH
             :first_move 37
             :move_count 3
             :calls state.NOTHING
@@ -208,7 +208,7 @@
             :name "Drain gremlin"
             :hp 40
             :ward 1
-            :figure art.FIG_SPORELET
+            :figure art.FIG_GREMLIN
             :first_move 40
             :move_count 2
             :calls state.NOTHING

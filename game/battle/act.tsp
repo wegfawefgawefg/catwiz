@@ -68,9 +68,11 @@
                 state.Mood.happy
                 state.Mood.attack)
             24)
+        ; an enemy's hop (a move on itself or a friend) shows its happy frame: the sprinkler
+        ; watering, the mailman going red in the face (its idle one when it has none)
         (look.show_mood by
             (if (= (action_motion) state.Motion.hop)
-                state.Mood.idle
+                state.Mood.happy
                 state.Mood.angry)
             24)))
 

@@ -22,6 +22,7 @@
 (const ROLE_FLASH u8 6) ; a solid kind's white shape, for the hit flash
 (const ROLE_SHOT u8 7)  ; the small sprites its moves throw or play (content/shows FOE)
 (const ROLE_SHOT2 u8 8)
+(const ROLE_SHOT3 u8 9)
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void
@@ -130,11 +131,12 @@
             (hide i)
             (return)))
     (let col u8 (at state.actors i col))
-    ; knocked back 2 columns, unless that would leave the screen
+    ; knocked back 2 columns, unless any of its frames would leave the screen (a sprite past
+    ; column 39 wraps onto the left edge 64 rows down: tools/dhgr/lanes.py checks the spots)
     (if (> (at state.actors i knock) 0)
         (do
             (let knocked u8 (as u8 (- (as i8 col) (* (place.facing i) 2))))
-            (if (and (< knocked 250) (<= (+ knocked (at art.tab.kcols kind)) 40))
+            (if (and (< knocked 250) (<= (+ knocked (at art.tab.kreach kind)) 40))
                 (set col knocked))))
     (let top u8 (- (- (at art.tab.ktop kind) (at state.actors i lift)) (bob i)))
     ; dying: blink, then puff away
