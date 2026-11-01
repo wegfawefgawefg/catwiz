@@ -239,6 +239,20 @@ def path(n):
     return N.finish()
 
 
+def picture_for(F):
+    # fight F's backdrop (screens.fights): its scenery round its own lanes, by the fight's
+    # backdrop number (content/encounters: 0 the clearing, 1 the path, 2 the clearing again,
+    # 3 the garden, 4 the house)
+    if F["backdrop"] == 3:
+        import night_garden
+        return night_garden.garden(F["n"])
+    if F["backdrop"] == 4:
+        import night_house
+        return night_house.house(F["n"])
+    variant = {0: "clearing", 1: "path", 2: "clearing"}[F["backdrop"]]
+    return picture(variant, F["n"])
+
+
 def picture(variant, n=None):
     # the variant's scenery outside the lanes of fight n (palettes.FIGHTS; the variant's own
     # fight when none: the woods' elite is fought on the clearing, its lanes its own)

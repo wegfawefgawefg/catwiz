@@ -3,7 +3,7 @@
 ; (state.looks), for draw/scene.tsp to bring the page up to date. The badges' looks are the
 ; hud's (battle/hud.tsp).
 ;
-; a mood shows as one of the kind's frames (art.KIND_FRAME by role: idle, attack, hurt, happy,
+; a mood shows as one of the kind's frames (art.tab.frame by role: idle, attack, hurt, happy,
 ; surprised, flap); a kind without that frame shows its idle one.
 
 (import state)
@@ -20,6 +20,9 @@
 (const ROLE_SURPRISED u8 4)
 (const ROLE_FLAP u8 5)
 (const ROLE_FLASH u8 6) ; a solid kind's white shape, for the hit flash
+(const ROLE_SHOT u8 7)  ; the small sprites its moves throw or play (content/shows FOE)
+(const ROLE_SHOT2 u8 8)
+(const ROLE_SHOT3 u8 9)
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void
@@ -86,9 +89,9 @@
 
 ; the sprite kind shows for role, its idle frame when it has none for it
 (fn frame ((kind u8) (r u8)) u8
-    (let id u8 (at art.KIND_FRAME (+ (* kind art.ROLE_COUNT) r)))
+    (let id u8 (at art.tab.frame (+ (* kind art.ROLE_COUNT) r)))
     (if (= id art.NONE)
-        (return (at art.KIND_FRAME (* kind art.ROLE_COUNT))))
+        (return (at art.tab.frame (* kind art.ROLE_COUNT))))
     id)
 
 ; ---- the looks
@@ -112,7 +115,7 @@
 ; each on its own beat. The ones standing stand still: drawing a sprite again in double hi-res
 ; costs about as much as a frame, so a bob a second each would take a fifth of the time
 (fn bob ((i u8)) u8
-    (if (= (at art.KIND_FRAME (+ (* (at state.actors i figure) art.ROLE_COUNT) ROLE_FLAP)) art.NONE)
+    (if (= (at art.tab.frame (+ (* (at state.actors i figure) art.ROLE_COUNT) ROLE_FLAP)) art.NONE)
         (return 0))
     (let drift u8 (& (>> (+ state.idle (* i 11)) 4) 3))
     (if (= drift 3)
@@ -128,20 +131,21 @@
             (hide i)
             (return)))
     (let col u8 (at state.actors i col))
-    ; knocked back 2 columns, unless that would leave the screen
+    ; knocked back 2 columns, unless any of its frames would leave the screen (a sprite past
+    ; column 39 wraps onto the left edge 64 rows down: tools/dhgr/lanes.py checks the spots)
     (if (> (at state.actors i knock) 0)
         (do
             (let knocked u8 (as u8 (- (as i8 col) (* (place.facing i) 2))))
-            (if (and (< knocked 250) (<= (+ knocked (at art.KIND_COLS kind)) 40))
+            (if (and (< knocked 250) (<= (+ knocked (at art.tab.kreach kind)) 40))
                 (set col knocked))))
-    (let top u8 (- (- (at art.KIND_TOP kind) (at state.actors i lift)) (bob i)))
+    (let top u8 (- (- (at art.tab.ktop kind) (at state.actors i lift)) (bob i)))
     ; dying: blink, then puff away
     (if (and (> dying 0) (<= dying BLINK_UNTIL))
         (do
             (let poof u8 (if (> dying POOF_SWITCH)
                 art.POOF0
                 art.POOF1))
-            (let pcol u8 (- (place.middle i) (>> (at art.COLS poof) 1)))
+            (let pcol u8 (- (place.middle i) (>> (at art.tab.cols poof) 1)))
             (let ptop u8 (+ top (>> (- (place.feet i) (place.top i)) 2)))
             (show i poof (& pcol 0xFE) ptop)
             (return)))
@@ -164,8 +168,8 @@
     (set (at state.looks i)
         (make state.Look
             :sprite id
-            :col (as u8 (+ (as i8 col) (at art.DCOL id)))
-            :top (as u8 (+ (as i8 top) (at art.DTOP id)))
+            :col (as u8 (+ (as i8 col) (at art.tab.dcol id)))
+            :top (as u8 (+ (as i8 top) (at art.tab.dtop id)))
             :second state.NOTHING
             :white white
             :wide 0)))
@@ -174,7 +178,7 @@
 (fn has_flash ((kind u8)) bool
     (if (<= art.ROLE_COUNT ROLE_FLASH)
         (return false))
-    (!= (at art.KIND_FRAME (+ (* kind art.ROLE_COUNT) ROLE_FLASH)) art.NONE))
+    (!= (at art.tab.frame (+ (* kind art.ROLE_COUNT) ROLE_FLASH)) art.NONE))
 
 ; marker k over who's head (over its intent badge), bob rows down (its kind's tables read here
 ; rather than through battle/place: this runs every pass)
@@ -182,8 +186,8 @@
     (let kind u8 (at state.actors who figure))
     (let top u8 (if (= who state.HERO)
         8
-        (- (at art.KIND_TOP kind) 25)))
-    (let middle u8 (+ (at state.actors who home) (>> (at art.KIND_COLS kind) 1)))
+        (- (at art.tab.ktop kind) 25)))
+    (let middle u8 (+ (at state.actors who home) (>> (at art.tab.kcols kind) 1)))
     (show (+ state.LOOK_MARKER k) art.MARKER (& (- middle 2) 0xFE) (+ top bob)))
 
 ; on the hero's turn, arrows over whoever the die picked goes to, bobbing: the target, the hero

@@ -14,7 +14,7 @@
 (const DRAW u8 3)
 
 ; what the last draw gave, and how many
-(let drawn (array u8 3))
+(let drawn (array u8 3) :address 0x03CD)
 (let count u8 0)
 
 ; the slot card c goes to, and whether it is a level (else a new item there)

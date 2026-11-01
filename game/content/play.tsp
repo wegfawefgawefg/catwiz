@@ -25,18 +25,18 @@
 (const REP u8 2)
 
 ; the calls to go back to: where, on whom, the value and the number there, and its loops
-(let call_p (array (ptr u8) 3))
-(let call_pc (array u8 3))
-(let call_t (array u8 3))
-(let call_v (array u8 3))
-(let call_n (array u8 3))
-(let call_loops (array u8 3))
+(let call_p (array (ptr u8) 3) :address 0x0572)
+(let call_pc (array u8 3) :address 0x098B)
+(let call_t (array u8 3) :address 0x09B3)
+(let call_v (array u8 3) :address 0x09DB)
+(let call_n (array u8 3) :address 0x0A0A)
+(let call_loops (array u8 3) :address 0x0A0D)
 (let calls u8 0)
 ; the loops open: their first step, kind, times left (rep), and t before (all, others)
 (let loop_pc (array u8 3))
-(let loop_kind (array u8 3))
-(let loop_left (array u8 3))
-(let loop_t (array u8 3))
+(let loop_kind (array u8 3) :address 0x05F2)
+(let loop_left (array u8 3) :address 0x05F5)
+(let loop_t (array u8 3) :address 0x07F3)
 (let loops u8 0)
 (let threes bool false) ; a three's steps ran: the charms' threes come when the face is done
 ; Mimic's: the steps the move it looked at is for her (cards.MIMICRY), and that move's number

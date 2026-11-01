@@ -13,6 +13,7 @@
 (import battle/bag)
 (import battle/kit)
 (import battle/page)
+(import battle/place)
 (import battle/reward)
 (import battle/tray)
 
@@ -60,11 +61,11 @@
         (return))
     (let kind u8 (at state.actors who figure))
     (let col u8 (at state.actors who home))
-    (let top u8 (at art.KIND_TOP kind))
+    (let top u8 (place.top who))
     (box (+ (* col 3) (>> col 1))
         top
-        (>> (* (at art.KIND_COLS kind) 7) 1)
-        (- (at art.KIND_FEET kind) top)
+        (>> (* (at art.tab.kcols kind) 7) 1)
+        (- (place.feet who) top)
         (at ACTOR_KEY who)))
 
 (fn fight () void

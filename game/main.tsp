@@ -25,7 +25,7 @@
 ; order. The tick only adds (tail), the loop only takes (head): no interrupts off for it. With
 ; no card, the keyboard is read once a pass
 (const KEY_LINE u8 8) ; a power of 2
-(let key_line (array u8 8))
+(let key_line (array u8 8) :address 0x06E4)
 (let key_head u8 0)
 (let key_tail u8 0)
 
@@ -50,8 +50,8 @@
 ; slow every other line of the game. A press lasts longer than a pass (the players hold one 6
 ; frames at least)
 (const CLICK u8 0x01)
-(let click_x (array u8 8)) ; whole pixels, 0-139
-(let click_y (array u8 8))
+(let click_x (array u8 8) :address 0x06EC) ; whole pixels, 0-139
+(let click_y (array u8 8) :address 0x0708)
 (let button_was bool false)
 
 (fn poll_click () void

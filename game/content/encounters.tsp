@@ -1,14 +1,14 @@
 ; the hero, the run's fights in order, and what comes between them. The run is FIGHT_COUNT
-; fights in three zones of three (the woods, the garden, the yard; each ends with an elite) and
+; fights in three zones of three (the woods, the garden, the house; each ends with an elite) and
 ; the boss. A fight with an other is a choice of two doors (both shown: the vet or the big bath),
 ; the other listed after the run's fights. After each won fight: one of three cards drawn from
 ; OFFER_CARDS; after an elite, then one of three charms drawn from OFFER_CHARMS, then the nap
 ; (NAP_HEAL_SHIFT) or a bonus upgrade (a level on a slot of her choice). A spot is an enemy and
 ; the byte column of its sprite's left edge (even, so its colours hold); a fight's spots past its
-; count are where its summons come in. backdrop: the screen it is fought on (0 the clearing, 1 the
-; path, 2 the clearing with the old shroom's figure); zone: the place, for the map at the top of
-; the stage. Fights 4-10 are stand-ins on fight 1-2's screens and figures until their art is
-; drawn.
+; count are where its summons come in. backdrop: the scenery its screen is drawn with (0 the
+; woods' clearing, 1 the woods' path, 2 the clearing again for the old shroom, 3 the garden, 4
+; the house; tools/dhgr/night.py picture_for: each fight has its own screen, the scenery round
+; its own lanes, tools/dhgr/screens.py); zone: the place, for the map at the top of the stage.
 
 (import state)
 (import content/enemies en)
@@ -21,9 +21,9 @@
 
 (const HERO Hero (make Hero :name "Catwiz" :hp 30 :figure art.KIND_CAT :col 4) :strings aux)
 
-(enum Zone (woods garden yard))
+(enum Zone (woods garden house))
 
-(const ZONE_NAME (array (ptr u8) 3) (make (array (ptr u8) 3) "WOODS" "GARDEN" "YARD"))
+(const ZONE_NAME (array (ptr u8) 3) (make (array (ptr u8) 3) "WOODS" "GARDEN" "HOUSE"))
 
 (struct Spot ((enemy u8) (col u8)))
 
@@ -68,17 +68,17 @@
             :elite true
             :other state.NOTHING)
         (make Fight
-            :backdrop 1
+            :backdrop 3
             :zone Zone.garden
-            :count 3
+            :count 2
             :spots (make (array Spot 3)
-                (make Spot :enemy en.DUST_BUNNY :col 14)
-                (make Spot :enemy en.ROOMBA :col 20)
-                (make Spot :enemy en.DUST_BUNNY :col 32))
+                (make Spot :enemy en.SPRINKLER :col 14)
+                (make Spot :enemy en.MOWER :col 20)
+                (make Spot :enemy en.SPRINKLER :col 32))
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 0
+            :backdrop 3
             :zone Zone.garden
             :count 3
             :spots (make (array Spot 3)
@@ -88,7 +88,7 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 1
+            :backdrop 3
             :zone Zone.garden
             :count 1
             :spots (make (array Spot 3)
@@ -98,8 +98,8 @@
             :elite true
             :other state.NOTHING)
         (make Fight
-            :backdrop 0
-            :zone Zone.yard
+            :backdrop 4
+            :zone Zone.house
             :count 2
             :spots (make (array Spot 3)
                 (make Spot :enemy en.HOOVER :col 14)
@@ -108,18 +108,18 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 1
-            :zone Zone.yard
-            :count 2
+            :backdrop 4
+            :zone Zone.house
+            :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.SPRINKLER :col 14)
-                (make Spot :enemy en.MOWER :col 20)
-                (make Spot :enemy en.SPRINKLER :col 32))
+                (make Spot :enemy en.DUST_BUNNY :col 14)
+                (make Spot :enemy en.ROOMBA :col 20)
+                (make Spot :enemy en.DUST_BUNNY :col 32))
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 0
-            :zone Zone.yard
+            :backdrop 4
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.VET :col 22)
@@ -128,8 +128,8 @@
             :elite true
             :other 10)
         (make Fight
-            :backdrop 1
-            :zone Zone.yard
+            :backdrop 4
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.KING :col 22)
@@ -138,8 +138,8 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :backdrop 1
-            :zone Zone.yard
+            :backdrop 4
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.BATH :col 22)

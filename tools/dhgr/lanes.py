@@ -35,15 +35,13 @@
 import os
 
 import dhgr
+import figures
 import game_hud
 import game_sprites as gs
 
 HERO_COL = 4                     # content/encounters.tsp HERO :col
-SPOTS = {                        # content/encounters.tsp FIGHTS, by the fight's number
-    1: [("puffcap", 20), ("sporelet", 32)],
-    2: [("puffcap", 20), ("sporelet", 32), ("nightflap", 26)],
-    3: [("shroom", 14), ("sporelet", 26), ("sporelet", 32)],
-}
+# each fight's spots (screens.py, from content/encounters.tsp FIGHTS): by the fight's number
+# (its row + 1), [(byte column, [the figures that can stand there])]
 MAP = (22, 0, 8, 12)             # battle/map.tsp: the map of the run, pixels 77-104, rows 0-11
 HOP_MOST = 6                     # act.tsp HOP
 LIFT_MOST = 6
@@ -56,18 +54,49 @@ INTENT_MOST = 3
 
 
 class Kind:
-    # a fighter kind's frames as the game's tables see them
+    # a fighter kind's frames as the game's tables see them (game.py): its role frames, placed
+    # from its block's first frame
     def __init__(self, kind):
-        sprites = [gs.fighter(kind, f, "night") for f in gs.frames(kind)]
+        K = figures.KINDS[kind]
+        sprites = gs.block_sprites(K.block)
+        names = figures.frame_names(figures.BLOCKS[K.block])
         base = sprites[0]
+        mine = [sprites[names.index(f)] for r, f in K.roles.items() if not r.startswith("shot")]
+        mine.append(sprites[names.index(K.roles["idle"])])
         self.kind = kind
         self.top = base.top
         self.feet = base.top + base.rows
         self.cols = base.cols
-        self.flyer = kind == "nightflap"
-        self.frames = [(s.col - base.col, s.top - base.top, s.cols, s.rows) for s in sprites]
-        self.reach = max(s.col + s.cols for s in sprites) - base.col
-        self.left = base.col - min(s.col for s in sprites)
+        self.flyer = figures.is_flyer(kind)
+        self.frames = [(s.col - base.col, s.top - base.top, s.cols, s.rows) for s in mine]
+        self.reach = max(s.col + s.cols for s in mine) - base.col
+        self.left = base.col - min(s.col for s in mine)
+        self.shots = [sprites[names.index(f)] for r, f in K.roles.items() if r.startswith("shot")]
+
+
+_KINDS = {}
+
+
+def kind(name):
+    if name not in _KINDS:
+        _KINDS[name] = Kind(name)
+    return _KINDS[name]
+
+
+_SPOTS = None
+
+
+def spots(n):
+    global _SPOTS
+    if _SPOTS is None:
+        import screens
+        _SPOTS = {F["n"]: F["spots"] for F in screens.fights()}
+    return _SPOTS[n]
+
+
+def fight_numbers():
+    spots(1)
+    return sorted(_SPOTS)
 
 
 def misc_sizes():
@@ -121,39 +150,41 @@ def boxes(n):
     # every lane box of fight n, each with what it is for: [(col, top, cols, rows, why)]
     out = [MAP + ("map",)]
     misc = misc_sizes()
-    cast = [("cat", HERO_COL)] + SPOTS[n]
-    kinds = {k: Kind(k) for k, _ in cast}
-    hero = kinds["cat"]
+    hero = kind("cat")
+    # every figure at every spot it can stand at
+    cast = [(HERO_COL, "cat")] + [(col, k) for col, ks in spots(n) for k in ks]
 
-    def middle(k, home):
-        return home + (kinds[k].cols >> 1)
+    def middle(K, home):
+        return home + (K.cols >> 1)
 
-    def centre_x(k, home):
-        return ((home * 2 + kinds[k].cols) * 7) >> 2
+    def centre_x(K, home):
+        return ((home * 2 + K.cols) * 7) >> 2
 
-    # the fighters: each frame at every column it can stand at, every lift
-    for i, (k, home) in enumerate(cast):
-        K = kinds[k]
+    for i, (home, name) in enumerate(cast):
+        K = kind(name)
         if i == 0:
-            far = max(reach(home, K, h, kinds[e]) for e, h in SPOTS[n])
+            far = max(reach(home, K, h, kind(e)) for h, e in cast[1:])
             cols = range(home, home + far + 1, 2)
         else:
             # its lunge's steps, each maybe knocked back 2 (only if that stays on the screen)
             far = reach(home, K, HERO_COL, hero)
             steps = list(range(home - far, home + 1, 2))
-            cols = sorted(set(steps + [c + 2 for c in steps if c + 2 + K.cols <= 40]))
+            cols = sorted(set(steps + [c + 2 for c in steps if c + 2 + K.reach <= 40]))
         bobs = range(0, 3) if K.flyer else (0,)
         for col in cols:
             for lift in range(0, LIFT_MOST + 1):
                 for bob in bobs:
                     top = K.top - lift - bob
                     for dc, dt, w, h in K.frames:
+                        if col + dc < 0 or col + dc + w > 40:
+                            raise SystemExit("lanes.py: fight %d: %s at column %d reaches columns %d-%d, "
+                                             "off the screen (0-39)" % (n, name, home, col + dc, col + dc + w - 1))
                         out.append((col + dc, top + dt, w, h, "fighter"))
         # the poofs (look.tsp show_actor): at its middle, a quarter down from its top
         if i > 0:
-            for name in ("poof0", "poof1"):
-                w, h = misc[name]
-                pcol = (middle(k, home) - (w >> 1)) & 0xFE
+            for pname in ("poof0", "poof1"):
+                w, h = misc[pname]
+                pcol = (middle(K, home) - (w >> 1)) & 0xFE
                 for lift in range(0, LIFT_MOST + 1):
                     for bob in bobs:
                         top = K.top - lift - bob
@@ -162,13 +193,13 @@ def boxes(n):
         w, h = misc["marker"]
         mtop = 8 if i == 0 else K.top - 25
         for bob in (0, 2):
-            out.append(((middle(k, home) - 2) & 0xFE, mtop + bob, w, h, "marker"))
+            out.append(((middle(K, home) - 2) & 0xFE, mtop + bob, w, h, "marker"))
         # the floating numbers (hit.tsp float_number), one or two digits, the whole rise
         w, h = misc["digit_0"]
         if i == 0:
             starts = [((home + K.cols) & 0xFE, 44)]
         else:
-            col = (middle(k, home) - 1) & 0xFE
+            col = (middle(K, home) - 1) & 0xFE
             top = K.top - 34 if K.top > 54 else 20
             starts = [(col, top), (col - 2, top)]
         for col, top in starts:
@@ -176,30 +207,35 @@ def boxes(n):
             out.append((col, top - FLOAT_RISE, w + 2, h + FLOAT_RISE, "number"))
         # the badges (hud.tsp pill, intent)
         ptop = HP_TOP if K.feet >= 100 else K.feet + 2
-        out.append(badge_box(centre_x(k, home), ptop, BADGE_MOST) + ("badge",))
+        out.append(badge_box(centre_x(K, home), ptop, BADGE_MOST) + ("badge",))
         if i > 0:
-            out.append(badge_box(centre_x(k, home), K.top - 12, INTENT_MOST) + ("badge",))
+            out.append(badge_box(centre_x(K, home), K.top - 12, INTENT_MOST) + ("badge",))
 
     # the bolt (act.tsp throw_step) from the hero's front to each enemy's middle
     w, h = misc["bolt"]
     x0 = HERO_COL + hero.reach
     y0 = hero.top + ((hero.feet - hero.top) >> 1) - 6
-    for e, home in SPOTS[n]:
+    for home, e in cast[1:]:
         sx = sy = 0
-        tx = middle(e, home)
-        ty = kinds[e].top + 8
+        tx = middle(kind(e), home)
+        ty = kind(e).top + 8
         for k in range(len(ARC)):
             col = x0 + (sx >> 3)
             top = y0 + (sy >> 3)
             sx += tx - x0
             sy += ty - y0
             out.append((col & 0xFE, top - ARC[k], w, h, "bolt"))
-    # each enemy's shot at the hero (act.tsp, a lunge with someone in the way): from in front
-    # of it, 14 rows over its head, to the hero's middle
-    tx = middle("cat", HERO_COL)
+    # each enemy's shot at the hero (act.tsp, a lunge with someone in the way, or a move's
+    # thrown show): from in front of it, 14 rows over its head, to the hero's middle; its own
+    # shots no bigger than the bolt (checked)
+    tx = middle(hero, HERO_COL)
     ty = hero.top + 8
-    for e, home in SPOTS[n]:
-        K = kinds[e]
+    for home, e in cast[1:]:
+        K = kind(e)
+        for s in K.shots:
+            if s.cols > w or s.rows > h:
+                raise SystemExit("lanes.py: %s's shot %s is %d x %d, more than the bolt's %d x %d"
+                                 % (e, s.name, s.cols, s.rows, w, h))
         x0 = home - K.left - 2
         y0 = K.top - 14
         sx = sy = 0

@@ -97,7 +97,7 @@
 (const SAY_PLACES u8 29)
 (const SAY_PRESS u8 30)
 
-(let held (array u8 4)) ; the charm rows she holds, in order
+(let held (array u8 4) :address 0x0771) ; the charm rows she holds, in order
 (let held_n u8 0)
 (let sel u8 255) ; the entry picked: 0-5 a slot, 6 on a charm; NOTHING for none
 

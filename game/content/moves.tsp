@@ -114,7 +114,7 @@
             :effect ac.Effect.hit
             :amount 3
             :aim state.Aim.foe
-            :motion state.Motion.lunge
+            :motion state.Motion.throw
             :icon '!')
         ; roomba
         (make ac.Move
@@ -134,7 +134,7 @@
         (make ac.Move
             :text "Full speed bump #"
             :effect ac.Effect.hit
-            :amount 12
+            :amount 18
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -216,7 +216,7 @@
         (make ac.Move
             :text "Mows for #"
             :effect ac.Effect.hit
-            :amount 14
+            :amount 6
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')

@@ -103,6 +103,8 @@
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
 (let stacks (array u8 132) :address 0x0272) ; status stacks: actor * STATUS_SLOTS + status (scratch, after drawn: cleared as a run starts)
+; (the run's kit and the fight's dice are scratch at $0300-$033B and in text page 1's holes,
+; set as a run, a fight and a turn start: AGENTS.md, Memory)
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
 ; stage's, or its other door), the hero's hit points between fights, and her kit: the item in
 ; each of the six slots (rows of content/items), each slot's level, and how many of each charm
@@ -111,22 +113,22 @@
 (let fight u8)
 (let next_fight u8) ; the row the next fight is: the next stage's, or the door picked
 (let hero_hp u8)
-(let items (array u8 6))
-(let levels (array u8 6))
-(let charms (array u8 12))
-(let spent (array bool 12)) ; a charm that works once a run has (nine lives)
+(let items (array u8 6) :address 0x0300)
+(let levels (array u8 6) :address 0x0306)
+(let charms (array u8 12) :address 0x030C)
+(let spent (array bool 12) :address 0x0318) ; a charm that works once a run has (nine lives)
 ; the fight's dice: dice_n of them roll each turn (die d in tray slot d). A die an enemy holds
 ; (held: its actor, NOTHING) stays out until that enemy is beaten; a slot a hairball clogs shows
 ; the hairball on every die until a re-roll coughs it up
 (let dice_n u8)
-(let held (array u8 6))
-(let clogged (array bool 6))
-(let face_of (array u8 6)) ; the face (slot) each die shows
-(let hand (array u8 6))    ; and the item it is, a row in content/items
-(let played (array bool 6))
+(let held (array u8 6) :address 0x0324)
+(let clogged (array bool 6) :address 0x032A)
+(let face_of (array u8 6) :address 0x0330) ; the face (slot) each die shows
+(let hand (array u8 6) :address 0x0336)    ; and the item it is, a row in content/items
+(let played (array bool 6) :address 0x06D6)
 (let rerolls u8)
 (let rerolled bool)      ; a re-roll this turn (still water)
-(let combo (array u8 6)) ; faces of each slot played this turn, for the threes
+(let combo (array u8 6) :address 0x06D0) ; faces of each slot played this turn, for the threes
 (let last_face u8)       ; the item played last (copycat), and on whom
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)

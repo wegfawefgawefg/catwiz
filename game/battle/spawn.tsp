@@ -5,9 +5,11 @@
 (import content/enemies en)
 (import content/encounters enc)
 (import content/statuses st)
+(import art/sprites art)
 
 ; actor i becomes a fresh enemy of kind, standing at its spot, on its first move; fresh: it
-; waits a round before its first move (a summon, a then)
+; waits a round before its first move (a summon, a then). Its figure: its kind on this screen
+; (art/sprites tab.figure, of the figure content/enemies names)
 (fn enemy ((i u8) (kind u8) (fresh bool)) void
     (let col u8 (enc.spot_col state.fight (- i 1)))
     (let hp u8 (en.hp kind))
@@ -16,7 +18,7 @@
         (make state.Actor
             :alive true
             :kind kind
-            :figure (en.figure kind)
+            :figure (at art.tab.figure (en.figure kind))
             :hp hp
             :max_hp hp
             :col col

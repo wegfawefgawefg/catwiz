@@ -24,7 +24,7 @@
 (const UP u8 128) ; a card of 128 + a slot: a level on that slot (enc.UP_WAND ...)
 
 ; the step's choices: card codes, charm rows, sleep and dream, slots, or fight rows (doors)
-(let choice (array u8 6))
+(let choice (array u8 6) :address 0x06DC)
 (let choices u8 0)
 
 ; a slot's base, the card's second line (# its number), and its name

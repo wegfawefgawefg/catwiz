@@ -15,7 +15,7 @@
 (import state)
 (import art/hud_data hud)
 (import art/icons)
-(import draw/packs)
+(import draw/paint)
 (import draw/screen)
 (import draw/pix)
 (import draw/scene)
@@ -47,13 +47,13 @@
 
 ; what each slot shows (not game state: the tray's own record): a card or not, its picture
 ; (icons' TILE number or state.NOTHING), its caption and where it starts, whether it is picked
-(let card (array bool 6))
-(let icon (array u8 6))
-(let caption (array u8 12)) ; two glyphs a slot (0 for none): a caption is 2 at most
-(let caption_len (array u8 6))
-(let caption_x (array u8 6))
-(let picked (array bool 6))
-(let lifted (array bool 6)) ; what the page shows
+(let card (array bool 6) :address 0x0710)
+(let icon (array u8 6) :address 0x0716)
+(let caption (array u8 12) :address 0x0669) ; two glyphs a slot (0 for none): a caption is 2 at most
+(let caption_len (array u8 6) :address 0x03AC)
+(let caption_x (array u8 6) :address 0x03B2)
+(let picked (array bool 6) :address 0x03B8)
+(let lifted (array bool 6) :address 0x03BE) ; what the page shows
 (let side_on bool false)
 ; the groups of pixels to draw again at the next flush, and whether only the faces changed
 (let dirty_g0 u8 255)
@@ -91,7 +91,7 @@
     (if (and (!= (at icon n) tile) (!= tile state.NOTHING))
         (do
             ; unpacked (art/icons) into the kit's scratch, then its rows to the spare page
-            (packs.unpack_part (addr_of (at icons.pixels 0)) tile (addr_of (at kit.picture 0)))
+            (paint.picture (addr_of (at kit.picture 0)) tile)
             (let from u8 0)
             (for r u8 0 ICON_H
                 (let to (ptr u8) (picture_at n r))
@@ -260,7 +260,7 @@
 
 ; groups g0 to g0 + gn - 1 of the tray's rows composed anew, every card down (flush lifts the
 ; picked one after)
-(let near (array bool 6)) ; the slots with a card that reaches into the groups drawn
+(let near (array bool 6) :address 0x03C4) ; the slots with a card that reaches into the groups drawn
 
 (fn draw_groups ((g0 u8) (gn u8) (y0 u8) (y1 u8)) void
     (pix.begin g0 gn)
@@ -281,7 +281,7 @@
 
 ; the re-roll button (a die, X and the re-rolls left, grey with none), the bag and rules buttons
 ; (B, ?) right of it, the mana stars lit for what the hero has, END TURN, in pixels 105-139
-(let side_glyphs (array u8 8))
+(let side_glyphs (array u8 8) :address 0x02F6)
 
 (fn side_row ((y u8) (rerolls u8) (mana u8) (most u8) (shake u8)) void
     (pix.fill BLACK)

@@ -56,7 +56,7 @@
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
 (const CUE_VOICE (array u8 27)
     (make (array u8 27) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2)
-    :in aux) ; the cues' tables are in aux memory (main memory is full): read by cue_row
+    :in aux)
 
 ; whether a cue waits in line while another effect plays; false: dropped
 (const CUE_WAITS (array bool 27)
@@ -121,35 +121,31 @@
     (make (array u8 27) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2)
     :in aux)
 
-; cue c's row of the tables, read from aux memory into these
-(let row_effect (ptr u8))
-(let row_voice u8)
-(let row_waits bool)
-(let row_first u8)
-(let row_count u8)
-
-(fn cue_row ((c u8)) void
-    (with_aux true false
-        (set row_effect (at CARD_EFFECT c))
-        (set row_voice (at CUE_VOICE c))
-        (set row_waits (at CUE_WAITS c))
-        (set row_first (at SPEAKER_FIRST c))
-        (set row_count (at SPEAKER_COUNT c))))
-
-; cue c: on the card, or on the speaker without one
-(fn cue ((c Cue)) void
-    (cue_byte (as u8 c)))
-
-; the same for cue number c (a card's steps name their sounds by number: content/play)
+; cue number c: on the card, its effect on its voice (dropped while another plays if it does
+; not wait); without one, its speaker parts. The cues' tables are in aux memory (main memory is
+; full), read here with one with_aux; a card's steps name their sounds by number (content/play)
 (fn cue_byte ((c u8)) void
-    (cue_row c)
+    (let first u8 0)
+    (let count u8 0)
+    (let waits bool false)
+    (let voice u8 0)
+    (let effect (ptr u8) (as (ptr u8) 0))
+    (with_aux true false
+        (set first (at SPEAKER_FIRST c))
+        (set count (at SPEAKER_COUNT c))
+        (set waits (at CUE_WAITS c))
+        (set voice (at CUE_VOICE c))
+        (set effect (at CARD_EFFECT c)))
     (if (not mb.found)
         (do
-            (sfx.play row_first row_count)
+            (sfx.play first count)
             (return)))
-    (if (and (not row_waits) (mb.effect_playing))
+    (if (and (not waits) (mb.effect_playing))
         (return))
-    (mb.effect row_effect row_voice 1))
+    (mb.effect effect voice 1))
+
+(fn cue ((c Cue)) void
+    (cue_byte (as u8 c)))
 
 ; each song's table on the disk, in Song's order (aux memory is full)
 (const SONG_BYTES (array (ptr u8) 4)

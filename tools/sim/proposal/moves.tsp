@@ -132,7 +132,7 @@
         (make ac.Move
             :text "FULL SPEED BUMP #"
             :effect ac.Effect.hit
-            :amount 12
+            :amount 18
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -214,7 +214,7 @@
         (make ac.Move
             :text "MOWS FOR #"
             :effect ac.Effect.hit
-            :amount 14
+            :amount 6
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')

@@ -1,57 +1,114 @@
-Catwiz double hi-res: the sprites' memory per fight (python3 tools/dhgr/make.py memory)
-before: masked day frames, no flash (the build before 2026-10-31); after: solid night
-frames and a flash frame a fighter kind. Room: the aux language card's bank 2 12272 and
-bank 1 4096, then sprite_aux 9232 (game/draw/blit.tsp): 25600 in all.
+Catwiz double hi-res: each fight screen's sprites in memory (python3 tools/dhgr/make.py memory)
+Room: the aux language card's bank 2 12272 and bank 1 4096, then sprite_aux 10752 (game/draw/
+blit.tsp): 27120 in all. The hero's and the small sprites' blocks stay; each screen's enemies'
+blocks go after them.
 
-kind       before aux+main  after aux+main   growth   zlib before -> after
-cat           5356+5186       6294+6197       +1949   2940 -> 2873
-puffcap       1251+1203       1886+1895       +1327   790 -> 862
-sporelet      1175+1039       1540+1540        +866   700 -> 681
-nightflap     1667+1733       2022+2038        +660   1126 -> 1109
-shroom        1967+2134       2938+2921       +1758   1342 -> 1367
-misc          1575+1441       1575+1441          +0   1005 -> 1005
-cat        of it the flash frame: 2159
-puffcap    of it the flash frame: 733
-sporelet   of it the flash frame: 700
-nightflap  of it the flash frame: 692
-shroom     of it the flash frame: 1091
+block             aux+main  sprites     zlib   of it the flash
+cat            6294+6197          6     2912   2159
+misc           1575+1441         29     1034   -
+puffcap        1886+1895          4      865   733
+sporelet       1540+1540          4      687   700
+squirrel       1902+1912          6     1287   860
+possum         2802+2792          8     1967   520
+shroom         2938+2921          4     1286   1091
+sprinkler      1575+1572          7      913   544
+mower          1914+1938          6     1148   855
+cucumber       1391+1380          6      755   780
+gnome          1886+1915          6     1126   800
+mailman        4058+4059          7     1826   1463
+hoover         3158+3154          7     1432   1160
+dustbunny      1404+1393          6      939   580
+roomba         1220+1282          7      797   425
+vet            3290+3223          7     1117   1200
+bath           2441+2427          6     1245   887
+gremlin        1408+1430          6      724   430
 
-fight 1 (clearing): cat, misc, puffcap, sporelet
-  before  18226 bytes: bank 2 8869 of 12272, bank 1 4001 of 4096, sprite_aux 5356 of 9232: 7374 to spare
-  after   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
+the screen's tables (art/sprites tab, main memory): 54 sprites, 5 kinds, 5 blocks at most
+the hero's blocks: bank 2 7638, bank 1 0, sprite_aux 7869
+
+fight 1 (woods): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
+  the picture, zlib 771, into sprite_aux's 2883 after the hero's
            puffcap main 1895: bank 2
            sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
            puffcap aux 1886: bank 1
-           sporelet aux 1540: sprite_aux
-  backdrop, zlib: day 1034, night 771
+           sporelet aux 1540: bank 1
 
-fight 2 (path): cat, misc, puffcap, sporelet
-  before  18226 bytes: bank 2 8869 of 12272, bank 1 4001 of 4096, sprite_aux 5356 of 9232: 7374 to spare
-  after   22368 bytes: bank 2 11073 of 12272, bank 1 3461 of 4096, sprite_aux 7834 of 9232: 3232 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
-           puffcap main 1895: bank 2
-           sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
-           puffcap aux 1886: bank 1
-           sporelet aux 1540: sprite_aux
-  backdrop, zlib: day 1204, night 510
+fight 2 (woods): cat, misc, squirrel, possum
+   24915 bytes: bank 2 11452 of 12272, bank 1 2792 of 4096, sprite_aux 10671 of 10752: 2205 to spare
+  the picture, zlib 498, into sprite_aux's 2883 after the hero's
+           squirrel main 1912: bank 2
+           possum main 2792: bank 1
+           squirrel aux 1902: bank 2
+           possum aux 2802: sprite_aux
 
-fight 3 (clearing): cat, misc, shroom, sporelet
-  before  19873 bytes: bank 2 10975 of 12272, bank 1 3542 of 4096, sprite_aux 5356 of 9232: 5727 to spare
-  after   24446 bytes: bank 2 12099 of 12272, bank 1 3115 of 4096, sprite_aux 9232 of 9232: 1154 to spare
-           cat main 6197: bank 2
-           misc main 1441: bank 2
+fight 3 (woods): cat, misc, shroom, sporelet
+   24446 bytes: bank 2 12099 of 12272, bank 1 2938 of 4096, sprite_aux 9409 of 10752: 2674 to spare
+  the picture, zlib 579, into sprite_aux's 2883 after the hero's
            shroom main 2921: bank 2
            sporelet main 1540: bank 2
-           cat aux 6294: sprite_aux
-           misc aux 1575: bank 1
-           shroom aux 2938: sprite_aux
+           shroom aux 2938: bank 1
+           sporelet aux 1540: sprite_aux
+
+fight 4 (garden): cat, misc, sprinkler, mower
+   22506 bytes: bank 2 11148 of 12272, bank 1 3489 of 4096, sprite_aux 7869 of 10752: 4614 to spare
+  the picture, zlib 917, into sprite_aux's 2883 after the hero's
+           sprinkler main 1572: bank 2
+           mower main 1938: bank 2
+           sprinkler aux 1575: bank 1
+           mower aux 1914: bank 1
+
+fight 5 (garden): cat, misc, cucumber, sprinkler, gnome
+   25226 bytes: bank 2 12165 of 12272, bank 1 3306 of 4096, sprite_aux 9755 of 10752: 1894 to spare
+  the picture, zlib 769, into sprite_aux's 2883 after the hero's
+           cucumber main 1380: bank 2
+           sprinkler main 1572: bank 2
+           gnome main 1915: bank 1
+           cucumber aux 1391: bank 1
+           sprinkler aux 1575: bank 2
+           gnome aux 1886: sprite_aux
+
+fight 6 (garden): cat, misc, mailman
+   23624 bytes: bank 2 11697 of 12272, bank 1 4058 of 4096, sprite_aux 7869 of 10752: 3496 to spare
+  the picture, zlib 923, into sprite_aux's 2883 after the hero's
+           mailman main 4059: bank 2
+           mailman aux 4058: bank 1
+
+fight 7 (house): cat, misc, hoover, dustbunny
+   24616 bytes: bank 2 12185 of 12272, bank 1 3158 of 4096, sprite_aux 9273 of 10752: 2504 to spare
+  the picture, zlib 504, into sprite_aux's 2883 after the hero's
+           hoover main 3154: bank 2
+           dustbunny main 1393: bank 2
+           hoover aux 3158: bank 1
+           dustbunny aux 1404: sprite_aux
+
+fight 8 (house): cat, misc, dustbunny, roomba
+   20806 bytes: bank 2 10313 of 12272, bank 1 2624 of 4096, sprite_aux 7869 of 10752: 6314 to spare
+  the picture, zlib 509, into sprite_aux's 2883 after the hero's
+           dustbunny main 1393: bank 2
+           roomba main 1282: bank 2
+           dustbunny aux 1404: bank 1
+           roomba aux 1220: bank 1
+
+fight 9 (house): cat, misc, vet
+   22020 bytes: bank 2 10861 of 12272, bank 1 3290 of 4096, sprite_aux 7869 of 10752: 5100 to spare
+  the picture, zlib 530, into sprite_aux's 2883 after the hero's
+           vet main 3223: bank 2
+           vet aux 3290: bank 1
+
+fight 10 (house): cat, misc, puffcap, sporelet
+   22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
+  the picture, zlib 512, into sprite_aux's 2883 after the hero's
+           puffcap main 1895: bank 2
+           sporelet main 1540: bank 2
+           puffcap aux 1886: bank 1
            sporelet aux 1540: bank 1
-  backdrop, zlib: day 1034, night 771
+
+fight 11 (house): cat, misc, bath, gremlin
+   23213 bytes: bank 2 11495 of 12272, bank 1 3849 of 4096, sprite_aux 7869 of 10752: 3907 to spare
+  the picture, zlib 528, into sprite_aux's 2883 after the hero's
+           bath main 2427: bank 2
+           gremlin main 1430: bank 2
+           bath aux 2441: bank 1
+           gremlin aux 1408: bank 1
 

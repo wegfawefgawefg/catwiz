@@ -3,8 +3,7 @@
 # previews and the lighting proof; the game draws the same parts itself.
 
 from canvas import Canvas
-import cat
-import foes
+import figures
 import fonts
 import hud
 import light
@@ -24,11 +23,7 @@ TEXT = [("GOLD WAND  3 damage to one enemy.", ((0, 9),)),
 
 
 def figure(kind, frame="idle"):
-    if kind == "cat":
-        return cat.cat(*CAT, frame)
-    x, y = SLOTS[kind]
-    return {"puffcap": foes.puffcap, "sporelet": foes.sporelet, "nightflap": foes.nightflap,
-            "shroom": foes.shroom}[kind](x, y, frame)
+    return figures.BLOCKS[kind].draw(frame)
 
 
 def build(backdrop, zone, foes_here, shadow, frames=None, U=None, lights=None, target=0,

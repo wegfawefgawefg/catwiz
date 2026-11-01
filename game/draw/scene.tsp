@@ -24,7 +24,7 @@
 (let redo (array u8 19) :address 0x055F) ; rows to draw again from the top, 0 for none
 (let restored (array state.Rect 30) :address 0x0480)
 (let restored_count u8 0)
-(let cut (array bool 4)) ; an actor whose box meets another's: drawn without its black
+(let cut (array bool 4) :address 0x06F4) ; an actor whose box meets another's: drawn without its black
 (const MOST_RESTORED u8 30)
 
 ; the hud drew onto the page (fresh: the frame has something new, whatever the looks do)
@@ -51,13 +51,13 @@
         (do
             (set the_box (make state.Rect :col col :top top :cols wide :rows BADGE_ROWS))
             (return)))
-    (let cols u8 (at art.COLS sprite))
-    (let rows u8 (at art.ROWS sprite))
+    (let cols u8 (at art.tab.cols sprite))
+    (let rows u8 (at art.tab.rows sprite))
     (if (!= second state.NOTHING)
         (do
-            (set cols (+ 2 (at art.COLS second)))
-            (if (> (at art.ROWS second) rows)
-                (set rows (at art.ROWS second)))))
+            (set cols (+ 2 (at art.tab.cols second)))
+            (if (> (at art.tab.rows second) rows)
+                (set rows (at art.tab.rows second)))))
     (set the_box (make state.Rect :col col :top top :cols cols :rows rows)))
 
 ; the box look i covers this frame, into (at box i)
@@ -181,7 +181,7 @@
     (if (>= d state.ACTORS)
         (for k u8 0 state.ACTORS
             (let s u8 (at state.looks k sprite))
-            (if (and (and (!= s state.NOTHING) (not (at cut k))) (= (at art.SOLID s) 1))
+            (if (and (and (!= s state.NOTHING) (not (at cut k))) (= (at art.tab.solid s) 1))
                 (if (and
                         (and (<= (at box k col) the_box.col)
                             (<= (+ the_box.col the_box.cols) (+ (at box k col) (at box k cols))))
@@ -195,7 +195,7 @@
                                 (return))))))))
     (restore_box page the_box.col the_box.top the_box.cols the_box.rows))
 
-; whether look i is a solid frame (a fighter flattened onto black, art.SOLID) drawn where the
+; whether look i is a solid frame (a fighter flattened onto black, art.tab.solid) drawn where the
 ; page shows d, solid too: then its box is drawn whole with no copy back, and only the rest of
 ; d's old box is copied back (rest_of)
 (fn solid_over ((i u8) (d u8)) bool
@@ -205,7 +205,7 @@
         (return false))
     (if (or (= was state.NOTHING) (= was state.BADGE))
         (return false))
-    (and (= (at art.SOLID now) 1) (= (at art.SOLID was) 1)))
+    (and (= (at art.tab.solid now) 1) (= (at art.tab.solid was) 1)))
 
 ; the parts of the old box of the look page shows as d that look i's box does not cover, copied
 ; black: the rows above and below it, and beside it in the rows they share

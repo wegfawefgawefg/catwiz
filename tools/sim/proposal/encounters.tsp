@@ -1,7 +1,7 @@
 ; PROPOSAL (tools/sim, docs/balance.md): game/content/encounters.tsp for fights 1-10 and the
 ; boss, the item-slot model. The run is FIGHT_COUNT fights in order; a fight with an other is a
 ; choice of two doors (both shown: the vet or the big bath), the other listed after the run's
-; fights: the woods (1-3), the garden (4-6), the yard (7-9), each two fights and an elite,
+; fights: the woods (1-3), the garden (4-6), the house (7-9), each two fights and an elite,
 ; then the bulldog king. After each won fight: three cards drawn at random from OFFERS (by weight, those whose
 ; from is at most the number of fights won, three different ones that still give the kit
 ; something), pick one. An elite then offers three charms drawn the same way from
@@ -16,7 +16,7 @@
 
 (const HERO Hero (make Hero :name "CATWIZ" :hp 30 :figure art.KIND_CAT :col 6))
 
-(enum Zone (woods garden yard)) ; places, all at night: art only
+(enum Zone (woods garden house)) ; places, all at night: art only (a cat's journey home)
 
 (struct Spot ((enemy u8) (col u8)))
 
@@ -60,11 +60,11 @@
             :other state.NOTHING)
         (make Fight
             :zone Zone.garden
-            :count 3
+            :count 2
             :spots (make (array Spot 3)
-                (make Spot :enemy en.DUST_BUNNY :col 16)
-                (make Spot :enemy en.ROOMBA :col 24)
-                (make Spot :enemy en.DUST_BUNNY :col 30))
+                (make Spot :enemy en.SPRINKLER :col 16)
+                (make Spot :enemy en.MOWER :col 24)
+                (make Spot :enemy en.SPRINKLER :col 30))
             :elite false
             :other state.NOTHING)
         (make Fight
@@ -86,7 +86,7 @@
             :elite true
             :other state.NOTHING)
         (make Fight
-            :zone Zone.yard
+            :zone Zone.house
             :count 2
             :spots (make (array Spot 3)
                 (make Spot :enemy en.HOOVER :col 16)
@@ -95,16 +95,16 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.yard
-            :count 2
+            :zone Zone.house
+            :count 3
             :spots (make (array Spot 3)
-                (make Spot :enemy en.SPRINKLER :col 16)
-                (make Spot :enemy en.MOWER :col 24)
-                (make Spot :enemy en.SPRINKLER :col 30))
+                (make Spot :enemy en.DUST_BUNNY :col 16)
+                (make Spot :enemy en.ROOMBA :col 24)
+                (make Spot :enemy en.DUST_BUNNY :col 30))
             :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.yard
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.VET :col 16)
@@ -113,7 +113,7 @@
             :elite true
             :other 10)
         (make Fight
-            :zone Zone.yard
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.KING :col 16)
@@ -122,7 +122,7 @@
             :elite false
             :other state.NOTHING)
         (make Fight
-            :zone Zone.yard
+            :zone Zone.house
             :count 1
             :spots (make (array Spot 3)
                 (make Spot :enemy en.BATH :col 16)

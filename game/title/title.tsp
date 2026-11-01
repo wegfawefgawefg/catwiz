@@ -63,4 +63,4 @@
     (if (= state.glow GLOW_STEPS)
         (set state.glow 0))
     (let rim u8 (+ art.GLOW0 state.glow))
-    (blit.sprite screen.PAGE (at art.KIND_COL art.KIND_GLOW) (at art.KIND_TOP art.KIND_GLOW) rim))
+    (blit.sprite screen.PAGE (at art.tab.kcol art.KIND_GLOW) (at art.tab.ktop art.KIND_GLOW) rim))

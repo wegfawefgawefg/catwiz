@@ -156,7 +156,7 @@
 
 ; the number under a face's picture: its number at its slot's level (a plus, a copy, a knead
 ; with a +, a times with an X), none for the hairball; built here (the tray keeps its own copy)
-(let cap_text (array u8 3))
+(let cap_text (array u8 3) :address 0x03CA)
 
 ; (the most a face's number is at two levels: 14, Knock It Off's; a trick's 4)
 (fn caption ((row u8)) (ptr u8)

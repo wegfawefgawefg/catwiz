@@ -10,8 +10,8 @@
 (const QUEUE u8 4)
 
 (let fx_of (array (ptr u8) 4))
-(let on (array u8 4))
-(let value (array u8 4))
+(let on (array u8 4) :address 0x0AF8)
+(let value (array u8 4) :address 0x0AFC)
 (let head u8 0)
 (let count u8 0)
 
