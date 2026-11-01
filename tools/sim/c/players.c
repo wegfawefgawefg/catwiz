@@ -77,6 +77,7 @@ static void greedy_turn(Player *p, Battle *b) {
         for (int i = 0; i < n; i++) {
             Battle c = *b;
             c.tell = NULL;
+            c.rng = NULL; /* its rolls wait (the chain cards) */
             b_play(&c, opts[i].s, opts[i].t);
             double v = judge_after_turn(&c);
             if (v > best + 1e-9) {
@@ -106,6 +107,7 @@ typedef struct {
     uint8_t played[MAX_HAND];
     uint8_t alive[ACTORS], kind[ACTORS];
     uint8_t held[MAX_HAND];
+    uint8_t back;
     int32_t hp[ACTORS];
     int32_t st[ACTORS][NS];
 } Key;
@@ -115,7 +117,7 @@ typedef struct {
     uint32_t gen;
     double value;
     uint8_t nplan;
-    Play plan[MAX_HAND];
+    Play plan[MAX_PLAYS];
 } Entry;
 
 typedef struct {
@@ -125,6 +127,7 @@ typedef struct {
 } Memo;
 
 static _Thread_local Memo memo;
+static _Thread_local int depth; /* plays deep in the search (a plan holds MAX_PLAYS) */
 
 static void make_key(const Battle *b, Key *k) {
     memset(k, 0, sizeof *k);
@@ -132,6 +135,7 @@ static void make_key(const Battle *b, Key *k) {
     memcpy(k->alive, b->alive, ACTORS);
     memcpy(k->kind, b->kind, ACTORS);
     memcpy(k->held, b->held, b->ndice);
+    k->back = b->back;
     memcpy(k->hp, b->hp, sizeof k->hp);
     memcpy(k->st, b->st, sizeof k->st);
 }
@@ -173,16 +177,19 @@ static Entry *strong_search(const Battle *b) {
     if (e->gen == memo.gen)
         return e;
     double best = judge_after_turn(b);
-    Play plan[MAX_HAND];
+    Play plan[MAX_PLAYS];
     int nplan = 0;
-    if (b->result == R_NONE && memo.count < NODE_CAP) {
+    if (b->result == R_NONE && !b->back && memo.count < NODE_CAP && depth < MAX_PLAYS - 1) {
         Play opts[24];
         int n = options(b, opts);
         for (int i = 0; i < n; i++) {
             Battle c = *b;
             c.tell = NULL;
+            c.rng = NULL;
             b_play(&c, opts[i].s, opts[i].t);
+            depth++;
             Entry *ce = strong_search(&c);
+            depth--;
             if (ce->value > best + 1e-9) {
                 best = ce->value;
                 plan[0] = opts[i];
@@ -229,7 +236,7 @@ static double reroll_value(Player *p, const Battle *b) {
 
 static void strong_turn(Player *p, Battle *b) {
     while (!b_turn_over(b)) {
-        Play plan[MAX_HAND];
+        Play plan[MAX_PLAYS];
         int nplan;
         double v0 = strong_best(b, plan, &nplan);
         if (b->rerolls > 0) {
@@ -238,10 +245,11 @@ static void strong_turn(Player *p, Battle *b) {
             double best_v = v0;
             Battle c = *b;
             c.tell = NULL;
+            c.rng = NULL;
             for (int j = 0; j <= nplan; j++) {
                 if (j > 0) {
                     b_play(&c, plan[j - 1].s, plan[j - 1].t);
-                    if (c.result != R_NONE)
+                    if (c.result != R_NONE || c.back)
                         break;
                 }
                 if (!b_any_unplayed(&c))
@@ -262,12 +270,19 @@ static void strong_turn(Player *p, Battle *b) {
         }
         if (!nplan)
             break;
+        int fresh = 0;
         for (int j = 0; j < nplan; j++) {
+            int before = b->refreshes;
             b_play(b, plan[j].s, plan[j].t);
             if (b->result != R_NONE)
                 break;
+            if (b->refreshes != before) {
+                fresh = 1; /* dice came back: plan again */
+                break;
+            }
         }
-        break;
+        if (!fresh)
+            break;
     }
 }
 

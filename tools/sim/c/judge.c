@@ -91,5 +91,7 @@ double judge_after_turn(const Battle *b) {
     Battle c = *b;
     c.tell = NULL;
     b_end_turn(&c);
+    if (b->back)
+        return judge_value(&c) + BACK_DIE * __builtin_popcount(b->back);
     return judge_value(&c);
 }

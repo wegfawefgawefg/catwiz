@@ -982,6 +982,306 @@ Feather Toy + Bad Milk -0.98, Spray Bottle + Sixth Toe -0.89.
 - encounters.tsp, OFFER_CARDS: `(make Offer :card items.CANNON :weight 3 :from 3)` (unchanged).
 - `learned.txt` is learned for these tables.
 
+## The chain and combo cards (2026-11-01, sim only)
+
+Seventeen new cards in both sims, nothing else changed (the enemies are not retuned): the
+owner's Red Dot and six re-roll chain cards, then ten combo cards. The owner's rules for them:
+one # a card (a boost changes only that #); boosts change output, never costs; "all dice
+back" means every die, used or not, is rolled again and playable; a waiting plus or times
+lasts to the turn's end, so it survives a refresh. `check.py` shows 0 differences on main's
+tables (`--tables`, `--bin`: greedy and random 300 runs, strong 40) and on these (greedy and
+random 400, strong 60). These tables are in `tools/sim/proposal`; `learned.txt` is learned
+for them. The game's tables are not touched.
+
+### The cards
+
+| card | slot | text | # (a level) | cost | pool: weight, from | engine |
+|---|---|---|---|---|---|---|
+| Red Dot | curse | # TIMES: A WAND HIT ON IT, ALL BACK | 2 (+1) | | 3, 3 | a status, a check in the hit, the refresh |
+| Finishing Swat | wand | #; IF IT FALLS, THIS DIE COMES BACK | 3 (+1) | | 3, 1 | an effect: "fell" from the hit unmarks its die |
+| Lucky Paw | fluff | SHIELD #, AND A FREE RE-ROLL | 2 (+1) | | 3, 1 | an effect (shield, re-rolls + 1) |
+| Sunbeam | star | +# MANA; MANA PAST 5 IS RE-ROLLS | 2 (+1) | | 3, 1 | an effect |
+| Big Stretch | trick | RE-ROLL # DICE, USED ONES TOO | 2 (+1) | | 2, 4 | an effect, the refresh on # dice |
+| Second Wind (charm) | | ONCE A FIGHT: ALL USED, ALL BACK | | | 2 | a charm kind, a check after each play, a flag a fight |
+| Litter Box (charm) | | KITTENS STAY BETWEEN FIGHTS | | | 2 | a charm kind, a byte of run state |
+| Mimic | book | 2 MANA: DO ITS SHOWN MOVE, # TIMES | 1 (+1) | 2 | 3, 3 | an effect and a move-to-hero table (the most code here) |
+| Catfight | curse | IT HITS A FRIEND INSTEAD, # MORE | 4 (+1) | | 3, 1 | a status, a branch in the enemy's aim (like Laser's) |
+| Mirror Fur | fluff | SHIELD #; BLOCKED HITS BOUNCE BACK | 3 (+1) | | 3, 1 | a status, a check in the hit on her |
+| Dry Off | book | 2 MANA: EACH WET TURN HITS FOR # | 2 (+1) | 2 | 2, 3 | an effect (a loop over the enemies) |
+| Flea Circus | curse | FLEAS #; IF IT FALLS, THEY JUMP X2 | 2 (+1) | | 3, 1 | a status flag, an on-fall hook |
+| Haunted | curse | WHEN IT FALLS, ALL TAKE # | 4 (+2) | | 3, 1 | a status, the same on-fall hook |
+| Scratching Habit | wand | #, AND +1 FOR GOOD EVERY USE | 2 (+1) | | 3, 1 | an effect, a byte of run state |
+| Double or Nothing | trick | NEXT DIE X#; A DUD COSTS # HP | 3 (+1) | | 2, 3 | Times Two's code, a price status, a turn-end check |
+| Cough It Up | wand | # FOR EACH HAIRBALL YOU ROLLED | 4 (+1) | | 2, 1 | an effect, a count in the roll |
+| Nine Lives (charm) | | DIE ONCE, COME BACK WITH 10 HP | 10 | | 2 | a charm kind, a run flag, a check at her death |
+
+How the sim plays them, where the text leaves room:
+
+- The refresh (Red Dot, Big Stretch, Second Wind) is one routine: the dice are marked unplayed
+  and rolled; a hairball on one is coughed up; it is not a re-roll (Still Water still pays).
+- Red Dot fires once a wand face, on the first of its hits that lands on a dotted enemy (Mouse
+  on String's two hits, the Cannon's kittens, a Copycat of a wand all count); each fire uses
+  one #. A Red Dot played again adds its #. The turns form ("# TURNS", it fires every time
+  while it lasts) played the same: 88.1% against 87.9%, so the times form is kept (it ends by
+  itself).
+- Finishing Swat's die comes back as it is (the same face, playable) when its hit drops an
+  enemy to 0, a getting-up phase too.
+- Big Stretch rolls the used dice first, then dice that cannot be played (the sim picks).
+- Second Wind is the once-a-fight dice version of Nine Lives (renamed, both are in the pool);
+  the once-a-turn form was dropped by the owner before testing.
+- Mimic copies the picked enemy's shown move: a hit hits it (a hit-all hits them all), a
+  shield shields her, a call is a kitten, a cheer or a growing is a waiting plus, a heal heals
+  her, fleas and wet go on it, a reflect is her thorns; the rest do nothing. # is how many
+  times; a +1 or a times on it is more times.
+- Catfight: the enemy's next hit on her goes to its first friend, # harder; with no friend it
+  waits.
+- Mirror Fur: what that shield blocks this round goes back to the hitter, # at most.
+- Flea Circus: when the host falls its fleas jump to the next enemy, doubled, with fresh turns
+  and the jump again.
+- Double or Nothing: a "dud" is the times still waiting at the turn's end (she always picks a
+  die she can play, so an unplayable next die never happens); then she loses #.
+- Cough It Up counts hairball faces rolled this turn, re-rolls and refreshes too. Only two
+  enemies give hairballs: the dust bunnies (her fluff) and the big bath (her wand, which
+  covers Cough It Up itself). Nothing she can take makes them.
+
+The searching player's turn: a play that brings dice back ends a line of its search; at the
+root the best four such lines are worth the mean of the best plan over the same imagined
+rolls, and she takes one when it beats the plan and the re-roll (search.c). Deeper, a die
+coming back is worth 3 points.
+
+### Win rates
+
+The good player, 4,096 runs (seed 61), each pool with its own learned draft:
+
+| pool | won | runs with a fight over 15 turns | lost at 6, 9, 10 |
+|---|---|---|---|
+| main's (the baseline) | 67.7% (67.4% on seed 91) | 11.1% | 2.6%, 8.4%, 20.8% |
+| + the seven chain cards | 76.0% | 6.4% | 1.7%, 5.4%, 16.4% |
+| + all seventeen | 87.9% | 3.7% | 1.3%, 3.2%, 7.5% |
+
+All seventeen, fight by fight:
+
+| fight | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| won | 100% | 100% | 100% | 100% | 100% | 99% | 100% | 100% | 97% | 92% |
+| hp lost | 2.2 | 2.7 | 6.7 | 1.4 | 1.9 | 10.4 | 2.7 | 1.8 | 5.0 | 8.3 |
+| turns | 2.3 | 2.9 | 3.9 | 2.6 | 2.6 | 3.8 | 2.6 | 2.7 | 3.6 | 6.0 |
+
+The learning: two passes from the last table, as before; in both pools the second pass played
+3 points worse than the first on the test seeds (87.9% against 84.9% for all seventeen, and the
+other way for the chain set: 74.3% against 76.0%), so each pool keeps its better table (the
+chain set learned with Red Dot's turns form, played with the times form).
+
+### How much the expert likes them
+
+All seventeen in the pool. Taken when offered and held: natural runs (4,096, seed 81). Forced:
+the card slipped into the offer and taken at the first pick of each third (256 runs a line;
+unforced 86.7%). Alone from fight 1: the lift study's part alone, its slot locked (192 runs;
+nothing: 90.1%). Its turns: the turns that played its face (a charm: the turns it was held),
+their damage (most is 294, the king's three phases) and the share that touched three systems
+or more.
+
+| card | taken when offered | runs that held it (won) | forced, by third (won) | alone from fight 1 | its turns: damage mean, top tenth; 3+ systems |
+|---|---|---|---|---|---|
+| Scratching Habit | 94% | 49% (96%) | 97.3%, 96.5%, 95.7% | 100% | 43, 90; 19% |
+| Big Stretch | 92% | 22% (89%) | from 4: 90.2%, 90.6% | 95% | 35, 76; 33% |
+| Second Wind | 89% | 56% (92%) | 90.6%, 88.7%, 88.3% | 96% | 34, 76; 33% |
+| Nine Lives | 83% | 54% (91%) | 85.5%, 87.1%, 87.9% | 90% | 29, 67; 24% |
+| Double or Nothing | 80% | 22% (95%) | 93.0%, 96.5%, 96.5% | 100% | 46, 98; 36% |
+| Mirror Fur | 72% | 39% (91%) | 90.2%, 91.0%, 86.3% | 94% | 21, 51; 23% |
+| Mimic | 61% | 24% (93%) | 87.5%, 89.5%, 94.1% | 94% | 46, 96; 52% |
+| Red Dot | 57% | 23% (93%) | 87.9%, 87.5%, 87.9% | 99% | 46, 93; 61% |
+| Catfight | 57% | 34% (89%) | 88.7%, 82.8%, 83.6% | 92% | 20, 47; 34% |
+| Lucky Paw | 39% | 23% (88%) | 87.9%, 84.8%, 84.8% | 96% | 26, 61; 24% |
+| Flea Circus | 37% | 22% (87%) | 84.0%, 83.6%, 82.4% | 84% | 16, 40; 33% |
+| Sunbeam | 25% | 15% (89%) | 87.9%, 85.2%, 84.0% | 90% | 34, 75; 36% |
+| Litter Box | 14% | 11% (81%) | 83.2%, 82.4%, 85.9% | 88% | 26, 62; 24% |
+| Haunted | 7% | 4% (90%) | 81.6%, 80.1%, 77.7% | 84% | 30, 67; 36% |
+| Finishing Swat | 6% | 4% (86%) | 85.5%, 72.7%, 66.0% | 79% | 19, 36; 22% |
+| Cough It Up | 2% | 1% (83%) | 84.8%, 60.9%, 56.6% | 67% | 15, 41; 23% |
+| Dry Off | 1% | 0.4% | 58.6%, 61.3%, 67.2% | 62% | (too few) |
+| for scale: Times Two | 62% | 18% (90%) | 92.2%, 89.8%, 89.8% | 93% | 35, 78; 34% |
+| Mouse on String | 52% | 36% (87%) | 87.9%, 87.1%, 80.1% | 93% | 28, 52; 21% |
+| Meowcronomicon | 42% | 18% (90%) | 80.5%, 81.2%, 85.5% | 90% | 33, 71; 85% |
+
+The most exciting turns: Red Dot (61% of its turns touch three systems, a mean of 46),
+Mimic (52%, 46), Double or Nothing (46 a turn) and Big Stretch; Meowcronomicon is still the
+most many-system card (85%). Scratching Habit makes big turns (43) but plain ones (19%: one
+wand hitting harder and harder).
+
+Dead: Dry Off (it takes the book slot from Zoomies; she has no wet to cash: Spray, Wet and Dry
+Off forced together won 33%), Cough It Up (no hairballs to cough; with the big bath it covers
+itself), Finishing Swat past the woods (swarms are rare later), Haunted (most fights are one
+big enemy), and still the Kitten Cannon.
+
+### Chains
+
+A turn of a fight that held the card (all seventeen; the chain set alone in brackets):
+
+| card | what | median, top tenth, most a turn | turns with one |
+|---|---|---|---|
+| Red Dot | refreshes | 0, 3, 23 (0, 4, 196) | 36% |
+| Big Stretch | refreshes | 1, 4, 19 (1, 4, 77) | 59% |
+| Second Wind | refreshes | 0, 1, 1 | 30% |
+| Finishing Swat | its die back | 0, 1, 3 | 19% |
+| Lucky Paw | re-rolls got | 0, 2, 49 (0, 2, 255) | 39% |
+| Sunbeam | re-rolls got | 0, 2, 240 (0, 2, 255) | 20% |
+| every refresh | | 1, 4, 35 (1, 5, 254), on 19,245 turns | |
+
+The searching player's time did not blow up: 64 runs a second with all seventeen, 56 with the
+chain set, 58 on main's tables (the Mac mini, 14 threads). But the chains do not end by
+themselves. In the chain set's pool one turn refreshed 254 times (the byte) for 0 damage: the
+big bath at 1 hit point and wet 181 (the owner's Wet stall), she wet herself too, so her
+sprays hit for 0, and every spray on the dotted bath brought the dice back, with Red Dots and
+Big Stretches coming up again to keep it going:
+
+```
+turn 11  hp 30 mana 5 | THE BIG BATH 1 wet181 (SPLASH FOR 18); | dice: SPRAY BOTTLE, SPRAY BOTTLE, IF IT FITS, IF IT FITS, BIG STRETCH
+  IF IT FITS = 8
+  BIG STRETCH; back -> SPRAY BOTTLE, SPRAY BOTTLE, IF IT FITS, IF IT FITS, SPRAY BOTTLE
+  re-roll SPRAY BOTTLE, SPRAY BOTTLE, IF IT FITS, IF IT FITS, SPRAY BOTTLE -> LUCKY PAW, BIG STRETCH, RED DOT, BIG STRETCH, SUNBEAM
+  re-roll LUCKY PAW, BIG STRETCH, RED DOT, BIG STRETCH, SUNBEAM -> SUNBEAM, IF IT FITS, LUCKY PAW, LUCKY PAW, SPRAY BOTTLE
+  SUNBEAM = 2
+  LUCKY PAW = 3
+  LUCKY PAW = 3
+  SPRAY BOTTLE = 1 on THE BIG BATH: 0 on THE BIG BATH; THE BIG BATH wet 1; back -> IF IT FITS, IF IT FITS, SPRAY BOTTLE, RED DOT, SPRAY BOTTLE
+  ... (254 times)
+```
+
+A limit of refreshes a turn (`--refresh-most N`, the counts are dice-back events of Red Dot,
+Big Stretch and Second Wind):
+
+| refreshes a turn at most | all seventeen won | chain set won | the longest turn (all seventeen) |
+|---|---|---|---|
+| none (255) | 88.8% | 75.8% | 35 refreshes |
+| 5 | 89.0% | 75.9% | 7 (with swats) |
+| 3 | 88.4% | 73.4% | 5 |
+
+(the chains study's seeds, 4,096 runs.) At most 5 a turn costs nothing and ends the loops;
+it is what I would ship (a rule in the engine, no card text). The main
+numbers above are with no limit. Re-rolls also run to the byte: Sunbeam gave 240 re-rolls in
+one turn (boosted mana past 5), Lucky Paw 49 over a chain; a cap on re-rolls (9, say)
+or on Sunbeam's overflow (# at most) would end those.
+
+### Locks
+
+- Scratching Habit: forced at fight 1 it wins 99.9% (1,500 runs), alone from fight 1 100%;
+  taken 94% of the times it is offered. The habit grows all run (24 to 35 by the king), so it
+  is a lock. Tested: the +1s lasting the fight only ("+1 FOR THE FIGHT EVERY USE"): forced at
+  fight 1, 88.1%; all runs 80.9% (87.9% with it for the run). That is the fix I would make.
+- Double or Nothing: forced at fight 3, 97.9%; taken 80%. It is Times Two at x3 from level 0,
+  and the price is easy to dodge: the search plays it when a die can take it. Fixes: x2 at level 0
+  like Times Two, or the price paid when it is played.
+- Red Dot: alone from fight 1, 99%; with Mouse on String forced (3 and 4), 97.1%. Taken only
+  57% when offered, so the draft undervalues it: held from the start it is a lock.
+- Big Stretch (92%), Second Wind (89%) and Nine Lives (83%) are near auto-picks but not
+  locks (their runs win 89-92% against 88.8%). Second Wind is one refresh a fight, always
+  taken and never a decision: drop it (the owner's condition) unless a cheaper charm pool
+  needs it. Nine Lives as a second life is fine and cheap.
+- Litter Box with Meowcronomicon: both from fight 1, 100% (+3.98, the biggest lift of the
+  round). In the natural draft it is no kitten lock: Litter Box is taken 14%, Meowcronomicon
+  42% (its runs 89.5%); forced Meowcronomicon and Litter Box at fight 3 won 87.7%, like the
+  plain run. The Cannon still kills the line: with all three forced, 39.9% (it takes the wand).
+
+### Lift with the partners
+
+Each card given from fight 1 with every other part (192 runs a cell; nothing: 90.1%, so
+everything sits near the ceiling and the won column says more than the lift):
+
+| card | alone | Times Two | Scratch Post | Sixth Toe | Mouse on String | its best pair |
+|---|---|---|---|---|---|---|
+| Red Dot | 99% | +0.19 (100%) | +0.60 (100%) | -0.57 (99%) | -0.32 (99%) | Sunbeam +1.68 (100%) |
+| Finishing Swat | 79% | +0.79 (92%) | -0.27 (89%) | +0.03 (88%) | (a wand) | Kitten Mittens +1.15 (88%) |
+| Lucky Paw | 96% | -0.32 (96%) | -1.24 (95%) | -0.29 (97%) | -0.19 (96%) | Second Wind +0.88 (100%) |
+| Sunbeam | 90% | +0.75 (96%) | +1.18 (99%) | +0.65 (97%) | +1.07 (97%) | Warm Blanket +1.70 (96%) |
+| Big Stretch | 95% | (a trick) | -0.25 (98%) | +0.80 (99%) | +0.45 (98%) | Flea Circus, Still Water +1.29 (98%) |
+| Second Wind | 96% | +0.93 (99%) | -0.36 (98%) | +0.68 (99%) | +0.59 (98%) | Still Water +3.13 (100%) |
+| Litter Box | 88% | +1.01 (97%) | +0.48 (97%) | +0.93 (97%) | +0.73 (96%) | Meowcronomicon +3.98 (100%); Cannon +0.22 (59%) |
+| Mimic | 94% | +0.21 (96%) | +2.26 (100%) | +0.75 (98%) | +0.74 (98%) | Litter Box +2.34 (100%) |
+| Catfight | 92% | +0.66 (97%) | +0.60 (98%) | +0.02 (95%) | +0.66 (97%) | Mimic +2.00 (100%) |
+| Mirror Fur | 94% | +1.25 (99%) | -0.25 (97%) | +2.62 (100%) | +0.65 (98%) | Flea Circus +3.71 (100%) |
+| Dry Off | 62% | +0.26 (75%) | -0.17 (80%) | -0.30 (69%) | -0.10 (68%) | Scratching Habit +1.68 (100%) |
+| Flea Circus | 84% | +1.36 (97%) | +1.04 (98%) | +0.71 (95%) | +1.08 (96%) | Mirror Fur +3.71 (100%) |
+| Haunted | 84% | +0.76 (94%) | -0.33 (92%) | +0.19 (92%) | +0.67 (94%) | Wishing Star +1.13 (96%) |
+| Scratching Habit | 100% | -0.32 (100%) | -1.02 (100%) | -0.57 (100%) | (a wand) | everything 100% |
+| Double or Nothing | 100% | (a trick) | -1.02 (100%) | +0.53 (100%) | -0.32 (100%) | Bad Milk +0.85 (100%) |
+| Cough It Up | 67% | +0.41 (81%) | +0.13 (86%) | +0.45 (85%) | (a wand) | Kitten Mittens +1.25 (80%) |
+| Nine Lives | 90% | +0.85 (97%) | +0.00 (96%) | +0.77 (97%) | +1.02 (97%) | Mark Territory +2.18 (100%) |
+
+Lucky Paw with Times Two -0.32 and Sunbeam with Times Two +0.75: Sunbeam's re-rolls fish for
+Times Two, Lucky Paw's shield is what it gives instead. Mimic with Catfight (+2.00), likely
+because both turn the enemies' own hits against them.
+
+### The biggest turns
+
+Mimic at three levels, four Plus Ones waiting (+8: 10 times), the king's chomp done to him ten
+times (255 damage, his three phases):
+
+```
+turn 2  hp 26 mana 3 kittens 1 | BULLDOG KING 78 marked4 wet3 (CHOMP FOR 26); | dice: BELL COLLAR, SPRAY BOTTLE, SPRAY BOTTLE, PLUS ONE, BELL COLLAR
+  PLUS ONE
+  re-roll BELL COLLAR, SPRAY BOTTLE, SPRAY BOTTLE, BELL COLLAR -> MARK TERRITORY, PLUS ONE, MARK TERRITORY, PLUS ONE
+  PLUS ONE
+  re-roll MARK TERRITORY, MARK TERRITORY, PLUS ONE -> PLUS ONE, LITTER STAR, SPRAY BOTTLE
+  re-roll PLUS ONE, LITTER STAR, SPRAY BOTTLE -> PLUS ONE, PLUS ONE, MIMIC
+  PLUS ONE
+  PLUS ONE
+  MIMIC +8 spooked -1 = 10 on BULLDOG KING: 30 on BULLDOG KING, 30 on BULLDOG KING, 30 on BULLDOG KING, 26 on BULLDOG KING, CROSS, 26 on BULLDOG KING, CROSS, 26 on BULLDOG KING, CROSS, 26 on BULLDOG KING, CROSS, 26 on BULLDOG KING, FURIOUS, 26 on BULLDOG KING, FURIOUS, 26 on BULLDOG KING, FURIOUS; BULLDOG KING, CROSS GETS UP; BULLDOG KING, FURIOUS GETS UP
+```
+
+Red Dot, Big Stretch and a habit at 24: every habit hit on the dotted king brings the dice
+back, the habit grows 24 to 29 in the turn, the king's 294 in turn 1:
+
+```
+turn 1  hp 30 mana 0 | BULLDOG KING 98 (ROYAL BARK: DICE -1); | dice: SCRATCHING HABIT, ZOOMIES, RED DOT, SHOOTING STAR, BIG STRETCH, BELL COLLAR
+  SCRATCHING HABIT = 24 on BULLDOG KING: 24 on BULLDOG KING
+  RED DOT = 2 on BULLDOG KING; BULLDOG KING's ward blocks it
+  SHOOTING STAR = 2 on BULLDOG KING: 2 on BULLDOG KING
+  BIG STRETCH; back -> RED DOT, ZOOMIES, SCRATCHING HABIT, RED DOT, BELL COLLAR
+  RED DOT = 2 on BULLDOG KING; BULLDOG KING's ward blocks it
+  RED DOT = 2 on BULLDOG KING; BULLDOG KING red dot 2
+  BELL COLLAR = 3
+  SCRATCHING HABIT = 25 on BULLDOG KING: 25 on BULLDOG KING; back -> ZOOMIES, BELL COLLAR, SCRATCHING HABIT, ZOOMIES, SHOOTING STAR, SHOOTING STAR
+  ... (the same, 24 more plays)
+```
+
+Double or Nothing after a chain: Lucky Paws and Litter Stars for shield and mana, a Fishbone
+on the dotted king brings two Double or Nothings back, x9 Zoomies (258 damage, turn 1):
+
+```
+turn 1  hp 30 mana 0 kittens 1 | BULLDOG KING 98 (ROYAL BARK: DICE -1); | dice: LUCKY PAW, DOUBLE OR NOTHING, LUCKY PAW, ZOOMIES, LUCKY PAW
+  re-roll LUCKY PAW, DOUBLE OR NOTHING, LUCKY PAW, ZOOMIES, LUCKY PAW -> LITTER STAR, RED DOT, LUCKY PAW, LITTER STAR, ZOOMIES
+  ...
+  RED DOT = 2 on BULLDOG KING; BULLDOG KING red dot 2
+  FISHBONE WAND = 5 on BULLDOG KING: 5 on BULLDOG KING; back -> FISHBONE WAND, ZOOMIES, LITTER STAR, LITTER STAR, ZOOMIES
+  ZOOMIES = 4: 5 hits of 4 (BULLDOG KING 5)
+  LITTER STAR = 3
+  ZOOMIES = 4: 5 hits of 4 (BULLDOG KING 5)
+  LITTER STAR = 3
+  FISHBONE WAND = 5 on BULLDOG KING: 5 on BULLDOG KING; back -> DOUBLE OR NOTHING, DOUBLE OR NOTHING, LUCKY PAW, FISHBONE WAND, ZOOMIES
+  DOUBLE OR NOTHING
+  DOUBLE OR NOTHING
+  ZOOMIES x9 = 36: 5 hits of 36 (BULLDOG KING 1, BULLDOG KING, CROSS 3, BULLDOG KING, FURIOUS 1); BULLDOG KING, CROSS GETS UP; BULLDOG KING, FURIOUS GETS UP
+```
+
+### What I would do with them
+
+1. Keep, as they are: Mimic (the most fun card here: big, many-system, an answer to whatever
+   the enemy shows), Red Dot with a cap of 5 refreshes a turn, Catfight, Mirror Fur, Lucky
+   Paw, Flea Circus, Nine Lives (die once). Mimic is the most engine code; the rest are a
+   status or an effect each.
+2. Fix: Scratching Habit's +1s for the fight only (tested above); Double or Nothing x2 at
+   level 0, or its price paid up front; Sunbeam's re-rolls capped.
+3. Drop or rework: Second Wind (an always-taken flat bonus), Dry Off and Cough It Up (no
+   enablers in her pool), Finishing Swat and Haunted (swarms are too rare; they could come
+   back with a swarm zone).
+4. With any of them in, the enemies need retuning: all seventeen take the expert from 67% to
+   88%, the chain set alone to 76%.
+
+Tools: `--study chains` (the take rates of every card and charm, the chains a turn, the longest
+chain told, each card's turns), `--refresh-most N`, `--dot-turns`, `--habit-fight` (a test),
+`check.py --tables DIR --bin BUILT`.
+
 ## What changed and why
 
 ### Rule changes

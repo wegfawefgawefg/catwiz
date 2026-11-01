@@ -42,7 +42,7 @@ void items_round_start(Battle *b) {
     }
     if (has(b, K_tail) && st[ST_SHIELD] < b->old_shield / 2)
         st[ST_SHIELD] = (int32_t)(b->old_shield / 2);
-    b->rerolls = (int8_t)(b->rerolls + charm_amount(b, K_pocket) - charm_amount(b, K_toe));
+    b->rerolls = (int16_t)(b->rerolls + charm_amount(b, K_pocket) - charm_amount(b, K_toe));
 }
 
 /* every number saturates at 255: the game keeps them in bytes (the owner, 2026-11-01) */
@@ -92,6 +92,15 @@ static void trick(Battle *b, const ItemRow *face, int n) {
         st[ST_KNEAD_FLUFF] = 1;
         b_add(b, HERO, ST_KNEAD_WAND, n);
         break;
+    case E_stretch:
+        b->stretch = (uint8_t)sat(b->stretch + n); /* items_after_play picks the dice */
+        break;
+    case E_gamble: { /* the next die times n; left unused at the turn's end, n hp */
+        int m = st[ST_MULT] > 1 ? st[ST_MULT] : 1;
+        st[ST_MULT] = sat((int64_t)m * n);
+        st[ST_GAMBLE] = sat((int64_t)st[ST_GAMBLE] + n);
+        break;
+    }
     default:
         tell_fail("trick the sim does not know: %s", EFFECT_NAME[face->effect]);
     }
@@ -109,6 +118,10 @@ void items_land(Battle *b, int row, int target, int again) {
         trick(b, face, n);
         return;
     }
+    if (face->effect == E_habit) { /* scratching habit: 1 more for each use this run */
+        n = sat(n + b->habit);
+        b->habit = (uint8_t)sat(b->habit + 1);
+    }
     int counts = 1;
     int base = n;
     int took = (st[ST_MULT] && face->slot != S_trick) || st[ST_PLUS_LEFT];
@@ -116,6 +129,7 @@ void items_land(Battle *b, int row, int target, int again) {
         n = sat((int64_t)n * st[ST_MULT]);
         counts = st[ST_MULT];
         st[ST_MULT] = 0;
+        st[ST_GAMBLE] = 0; /* double or nothing: a die took it */
     }
     if (st[ST_PLUS_LEFT]) {
         n = sat((int64_t)n + st[ST_PLUS]);
@@ -173,7 +187,10 @@ void items_land(Battle *b, int row, int target, int again) {
         st[ST_MANA] = (int32_t)(st[ST_MANA] - cost);
         b->t_sys |= SYS_MANA;
     }
+    uint8_t wand = b->wand_on;
+    b->wand_on = face->slot == S_wand; /* a red dot fires on a wand's hits (b_strike) */
     effect(b, face->effect, target, n);
+    b->wand_on = wand;
     if (three && face->combo != C_none) {
         if (b->tell)
             tell_combo(b, face->combo);
@@ -298,10 +315,12 @@ static void effect(Battle *b, int e, int t, int n) {
     case E_wet:
     case E_tangled:
     case E_brand:
+    case E_dot:
         b_curse(b, e, t, n);
         break;
     default:
-        b_apply(b, e, HERO, t, n);
+        if (!cards_effect(b, e, t, n))
+            b_apply(b, e, HERO, t, n);
     }
 }
 
@@ -363,6 +382,15 @@ void items_turn_end(Battle *b) {
     st[ST_PLUS] = 0;
     st[ST_PLUS_LEFT] = 0;
     st[ST_MULT] = 0;
+    if (st[ST_GAMBLE]) { /* double or nothing left unused */
+        int price = st[ST_GAMBLE];
+        st[ST_GAMBLE] = 0;
+        b_lose(b, HERO, price);
+        if (!b->alive[HERO]) {
+            b->result = R_LOST;
+            return;
+        }
+    }
     int k = st[ST_KITTENS];
     int times = st[ST_NIPPED] ? 2 : 1;
     st[ST_NIPPED] = 0;

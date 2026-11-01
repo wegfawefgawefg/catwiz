@@ -16,6 +16,13 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
     Player pl = {player, prng};
     Battle *b = out;
     b_init(b, &k, hp, HERO_HP, fight->enemies, fight->count, rng);
+    if (k.charm_n[K_litterbox]) { /* the kittens kept from the last fight */
+        int n = b->st[HERO][ST_KITTENS] + kit->kittens;
+        b->st[HERO][ST_KITTENS] = n < KITTENS_MOST ? n : KITTENS_MOST;
+    }
+    b->habit = RULES.habit_fight ? 0 : kit->habit;
+    if (k.charm_n[K_lives9] && !kit->revived) /* nine lives: once a run */
+        b->revive = (uint8_t)(charm_amount(b, K_lives9) / k.charm_n[K_lives9]);
     b->tell = tell;
     b_start_round(b);
     while (b->result == R_NONE) {
@@ -39,6 +46,11 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
             t->turn = (uint8_t)b->turn;
             t->dmg = (uint16_t)(b->t_dmg < 65535 ? b->t_dmg : 65535);
             t->sys = b->t_sys;
+            t->dot = b->t_dot;
+            t->stretch = b->t_stretch;
+            t->nine = b->t_nine;
+            t->swat = b->t_swat;
+            t->gain = b->t_gain;
         }
         if (b->result != R_NONE || b->turn >= TURN_CAP)
             break;
@@ -60,6 +72,7 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
 void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
     memset(out, 0, sizeof *out);
     memset(out->offer, NOTHING, sizeof out->offer);
+    memset(out->charm_offer, NOTHING, sizeof out->charm_offer);
     Mt prng, rng;
     mt_seed(&prng, seed ^ 0x5EED);
     mt_seed(&rng, seed);
@@ -111,6 +124,9 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
         if (b.result != R_WON)
             break;
         hp = b.hp[HERO];
+        kit.kittens = kit_has(&kit, K_litterbox) ? (uint8_t)b.st[HERO][ST_KITTENS] : 0;
+        kit.habit = b.habit;
+        kit.revived = kit.revived || (kit_has(&kit, K_lives9) && !b.revive);
         f++;
         if (f >= FIGHT_COUNT) {
             out->won = 1;

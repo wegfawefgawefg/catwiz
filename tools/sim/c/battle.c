@@ -4,7 +4,7 @@
 #include "sim.h"
 #include "tell.h"
 
-Rules RULES = {1, 0, 0}; /* the sixth toe's die; no cap on a waiting times (255, main.c) */
+Rules RULES = {1, 0, 0, 1, 0, 0}; /* red dot: # is how many times it fires */ /* the sixth toe's die; no cap on a waiting times (255, main.c) */
 
 void b_set_enemy(Battle *b, int i, int k) {
     const KindRow *kind = &KINDS[k];
@@ -109,6 +109,8 @@ void b_roll(Battle *b) {
             int f = (int)((mt_bits(b->rng, 8) * 6) >> 8);
             b->face_of[s] = (uint8_t)f;
             b->hand[s] = b->faces[f];
+            if (b->hand[s] == HAIRBALL && b->hair < 255)
+                b->hair++; /* cough it up */
         }
     }
 }
@@ -140,6 +142,10 @@ void b_start_round(Battle *b) {
     b->rerolls = REROLLS;
     b->last_played = NOTHING;
     b->lost_this_round = 0;
+    b->refreshes = 0;
+    b->hair = 0;
+    st[ST_MIRROR] = 0;
+    b->t_dot = b->t_stretch = b->t_nine = b->t_swat = b->t_gain = 0;
     b->t_dmg = 0;
     b->t_sys = 0;
     b->t_played = 0;
@@ -153,7 +159,7 @@ void b_start_round(Battle *b) {
 }
 
 int b_can_play(const Battle *b, int s) {
-    if (b->played[s])
+    if (b->played[s] || (b->back >> s & 1))
         return 0;
     const ItemRow *face = &ITEMS[b->hand[s]];
     if (face->slot == S_junk)
@@ -204,6 +210,7 @@ void b_play(Battle *b, int s, int target) {
         tell_play(b, row, t);
     items_land(b, row, t, 0);
     b_after_action(b);
+    items_after_play(b, s);
     if (b->tell)
         tell_play_done(b);
 }
@@ -356,6 +363,15 @@ void b_curse(Battle *b, int effect, int target, int n) {
     case E_tangled:
         b_add(b, target, ST_TANGLE, n);
         break;
+    case E_dot:
+        b_add(b, target, ST_DOT, n);
+        break;
+    case E_catfight:
+        b_add(b, target, ST_CATFIGHT, n);
+        break;
+    case E_haunt:
+        b_add(b, target, ST_HAUNT, n);
+        break;
     default:
         st[ST_SHIELD] = 0;
     }
@@ -363,128 +379,6 @@ void b_curse(Battle *b, int effect, int target, int n) {
         b->t_sys |= SYS_STATUS;
     if (b->tell)
         tell_status(b, target, effect, n);
-}
-
-/* ---- battle/hit.tsp */
-
-static int dealt(Battle *b, int who, int damage) {
-    int32_t *st = b->st[who];
-    int cheer = st[ST_CHEER];
-    st[ST_CHEER] = 0;
-    int d = damage + cheer + st[ST_STRENGTH];
-    if (d > 255)
-        d = 255; /* a hit is a byte: it saturates (the owner, 2026-11-01; it wrapped) */
-    if (st[ST_TANGLE]) {
-        d -= st[ST_TANGLE];
-        if (d < 0)
-            d = 0;
-    }
-    if (st[ST_WET] > 0)
-        d >>= 1;
-    return d;
-}
-
-void b_strike(Battle *b, int by, int target, int amount, int pierce) {
-    if (by == HERO && target == HERO)
-        b->self_hits++;
-    int damage = dealt(b, by, amount);
-    int32_t *st = b->st[target];
-    damage += st[ST_BRAND];
-    if (damage > 255)
-        damage = 255;
-    if (st[ST_BRAND] && by == HERO)
-        b->t_sys |= SYS_STATUS; /* a marked hit */
-    if (st[ST_REFLECT] && by == HERO) {
-        int back = st[ST_REFLECT] < damage ? st[ST_REFLECT] : damage;
-        st[ST_REFLECT] = (int32_t)(st[ST_REFLECT] - back);
-        damage -= back;
-        b_strike_plain(b, HERO, back);
-    }
-    if (b->tell && by == HERO)
-        tell_hit(b, target, damage);
-    if (pierce)
-        b_lose(b, target, damage);
-    else
-        b_strike_plain(b, target, damage);
-    if (target == HERO && by != HERO && b->st[HERO][ST_THORNS])
-        b_lose(b, by, b->st[HERO][ST_THORNS]);
-}
-
-/* statuses.taken, then hit.lose */
-void b_strike_plain(Battle *b, int target, int damage) {
-    int32_t *st = b->st[target];
-    int shield = st[ST_SHIELD];
-    if (shield >= damage) {
-        st[ST_SHIELD] = (int32_t)(shield - damage);
-        return;
-    }
-    st[ST_SHIELD] = 0;
-    b_lose(b, target, damage - shield);
-}
-
-static void release(Battle *b, int who) {
-    for (int d = 0; d < b->ndice; d++) {
-        if (b->held[d] == who) {
-            b->held[d] = NOTHING;
-            b->in_draw[d] = 1;
-        }
-    }
-}
-
-static void die(Battle *b, int who) {
-    if (who == HERO) {
-        b->alive[HERO] = 0;
-        return;
-    }
-    int then = KINDS[b->kind[who]].then;
-    release(b, who);
-    if (then != NOTHING) {
-        /* the possum gets up, the elites' second forms, the boss's next phase: a round to
-           get up, it skips one move */
-        b_set_enemy(b, who, then);
-        b->st[who][ST_FRESH] = 1;
-        if (b->tell)
-            tell_line(b, "  %s GETS UP", KINDS[then].name);
-        return;
-    }
-    b->alive[who] = 0;
-    if (b->tell)
-        tell_beaten(b, who);
-}
-
-void b_lose(Battle *b, int who, int n) {
-    if (!b->alive[who])
-        return;
-    int hp = b->hp[who];
-    if (n > hp)
-        n = hp;
-    b->hp[who] = (int32_t)(hp - n);
-    if (who == HERO) {
-        b->hero_lost += n;
-        b->lost_this_round += n;
-        if (n > 0)
-            items_hero_hurt(b);
-    } else {
-        b->st[who][ST_HURT] = (int32_t)(b->st[who][ST_HURT] + n);
-        if (b->in_turn)
-            b->t_dmg += n;
-    }
-    if (hp - n == 0)
-        die(b, who);
-}
-
-void b_heal(Battle *b, int who, int n) {
-    int hp = b->hp[who] + n;
-    if (hp > b->maxhp[who])
-        hp = b->maxhp[who];
-    if (who == HERO)
-        b->hero_healed += hp - b->hp[who];
-    b->hp[who] = (int32_t)hp;
-}
-
-void b_add(Battle *b, int who, int status, int n) {
-    int v = b->st[who][status] + n;
-    b->st[who][status] = (int32_t)(v < 255 ? v : 255); /* bytes, saturating (99 before) */
 }
 
 void b_end_turn(Battle *b) {

@@ -26,7 +26,8 @@ SHORTLIST = 5
 
 CHARM_WORTH = {"pocket": 3.0, "nightlight": 2.5, "fishbone": 3.0, "bell": 1.5, "pillow": 3.5,
                "toe": 3.0, "still": 2.0, "trio": 2.5, "mittens": 2.0, "mother": 2.5,
-               "tail": 2.5, "grumpy": 2.0, "duck": 1.5, "badmilk": 2.5}
+               "tail": 2.5, "grumpy": 2.0, "duck": 1.5, "badmilk": 2.5,
+               "nine": 3.0, "litterbox": 1.5, "lives9": 3.0}
 
 
 class Kit:
@@ -42,6 +43,9 @@ class Kit:
         self.levels = {}
         self.charms = []
         self.lives = 0
+        self.kittens = 0  # kept from the last fight (the litter box charm)
+        self.habit = 0  # scratching habit's uses this run
+        self.revived = False  # nine lives (die once) spent
 
     @property
     def dice(self):
@@ -65,6 +69,9 @@ class Kit:
         k.levels = dict(self.levels)
         k.charms = list(self.charms)
         k.lives = self.lives
+        k.kittens = self.kittens
+        k.habit = self.habit
+        k.revived = self.revived
         return k
 
     def level(self, slot):
@@ -99,6 +106,10 @@ def item_worth(rules, row, level):
         "copy": 2.0 + n, "knead": 1.5 + n, "reroll": 1.2 * n, "sardine": 1.0 + n,
         "string": 1.8 * n, "shoot": 1.1 + n, "moon": 1.1 + 0.7 * n, "wish": 1.1 * n + 1.5,
         "litter": 1.1 * n + 1.0, "tangled": 1.5 * n, "pile": 0.7 * n + 1.0, "kittens": 3.0 * n, "cannon": 1.5 * n,
+        # the chain and combo cards (2026-11-01)
+        "dot": 2.0 * n + 1.0, "swat": 1.4 * n, "paw": 0.7 * n + 1.5, "sunbeam": 1.1 * n + 0.5, "stretch": 1.5 * n,
+        "mimic": 4.0 * n, "catfight": 1.5 + 0.8 * n, "mirror": 1.1 * n, "dryoff": 2.0 * n, "circus": 2.5 * n,
+        "haunt": 1.0 * n, "habit": 1.3 * n + 1.0, "gamble": 1.0 * n, "cough": 0.5 * n,
     }
     w = table.get(e, 0.0)
     if f.combo and f.combo != "none":

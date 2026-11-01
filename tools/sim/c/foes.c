@@ -23,6 +23,8 @@ static int status_end(Battle *b, int who) {
     if (st[ST_WET] > 0)
         st[ST_WET]--;
     st[ST_TANGLE] = 0;
+    if (!RULES.dot_charges && st[ST_DOT] > 0)
+        st[ST_DOT]--; /* red dot's turns */
     int turns = st[ST_FLEA_TURNS];
     if (turns == 0)
         return 0;
@@ -62,6 +64,18 @@ static void land_move(Battle *b, int row, int by, int target) {
         return; /* a cardboard box: hit-alls miss */
     if (move->aim == A_all && target == HERO && RULES.kitten_rule == 1 && b->st[HERO][ST_KITTENS])
         b->st[HERO][ST_KITTENS]--; /* a hit-all scares a kitten off */
+    int extra = b->st[by][ST_CATFIGHT];
+    if (extra && target == HERO && (move->effect == E_hit || move->effect == E_hit2)) {
+        /* catfight: its hit goes to a friend, harder (with none it waits) */
+        for (int i = 1; i < ACTORS; i++) {
+            if (i != by && b->alive[i]) {
+                b->st[by][ST_CATFIGHT] = 0;
+                int n = move->amount + extra;
+                b_apply(b, move->effect, by, i, n < 255 ? n : 255);
+                return;
+            }
+        }
+    }
     b_apply(b, move->effect, by, target, move->amount);
 }
 

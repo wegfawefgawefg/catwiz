@@ -29,6 +29,7 @@ typedef struct {
     uint64_t played;
     uint16_t dmg;
     uint8_t fight, turn, sys;
+    uint8_t dot, stretch, nine, swat, gain; /* the chain cards (Battle's t_ counts) */
 } TurnRec;
 
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
     Kit kit_at[FIGHT_COUNT];       /* walking into each fight */
     uint32_t seen[ITEM_COUNT], played[ITEM_COUNT]; /* faces shown at a turn's end, played */
     uint8_t offer[FIGHT_COUNT][3]; /* the cards offered after each fight (NOTHING: none) */
+    uint8_t charm_offer[FIGHT_COUNT][3]; /* the charms offered (NOTHING: none) */
     uint32_t boosts[ITEM_COUNT], boost_gain[ITEM_COUNT]; /* the faces that took +1 or x2 */
     uint8_t kitten_peak; /* the most kittens at once in the run (at a turn's end) */
     TurnRec turns[MAX_TURNS];

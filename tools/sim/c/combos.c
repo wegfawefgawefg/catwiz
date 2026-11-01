@@ -25,6 +25,7 @@ int study_luck(int player, int runs, uint64_t seed, int jobs);
 int study_boosts(int player, int runs, uint64_t seed, int jobs);
 int study_kittens(int player, int runs, uint64_t seed, int jobs);
 int study_cards(int player, int runs, uint64_t seed, int jobs);
+int study_chains(int player, int runs, uint64_t seed, int jobs);
 const char *LIFT_WITH = NULL; /* --with NAME: the lift's pairs with this part only */
 const char *LIFT_WITHOUT = NULL; /* --without NAME: the lift's triples leave this part out */
 const char *LIFT_FROM = NULL; /* --lift-from FILE: an earlier lift's output (the same tables,
@@ -266,6 +267,8 @@ int combos_main(int argc, char **argv) {
     }
     if (!strcmp(what, "lift"))
         return study_lift(player, runs, seed, jobs, top);
+    if (!strcmp(what, "chains"))
+        return study_chains(player, runs, seed, jobs);
     if (!strcmp(what, "cards"))
         return study_cards(player, runs, seed, jobs);
     if (!strcmp(what, "kittens"))
