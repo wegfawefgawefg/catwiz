@@ -1522,6 +1522,58 @@ round, on top of the earlier rounds' list:
 
 Tools: `--check-targets`, `--blunder P`, `--blunder-pick Q`.
 
+## The house (2026-11-01)
+
+The third zone is THE HOUSE now (the owner: a cat's journey home, the woods, the garden, the
+house). Fights 4 and 8 swap so the enemies fit their places: fight 4 is the sprinkler and the
+lawnmower (in the garden; the table's fight has 2 enemies, its third spot unused, as it was
+at 8), fight 8 the dust bunnies and the roomba (in the house). Every other fight stays. Only
+the two enemies that live in one fight each were retuned, so the sprinkler and the dust bunny
+(also in fights 5 and 7) keep their numbers:
+
+| enemy | field | was | now |
+|---|---|---|---|
+| Lawnmower | hp | 60 | 34 |
+| Lawnmower | mows for # | 14 | 6 |
+| Roomba | hp | 42 | 62 |
+| Roomba | full speed bump # | 12 | 18 |
+
+Each fight plays like its slot did (the expert, 4,096 runs, seed 61):
+
+| fight | hp lost, turns before the swap | the swap alone | retuned |
+|---|---|---|---|
+| 4 | 2.2, 3.0 | 6.4, 4.0 (the mailman then killed 10.9%) | 2.6, 3.0 |
+| 8 | 3.4, 3.5 | 1.3, 2.7 | 3.2, 3.3 |
+
+The draft was re-learned (two passes); the expert wins 70.5% (69.3% before), runs with a fight
+over 15 turns 7.6%. The target check on these tables:
+
+```
+targets: 4096 runs a line, seed 61
+  PASS  random wins 0.0% (under 0.5%)
+  PASS  greedy wins 0.0% (5% at most)
+    lost in fight: 1:0.0% 2:0.0% 3:75.3% 4:0.0% 5:0.3% 6:17.6% 7:0.2% 8:1.5% 9:4.3% 10:0.8%
+  expert             wins  70.5%  (a play 0.000, a pick 0.00: 0.00 blunders a turn, 0.00 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:3.9% 4:0.0% 5:0.0% 6:2.6% 7:0.0% 8:0.1% 9:5.8% 10:17.1%
+  PASS  the expert wins 70.5% (60-75%)
+  PASS  the king kills the most expert runs (17.1%)
+  PASS  THE OLD SHROOM kills 3.9% of the 4096 expert runs reaching it (2% at least)
+  PASS  THE MAILMAN kills 2.7% of the 3936 expert runs reaching it (2% at least)
+  PASS  THE VET kills 3.0% of the 1109 expert runs reaching it (2% at least)
+  PASS  THE BIG BATH kills 7.5% of the 2716 expert runs reaching it (2% at least)
+  a slip a fight     wins  53.0%  (a play 0.055, a pick 0.10: 0.25 blunders a turn, 1.04 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:6.9% 4:0.3% 5:0.6% 6:8.2% 7:0.4% 8:0.9% 9:10.3% 10:19.4%
+  a blunder a turn   wins  23.4%  (a play 0.220, a pick 0.25: 0.99 blunders a turn, 4.17 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:16.6% 4:0.8% 5:2.4% 6:19.9% 7:2.3% 8:3.1% 9:14.0% 10:17.3%
+  two a turn         wins   3.8%  (a play 0.450, a pick 0.50: 1.94 blunders a turn, 8.09 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:35.2% 4:4.0% 5:6.2% 6:28.0% 7:4.5% 8:3.3% 9:8.4% 10:6.7%
+  PASS  a slip a fight (53.0%) wins less than expert (70.5%)
+  PASS  a blunder a turn (23.4%) wins less than a slip a fight (53.0%)
+  PASS  two a turn (3.8%) wins less than a blunder a turn (23.4%)
+  PASS  a blunder a turn wins 23.4%, under 45% of the expert's (31.7%)
+PASS: 0 failed
+```
+
 ## What changed and why
 
 ### Rule changes

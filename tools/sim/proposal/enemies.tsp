@@ -117,7 +117,7 @@
             :stall 0)
         (make Enemy
             :name "ROOMBA"
-            :hp 42
+            :hp 62
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 14
@@ -167,7 +167,7 @@
             :stall 0)
         (make Enemy
             :name "LAWNMOWER"
-            :hp 60
+            :hp 34
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 26
