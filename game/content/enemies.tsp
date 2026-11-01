@@ -186,7 +186,7 @@
             :stall 0)
         (make Enemy
             :name "The vet"
-            :hp 76
+            :hp 66
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 32
@@ -216,7 +216,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king"
-            :hp 98
+            :hp 108
             :ward 2
             :figure art.KIND_PUFFCAP
             :first_move 42
@@ -226,7 +226,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, cross"
-            :hp 98
+            :hp 108
             :ward 1
             :figure art.KIND_PUFFCAP
             :first_move 45
@@ -236,7 +236,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, furious"
-            :hp 98
+            :hp 108
             :ward 0
             :figure art.KIND_PUFFCAP
             :first_move 49
@@ -256,7 +256,7 @@
             :stall 0)
         (make Enemy
             :name "The old shroom"
-            :hp 46
+            :hp 60
             :ward 1
             :figure art.KIND_PUFFCAP
             :first_move 55

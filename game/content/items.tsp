@@ -428,7 +428,7 @@
             :icon icons.TILE_FLEAS)
         (make ac.Item
             :name "SUNBEAM"
-            :text "+# mana. Extra mana gives re-rolls."
+            :text "+# mana. Past 5, up to 2 re-rolls."
             :slot ac.Slot.star
             :amount 2
             :step 1
@@ -446,7 +446,7 @@
             :icon icons.TILE_TWIG)
         (make ac.Item
             :name "DOUBLE OR NOTHING"
-            :text "Next die x#. If unused, lose # hp."
+            :text "Next die x#. It costs you 1 hp."
             :slot ac.Slot.trick
             :amount 3
             :step 1

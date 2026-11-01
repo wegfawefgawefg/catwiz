@@ -100,6 +100,9 @@
             (steps.LEAST
                 (if (< v a)
                     (set v a)))
+            (steps.MOST
+                (if (> v a)
+                    (set v a)))
             (steps.KEPT (set v state.kept))
             (steps.IF
                 (if (= old 0)

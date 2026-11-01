@@ -6,7 +6,7 @@
 ; steps that give or take an amount use.
 ;
 ; values:     num (v = n), lit k (v = k), kits k (v + k a kitten), get s (v = her stack s),
-;             least k (v at least k), kept (v = the kittens kept from the last fight)
+;             least k (v at least k), most k (v at most k), kept (v = the kittens kept from the last fight)
 ; conditions: has s (the next step only when her stack s is not 0), if_up (the rest of the loop, or
 ;             of the steps, only while t stands), three (the rest only when this face is her
 ;             slot's third this turn: the item's three), calm (the rest only when she has not
@@ -79,6 +79,7 @@
 (const MIMIC u8 36)
 (const CUE u8 37)
 (const SAY u8 38)
+(const MOST u8 39)
 
 ; a stack step's argument: the status, plus ON_T for t's stack instead of hers
 (const ON_T u8 0x80)
@@ -106,6 +107,7 @@
             ('get (list 'GET 'her))
             ('t_get (list 'GET 'its))
             ('least (list 'LEAST 'num))
+            ('most (list 'MOST 'num))
             ('kept (list 'KEPT 'none))
             ('has (list 'IF 'her))
             ('t_has (list 'IF 'its))

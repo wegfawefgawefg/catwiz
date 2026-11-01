@@ -12,6 +12,8 @@
 (const FLEA_TURNS u8 3)   ; fleas bite for this many of its turns
 (const BACK_MOST u8 5)    ; her dice come back this many times a turn at most (the sim's cap)
 (const REROLLS_MOST u8 9) ; re-rolls she can hold at most (the tray shows one digit)
+(const SUNBEAM_REROLLS u8 2) ; the re-rolls a sunbeam's mana past 5 gives at most (the sim's)
+(const GAMBLE_PRICE u8 1) ; the hit points a double or nothing costs when played (the sim's)
 (const ZOOMIES_HITS u8 5) ; Zoomies' hits, enemies left to right
 (const SCREAM_SELF u8 1)  ; what 3 AM Screaming does to her
 
@@ -166,23 +168,24 @@
 ; Lucky Paw (fluff): a shield and a re-roll
 (steps.steps LUCKY_PAW (call SUB_SHIELD) (lit 1) (rerolls) (say FREE_REROLL))
 
-; Sunbeam (star): mana, and what goes past the most is re-rolls
-(steps.steps SUNBEAM (cue chime) (spill) (rerolls) (get mana) (say MANA_NOW))
+; Sunbeam (star): mana, and what goes past the most is re-rolls, SUNBEAM_REROLLS at most
+(steps.steps SUNBEAM (cue chime) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
 
 ; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
 ; for the fight
 (steps.steps SCRATCHING_HABIT (call SUB_ZAP_HIT) (lit 1) (add habit))
 
-; Double or Nothing (trick): the next die times #; the bet (gamble: here the same #, the sim's
-; form) is lost at her turn's end if no die took the times (HOOKS: BET_LOST)
+; Double or Nothing (trick): the next die times #, and it costs her GAMBLE_PRICE hit points as
+; it is played (the sim's final form: x3 for 1 hp)
 (steps.steps DOUBLE_OR_NOTHING
     (cue chime)
     (lit 1)
     (max mult)
     (num)
     (times mult)
-    (num)
-    (add gamble)
+    (lit GAMBLE_PRICE)
+    (me)
+    (hurt)
     (get mult)
     (say DOUBLE_NEXT))
 
@@ -244,15 +247,13 @@
 (steps.steps MIRROR (blocked) (sub mirror) (hurt) (say_it BOUNCED))
 ; she was hit while spiky: who hit her takes the spikes
 (steps.steps THORNS (hurt))
-; her turn ended with a double or nothing's times still waiting
-(steps.steps BET_LOST (sub gamble) (hurt) (say_me BET_LOST))
 
 (struct Hook ((status st.Status) (when steps.When) (value st.Status) (fx (ptr u8))))
 
-(const HOOK_COUNT u8 5)
+(const HOOK_COUNT u8 4)
 
-(const HOOKS (array Hook 5)
-    (make (array Hook 5)
+(const HOOKS (array Hook 4)
+    (make (array Hook 4)
         (make Hook
             :status st.Status.dot
             :when steps.When.wand_hit
@@ -272,12 +273,7 @@
             :status st.Status.thorns
             :when steps.When.hit_her
             :value st.Status.thorns
-            :fx (addr_of (at THORNS 0)))
-        (make Hook
-            :status st.Status.gamble
-            :when steps.When.turn_end
-            :value st.Status.gamble
-            :fx (addr_of (at BET_LOST 0))))
+            :fx (addr_of (at THORNS 0))))
     :in aux)
 
 ; ---- the charms' steps (v: the charm's amount, times the ones she holds)
