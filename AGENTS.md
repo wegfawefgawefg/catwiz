@@ -238,6 +238,11 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
   music voice: 2 (left, the hero's side) or 5 (right, the enemies'), so the songs keep their
   least-missed parts there (the pad and the shaker).
+- The chain cards have their own cues (2026-11-01), named by a `(cue ...)` step in each card's
+  steps: dart (Red Dot), mimic, yowl (Catfight), shimmer (Mirror Fur), lucky (Lucky Paw), hops
+  (Flea Circus), glow (Sunbeam), scratch (Scratching Habit), coin (Double or Nothing). On the
+  speaker each borrows the sound it replaced (the zap, the ping, the chime), and the curses'
+  have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
 - The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
   copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
   which `tisple expand` shows).

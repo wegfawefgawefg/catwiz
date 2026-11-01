@@ -148,13 +148,14 @@
 ; ---- the chain and combo cards (docs/balance.md "The chain and combo cards", the owner's picks)
 
 ; Red Dot (curse): its dots; a wand hit on it brings her dice back (HOOKS: DOT_FIRES)
-(steps.steps RED_DOT (curse dot) (t_get dot) (say_it RED_DOT))
+(steps.steps RED_DOT (cue dart) (curse dot) (t_get dot) (say_it RED_DOT))
 
 ; Catfight (curse): its next hit on her goes to a friend, this much harder (content/foes)
-(steps.steps CATFIGHT (curse catfight) (t_get catfight) (say_it CATFIGHT))
+(steps.steps CATFIGHT (cue yowl) (curse catfight) (t_get catfight) (say_it CATFIGHT))
 
 ; Flea Circus (curse): fleas, and when it falls they jump on (HOOKS: CIRCUS_JUMPS)
 (steps.steps FLEA_CIRCUS
+    (cue hops)
     (curse poison)
     (lit FLEA_TURNS)
     (t_set flea_turns)
@@ -164,22 +165,28 @@
     (say_it FLEA_CIRCUS))
 
 ; Mirror Fur (fluff): a shield, and what it takes this round bounces back (HOOKS: MIRROR)
-(steps.steps MIRROR_FUR (call SUB_SHIELD) (add mirror))
+(steps.steps MIRROR_FUR (cue shimmer) (add shield) (say_me SHIELDS) (add mirror))
 
 ; Lucky Paw (fluff): a shield and a re-roll
-(steps.steps LUCKY_PAW (call SUB_SHIELD) (lit 1) (rerolls) (say FREE_REROLL))
+(steps.steps LUCKY_PAW
+    (cue lucky)
+    (add shield)
+    (say_me SHIELDS)
+    (lit 1)
+    (rerolls)
+    (say FREE_REROLL))
 
 ; Sunbeam (star): mana, and what goes past the most is re-rolls, SUNBEAM_REROLLS at most
-(steps.steps SUNBEAM (cue chime) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
+(steps.steps SUNBEAM (cue glow) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
 
 ; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
 ; for the fight
-(steps.steps SCRATCHING_HABIT (call SUB_ZAP_HIT) (lit 1) (add habit))
+(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (lit 1) (add habit))
 
 ; Double or Nothing (trick): the next die times #, and it costs her GAMBLE_PRICE hit points as
 ; it is played (the sim's final form: x3 for 1 hp)
 (steps.steps DOUBLE_OR_NOTHING
-    (cue chime)
+    (cue coin)
     (lit 1)
     (max mult)
     (num)
@@ -191,7 +198,7 @@
     (say DOUBLE_NEXT))
 
 ; Mimic (book): t's shown move, # times, done by her (MIMICRY says what each move is for her)
-(steps.steps MIMIC (cue zap) (look) (rep) (retarget) (mimic) (end))
+(steps.steps MIMIC (cue mimic) (look) (rep) (retarget) (mimic) (end))
 
 ; what an enemy's move is for her when she mimics it, v its number: its hit on t (a hit-all on
 ; them all), its shield, its healing on her, its call a kitten, its cheer or growing a waiting
