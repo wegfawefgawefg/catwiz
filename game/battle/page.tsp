@@ -1,5 +1,6 @@
-; the pages over the stage in her turn: her kit (battle/bag: B, or BAG) and the rules
-; (battle/rules: ?, or the ? button). A page covers the stage and the tray's rows with black and
+; the pages over the stage: in her turn her kit (battle/bag: B, or BAG) and the rules
+; (battle/rules: ?, or the ? button); between fights her kit (B, BAG), to read her faces while
+; she picks. A page covers the stage and the tray's rows with black and
 ; draws itself there, with CLOSE where the re-roll and END TURN buttons were (their tap boxes, R
 ; and E, close it); the fight waits under it (battle.step goes no further while one is open, and
 ; no look is drawn). Closing puts the stage back from the spare page (the fight's picture stays
@@ -11,6 +12,7 @@
 (import draw/screen)
 (import draw/scene)
 (import battle/bag)
+(import battle/reward)
 (import battle/rules)
 (import battle/map)
 (import battle/log)
@@ -34,17 +36,22 @@
 (const PINK u8 11)
 (const WHITE u8 15)
 
-; key in her turn: B opens her kit, ? the rules; gives whether it opened one
-(fn opens ((key u8)) bool
-    (if (= (& key 0xDF) 'B')
-        (do
-            (open state.Page.bag)
-            (return true)))
-    (if (= key '?')
-        (do
-            (open state.Page.rules)
-            (return true)))
-    false)
+; key in her turn (rules) or between fights: B opens her kit, ? the rules (in her turn); gives
+; whether it opens one. It is drawn at the next step (step: fresh), so only the pages' own code
+; draws pages, and it loads with them (an overlay group), whatever screen opened one
+(let fresh bool false)
+
+(fn opens ((key u8) (in_turn bool)) bool
+    (let p state.Page (if (= (& key 0xDF) 'B')
+        state.Page.bag
+        (if (and in_turn (= key '?'))
+            state.Page.rules
+            state.Page.none)))
+    (if (= p state.Page.none)
+        (return false))
+    (set state.page p)
+    (set fresh true)
+    true)
 
 ; row y's part of a pill from pixel x0 to x1 - 1 with the word s (n glyphs) on it
 (fn pill_row ((y u8) (x0 u8) (x1 u8) (s (ptr u8)) (n u8)) void
@@ -79,8 +86,7 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< g0 1) PILL_TOP (<< (- 20 g0) 1) (- PILL_END PILL_TOP)))
 
-(fn open ((p state.Page)) void :overlay
-    (set state.page p)
+(fn open ((p state.Page)) void
     (sound.cue sound.Cue.confirm)
     ; the rules' lines cover the stage's first 120 rows whole: only the rest is filled black
     (let top u8 (if (= p state.Page.bag)
@@ -98,6 +104,11 @@
 
 ; one frame with a page open
 (fn step ((key u8)) void :overlay
+    (if fresh
+        (do
+            (set fresh false)
+            (open state.page)
+            (return)))
     (let close bool (if (= state.page state.Page.bag)
         (bag.key key)
         (rules.key key)))
@@ -105,7 +116,8 @@
         (shut)))
 
 ; the page closed: the stage and the tray's rows as the fight's picture has them, the map, then
-; the tray, the text and the looks drawn again as they are
+; the tray, the text and the looks drawn again as they are; between fights the reward's next
+; step draws its own again (reward.reshow)
 (fn shut () void
     (set state.page state.Page.none)
     (sound.cue sound.Cue.blip)
@@ -113,6 +125,10 @@
     (scene.forget)
     (map.draw)
     (tray.forget)
+    (if (= state.phase state.Phase.reward)
+        (do
+            (set reward.reshow true)
+            (return)))
     (set state.hud_dice 0x3F)
     (set state.hud_rerolls true)
     (set state.hud_words true)

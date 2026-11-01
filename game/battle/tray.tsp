@@ -196,10 +196,14 @@
     (set faces_only true)
     (set side_on false))
 
-; row y of slot n's card: its white
+; row y of slot n's card: its white (its shape's row, moved to the slot: art/hud_data)
 (fn card_row ((n u8) (y u8)) void
-    (let at u8 (+ (* n hud.TRAY_ROWS) (- y hud.TRAY_TOP)))
-    (pix.span (at hud.CARD_FIRST at) (at hud.CARD_END at) WHITE))
+    (let r u8 (- (- y hud.TRAY_TOP) hud.CARD_ROW0))
+    (if (>= r hud.CARD_ROWS) ; above the cards, r wraps past it
+        (return))
+    (let at u8 (+ (at hud.CARD_SHAPE n) r))
+    (let d u8 (at hud.CARD_SHIFT n))
+    (pix.span (+ (at hud.CARD_FIRST at) d) (+ (at hud.CARD_END at) d) WHITE))
 
 ; row y of slot n's picture and caption
 (fn face_row ((n u8) (y u8)) void
@@ -282,18 +286,7 @@
             (set (at side_glyphs 1) (+ '0' rerolls))
             (pix.glyphs 115 (addr_of (at side_glyphs 0)) 2 (- y 128) WHITE)))
     ; the bag (her kit) and the rules: small white pills
-    (if (and (>= y 122) (< y 129))
-        (do
-            (pix.span
-                (if (or (= y 122) (= y 128))
-                    125
-                    124)
-                (if (or (= y 122) (= y 128))
-                    139
-                    140)
-                WHITE)
-            (if (and (>= y 123) (< y 128))
-                (pix.glyphs 127 "BAG" 3 (- y 123) BLACK))))
+    (bag_button y)
     (if (and (>= y 131) (< y 138))
         (do
             (pix.span
@@ -332,6 +325,21 @@
             (if (and (>= y 151) (< y 156))
                 (pix.glyphs 107 "END TURN" 8 (- y 151) WHITE)))))
 
+; row y of the BAG button (her kit): a small white pill
+(fn bag_button ((y u8)) void
+    (if (and (>= y 122) (< y 129))
+        (do
+            (pix.span
+                (if (or (= y 122) (= y 128))
+                    125
+                    124)
+                (if (or (= y 122) (= y 128))
+                    139
+                    140)
+                WHITE)
+            (if (and (>= y 123) (< y 128))
+                (pix.glyphs 127 "BAG" 3 (- y 123) BLACK)))))
+
 ; the side as it shows: drawn whole the first time, then only the rows of the re-roll button
 ; and the stars, and only when what they show changed (the hero's badge changing asks too)
 (let side_rerolls u8 0)
@@ -359,11 +367,12 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
-; the buttons off, between fights
+; between fights: the buttons off but BAG (her kit, battle/bag)
 (fn clear_side () void
     (set side_on false)
     (pix.begin SIDE_G0 SIDE_GN)
-    (pix.fill BLACK)
     (for y u8 HUD_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
+        (pix.fill BLACK)
+        (bag_button y)
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) HUD_TOP (<< SIDE_GN 1) (- (+ hud.TRAY_TOP hud.TRAY_ROWS) HUD_TOP)))

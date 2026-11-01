@@ -186,13 +186,19 @@
     (match state.phase
         (state.Phase.rolling (turn.roll_step))
         (state.Phase.player
-            (if (not (page.opens key))
+            (if (not (page.opens key true))
                 (turn.player_key key)))
         (state.Phase.acting
             (if (act.step)
                 (turn.after_action)))
         (state.Phase.enemies (turn.enemies_step))
         (state.Phase.reward
+            ; B opens her kit (in a branch that returns: the reward's step keeps its facts,
+            ; page none, and its overlay group stays apart from the pages')
+            (if (= (& key 0xDF) 'B')
+                (do
+                    (page.opens key false)
+                    (return state.Screen.battle)))
             (if (reward.step key)
                 (do
                     (set state.stage (+ state.stage 1))

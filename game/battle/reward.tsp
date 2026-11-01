@@ -94,10 +94,26 @@
     (set state.phase state.Phase.reward)
     (set state.selected state.NOTHING)
     (set state.next_fight (+ state.stage 1))
+    (set reshow false)
     (tray.clear_side)
     (kit.show)
     (offer.draw false)
     (go state.Pick.cards))
+
+; her kit's page closed (battle/page): the step as it was, drawn again over the fight's picture:
+; the BAG button, her six faces on the stage, the choices, the text (the pick's, if one is)
+(let reshow bool false)
+
+(fn show_again () void
+    (set reshow false)
+    (tray.clear_side)
+    (kit.show)
+    (draw_cards)
+    (if (= state.picked state.NOTHING)
+        (do
+            (kit.preview state.NOTHING state.NOTHING false)
+            (prompt))
+        (set due state.picked)))
 
 ; a step: its choices in the tray, its prompt in the text
 (fn go ((pick state.Pick)) void
@@ -445,6 +461,8 @@
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
 (fn step ((key u8)) bool :overlay
+    (if reshow
+        (show_again))
     (if (and (>= key '1') (< key (+ '1' choices)))
         (return (pick (- key '1'))))
     (match key

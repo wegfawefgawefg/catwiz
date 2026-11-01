@@ -195,12 +195,27 @@ def hud_module():
     lines.append("(const TRAY_TOP u8 %d)" % H.TRAY_TOP)
     lines.append("(const TRAY_ROWS u8 %d)" % (H.TRAY_BOTTOM - H.TRAY_TOP))
     lines.append("(const SLOTS u8 %d)" % len(H.CARD_CX))
-    first, last = [], []
-    for s in range(len(H.CARD_CX)):
-        for a, b in H.card_spans(s):
-            first.append(a)
-            last.append(b)
-    lines.append(table("CARD_FIRST", "u8", first, "slot * TRAY_ROWS + row: the white of the tilted card, pixels"))
+    # the cards' white spans, rows CARD_ROW0 on (the ones any card has), one table a shape:
+    # slots whose cards are the same shape moved sideways share one (CARD_SHAPE its first
+    # entry, CARD_SHIFT the pixels to add), which keeps main memory's bytes down
+    spans = [H.card_spans(s) for s in range(len(H.CARD_CX))]
+    used = [r for sp in spans for r, (a, b) in enumerate(sp) if b > a]
+    r0, r1 = min(used), max(used) + 1
+    shapes, shape_of, shift = [], [], []
+    for sp in spans:
+        rows = sp[r0:r1]
+        x0 = min(a for a, b in rows if b > a)
+        rel = [(a - x0, b - x0) if b > a else (0, 0) for a, b in rows]
+        if rel not in shapes:
+            shapes.append(rel)
+        shape_of.append(shapes.index(rel) * (r1 - r0))
+        shift.append(x0)
+    first = [a for sh in shapes for a, b in sh]
+    last = [b for sh in shapes for a, b in sh]
+    lines.append("(const CARD_ROW0 u8 %d) ; the first tray row a card covers\n(const CARD_ROWS u8 %d)" % (r0, r1 - r0))
+    lines.append(table("CARD_SHAPE", "u8", shape_of, "each slot's card: its shape's first entry in CARD_FIRST and CARD_END, and its pixels' shift"))
+    lines.append(table("CARD_SHIFT", "u8", shift))
+    lines.append(table("CARD_FIRST", "u8", first, "shape + row - CARD_ROW0: the white of a tilted card, pixels from its leftmost (0, 0 for none)"))
     lines.append(table("CARD_END", "u8", last))
     ix, iy = [], []
     for s in range(len(H.CARD_CX)):

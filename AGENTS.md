@@ -112,8 +112,11 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   fight: the place, a mark a fight (an elite's bigger, hers lit), the king's crown. Its box is a
   lane (`tools/dhgr/lanes.py` MAP), so the scenery stays out of it.
 - Pages over the stage in her turn (`battle/page.tsp`): her kit (`battle/bag.tsp`, B) and the
-  rules (`battle/rules.tsp`, ?). The fight waits under one; closing puts the stage back from the
-  spare page, which keeps the fight's picture all fight.
+  rules (`battle/rules.tsp`, ?); between fights her kit too (B, the BAG button), and closing
+  it draws the reward's step again as it was (`reward.reshow`). A page opens at the step after
+  its key (`page.fresh`), so only the pages' code draws pages (their overlay group). The
+  fight waits under one; closing puts the stage back from the spare page, which keeps the
+  fight's picture all fight.
 - Clicks (2026-11-01, the owner: exact boxes for everything clickable): the game reads an
   AppleMouse (lib/mouse, set up in `title.enter`) once a pass of the main loop (`main.poll_click`;
   not in the handler: a call into the card's firmware may change anything for all the compiler
@@ -255,9 +258,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (Flea Circus), glow (Sunbeam), scratch (Scratching Habit), coin (Double or Nothing). On the
   speaker each borrows the sound it replaced (the zap, the ping, the chime), and the curses'
   have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
-- The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
-  copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
-  which `tisple expand` shows).
+- The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:on disk`
+  (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
+  rules page's buffer) and copied into main (`sound.PLAYING` bytes: keep it at the largest
+  song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
 - `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes

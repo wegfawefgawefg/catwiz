@@ -1,6 +1,6 @@
 ; Catwiz's music for the Mockingboard, in lib/mockingboard_song's text: loops of different
-; lengths that drift against each other, no lead tune on top. The songs live in aux memory;
-; game/sound/sound.tsp copies the one starting into main memory to play it.
+; lengths that drift against each other, no lead tune on top. The songs live on the disk;
+; game/sound/sound.tsp reads the one starting and puts it in main memory to play it.
 ;
 ; Voices: 0-2 the first chip (left), 3-5 the second (right). The battle lends voice 2 to the
 ; hero's effects and voice 5 to the enemies', so those two carry the parts least missed: the
@@ -22,7 +22,7 @@
 ; bell   5 + 5 pulses, from pulse 168
 ; pad    one chord tone every 14 pulses
 ; The voices come in one at a time over the first 20 s, then all play on.
-(tune.song title
+(tune.song TITLE
     (pattern in_tick "l1 r")
     (pattern in_two "l2 r")
     (pattern in_arp_b "l2 r l56 r r r r r r r")
@@ -53,7 +53,7 @@
     (voice 3 in_arp_b loop arp_b)
     (voice 4 in_bell loop bell_1 bell_2)
     (voice 5 in_drums loop drums)
-    :in aux)
+    :on disk)
 
 ; ---- the battle: A dorian, a pulse of 9 ticks (16ths at 100 bpm), soft
 ;
@@ -65,7 +65,7 @@
 ; shaker    3 pulses, written out 5 times so it reads a new pattern less often, and not on
 ;          the bass's ticks (voice 5, lent to the enemies' effects). It sets its noise again
 ;          each time round: an effect on the chip leaves its own
-(tune.song battle
+(tune.song BATTLE
     (pattern in_none "l1 r")
     (pattern in_mallet_a "l1 r l54 r r")
     (pattern in_mallet_b "l2 r l54 r r r r")
@@ -91,13 +91,13 @@
     (voice 3 in_mallet_b loop mallet_b)
     (voice 4 in_sparkle loop sparkle)
     (voice 5 shaker)
-    :in aux)
+    :on disk)
 
 ; ---- the stingers: once, then quiet. A voice's last pattern is a long rest it loops on.
 ;
 ; won: A major, the battle's key brightened. Two arpeggios, 8 notes of 6 ticks against 12 of
 ; 4 (3 against 2), meet on the last chord over a IV V I in the bass; 1.6 s with the ring
-(tune.song won
+(tune.song WON
     (pattern quiet "l64 r")
     (pattern w_bass "l12 v13 k2 a2 a2 d2 e2 l48 k3 a1")
     (pattern w_low "l6 v12 k1 a4 e5 a4 e5 c#5 a5 e5 c#6 l48 k3 a5")
@@ -107,11 +107,11 @@
     (voice 1 w_low loop quiet)
     (voice 3 w_high loop quiet)
     (voice 4 w_ring loop quiet)
-    :in aux)
+    :on disk)
 
 ; lost: A minor, falling. Thirds that slide down at 8 and at 12 ticks a note (3 against 2)
 ; over a bass that sinks F E, onto a low A minor; 1.8 s with the ring
-(tune.song lost
+(tune.song LOST
     (pattern quiet "l64 r")
     (pattern l_bass "l16 v12 k2 a2 f2 e2 l48 k2 a1")
     (pattern l_fast "l8 v11 k1 e5 c5 b4 g4 e4 b3 l48 k3 a3")
@@ -119,4 +119,4 @@
     (voice 0 l_bass loop quiet)
     (voice 1 l_fast loop quiet)
     (voice 3 l_slow loop quiet)
-    :in aux)
+    :on disk)

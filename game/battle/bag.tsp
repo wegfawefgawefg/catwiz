@@ -1,4 +1,5 @@
-; her kit, a page over the stage in her turn (B; battle/page opens and closes it): her six slots
+; her kit, a page over the stage in her turn and between fights (B; battle/page opens and closes
+; it): her six slots
 ; as cards in the tray's places (the reward's cards: the item's picture, a pip a level), so a tap
 ; on a die's card picks that slot; her charms on the stage, each where an enemy's or the cat's tap
 ; box is (M, Z, X, C). Picking one (1-6 the slots, 7-9 the charms, M Z X C, or the arrows) frames
@@ -38,7 +39,7 @@
         "Her six faces (1-6):"
         "Pick a face or a charm to read it:"
         "1-6 a face, 7-9 a charm, or arrows."
-        "ESC, B or CLOSE: back to the fight."
+        "ESC, B or CLOSE: go back."
         "A hairball clogs it. "
         "An enemy holds one. "
         "To a 3: # this turn. "
@@ -153,9 +154,13 @@
     (text.add_aux name)
     (set text.inverse false))
 
-; what slot has going on in this fight, in one row
+; what slot has going on in this fight, in one row; between fights nothing
 (fn live ((slot u8) (item u8)) void
     (text.start)
+    (if (= state.phase state.Phase.reward)
+        (do
+            (text.show 3)
+            (return)))
     (if (at state.clogged slot)
         (text.add_aux (at SAY SAY_CLOGGED)))
     (for d u8 0 state.DICE_MOST
