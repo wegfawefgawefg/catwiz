@@ -142,7 +142,7 @@
 
 ; charms: passives kept all run. kind says what it does (the sim's rules.py has each), amount
 ; how much
-(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio nine litterbox lives9))
+(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio nine litterbox lives9)) ; nine: second wind, out of the pool (no row)
 
 (struct Charm ((name (ptr u8)) (text (ptr u8)) (kind CharmKind) (amount u8)))
 
