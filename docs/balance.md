@@ -148,6 +148,11 @@ none (it can drop a run from 70% to 20%).
 
 ## Targets
 
+The owner's targets of 2026-11-01 are a check now (`--check-targets`, in "The final pool and
+the retune" below): random 0%, greedy a few % at most, the expert 60-75%, a ladder of blunders
+that falls level by level (a blunder a turn well under half the expert), the king the biggest
+killer, every elite killing some runs. The older targets:
+
 What "balanced" means, as numbers the sims measure, restated for the ten-fight run. The good
 player is the searching player with learned picks; strong is a decent player who plays turns
 well and drafts badly.
@@ -1281,6 +1286,241 @@ turn 1  hp 30 mana 0 kittens 1 | BULLDOG KING 98 (ROYAL BARK: DICE -1); | dice: 
 Tools: `--study chains` (the take rates of every card and charm, the chains a turn, the longest
 chain told, each card's turns), `--refresh-most N`, `--dot-turns`, `--habit-fight` (a test),
 `check.py --tables DIR --bin BUILT`.
+
+## The final pool and the retune (2026-11-01)
+
+The owner settled the pool, the enemies were retuned to his targets, and the targets are now a
+check the sim runs (`--check-targets`). It passes on the final tables. Both sims play the
+same (`check.py`, 0 differ on these tables and on main's old ones).
+
+### The pool
+
+1. In: Mimic, Red Dot, Catfight, Mirror Fur, Lucky Paw, Flea Circus, Nine Lives (die once,
+   back with 10), Sunbeam, Litter Box, and the two fixed cards below.
+2. Out: Second Wind, Big Stretch, Dry Off, Cough It Up, Finishing Swat, Haunted. Their rows are
+   gone from the tables (the effect kinds stay, marked "no row", for the sims).
+3. Kitten Cannon stays, bad on purpose (the owner: some cards good, some bad).
+
+Rules on the cards:
+
+- Red Dot's refreshes: at most 5 a turn (`REFRESH_MOST`, a rule in the engine, no card text).
+- Sunbeam: "+# MANA; PAST 5, UP TO 2 RE-ROLLS" (`SUNBEAM_REROLLS` 2). It gave 240 re-rolls in
+  a turn before; the re-rolls got in a turn (with Lucky Paw's) are now 12 at most.
+- Scratching Habit: "#, +1 FOR THE FIGHT EVERY USE". The +1s are gone at the fight's end, so
+  it is a wand that warms up, not a run that snowballs (forced it won 99.9% before).
+- Double or Nothing: "NEXT DIE X#; IT COSTS YOU 1 HP": x3 (a level x4) on the next die, and 1
+  hit point paid when it is played. The old card (x3, # hit points only if no die took it)
+  won 93-97% forced last round. Three designs forced into runs (2,048 runs each, the tables
+  before the enemy changes; unforced 77%):
+
+| design | forced at fight 3 | at 5 | at 7 |
+|---|---|---|---|
+| x3, # hp (3) paid when played | 29% | 49% | 61% |
+| x2, # hp (2) only if no die takes it | 84% | 83% | 83% |
+| x3, 1 hp paid when played (chosen) | 82% | 86% | 86% |
+
+  Paying # was a death sentence: she plays it over and over and bleeds 3 a time. x2 with the
+  dud price is Times Two again (forced 82-85% too), so the card would have no reason to exist.
+  x3 for 1 hit point keeps it the bigger, riskier Times Two: a real price every time, strong,
+  not a lock.
+
+### The enemies
+
+| enemy | before | now | why |
+|---|---|---|---|
+| The Old Shroom (woods elite) | 46 hp, cap slam 8 | 60 hp, cap slam 14 | it killed no expert run; now 4.4% |
+| The Mailman (garden elite) | heavy parcel 12 | heavy parcel 14 | 2.1-2.8% kills; now 3.0% |
+| The Vet (a yard elite) | 76 hp, checkup 18 | 66 hp, checkup 30 | it killed 1-2% of the runs that chose it; harder all round (86 hp, needle 6, checkup 26) and no run chose it; now lighter but its checkup can kill: 13% of runs take it, 2.6% of those die |
+| Bulldog King, all three phases | 98 hp each | 108 hp each | the last fight is to be brutal; it now kills 17% of expert runs (20% of the ones that reach it) |
+
+Nothing else moved (no fight's make-up changed). The Big Bath already killed 7-8%.
+
+### The skill ladder
+
+The expert is the searching player with its learned draft. A blunder is a random legal play
+(any die it can play, any target) instead of its own; after one it plans again from where it
+is. At a separate rate a pick between fights (card, charm, rest, door) is a random option.
+The levels, by how often (each play, each pick):
+
+| level | a play | a pick | blunders made | won |
+|---|---|---|---|---|
+| the expert | 0 | 0 | 0 | 69.3% |
+| a slip a fight | 5.5% | 10% | 1.06 a fight (0.25 a turn) | 51.4% |
+| a blunder a turn | 22% | 25% | 0.98 a turn | 23.9% |
+| two a turn | 45% | 50% | 1.94 a turn | 3.1% |
+| for scale: strong (the old searching player, no learned draft) | | | | 14.9% |
+| greedy (the best play this turn, no look-ahead) | | | | 0.1% |
+| random | | | | 0% |
+
+Runs lost by fight (4,096 runs each, seed 61):
+
+| level | 1 | 2 | 3 shroom | 4 | 5 | 6 mailman | 7 | 8 | 9 vet or bath | 10 king |
+|---|---|---|---|---|---|---|---|---|---|---|
+| the expert | 0 | 0 | 4.4% | 0 | 0 | 2.9% | 0 | 0.2% | 6.1% | 17.1% |
+| a slip a fight | 0 | 0 | 6.9% | 0.2% | 0.4% | 8.3% | 0.5% | 1.1% | 10.1% | 21.0% |
+| a blunder a turn | 0 | 0 | 17.1% | 1.3% | 2.3% | 19.1% | 2.2% | 2.9% | 14.5% | 16.7% |
+| two a turn | 0 | 0 | 36.0% | 5.0% | 6.3% | 27.0% | 3.9% | 3.1% | 9.4% | 6.4% |
+| greedy | 0 | 0 | 75.3% | 0 | 0.4% | 17.7% | 0 | 3.0% | 2.5% | 1.0% |
+
+The shroom is the skill check now: the expert loses 4% there, a blunder a turn 17%, greedy 75%.
+The expert, fight by fight:
+
+| fight | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| won | 100% | 100% | 96% | 100% | 100% | 97% | 100% | 100% | 93% | 80% |
+| hp lost | 2.2 | 2.7 | 12.7 | 2.2 | 2.8 | 13.0 | 4.9 | 3.4 | 8.7 | 16.4 |
+| turns | 2.3 | 3.0 | 5.1 | 3.0 | 3.2 | 4.7 | 3.4 | 3.5 | 5.3 | 8.6 |
+
+Stalls: 8.0% of the expert's runs have a fight over 15 turns (11.1% on main's tables, 3.7%
+with all seventeen chain cards).
+
+The target check (`./catwiz-sim --learned learned.txt --learn 80 --check-targets --runs 4096
+--seed 61`, exit 1 on any FAIL), on the final tables:
+
+```
+targets: 4096 runs a line, seed 61
+  PASS  random wins 0.0% (under 0.5%)
+  PASS  greedy wins 0.1% (5% at most)
+    lost in fight: 1:0.0% 2:0.0% 3:75.3% 4:0.0% 5:0.4% 6:17.7% 7:0.0% 8:3.0% 9:2.5% 10:1.0%
+  expert             wins  69.3%  (a play 0.000, a pick 0.00: 0.00 blunders a turn, 0.00 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:4.4% 4:0.0% 5:0.0% 6:2.9% 7:0.0% 8:0.2% 9:6.1% 10:17.1%
+  PASS  the expert wins 69.3% (60-75%)
+  PASS  the king kills the most expert runs (17.1%)
+  PASS  THE OLD SHROOM kills 4.4% of the 4096 expert runs reaching it (2% at least)
+  PASS  THE MAILMAN kills 3.0% of the 3915 expert runs reaching it (2% at least)
+  PASS  THE VET kills 2.6% of the 543 expert runs reaching it (2% at least)
+  PASS  THE BIG BATH kills 7.3% of the 3244 expert runs reaching it (2% at least)
+  a slip a fight     wins  51.4%  (a play 0.055, a pick 0.10: 0.25 blunders a turn, 1.06 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:6.9% 4:0.2% 5:0.4% 6:8.3% 7:0.5% 8:1.1% 9:10.1% 10:21.0%
+  a blunder a turn   wins  23.9%  (a play 0.220, a pick 0.25: 0.98 blunders a turn, 4.16 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:17.1% 4:1.3% 5:2.3% 6:19.1% 7:2.2% 8:2.9% 9:14.5% 10:16.7%
+  two a turn         wins   3.1%  (a play 0.450, a pick 0.50: 1.94 blunders a turn, 8.06 a fight)
+    lost in fight: 1:0.0% 2:0.0% 3:36.0% 4:5.0% 5:6.3% 6:27.0% 7:3.9% 8:3.1% 9:9.4% 10:6.4%
+  PASS  a slip a fight (51.4%) wins less than expert (69.3%)
+  PASS  a blunder a turn (23.9%) wins less than a slip a fight (51.4%)
+  PASS  two a turn (3.1%) wins less than a blunder a turn (23.9%)
+  PASS  a blunder a turn wins 23.9%, under 45% of the expert's (31.2%)
+PASS: 0 failed
+```
+
+Thresholds I chose for the owner's words: random under 0.5%; greedy 5% at most ("a few %");
+a blunder a turn under 45% of the expert ("well under half"); an elite kills 2% or more of the
+runs reaching it, judged when 100 runs or more reach it.
+
+Targets that are odd as stated:
+
+- Greedy wins 0.1%: "a few % at most" passes, but it dies at the shroom 75% of the time. If
+  the owner meant greedy should sometimes get far, the shroom is the place to soften.
+- The vet: the run sees both doors and takes the one its kit handles, so a door's kills are
+  the kills of runs that chose it. Made harder, nobody chose it; the vet now hits harder with
+  less hp, and some runs take it and some die there.
+
+### The tier list
+
+Every card and charm in the pool, the final tables. Forced: the card slipped into the offer and
+taken at the first pick of each third of the run (fights 1-3, 4-6, 7-9; a charm at the elites
+3, 6, 9), 256 runs a line; the unforced player won 67.2% on those seeds, so "vs unforced" is the
+mean of the thirds less 67.2 (about 2 points either way is noise). Taken when offered and held:
+4,096 natural runs. Alone from fight 1: the lift study's part given from the start, its slot
+locked, 192 runs (nothing given: 69.3%); best pair: its best lift there.
+
+The tiers, by the forced win rate against the unforced 67.2%:
+
+- broken: a lock or a no-decision auto-pick that wins nearly always: forced 90% or more in a
+  third, or 98% alone from fight 1, or taken 90% of the time with its runs winning 90%;
+- really good: +6 points or more; good: +2 to +6; okay: within 2; bad: -2 to -8; really bad:
+  -8 or worse.
+
+Nothing is broken. 
+
+| tier | card | forced, by third | vs unforced | taken when offered | runs that held it (won) | alone from fight 1 | best pair |
+|---|---|---|---|---|---|---|---|
+| really good | Mimic | 76%, 78%, 82% | +11.4 | 74% | 30% (86%) | 81% | Scratch Post +2.20 (99%) |
+| really good | +1 Book (a level) | 77%, 77%, 71% | +7.8 |  |  |  |  |
+| really good | Times Two | 74%, 75%, 75% | +7.5 | 72% | 20% (84%) | 85% | Ball of Yarn +0.85 (92%) |
+| really good | Spray Bottle | 78%, 75%, 70% | +7.3 | 75% | 51% (75%) | 88% | Meowcronomicon +1.13 (92%) |
+| really good | Double or Nothing | 74%, 72%, 78% | +7.1 | 69% | 20% (82%) | 85% | Mouse on String +0.91 (98%) |
+| good | Mirror Fur | 79%, 73%, 67% | +6.0 | 78% | 44% (78%) | 88% | Meowcronomicon +1.02 (92%) |
+| good | Scratch Post | 76%, 74%, 69% | +5.8 | 84% | 54% (81%) | 82% | Mimic +2.20 (99%) |
+| good | +1 Trick (a level) | 72%, 73% | +5.5 |  |  |  |  |
+| good | Sixth Toe | 71%, 72% | +4.3 | 80% | 23% (81%) | 88% | Purrfect Trio +0.40 (91%) |
+| good | Catfight | 77%, 70%, 66% | +4.1 | 71% | 42% (70%) | 80% | Meowcronomicon +1.31 (89%) |
+| good | Red Dot | 69%, 70%, 74% | +3.8 | 52% | 22% (84%) | 94% | Mimic +1.44 (100%) |
+| good | +1 Fluff (a level) | 71%, 72%, 67% | +2.7 |  |  |  |  |
+| okay | Copycat | 70%, 67% | +1.3 | 58% | 15% (71%) | 74% | Scratching Habit +1.37 (97%) |
+| okay | +1 Wand (a level) | 66%, 69%, 70% | +1.3 |  |  |  |  |
+| okay | Nine Lives | 65%, 71%, 70% | +1.3 | 89% | 56% (78%) | 84% | Wishing Star +0.39 (92%) |
+| okay | Rubber Duck | 71%, 67%, 67% | +1.2 | 55% | 39% (75%) | 81% | Scratching Habit +0.39 (94%) |
+| okay | Mouse on String | 74%, 67%, 62% | +0.4 | 57% | 40% (72%) | 87% | Mimic +1.21 (98%) |
+| okay | +1 Curse (a level) | 66%, 70%, 66% | +0.2 |  |  |  |  |
+| okay | Mark Territory | 69%, 66%, 68% | +0.1 | 51% | 22% (77%) | 86% | Meowcronomicon +0.91 (90%) |
+| okay | Flea Circus | 67%, 67%, 63% | -1.4 | 41% | 25% (72%) | 79% | Spray Bottle +0.76 (96%) |
+| okay | Grumpy Face | 64%, 66%, 68% | -1.6 | 35% | 28% (72%) | 74% | Moon Bowl +0.89 (85%) |
+| bad | +1 Star (a level) | 63%, 68%, 65% | -2.1 |  |  |  |  |
+| bad | Lucky Paw | 67%, 65%, 63% | -2.2 | 34% | 21% (69%) | 83% | Red Dot +1.30 (100%) |
+| bad | Wet | 62%, 71%, 61% | -2.5 | 41% | 34% (70%) | 77% | Meowcronomicon +1.01 (83%) |
+| bad | Bad Milk | 65%, 65%, 62% | -3.2 | 26% | 20% (70%) | 77% | Meowcronomicon +0.87 (81%) |
+| bad | Mother Cat | 67%, 63%, 62% | -3.3 | 20% | 16% (70%) | 71% | Red Dot +1.13 (98%) |
+| bad | Wishing Star | 64%, 64% | -3.3 | 33% | 7% (74%) | 76% | Scratch Post +1.16 (95%) |
+| bad | Cardboard Box | 67%, 63%, 60% | -3.5 | 27% | 22% (68%) | 78% | Meowcronomicon +0.62 (78%) |
+| bad | If It Fits | 66%, 67%, 59% | -3.5 | 40% | 12% (70%) | 73% | Scratching Habit +1.28 (96%) |
+| bad | Kitten Mittens | 65%, 62%, 64% | -3.5 | 17% | 14% (74%) | 72% | Meowcronomicon +2.36 (94%) |
+| bad | Static Fur | 63%, 65%, 60% | -4.2 | 28% | 13% (70%) | 78% | Sunbeam +0.88 (93%) |
+| bad | Still Water | 58%, 65%, 64% | -4.7 | 19% | 16% (71%) | 74% | Mimic +0.73 (92%) |
+| bad | Fluffy Tail | 62%, 61%, 64% | -4.8 | 7% | 6% (82%) | 74% | Red Dot +0.72 (98%) |
+| bad | Scratching Habit | 59%, 61%, 66% | -4.8 | 28% | 17% (74%) | 85% | Copycat +1.37 (97%) |
+| bad | Litter Box | 64%, 60%, 62% | -5.1 | 2% | 2% (73%) | 74% | Meowcronomicon +3.89 (99%) |
+| bad | Ball of Yarn | 62%, 64%, 59% | -5.5 | 16% | 14% (64%) | 64% | Mimic +1.08 (91%) |
+| bad | Fishbone Wand | 66%, 62%, 57% | -5.5 | 31% | 20% (67%) | 70% | Mimic +1.17 (94%) |
+| bad | Sunbeam | 57%, 63%, 64% | -5.7 | 19% | 12% (70%) | 77% | Mimic +1.00 (95%) |
+| bad | Purrfect Trio | 59%, 63% | -6.2 | 3% | 1% (88%) | 69% | Red Dot +0.79 (97%) |
+| bad | Yarn Wand | 65%, 60%, 57% | -6.6 | 19% | 17% (68%) | 75% | Meowcronomicon +0.89 (80%) |
+| bad | Litter Star | 58%, 64%, 60% | -6.6 | 16% | 14% (72%) | 74% | Spray Bottle +0.70 (95%) |
+| bad | Bell Collar | 64%, 60%, 55% | -7.3 | 16% | 11% (68%) | 75% | Mimic +0.70 (92%) |
+| bad | Spiky Fluff | 62%, 61%, 56% | -7.4 | 16% | 14% (67%) | 77% | Mimic +0.94 (94%) |
+| bad | Feather Toy | 66%, 54%, 58% | -7.7 | 18% | 12% (63%) | 66% | Meowcronomicon +2.62 (94%) |
+| really bad | Warm Blanket | 57%, 60%, 58% | -9.0 | 8% | 3% (65%) | 69% | Mother Cat +0.33 (78%) |
+| really bad | Catnip | 58%, 60%, 56% | -9.4 | 8% | 4% (72%) | 55% | Meowcronomicon +1.97 (83%) |
+| really bad | Meowcronomicon | 54%, 53%, 59% | -11.7 | 10% | 5% (82%) | 55% | Litter Box +3.89 (99%) |
+| really bad | Shooting Star | 47%, 59%, 58% | -12.5 | 9% | 8% (70%) | 68% | Knead +0.59 (56%) |
+| really bad | Moon Bowl | 46%, 59%, 57% | -13.0 | 5% | 4% (67%) | 65% | Grumpy Face +0.89 (85%) |
+| really bad | Knock It Off | 49%, 56%, 44% | -17.6 | 6% | 3% (58%) | 58% | Knead +0.32 (38%) |
+| really bad | Knead | 51%, 45% | -19.0 | 3% | 1% (61%) | 42% | Red Dot +1.12 (94%) |
+| really bad | Laser Pointer | 47%, 46%, 44% | -21.7 | 1% | 1% (74%) | 55% | Copycat +0.39 (69%) |
+| really bad | Kitten Cannon | 46%, 50%, 32% | -24.2 | 1% | 0% (50%) | 45% | Meowcronomicon +1.14 (58%) |
+| really bad | 3 AM Screaming | 38%, 44%, 35% | -28.4 | 0% | 0% (75%) | 38% | Moon Bowl +0.74 (50%) |
+
+Notes:
+
+1. Mimic is the best card (really good, +11): it copies the enemy's biggest move. Strong, not a
+   lock (82% forced late, 86% for the runs that hold it).
+2. Double or Nothing at x3 for 1 hp is really good (+7, like Times Two), no longer broken.
+   Scratching Habit for the fight is now bad (-5): a wand that warms up over a fight.
+3. Meowcronomicon with Litter Box is the strongest pair: given both from fight 1 it wins 99%
+   (lift +3.89). It is not a lock in a real run: forced together at fight 3 they win 82.6%
+   (2,048 runs; unforced 70.0%), Meowcronomicon alone at 3 59.0%, Litter Box at 6 with it 71.2%.
+   Litter Box is taken 2% of the time it is offered; the expert does not see the pair coming.
+4. Nine Lives is taken 89% of the time it is offered, but forced it is only okay (+1): a
+   comfort pick, not a lock.
+5. The books that replace Zoomies (Knock It Off, Laser Pointer, 3 AM Screaming, Meowcronomicon
+   alone) and the Kitten Cannon are really bad: Zoomies is still the book. The owner wants some
+   bad cards; these are the bad ones, nothing was buffed.
+
+### The tables in the game's shape
+
+`tools/sim/proposal` (`learned.txt` is learned for them). What the game needs from this
+round, on top of the earlier rounds' list:
+
+1. effects.tsp: `REFRESH_MOST` 5, `SUNBEAM_REROLLS` 2, `GAMBLE_UPFRONT` 1, `GAMBLE_PRICE` 1.
+2. items.tsp: the new rows 34-42 (Red Dot, Lucky Paw, Sunbeam, Mimic, Catfight, Mirror Fur,
+   Flea Circus, Scratching Habit, Double or Nothing; texts above and in the file).
+3. encounters.tsp: the charms Litter Box (10) and Nine Lives (11, amount 10); OFFER_CARDS 42
+   rows, OFFER_CHARMS 12 (the pool as settled).
+4. enemies.tsp and moves.tsp: the numbers in the enemy table above.
+5. The effect kinds out of the pool (swat, stretch, dryoff, haunt, cough, and the charm kind
+   nine) are not needed.
+
+Tools: `--check-targets`, `--blunder P`, `--blunder-pick Q`.
 
 ## What changed and why
 
