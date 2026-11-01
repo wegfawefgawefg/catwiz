@@ -83,7 +83,7 @@ def picture():
     c.paste(rim(letters, GLOW[0]))
     s = "PRESS RETURN"
     fonts.text35(c, 22, s.center(35), WHITE)
-    s = "a dice battle in the woods"
+    s = "a dice quest to the bulldog king"
     fonts.text35(c, 20, s.center(35), LBLUE)
     return c
 

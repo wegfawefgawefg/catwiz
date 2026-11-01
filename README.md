@@ -1,12 +1,13 @@
 # Catwiz
 
 A dice roguelike for the 128K Apple IIe, in double hi-res graphics. You are a cat wizard rolling
-five dice of her own items against the forest's spooky-cute things, on the way to a big bad dog. Written in
+five dice of her own items against the spooky-cute things of the woods, the garden and the yard,
+on the way to a big bad dog: the Bulldog King. Written in
 [Tisple](https://github.com/wegfawefgawefg/tisple), a typed Lisp that compiles to 6502.
 
-Two fights and what comes between them play now; ten are in the rules (the woods, the garden
-and the yard, three fights each with an elite at the end, then the Bulldog King), the rest
-waiting for their art.
+The whole run plays: ten fights (the woods, the garden and the yard, three fights each with an
+elite at the end, then the Bulldog King), the later ones on stand-in figures till their art
+comes.
 
 **[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
 get the disk from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).

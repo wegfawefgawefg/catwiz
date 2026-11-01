@@ -1,4 +1,4 @@
-; the run's battles in the forest: a run starts the hero's kit (an item in each of her six
+; the run's battles, from the woods to the Bulldog King: a run starts the hero's kit (an item in each of her six
 ; slots, no levels, no charms) and hit points, each fight is set up from its encounter, steps one
 ; frame at a time and is drawn; after a won fight what comes between fights (battle/reward.tsp:
 ; a card, a charm, the nap, the doors), then the next fight; after the last, "to be continued".
