@@ -272,9 +272,14 @@ $TISPLE machine --disk build/catwiz.dsk --frames 1000 --keys "700f:RETURN" --nts
   (squeeze levels) and says which functions it kept as calls instead of copying them into
   their callers; `TISPLE_SIZE_NOTES=1` lists what the budget weighs. The game keeps no list of
   its own (it had `game/noinline.txt` until 2026-10-30).
-- The boot shows LOADING, then the title by frame 600 (10 s); a fight's art unpacks in about
-  a second while the title still shows (the music stops first: the card's halves unpack with
-  interrupts off).
+- The boot shows LOADING with Tisple's meter (a percent and a bar, Tisple d14df73 or later),
+  then the title by frame 784 (13 s); a fight's art loads in about 3 s, the title still
+  showing while its picture is read, then the picture while its runs are read and unpacked,
+  with paw prints along the foot of the stage (`draw/meter`; the music stops first: the
+  card's halves unpack with interrupts off). Every disk read goes through `meter.read`.
+- 2026-11-01: main memory had about 15 bytes free; the meter's 377 bytes of code made the
+  build put `battle/look.update` in bank 1 too (an action pass about 4% slower, still under
+  a frame).
 
 - Never open windows on the owner's display; run the machine headless and look at
   screenshots (`shots/`).
