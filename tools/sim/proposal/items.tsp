@@ -62,10 +62,19 @@
 (const LUCKY_PAW u8 36)
 (const SUNBEAM u8 37)
 (const STRETCH u8 38)
-(const ITEM_COUNT u8 39)
+(const MIMIC u8 39)
+(const CATFIGHT u8 40)
+(const MIRROR_FUR u8 41)
+(const DRY_OFF u8 42)
+(const FLEA_CIRCUS u8 43)
+(const HAUNTED u8 44)
+(const HABIT u8 45)
+(const DOUBLE_NOTHING u8 46)
+(const COUGH_UP u8 47)
+(const ITEM_COUNT u8 48)
 
-(const ITEMS (array ac.Item 39)
-    (make (array ac.Item 39)
+(const ITEMS (array ac.Item 48)
+    (make (array ac.Item 48)
         (make ac.Item
             :name "TWIG WAND"
             :text "#. 3 IN A TURN: THE 3RD HITS ALL"
@@ -533,7 +542,115 @@
             :combo Combo.none
             :combo_n 0
             :aim state.Aim.self
-            :icon art.TILE_PLUS1)))
+            :icon art.TILE_PLUS1)
+        (make ac.Item
+            :name "MIMIC"
+            :text "2 MANA: DO ITS SHOWN MOVE, # TIMES"
+            :slot Slot.book
+            :effect ac.Effect.mimic
+            :amount 1
+            :step 1
+            :cost 2
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_BOOK)
+        (make ac.Item
+            :name "CATFIGHT"
+            :text "IT HITS A FRIEND INSTEAD, # MORE"
+            :slot Slot.curse
+            :effect ac.Effect.catfight
+            :amount 4
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_HISS)
+        (make ac.Item
+            :name "MIRROR FUR"
+            :text "SHIELD #; BLOCKED HITS BOUNCE BACK"
+            :slot Slot.fluff
+            :effect ac.Effect.mirror
+            :amount 3
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.self
+            :icon art.TILE_KIBBLE)
+        (make ac.Item
+            :name "DRY OFF"
+            :text "2 MANA: EACH WET TURN HITS FOR #"
+            :slot Slot.book
+            :effect ac.Effect.dryoff
+            :amount 2
+            :step 1
+            :cost 2
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.all
+            :icon art.TILE_BOOK)
+        (make ac.Item
+            :name "FLEA CIRCUS"
+            :text "FLEAS #; IF IT FALLS, THEY JUMP X2"
+            :slot Slot.curse
+            :effect ac.Effect.circus
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_FLEAS)
+        (make ac.Item
+            :name "HAUNTED"
+            :text "WHEN IT FALLS, ALL TAKE #"
+            :slot Slot.curse
+            :effect ac.Effect.haunt
+            :amount 4
+            :step 2
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_HISS)
+        (make ac.Item
+            :name "SCRATCHING HABIT"
+            :text "#, AND +1 FOR GOOD EVERY USE"
+            :slot Slot.wand
+            :effect ac.Effect.habit
+            :amount 2
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_WAND)
+        (make ac.Item
+            :name "DOUBLE OR NOTHING"
+            :text "NEXT DIE X#; A DUD COSTS # HP"
+            :slot Slot.trick
+            :effect ac.Effect.gamble
+            :amount 3
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.self
+            :icon art.TILE_TIMES2)
+        (make ac.Item
+            :name "COUGH IT UP"
+            :text "# FOR EACH HAIRBALL YOU ROLLED"
+            :slot Slot.wand
+            :effect ac.Effect.cough
+            :amount 4
+            :step 1
+            :cost 0
+            :combo Combo.none
+            :combo_n 0
+            :aim state.Aim.foe
+            :icon art.TILE_WAND)))
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))

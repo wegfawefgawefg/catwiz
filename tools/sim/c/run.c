@@ -20,6 +20,9 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
         int n = b->st[HERO][ST_KITTENS] + kit->kittens;
         b->st[HERO][ST_KITTENS] = n < KITTENS_MOST ? n : KITTENS_MOST;
     }
+    b->habit = kit->habit;
+    if (k.charm_n[K_lives9] && !kit->revived) /* nine lives: once a run */
+        b->revive = (uint8_t)(charm_amount(b, K_lives9) / k.charm_n[K_lives9]);
     b->tell = tell;
     b_start_round(b);
     while (b->result == R_NONE) {
@@ -121,6 +124,8 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
             break;
         hp = b.hp[HERO];
         kit.kittens = kit_has(&kit, K_litterbox) ? (uint8_t)b.st[HERO][ST_KITTENS] : 0;
+        kit.habit = b.habit;
+        kit.revived = kit.revived || (kit_has(&kit, K_lives9) && !b.revive);
         f++;
         if (f >= FIGHT_COUNT) {
             out->won = 1;

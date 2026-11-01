@@ -1,4 +1,4 @@
-/* The C balance sim of Catwiz's item-slot model: one battle (battle.c, foes.c, items.c), the
+/* The C balance sim of Catwiz's item-slot model: one battle (battle.c, hit.c, foes.c, items.c, cards.c), the
    players (judge.c, players.c, search.c), the run with its rewards (rewards.c, run.c), the
    report (report.c), the combos study (combos.c) and the readable turn logs (tell.c).
    It ports tools/sim/rules.py, foes.py, items.py, policy.py and rewards.py; each function
@@ -26,7 +26,8 @@ enum {
     ST_SHIELD, ST_POISON, ST_FLEA_TURNS, ST_WET, ST_CHEER, ST_WARD, ST_BOX, ST_MANA, ST_PLUS,
     ST_SPOOK, ST_REFLECT, ST_LASER, ST_THORNS, ST_HURT, ST_FRESH, ST_STRENGTH, ST_KITTENS,
     ST_NIPPED, ST_TANGLE, ST_BRAND, ST_KNEAD_FLUFF, ST_KNEAD_WAND, ST_NIP, ST_MULT, ST_KEEP,
-    ST_WISH, ST_PLUS_LEFT, ST_DOT, ST_NINE, NS
+    ST_WISH, ST_PLUS_LEFT, ST_DOT, ST_NINE,
+    ST_CATFIGHT, ST_MIRROR, ST_CIRCUS, ST_HAUNT, ST_GAMBLE, NS
 };
 
 enum { R_NONE, R_WON, R_LOST };
@@ -75,6 +76,9 @@ typedef struct Battle {
     /* this turn, for the chains study: dice back by red dot, big stretch, nine lives; swats
        come back; re-rolls got (lucky paw, sunbeam) */
     uint8_t t_dot, t_stretch, t_nine, t_swat, t_gain;
+    /* the combo cards: scratching habit's uses this run, nine lives' hit points to come back
+       with (0: spent or not held), the hairballs rolled this turn (cough it up) */
+    uint8_t habit, revive, hair;
 } Battle;
 
 /* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a
@@ -82,7 +86,7 @@ typedef struct Battle {
 enum { SYS_MANA = 1, SYS_KITTEN = 2, SYS_COMBO = 4, SYS_STATUS = 8, SYS_TRICK = 16,
        SYS_CHARM = 32 };
 
-/* battle.c: rules.py */
+/* battle.c, hit.c: rules.py, hit.py */
 void b_init(Battle *b, const Setup *k, int hero_hp, int maxhp, const uint8_t *enemies, int n,
             Mt *rng);
 void b_set_enemy(Battle *b, int i, int k);
@@ -121,6 +125,10 @@ void items_clog(Battle *b, int slot);
 void items_cough(Battle *b);
 void items_after_play(Battle *b, int s);
 void items_roll_back(Battle *b);
+void items_fallen(Battle *b, int who, int fleas, int haunt);
+
+/* cards.c: the chain and combo cards' effects (1 if e is one) */
+int cards_effect(Battle *b, int e, int t, int n);
 
 /* the run's kit (rewards.py Kit): an item a slot, a level a slot, the charms in order */
 typedef struct {
@@ -130,6 +138,8 @@ typedef struct {
     int ncharms;
     uint8_t locked; /* slots whose item no card replaces (a bit a slot: the combos bench) */
     uint8_t kittens; /* kept from the last fight (the litter box charm) */
+    uint8_t habit;   /* scratching habit's uses this run */
+    uint8_t revived; /* nine lives (die once) spent */
 } Kit;
 
 extern const Kit *START_KIT; /* the kit runs start with instead of the starting items */

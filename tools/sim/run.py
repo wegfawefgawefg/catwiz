@@ -45,6 +45,9 @@ def play_fight(rules, pol, kit, hp, index, rng, trace=None):
     if "litterbox" in kit.charms:  # PROPOSAL: the kittens kept from the last fight
         st = b.st[HERO]
         st[KITTENS] = min(items.kittens_most(b), st[KITTENS] + kit.kittens)
+    b.habit = kit.habit
+    if "lives9" in kit.charms and not kit.revived:
+        b.revive = items.amount(b, "lives9", 10) // max(1, kit.charms.count("lives9"))
     b.log = trace
     b.start_round()
     usage = []
@@ -112,6 +115,8 @@ def one_run(args):
                     u[1] += 1 if played else 0
         kit.lives = b.lives
         kit.kittens = b.st[HERO][KITTENS] if "litterbox" in kit.charms else 0
+        kit.habit = b.habit
+        kit.revived = kit.revived or ("lives9" in kit.charms and not b.revive)
         out["fights"].append({"index": index, "won": b.result == "won", "hp_in": hp,
                               "hp_out": b.hp[HERO], "turns": b.turn, "lost": b.hero_lost,
                               "self_hits": b.self_hits, "bag": len(kit.dice),

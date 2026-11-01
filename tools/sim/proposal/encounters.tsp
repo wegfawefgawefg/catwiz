@@ -142,7 +142,7 @@
 
 ; charms: passives kept all run. kind says what it does (the sim's rules.py has each), amount
 ; how much
-(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio nine litterbox))
+(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio nine litterbox lives9))
 
 (struct Charm ((name (ptr u8)) (text (ptr u8)) (kind CharmKind) (amount u8)))
 
@@ -156,11 +156,12 @@
 (const CHARM_GRUMPY u8 7)
 (const CHARM_RUBBER_DUCK u8 8)
 (const CHARM_BAD_MILK u8 9)
-(const CHARM_NINE_LIVES u8 10)
+(const CHARM_SECOND_WIND u8 10)
 (const CHARM_LITTER_BOX u8 11)
+(const CHARM_LIVES u8 12)
 
-(const CHARMS (array Charm 12)
-    (make (array Charm 12)
+(const CHARMS (array Charm 13)
+    (make (array Charm 13)
         (make Charm
             :name "SCRATCH POST"
             :text "TWO MORE RE-ROLLS EVERY TURN"
@@ -212,7 +213,7 @@
             :kind CharmKind.badmilk
             :amount 2)
         (make Charm
-            :name "NINE LIVES"
+            :name "SECOND WIND"
             :text "ONCE A FIGHT: ALL USED, ALL BACK"
             :kind CharmKind.nine
             :amount 1)
@@ -220,17 +221,22 @@
             :name "LITTER BOX"
             :text "KITTENS STAY BETWEEN FIGHTS"
             :kind CharmKind.litterbox
-            :amount 1)))
+            :amount 1)
+        (make Charm
+            :name "NINE LIVES"
+            :text "DIE ONCE, COME BACK WITH 10 HP"
+            :kind CharmKind.lives9
+            :amount 10)))
 
 ; the reward pool: card (an item row: a new item for its slot, or a level when she holds it; or
 ; UP_ and a slot: a level on that slot), weight (its share of the draw, 0 never), from (the
 ; first fight it can follow: the plainer pieces from the start, the engines later)
 (struct Offer ((card u8) (weight u8) (from u8)))
 
-(const OFFER_CARD_COUNT u8 38)
+(const OFFER_CARD_COUNT u8 47)
 
-(const OFFER_CARDS (array Offer 38)
-    (make (array Offer 38)
+(const OFFER_CARDS (array Offer 47)
+    (make (array Offer 47)
         (make Offer :card items.YARN_WAND :weight 4 :from 1)
         (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
         (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
@@ -268,13 +274,22 @@
         (make Offer :card items.SWAT :weight 3 :from 1)
         (make Offer :card items.LUCKY_PAW :weight 3 :from 1)
         (make Offer :card items.SUNBEAM :weight 3 :from 1)
-        (make Offer :card items.STRETCH :weight 2 :from 4)))
+        (make Offer :card items.STRETCH :weight 2 :from 4)
+        (make Offer :card items.MIMIC :weight 3 :from 3)
+        (make Offer :card items.CATFIGHT :weight 3 :from 1)
+        (make Offer :card items.MIRROR_FUR :weight 3 :from 1)
+        (make Offer :card items.DRY_OFF :weight 2 :from 3)
+        (make Offer :card items.FLEA_CIRCUS :weight 3 :from 1)
+        (make Offer :card items.HAUNTED :weight 3 :from 1)
+        (make Offer :card items.HABIT :weight 3 :from 1)
+        (make Offer :card items.DOUBLE_NOTHING :weight 2 :from 3)
+        (make Offer :card items.COUGH_UP :weight 2 :from 1)))
 
 ; the charm pool, drawn the same way after the elites (card: a row of CHARMS)
-(const OFFER_CHARM_COUNT u8 12)
+(const OFFER_CHARM_COUNT u8 13)
 
-(const OFFER_CHARMS (array Offer 12)
-    (make (array Offer 12)
+(const OFFER_CHARMS (array Offer 13)
+    (make (array Offer 13)
         (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
         (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
         (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
@@ -285,5 +300,6 @@
         (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
         (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
         (make Offer :card CHARM_BAD_MILK :weight 2 :from 1)
-        (make Offer :card CHARM_NINE_LIVES :weight 2 :from 1)
-        (make Offer :card CHARM_LITTER_BOX :weight 2 :from 1)))
+        (make Offer :card CHARM_SECOND_WIND :weight 2 :from 1)
+        (make Offer :card CHARM_LITTER_BOX :weight 2 :from 1)
+        (make Offer :card CHARM_LIVES :weight 2 :from 1)))

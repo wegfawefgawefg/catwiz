@@ -2,7 +2,7 @@
 # from tools/sim/proposal by gen.py, so the tables stay in one place.
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -ffp-contract=off -g
-SRC = main.c battle.c foes.c items.c judge.c players.c search.c draft.c rewards.c run.c \
+SRC = main.c battle.c hit.c foes.c items.c cards.c judge.c players.c search.c draft.c rewards.c run.c \
       report.c tell.c pool.c rng.c combos.c value.c study.c swings.c
 TABLES = $(wildcard ../proposal/*.tsp) ../content.py ../tsp.py gen.py
 

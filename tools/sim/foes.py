@@ -118,6 +118,14 @@ def land_move(b, row, by, target):
                            move.text.replace("#", str(move.amount))))
     if move.aim == "all" and target == r.HERO and b.st[r.HERO][r.BOX] > 0:
         return
+    extra = b.st[by][r.CATFIGHT]
+    if extra and target == r.HERO and move.effect in ("hit", "hit2"):
+        # PROPOSAL: catfight: its hit goes to a friend, harder (with none it waits)
+        for i in range(1, r.ACTORS):
+            if i != by and b.alive[i]:
+                b.st[by][r.CATFIGHT] = 0
+                b.apply(move.effect, by, i, min(255, move.amount + extra))
+                return
     b.apply(move.effect, by, target, move.amount)
 
 

@@ -9,7 +9,9 @@ start_round() after end_turn() when the fight goes on. Actor 0 is the hero, 1-3 
 """
 
 import bagfx
+import cards
 import foes
+import hit
 import items
 
 NOTHING = 255
@@ -26,8 +28,11 @@ STATUSES = [
     # PROPOSAL, the item model (items.py)
     "kittens", "nipped", "tangle", "brand", "knead_fluff", "knead_wand", "nip", "mult", "keep",
     "freebook", "wish", "plus_left",
-    # PROPOSAL, the chain cards (items.py after_play): red dot on an enemy, nine lives spent
+    # PROPOSAL, the chain cards (cards.py after_play): red dot on an enemy, nine lives spent
     "dot", "nine",
+    # PROPOSAL, the combo cards (items.py): catfight's extra, mirror fur's shield, flea
+    # circus, haunted's hit, double or nothing's price
+    "catfight", "mirror", "circus", "haunt", "gamble",
 ]
 for _i, _name in enumerate(STATUSES):
     globals()[_name.upper()] = _i
@@ -35,7 +40,7 @@ NS = len(STATUSES)
 GONE = 254  # the bag proposal: a hairball die coughed up, back never
 
 
-class Battle:
+class Battle(hit.Hits):
     def __init__(self, rules, dice, hero_hp, enemies, rng, exact=False, charms=(),
                  levels=None, zone="", lives=0):
         """battle.enter_fight: the bag's dice (lists of face rows), the hero's hit points and
@@ -85,7 +90,7 @@ class Battle:
         self.hero_healed = 0  # hit points the hero got back this fight
         self.self_hits = 0  # zoomies outlasting the enemies, hitting the cat (as in the game)
         self.lost_this_round = 0
-        # the chain cards (items.after_play): the tray spots whose dice come back to be rolled
+        # the chain cards (cards.after_play): the tray spots whose dice come back to be rolled
         # (a bit a spot; a search's copy leaves them so, unrolled), refreshes this turn, enemies
         # fallen (finishing swat), and what the play being landed set off
         self.back = 0
@@ -95,6 +100,11 @@ class Battle:
         self.dot_fired = False
         self.swat_back = False
         self.stretch = 0
+        # the combo cards: scratching habit's uses this run, nine lives' hit points to come
+        # back with (0: spent or not held), the hairballs rolled this turn (cough it up)
+        self.habit = 0
+        self.revive = 0
+        self.hair = 0
         items.fight_start(self)
 
     def clone(self):
@@ -170,6 +180,8 @@ class Battle:
                     f = (self.rng.byte() * 6) >> 8
                     self.face_of[s] = f
                     self.hand[s] = self.dice[self.tray[s]][f]
+                    if self.hand[s] == self.R.junk_row and tumbles == 1:
+                        self.hair = min(255, self.hair + 1)  # PROPOSAL: cough it up
 
     # ---- the hero's turn: battle/turn.tsp
 
@@ -184,6 +196,8 @@ class Battle:
         self.last_played = NOTHING
         self.lost_this_round = 0
         self.refreshes = 0
+        self.hair = 0
+        st[MIRROR] = 0
         items.round_start(self)
         if self.result is not None:
             return
@@ -253,7 +267,7 @@ class Battle:
             self.land_face(row, t)
         self.after_action()
         if self.R.model == "items":
-            items.after_play(self, s)
+            cards.after_play(self, s)
 
     def reroll(self):
         self.rerolls -= 1
@@ -401,106 +415,12 @@ class Battle:
             st[LASER] = 1
         elif effect == "dot":
             self.add(target, DOT, n)
+        elif effect == "catfight":
+            self.add(target, CATFIGHT, n)
+        elif effect == "haunt":
+            self.add(target, HAUNT, n)
         else:
             st[SHIELD] = 0
-
-    # ---- battle/hit.tsp
-
-    def dealt(self, who, damage, use):
-        st = self.st[who]
-        cheer = st[CHEER]
-        if use:
-            st[CHEER] = 0
-        d = damage + cheer + st[STRENGTH]  # strength: PROPOSAL
-        d = min(d, 255) if self.R.model == "items" else d & 0xFF  # items: saturates, the bag: wraps
-        if st[TANGLE]:  # PROPOSAL: tangled, till its turn ends
-            d = max(0, d - st[TANGLE])
-        if st[WET] > 0:
-            d >>= 1
-        return d
-
-    def strike(self, by, target, amount, pierce=False):
-        if by == HERO and target == HERO:
-            self.self_hits += 1
-        st = self.st[target]
-        if by == HERO and self.wand_on and st[DOT] and not self.dot_fired:
-            self.dot_fired = True  # PROPOSAL: a wand hit on a red dot: all dice back
-            if "dotcharges" in self.R.variant:
-                st[DOT] -= 1
-        damage = self.dealt(by, amount, True)
-        damage += st[MARK] + st[BRAND]  # PROPOSAL
-        damage = min(damage, 255)  # a hit is a byte: it saturates
-        if st[REFLECT] and by == HERO:  # PROPOSAL
-            back = min(st[REFLECT], damage)
-            st[REFLECT] -= back
-            damage -= back
-            self.strike_plain(HERO, back)
-        if pierce:
-            self.lose(target, damage)
-        else:
-            self.strike_plain(target, damage)
-        if target == HERO and by != HERO and self.st[HERO][THORNS]:  # PROPOSAL
-            self.lose(by, self.st[HERO][THORNS])
-
-    def strike_plain(self, target, damage):
-        """statuses.taken, then hit.lose"""
-        st = self.st[target]
-        shield = st[SHIELD]
-        if shield >= damage:
-            st[SHIELD] = shield - damage
-            return
-        st[SHIELD] = 0
-        self.lose(target, damage - shield)
-
-    def lose(self, who, n):
-        if not self.alive[who]:
-            return
-        hp = self.hp[who]
-        n = min(n, hp)
-        if who == HERO and n == hp and n > 0 and self.lives > 0:  # PROPOSAL: nine lives
-            self.lives -= 1
-            n = hp - 1
-        self.hp[who] = hp - n
-        if who == HERO:
-            self.hero_lost += n
-            self.lost_this_round += n
-            if n > 0:
-                items.hero_hurt(self)
-        else:
-            self.st[who][HURT] += n
-        if hp - n == 0:
-            self.die(who)
-
-    def die(self, who):
-        if who != HERO:
-            self.falls += 1  # PROPOSAL: finishing swat
-            then = self.R.kinds[self.kind[who]].then
-            self.release(who)
-            if then != NOTHING:  # PROPOSAL: the possum gets up, the boss's next phase
-                self.set_enemy(who, then)
-                self.st[who][FRESH] = 1  # a round to get up: it skips one move
-                self.say("  %s GETS UP" % self.R.kinds[then].name)
-                return
-            self.alive[who] = False
-            items.enemy_beaten(self, who)
-            return
-        self.alive[who] = False
-
-    def release(self, who):
-        for d in range(len(self.held)):
-            if self.held[d] == who:
-                self.held[d] = NOTHING
-                self.in_draw[d] = True
-
-    def heal(self, who, n):
-        hp = min(self.hp[who] + n, self.maxhp[who])
-        if who == HERO:
-            self.hero_healed += hp - self.hp[who]
-        self.hp[who] = hp
-
-    def add(self, who, status, n):
-        st = self.st[who]
-        st[status] = min(st[status] + n, 255 if self.R.model == "items" else 99)
 
     # ---- the enemies' turn: foes.py
 

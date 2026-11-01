@@ -203,6 +203,7 @@ static double outcome(const Battle *c, const uint8_t *faces) {
         if (!d.played[s]) {
             d.face_of[s] = faces[s];
             d.hand[s] = d.faces[faces[s]];
+            d.hair = (uint8_t)(d.hair + (d.hand[s] == HAIRBALL && d.hair < 255));
         }
     }
     return best_plan(&d, NULL, NULL, 0);
@@ -302,6 +303,7 @@ static double back_outcome(const Battle *c, const uint8_t *faces) {
         if (d.back >> s & 1) {
             d.face_of[s] = faces[s];
             d.hand[s] = d.faces[faces[s]];
+            d.hair = (uint8_t)(d.hair + (d.hand[s] == HAIRBALL && d.hair < 255));
         }
     }
     d.back = 0;
