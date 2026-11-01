@@ -1,9 +1,9 @@
 ; what the hero's faces (content/effects) say in the log: its sentences, in aux memory (battle/log
 ; reads them there), by name
 
-(const SAY (array (ptr u8) 28)
-    (make (array (ptr u8) 28)
-        "The next 2 dice get +#."
+(const SAY (array (ptr u8) 29)
+    (make (array (ptr u8) 29)
+        "The next die gets +#."
         "Times: the next die x#."
         "Nothing to copy yet."
         "Copycat!"
@@ -25,6 +25,7 @@
         "3 in a turn: static!"
         "3 in a turn: a ward pip."
         "Your kittens pounce!"
+        "# kittens launched!"
         ": ward broken, no curse."
         " gets fleas: # a turn."
         " is wet: half hits, # turns."
@@ -33,7 +34,7 @@
         " is tangled: hits -#.")
     :strings aux)
 
-(const SAY_NEXT_2_DICE u8 0)
+(const SAY_NEXT_DIE u8 0)
 (const SAY_TIMES_NEXT u8 1)
 (const SAY_NOTHING_COPY_YET u8 2)
 (const SAY_COPYCAT u8 3)
@@ -55,9 +56,10 @@
 (const SAY_THREE_STATIC u8 19)
 (const SAY_THREE_WARD u8 20)
 (const SAY_KITTENS_POUNCE u8 21)
-(const SAY_WARD_BROKEN_NO u8 22)
-(const SAY_GETS_FLEAS_TURN u8 23)
-(const SAY_WET_HALF_HITS u8 24)
-(const SAY_SPOOKED_DICE u8 25)
-(const SAY_MARKED_HITS u8 26)
-(const SAY_TANGLED_HITS u8 27)
+(const SAY_KITTENS_LAUNCHED u8 22)
+(const SAY_WARD_BROKEN_NO u8 23)
+(const SAY_GETS_FLEAS_TURN u8 24)
+(const SAY_WET_HALF_HITS u8 25)
+(const SAY_SPOOKED_DICE u8 26)
+(const SAY_MARKED_HITS u8 27)
+(const SAY_TANGLED_HITS u8 28)

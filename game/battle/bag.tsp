@@ -28,8 +28,8 @@
 (const CHARM_Y (array u8 4) (make (array u8 4) 54 54 54 14))
 
 ; the page's words, in aux memory (text.add_aux): SAY_ and what each is
-(const SAY (array (ptr u8) 25)
-    (make (array (ptr u8) 25)
+(const SAY (array (ptr u8) 24)
+    (make (array (ptr u8) 24)
         "HER KIT"
         "Fight # of "
         "No charms yet. Elites give them."
@@ -41,8 +41,7 @@
         "A hairball clogs it. "
         "An enemy holds one. "
         "To a 3: # this turn. "
-        "+# on the next "
-        "# dice. "
+        "+# on the next die. "
         "x# on the next die. "
         "+1 on the next # dice. "
         "Knead waits. "
@@ -69,19 +68,18 @@
 (const SAY_HELD u8 9)
 (const SAY_THREE u8 10)
 (const SAY_PLUS u8 11)
-(const SAY_DICE u8 12)
-(const SAY_TIMES u8 13)
-(const SAY_NIP u8 14)
-(const SAY_KNEAD u8 15)
-(const SAY_MANA_OF u8 16)
-(const SAY_MANA u8 17)
-(const SAY_COSTS u8 18)
-(const SAY_KITTENS u8 19)
-(const SAY_NOTHING u8 20)
-(const SAY_LEVEL u8 21)
-(const SAY_UP u8 22)
-(const SAY_ALL_RUN u8 23)
-(const SAY_HAS u8 24)
+(const SAY_TIMES u8 12)
+(const SAY_NIP u8 13)
+(const SAY_KNEAD u8 14)
+(const SAY_MANA_OF u8 15)
+(const SAY_MANA u8 16)
+(const SAY_COSTS u8 17)
+(const SAY_KITTENS u8 18)
+(const SAY_NOTHING u8 19)
+(const SAY_LEVEL u8 20)
+(const SAY_UP u8 21)
+(const SAY_ALL_RUN u8 22)
+(const SAY_HAS u8 23)
 
 (let held (array u8 4)) ; the charm rows she holds, in order
 (let held_n u8 0)
@@ -167,9 +165,7 @@
     (match (at items.ITEMS item slot)
         (ac.Slot.trick
             (if (> (fx.hero st.Status.plus_left) 0)
-                (do
-                    (text.add_aux_n (at SAY SAY_PLUS) (fx.hero st.Status.plus))
-                    (text.add_aux_n (at SAY SAY_DICE) (fx.hero st.Status.plus_left))))
+                (text.add_aux_n (at SAY SAY_PLUS) (fx.hero st.Status.plus)))
             (if (> (fx.hero st.Status.mult) 0)
                 (text.add_aux_n (at SAY SAY_TIMES) (fx.hero st.Status.mult)))
             (if (> (fx.hero st.Status.nip) 0)
@@ -179,7 +175,7 @@
         (ac.Slot.star (text.add_aux_n (at SAY SAY_MANA_OF) (fx.mana)))
         (ac.Slot.book
             (text.add_aux_n (at SAY SAY_MANA) (fx.mana))
-            (text.add_aux_n (at SAY SAY_COSTS) (at items.ITEMS item cost)))
+            (text.add_aux_n (at SAY SAY_COSTS) (fx.cost item)))
         (_))
     (match (at items.ITEMS item effect)
         (ac.Effect.feather (text.add_aux_n (at SAY SAY_KITTENS) (fx.hero st.Status.kittens)))
