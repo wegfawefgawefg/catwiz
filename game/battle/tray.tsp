@@ -49,7 +49,7 @@
 ; (icons' TILE number or state.NOTHING), its caption and where it starts, whether it is picked
 (let card (array bool 6))
 (let icon (array u8 6))
-(let caption (array (ptr u8) 6))
+(let caption (array u8 12)) ; two glyphs a slot (0 for none): a caption is 2 at most
 (let caption_len (array u8 6))
 (let caption_x (array u8 6))
 (let picked (array bool 6))
@@ -78,7 +78,13 @@
 ; or what is on it changed
 (fn slot ((n u8) (has_card bool) (tile u8) (text (ptr u8)) (is_picked bool)) void
     (set (at picked n) is_picked)
-    (if (and (and (= (at card n) has_card) (= (at icon n) tile)) (= (at caption n) text))
+    (let t0 u8 (load text))
+    (let t1 u8 (if (= t0 0)
+        0
+        (load (+ text 1))))
+    (let c u8 (<< n 1))
+    (if (and (and (= (at card n) has_card) (= (at icon n) tile))
+            (and (= (at caption c) t0) (= (at caption (+ c 1)) t1)))
         (return))
     (if (!= (at card n) has_card)
         (set faces_only false))
@@ -94,10 +100,13 @@
                 (set from (+ from 6)))))
     (set (at card n) has_card)
     (set (at icon n) tile)
-    (set (at caption n) text)
-    (let len u8 0)
-    (while (!= (load (+ text len)) 0)
-        (set len (+ len 1)))
+    (set (at caption c) t0)
+    (set (at caption (+ c 1)) t1)
+    (let len u8 (if (= t0 0)
+        0
+        (if (= t1 0)
+            1
+            2)))
     (set (at caption_len n) len)
     (set (at caption_x n) (- (at hud.CARD_X n) (>> (pix.glyphs_width text len) 1)))
     (let g0 u8 (at hud.SLOT_G0 n))
@@ -195,6 +204,7 @@
     (for n u8 0 hud.SLOTS
         (set (at card n) false)
         (set (at icon n) state.NOTHING)
+        (set (at caption (<< n 1)) 255)
         (set (at picked n) false)
         (set (at lifted n) false))
     (set dirty_g0 255)
@@ -242,7 +252,11 @@
                     (set (at pix.px k) c))
                 (set k (+ k 1)))))
     (if (and (>= y cap_y) (< y (+ cap_y 5)))
-        (pix.glyphs (at caption_x n) (at caption n) (at caption_len n) (- y cap_y) BLACK)))
+        (pix.glyphs (at caption_x n)
+            (addr_of (at caption (<< n 1)))
+            (at caption_len n)
+            (- y cap_y)
+            BLACK)))
 
 ; groups g0 to g0 + gn - 1 of the tray's rows composed anew, every card down (flush lifts the
 ; picked one after)

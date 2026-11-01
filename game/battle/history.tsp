@@ -35,7 +35,8 @@
         0
         log.hist_next))
     (for i u8 0 n
-        (auxmem.read (addr_of (at text.line 0)) (log.hist_line k) (as u16 text.COLUMNS))
+        (auxmem.read (addr_of (at text.line 0)) (log.hist_line k) text.LINE_BYTES)
+        (text.load_runs (addr_of (at text.runs 0)))
         (text.draw_at (<< i 3) (text.blocks))
         (set k (+ k 1))
         (if (= k log.HISTORY)

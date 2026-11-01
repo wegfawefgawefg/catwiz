@@ -21,7 +21,7 @@
 (fn card_slot ((c u8)) u8
     (if (>= c UP)
         (return (- c UP)))
-    (as u8 (at items.ITEMS c slot)))
+    (as u8 (items.slot c)))
 
 (fn card_levels ((c u8)) bool
     (or (>= c UP) (= (at state.items (card_slot c)) c)))

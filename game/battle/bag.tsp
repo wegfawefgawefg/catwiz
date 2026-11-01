@@ -105,7 +105,7 @@
 (fn slot_card ((n u8) (frame bool)) void
     (kit.card (>> (* n 35) 1)
         SLOT_TOP
-        (at items.ITEMS (at state.items n) icon)
+        (items.icon (at state.items n))
         (at state.levels n)
         frame
         ""))
@@ -201,7 +201,7 @@
     (let tags u8 (cards.tags item))
     (if (!= (& tags ac.THREE) 0)
         (text.add_aux_n (at SAY SAY_THREE) (at state.combo slot)))
-    (match (at items.ITEMS item slot)
+    (match (items.slot item)
         (ac.Slot.trick
             (if (> (fx.hero st.Status.plus_left) 0)
                 (text.add_aux_n (at SAY SAY_PLUS) (fx.hero st.Status.plus)))
@@ -225,7 +225,7 @@
 (fn describe_slot ((slot u8)) void
     (let item u8 (at state.items slot))
     (let level u8 (at state.levels slot))
-    (title (at items.ITEMS item name))
+    (title (items.name item))
     (text.tab 22)
     (text.add_aux_n (at SAY SAY_LEVEL) level)
     (text.number items.ITEM_MOST)
@@ -236,7 +236,7 @@
         (text.add_aux_n (at SAY SAY_UP) level))
     (text.show 1)
     (text.start)
-    (text.add_item (at items.ITEMS item text) (fx.number_at item level))
+    (text.add_item (items.text item) (fx.number_at item level))
     (text.show 2)
     (live slot item))
 

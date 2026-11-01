@@ -7,7 +7,7 @@
 (import content/enemies en)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) " takes # from fleas.") :strings aux)
+(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) " \x09takes # from fleas.") :strings aux)
 
 (const SAY_TAKES_FROM_FLEAS u8 0)
 

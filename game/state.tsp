@@ -102,7 +102,7 @@
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
-(let stacks (array u8 132)) ; status stacks: actor * STATUS_SLOTS + status
+(let stacks (array u8 132) :address 0x0272) ; status stacks: actor * STATUS_SLOTS + status (scratch, after drawn: cleared as a run starts)
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
 ; stage's, or its other door), the hero's hit points between fights, and her kit: the item in
 ; each of the six slots (rows of content/items), each slot's level, and how many of each charm

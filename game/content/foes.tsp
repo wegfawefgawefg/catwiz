@@ -18,12 +18,12 @@
 (const SAY (array (ptr u8) 8)
     (make (array (ptr u8) 8)
         "It misses the box."
-        " shields #."
-        " will hit # harder."
-        " grabs a die: beat it back."
-        " hits # harder for good."
-        " will send # back."
-        "A hairball clogs a face. Re-roll!"
+        " \x0cshields #."
+        " \x0bwill hit # harder."
+        " \x0bgrabs a die: beat it back."
+        " \x0bhits # harder for good."
+        " \x09will send # back."
+        "\x0bA hairball clogs a face. Re-roll!"
         " comes along.")
     :strings aux)
 

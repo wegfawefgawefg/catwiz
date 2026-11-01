@@ -109,4 +109,4 @@
     (let pips u8 (at state.levels k))
     (if up
         (set pips (+ pips 1)))
-    (card (cell_x k) (cell_top k) (at items.ITEMS item icon) pips frame ""))
+    (card (cell_x k) (cell_top k) (items.icon item) pips frame ""))

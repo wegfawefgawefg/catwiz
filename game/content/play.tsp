@@ -351,7 +351,7 @@
 ; other item's with its number after the boosts, its mana paid, its count towards a three
 (fn land_face ((row u8) (target u8)) void
     (let p (ptr u8) (cards.fx row))
-    (if (= (at items.ITEMS row slot) ac.Slot.trick)
+    (if (= (items.slot row) ac.Slot.trick)
         (do
             (run p target (fx.number row))
             (return)))

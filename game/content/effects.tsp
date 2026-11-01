@@ -32,20 +32,20 @@
 
 ; the mana item row costs: a book's cost, 1 more for each bad milk she holds
 (fn cost ((row u8)) u8
-    (let c u8 (at items.ITEMS row cost))
-    (if (= (at items.ITEMS row slot) ac.Slot.book)
+    (let c u8 (items.cost row))
+    (if (= (items.slot row) ac.Slot.book)
         (set c (+ c (at state.charms enc.CHARM_BAD_MILK))))
     c)
 
 ; whether item row is a book she has too little mana for: it can't be played (the owner,
 ; 2026-10-31: no fizzle; a re-roll, or a star first)
 (fn short_of_mana ((row u8)) bool
-    (and (= (at items.ITEMS row slot) ac.Slot.book) (< (mana) (cost row))))
+    (and (= (items.slot row) ac.Slot.book) (< (mana) (cost row))))
 
 ; whether the hero can play item row: not a hairball (a re-roll coughs it up), not a book she
 ; has too little mana for
 (fn can_play ((row u8)) bool
-    (and (!= (at items.ITEMS row slot) ac.Slot.junk) (not (short_of_mana row))))
+    (and (!= (items.slot row) ac.Slot.junk) (not (short_of_mana row))))
 
 ; n times m, by adding (no multiply routine), 255 at most
 (fn times ((n u8) (m u8)) u8
@@ -57,7 +57,7 @@
 ; item row's number at its slot's level: its amount, and its step more a level; one that grows
 ; with her habit (ac.GROWS) that much more
 (fn number ((row u8)) u8
-    (let slot ac.Slot (at items.ITEMS row slot))
+    (let slot ac.Slot (items.slot row))
     (if (= slot ac.Slot.junk)
         (return 0))
     (let n u8 (number_at row (at state.levels (as u8 slot))))
@@ -67,7 +67,7 @@
 
 ; and at level (a card shows what an item would be)
 (fn number_at ((row u8) (level u8)) u8
-    (+ (at items.ITEMS row amount) (times (at items.ITEMS row step) level)))
+    (+ (items.amount row) (times (items.step row) level)))
 
 ; how many faces the last face boosted counts for, towards its slot's three (a times counts
 ; its number)
@@ -80,7 +80,7 @@
 ; times 2), then a spook takes away; 255 at most. use: the boosts are used up (it lands); else
 ; only looked at (the bottom text). A trick takes no boosts
 (fn boosted ((row u8) (use bool)) u8
-    (let slot ac.Slot (at items.ITEMS row slot))
+    (let slot ac.Slot (items.slot row))
     (let n u8 (number row))
     (set counts 1)
     (if (= slot ac.Slot.trick)
@@ -138,7 +138,7 @@
 ; free, as she may have spent the mana) and what she played last. again: a copy (copycat), which
 ; is not what she played last
 (fn prepare ((row u8) (target u8) (again bool)) u8
-    (let slot ac.Slot (at items.ITEMS row slot))
+    (let slot ac.Slot (items.slot row))
     (let n u8 (boosted row true))
     (let before u8 (at state.combo (as u8 slot)))
     (let after u8 (st.sum before counts))

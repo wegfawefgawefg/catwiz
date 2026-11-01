@@ -20,10 +20,10 @@
     (make (array (ptr u8) 16)
         "All is quiet again."
         " hp"
-        "# damage"
-        "Shield #"
+        "\x0d# damage"
+        "\x0cShield #"
         "Re-roll it"
-        "Needs more mana"
+        "\x0eNeeds more mana"
         "Pick an enemy"
         "Again: hits all"
         "Again: on you"
@@ -59,13 +59,16 @@
 ; who's name, hit points and statuses on one row
 (fn actor_row ((who u8)) void
     (text.start)
+    (text.paint text.LBLUE)
     (text.add_aux (log.name who))
+    (text.paint text.WHITE)
     (text.char ' ')
     (text.number (at state.actors who hp))
     (text.char '/')
     (text.number (at state.actors who max_hp))
     (text.add_aux (at SAY SAY_HP))
     (let first u8 (at state.FIRST_STACK who))
+    (text.paint text.ORANGE)
     (for s u8 0 st.STATUS_COUNT
         (let n u8 (at state.stacks (+ first s)))
         (let show st.Show (at st.SHOW s))
@@ -84,24 +87,24 @@
     (let n u8 (fx.boosted row false))
     (text.start)
     (set text.inverse true)
-    (text.add_aux (at items.ITEMS row name))
+    (text.add_aux (items.name row))
     (set text.inverse false)
     (text.tab (+ text.col 1)) ; a space after the longer names
     (text.tab PROMPT_COL)
-    (match (at items.ITEMS row slot)
+    (match (items.slot row)
         (ac.Slot.wand (text.add_item (at SAY SAY_DAMAGE) n))
         (ac.Slot.fluff (text.add_item (at SAY SAY_SHIELD) n))
         (ac.Slot.junk (text.add_aux (at SAY SAY_REROLL)))
         (_
             (if (fx.short_of_mana row)
                 (text.add_aux (at SAY SAY_SHORT))
-                (match (at items.ITEMS row aim)
+                (match (items.aim row)
                     (state.Aim.foe (text.add_aux (at SAY SAY_PICK_ENEMY)))
                     (state.Aim.all (text.add_aux (at SAY SAY_HITS_ALL)))
                     (_ (text.add_aux (at SAY SAY_ON_YOU)))))))
     (text.show 0)
     (text.start)
-    (text.add_item (at items.ITEMS row text) n)
+    (text.add_item (items.text row) n)
     (text.show 1))
 
 ; a die enemy who holds: who has it, how to get it back
@@ -121,6 +124,7 @@
         (do
             (let row u8 (at state.actors who move))
             (text.add_aux (at SAY SAY_NEXT))
+            (text.paint text.PINK)
             (text.add_aux_n (foes.intent_text who row) (foes.intent_amount who row))))
     (text.show 1))
 

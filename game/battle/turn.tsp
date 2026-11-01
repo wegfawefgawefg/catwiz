@@ -154,7 +154,7 @@
 (fn picked_aim () state.Aim
     (if (= state.selected state.NOTHING)
         (return state.Aim.foe))
-    (at items.ITEMS (at state.hand state.selected) aim))
+    (items.aim (at state.hand state.selected)))
 
 ; a target picked with the arrows: a blip when it moves. A die for the hero or for every enemy
 ; has no target to move
@@ -288,7 +288,7 @@
     (set (at state.played d) true)
     (set state.last_played d)
     (mark_slot d)
-    (let target u8 (if (= (at items.ITEMS row aim) state.Aim.self)
+    (let target u8 (if (= (items.aim row) state.Aim.self)
         state.HERO
         state.target))
     ; no log line for her own die: the rows above still show it (battle/words), and each line

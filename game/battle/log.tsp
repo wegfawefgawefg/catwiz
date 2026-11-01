@@ -21,6 +21,8 @@
 ; what the two rows show, as screen codes
 (let older (array u8 35) :address 0x0990) ; scratch: see AGENTS.md, Memory
 (let newer (array u8 35) :address 0x09B8)
+(let older_runs (array u8 6) :address 0x0AEC) ; their colours (text.save_runs)
+(let newer_runs (array u8 6) :address 0x0AF2)
 
 ; who's name: the hero's, or the enemy kind's (in aux memory: text.add_aux)
 (fn name ((who u8)) (ptr u8)
@@ -36,6 +38,8 @@
     (text.start)
     (text.save (addr_of (at older 0)))
     (text.save (addr_of (at newer 0)))
+    (text.save_runs (addr_of (at older_runs 0)))
+    (text.save_runs (addr_of (at newer_runs 0)))
     (text.show ROW_OLDER)
     (text.show ROW_NEWER))
 
@@ -74,21 +78,25 @@
 
 ; the fight's last HISTORY lines, for the history page (battle/history): in aux memory's text
 ; page 1 past the rules page's buffer (free: the game shows no text page), a line of 35 screen
-; codes each, in turn; hist_next is the one the next line writes over
-(const HISTORY u8 13)
-(const HIST_AT u16 0x0630) ; to $07F6
+; codes and its colours (text.LINE_BYTES) each, in turn; hist_next is the one the next line
+; writes over
+(const HISTORY u8 11)
+(const HIST_AT u16 0x0630) ; to $07F2
 (let hist_next u8 0)
 (let hist_count u8 0)
 
 (fn hist_line ((k u8)) (ptr u8)
-    (as (ptr u8) (+ HIST_AT (* (as u16 k) (as u16 text.COLUMNS)))))
+    (as (ptr u8) (+ HIST_AT (* (as u16 k) text.LINE_BYTES))))
 
 ; the line text.line holds now, under the one before, and kept in the history
 (fn push () void
     (for i u8 0 text.COLUMNS
         (set (at older i) (at newer i)))
+    (for i u8 0 6
+        (set (at older_runs i) (at newer_runs i)))
     (text.save (addr_of (at newer 0)))
-    (auxmem.write (hist_line hist_next) (addr_of (at text.line 0)) (as u16 text.COLUMNS))
+    (text.save_runs (addr_of (at newer_runs 0)))
+    (auxmem.write (hist_line hist_next) (addr_of (at text.line 0)) text.LINE_BYTES)
     (set hist_next (+ hist_next 1))
     (if (= hist_next HISTORY)
         (set hist_next 0))
@@ -103,10 +111,16 @@
     (for k u8 0 waiting
         (text.start)
         (let kind u8 (at w_kind k))
+        ; names aqua, an enemy's move pink (draw/text colours)
         (if (!= kind LINE)
-            (text.add_aux (at w_name k)))
+            (do
+                (text.paint text.LBLUE)
+                (text.add_aux (at w_name k))
+                (text.paint text.WHITE)))
         (if (= kind USES)
-            (text.add ": "))
+            (do
+                (text.add ": ")
+                (text.paint text.PINK)))
         ; every sentence is in aux memory: a move's text (the content's) or a module's SAY table
         (text.add_aux_n (at w_text k) (at w_n k))
         (if (= kind USES)
@@ -114,15 +128,19 @@
         (push))
     (set waiting 0)
     (text.load_line (addr_of (at newer 0)))
+    (text.load_runs (addr_of (at newer_runs 0)))
     (text.show ROW_NEWER)
     (text.load_line (addr_of (at older 0)))
+    (text.load_runs (addr_of (at older_runs 0)))
     (text.show ROW_OLDER))
 
 ; the two rows shown again as they were (a page over the stage wrote over them)
 (fn reshow () void
     (text.load_line (addr_of (at newer 0)))
+    (text.load_runs (addr_of (at newer_runs 0)))
     (text.show ROW_NEWER)
     (text.load_line (addr_of (at older 0)))
+    (text.load_runs (addr_of (at older_runs 0)))
     (text.show ROW_OLDER))
 
 ; a sentence: s (in aux memory: a SAY table's) with n for its #

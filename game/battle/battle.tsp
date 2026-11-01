@@ -55,6 +55,8 @@
     (if (!= SEED 0)
         (set random.seed SEED))
     (set state.page state.Page.none)
+    (for i u8 0 132
+        (set (at state.stacks i) 0))
     (for k u8 0 state.SLOTS
         (set (at state.items k) (at items.STARTING_ITEMS k))
         (set (at state.levels k) 0))

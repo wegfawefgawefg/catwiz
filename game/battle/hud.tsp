@@ -155,34 +155,35 @@
 ; ---- the dice tray and the re-rolls
 
 ; the number under a face's picture: its number at its slot's level (a plus, a copy, a knead
-; with a +, a times with an X), none for the hairball. The same text the same pointer, so the
-; tray sees a change
-(const DIGITS (array (ptr u8) 16)
-    (make (array (ptr u8) 16)
-        "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15"))
-
-(const PLUSES (array (ptr u8) 10)
-    (make (array (ptr u8) 10) "+0" "+1" "+2" "+3" "+4" "+5" "+6" "+7" "+8" "+9"))
-
-(const TIMESES (array (ptr u8) 10)
-    (make (array (ptr u8) 10) "X0" "X1" "X2" "X3" "X4" "X5" "X6" "X7" "X8" "X9"))
+; with a +, a times with an X), none for the hairball; built here (the tray keeps its own copy)
+(let cap_text (array u8 3))
 
 ; (the most a face's number is at two levels: 14, Knock It Off's; a trick's 4)
 (fn caption ((row u8)) (ptr u8)
     (let n u8 (fx.number row))
     (if (> n 15)
         (set n 15))
-    (let small u8 n)
-    (if (> small 9)
-        (set small 9))
     (let tags u8 (cards.tags row))
+    (let k u8 0)
+    (set (at cap_text 0) 0)
     (if (!= (& tags ac.CAP_NONE) 0)
-        (return ""))
-    (if (!= (& tags ac.CAP_TIMES) 0)
-        (return (at TIMESES small)))
-    (if (!= (& tags ac.CAP_PLUS) 0)
-        (return (at PLUSES small)))
-    (at DIGITS n))
+        (return (addr_of (at cap_text 0))))
+    (if (!= (& tags (| ac.CAP_TIMES ac.CAP_PLUS)) 0)
+        (do
+            (set (at cap_text 0) (if (!= (& tags ac.CAP_TIMES) 0)
+                'X'
+                '+'))
+            (set k 1)
+            (if (> n 9)
+                (set n 9))))
+    (if (>= n 10)
+        (do
+            (set (at cap_text k) '1')
+            (set k (+ k 1))
+            (set n (- n 10))))
+    (set (at cap_text k) (+ '0' n))
+    (set (at cap_text (+ k 1)) 0)
+    (addr_of (at cap_text 0)))
 
 ; die d's card: none past the dice she rolls, a paw on it while an enemy holds it (picked, the
 ; rows say who: battle/words), a blank card once it is played
@@ -200,7 +201,7 @@
             (tray.slot d true state.NOTHING "" false)
             (return)))
     (let row u8 (at state.hand d))
-    (tray.slot d true (at items.ITEMS row icon) (caption row) (= state.selected d)))
+    (tray.slot d true (items.icon row) (caption row) (= state.selected d)))
 
 ; whatever changed since the last frame; gives whether the tray drew anything
 (fn refresh () bool

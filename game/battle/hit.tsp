@@ -16,15 +16,16 @@
 (import sound/sound)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 7)
-    (make (array (ptr u8) 7)
-        " sends # back."
-        " takes #."
-        "'s shield takes it all."
+(const SAY (array (ptr u8) 8)
+    (make (array (ptr u8) 8)
+        " \x0dsends # back."
+        " \x0dtakes #."
+        "'s shield \x0ctakes it all."
         " gets up!"
         " is beaten."
         " is at full hp already."
-        " heals #.")
+        " \x0cheals #."
+        " \x0btakes #.")
     :strings aux)
 
 (const SAY_SENDS_BACK u8 0)
@@ -34,6 +35,7 @@
 (const SAY_BEATEN u8 4)
 (const SAY_AT_FULL_HP u8 5)
 (const SAY_HEALS u8 6)
+(const SAY_HURTS u8 7) ; her own: the number pink (draw/text colours)
 
 ; the flash and the knockback end on the same frame: each change of a sprite costs a redraw
 ; of it on both pages (the hero's about 50,000 cycles), so a hit is three changes (hurt, white
@@ -78,11 +80,17 @@
     (if pierce
         (do
             (set state.hud_pills (| state.hud_pills (<< 1 target)))
-            (log.who target (at SAY SAY_TAKES) damage)
+            (log.who target (takes target) damage)
             (lose target damage))
         (plain target damage))
     (if at_her
         (hooks.status steps.When.hit_her state.HERO by)))
+
+; the line for who taking damage: her number pink, an enemy's yellow (her hits)
+(fn takes ((who u8)) (ptr u8)
+    (if (= who state.HERO)
+        (at SAY SAY_HURTS)
+        (at SAY SAY_TAKES)))
 
 ; damage on target, its shield first (a kitten's pounce, a trio, what is sent back)
 (fn plain ((target u8) (damage u8)) void
@@ -95,7 +103,7 @@
             (set (at state.actors target flash) 1)
             (float_number target 0 false)
             (return)))
-    (log.who target (at SAY SAY_TAKES) damage)
+    (log.who target (takes target) damage)
     (lose target damage))
 
 ; n hit points off who, with all the feel of a hit; at 0 it starts dying

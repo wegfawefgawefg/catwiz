@@ -169,14 +169,14 @@
         (state.Pick.cards
             (let slot u8 (card_slot c))
             (if (>= c UP)
-                (tray.slot n true (at items.ITEMS (at state.items slot) icon) "+1" picked)
-                (tray.slot n true (at items.ITEMS c icon) "" picked)))
+                (tray.slot n true (items.icon (at state.items slot)) "+1" picked)
+                (tray.slot n true (items.icon c) "" picked)))
         (state.Pick.charms (tray.slot n true icons.TILE_CHARM (at enc.MARKS c) picked))
         (state.Pick.nap
             (if (= c 0)
                 (tray.slot n true icons.TILE_NAP "" picked)
                 (tray.slot n true icons.TILE_PLUS1 "" picked)))
-        (state.Pick.nap_slot (tray.slot n true (at items.ITEMS (at state.items c) icon) "" picked))
+        (state.Pick.nap_slot (tray.slot n true (items.icon (at state.items c)) "" picked))
         (state.Pick.door (tray.slot n true icons.TILE_DOOR "" picked))))
 
 (fn draw_cards () void
@@ -232,7 +232,7 @@
                     (do
                         (text.add_aux (at SAY SAY_PLUS1))
                         (text.add_aux (at SLOT_NAME (card_slot c))))
-                    (text.add_aux (at items.ITEMS c name)))
+                    (text.add_aux (items.name c)))
                 (show (+ k 1))))
         (state.Pick.charms
             (row 0 (at SAY SAY_CHARM) 0)
@@ -290,32 +290,32 @@
             (title
                 (if (>= c UP)
                     (at SLOT_NAME slot)
-                    (at items.ITEMS c name))
+                    (items.name c))
                 (>= c UP))
             (if (not (card_ok c))
                 (do
                     (base_row slot old level)
-                    (item_aux 2 (at items.ITEMS old text) (fx.number_at old level))
+                    (item_aux 2 (items.text old) (fx.number_at old level))
                     (text.start)
                     (text.add_aux (at SLOT_NAME slot))
                     (text.add_aux (at SAY SAY_AT_MOST))
                     (show 3)
                     (return)))
             (base_row slot old (+ level 1))
-            (item_aux 2 (at items.ITEMS old text) (fx.number_at old (+ level 1)))
+            (item_aux 2 (items.text old) (fx.number_at old (+ level 1)))
             (text.start)
             (text.add_aux (if (>= c UP)
                 (at SAY SAY_ON_SLOT)
                 (at SAY SAY_HAVE_IT)))
-            (text.add_aux (at items.ITEMS old name))
+            (text.add_aux (items.name old))
             (show 3)
             (return)))
-    (title (at items.ITEMS c name) false)
+    (title (items.name c) false)
     (base_row slot c level)
-    (item_aux 2 (at items.ITEMS c text) (fx.number_at c level))
+    (item_aux 2 (items.text c) (fx.number_at c level))
     (text.start)
     (text.add_aux (at SAY SAY_REPLACES))
-    (text.add_aux (at items.ITEMS old name))
+    (text.add_aux (items.name old))
     (show 3))
 
 ; choice n's text, picked: rows 0 to 3
