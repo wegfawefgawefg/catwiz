@@ -24,6 +24,12 @@ typedef struct {
 } Play;
 int options(const Battle *b, Play *out);
 
+/* the skill ladder (main.c --blunder, --blunder-pick): the searching player's chance, at each
+   play, of a random legal play instead of its own; and at each pick between fights, of a
+   random option */
+extern double BLUNDER_PLAY, BLUNDER_PICK;
+int blunder(Player *p, Battle *b);
+
 void player_turn(Player *p, Battle *b);
 void search_turn(Player *p, Battle *b); /* search.c */
 void search_init(void);

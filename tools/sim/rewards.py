@@ -44,7 +44,6 @@ class Kit:
         self.charms = []
         self.lives = 0
         self.kittens = 0  # kept from the last fight (the litter box charm)
-        self.habit = 0  # scratching habit's uses this run
         self.revived = False  # nine lives (die once) spent
 
     @property
@@ -70,7 +69,6 @@ class Kit:
         k.charms = list(self.charms)
         k.lives = self.lives
         k.kittens = self.kittens
-        k.habit = self.habit
         k.revived = self.revived
         return k
 

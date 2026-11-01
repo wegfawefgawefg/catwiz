@@ -132,6 +132,15 @@ void print_report(int player, const RunResult *r, int n, double seconds, int by_
         stall += st;
     }
     printf("runs with a fight over 15 turns: %.1f%%\n", 100.0 * stall / n);
+    long bl = 0, turns = 0, fights = 0;
+    for (int i = 0; i < n; i++) {
+        bl += r[i].blunders;
+        fights += r[i].nfights;
+        for (int f = 0; f < r[i].nfights; f++)
+            turns += r[i].fights[f].turns;
+    }
+    if (bl)
+        printf("blunders: %.2f a turn, %.2f a fight\n", (double)bl / turns, (double)bl / fights);
     printf("runs lost in fight:");
     for (int f = 0; f <= FIGHT_COUNT; f++)
         if (s.deaths[f])

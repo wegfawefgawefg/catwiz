@@ -180,7 +180,11 @@ def trick(b, face, n):
     elif e == "gamble":
         # double or nothing: the next die times n; left unused at the turn's end, n hp
         st[r.MULT] = sat(max(st[r.MULT], 1) * n)
-        st[r.GAMBLE] = sat(st[r.GAMBLE] + n)
+        price = b.R.fx.get("GAMBLE_PRICE", 0) or n
+        if b.R.fx.get("GAMBLE_UPFRONT", 0):
+            b.lose(r.HERO, price)  # the price, paid now
+        else:
+            st[r.GAMBLE] = sat(st[r.GAMBLE] + price)
     else:
         raise ValueError("trick the sim does not know: " + e)
 
@@ -275,7 +279,8 @@ def effect(b, e, t, n):
     elif e == "sunbeam":
         m = st[H][r.MANA] + n
         st[H][r.MANA] = min(m, b.R.most_mana)
-        b.rerolls = sat(b.rerolls + max(0, m - b.R.most_mana))  # mana past the most
+        over = min(max(0, m - b.R.most_mana), b.R.fx.get("SUNBEAM_REROLLS", 255))
+        b.rerolls = sat(b.rerolls + over)  # mana past the most, a few
     else:
         b.apply(e, H, t, n)
 

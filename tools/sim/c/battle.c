@@ -4,7 +4,7 @@
 #include "sim.h"
 #include "tell.h"
 
-Rules RULES = {1, 0, 0, 1, 0, 0}; /* red dot: # is how many times it fires */ /* the sixth toe's die; no cap on a waiting times (255, main.c) */
+Rules RULES = {1, 0, 0, 1, 0}; /* red dot: # is how many times it fires */ /* the sixth toe's die; no cap on a waiting times (255, main.c) */
 
 void b_set_enemy(Battle *b, int i, int k) {
     const KindRow *kind = &KINDS[k];

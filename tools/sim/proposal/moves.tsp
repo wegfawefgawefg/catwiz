@@ -236,7 +236,7 @@
         (make ac.Move
             :text "HEAVY PARCEL FOR #"
             :effect ac.Effect.hit
-            :amount 12
+            :amount 14
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
@@ -265,7 +265,7 @@
         (make ac.Move
             :text "CHECKUP FOR #"
             :effect ac.Effect.hit
-            :amount 18
+            :amount 30
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
@@ -426,7 +426,7 @@
         (make ac.Move
             :text "CAP SLAM FOR #"
             :effect ac.Effect.hit
-            :amount 8
+            :amount 14
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')

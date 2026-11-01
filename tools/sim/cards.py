@@ -108,7 +108,7 @@ def after_play(b, s):
             mask |= 1 << x
     if not mask:
         return
-    most = int(b.R.variant.get("refresh") or REFRESH_MOST)
+    most = int(b.R.variant.get("refresh") or b.R.fx.get("REFRESH_MOST", REFRESH_MOST))
     if b.refreshes >= most:
         return
     b.refreshes += 1

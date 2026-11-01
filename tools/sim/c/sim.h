@@ -76,9 +76,10 @@ typedef struct Battle {
     /* this turn, for the chains study: dice back by red dot, big stretch, nine lives; swats
        come back; re-rolls got (lucky paw, sunbeam) */
     uint8_t t_dot, t_stretch, t_nine, t_swat, t_gain;
-    /* the combo cards: scratching habit's uses this run, nine lives' hit points to come back
+    /* the combo cards: scratching habit's uses this fight, nine lives' hit points to come back
        with (0: spent or not held), the hairballs rolled this turn (cough it up) */
     uint8_t habit, revive, hair;
+    uint16_t blunders; /* the skill ladder's random plays this fight (players.c blunder) */
 } Battle;
 
 /* the systems a turn can touch: a book paid with mana, kittens, a three-in-a-turn combo, a
@@ -138,7 +139,6 @@ typedef struct {
     int ncharms;
     uint8_t locked; /* slots whose item no card replaces (a bit a slot: the combos bench) */
     uint8_t kittens; /* kept from the last fight (the litter box charm) */
-    uint8_t habit;   /* scratching habit's uses this run */
     uint8_t revived; /* nine lives (die once) spent */
 } Kit;
 
@@ -157,7 +157,6 @@ typedef struct {
     int dot_charges; /* red dot's # is how many times it fires (the default; 0: the turns
                         it lasts, --dot-turns) */
     int refresh_most; /* refreshes a turn at most (0: 255, a byte) */
-    int habit_fight; /* a test: scratching habit's +1s last the fight, not the run */
 } Rules;
 extern Rules RULES;
 

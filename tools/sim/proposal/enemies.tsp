@@ -187,7 +187,7 @@
             :stall 0)
         (make Enemy
             :name "THE VET"
-            :hp 76
+            :hp 66
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 32
@@ -217,7 +217,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING"
-            :hp 98
+            :hp 108
             :ward 2
             :figure art.KIND_CAP_BIG
             :first_move 42
@@ -227,7 +227,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, CROSS"
-            :hp 98
+            :hp 108
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 45
@@ -237,7 +237,7 @@
             :stall 0)
         (make Enemy
             :name "BULLDOG KING, FURIOUS"
-            :hp 98
+            :hp 108
             :ward 0
             :figure art.KIND_CAP_BIG
             :first_move 49
@@ -259,7 +259,7 @@
         ; groups in mind: zoomies, screaming, the twig's sweep; knock it off takes the cheer)
         (make Enemy
             :name "THE OLD SHROOM"
-            :hp 46
+            :hp 60
             :ward 1
             :figure art.KIND_CAP_BIG
             :first_move 55
