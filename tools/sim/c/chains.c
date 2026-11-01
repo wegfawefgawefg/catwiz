@@ -175,7 +175,7 @@ static void chains(const RunResult *r, int runs, int *buf) {
             int v = chain_of(&r[i].turns[j], 5);
             if (v) {
                 buf[n++] = v;
-                capped += v >= (RULES.refresh_most ? RULES.refresh_most : 255);
+                capped += v >= (RULES.refresh_most ? RULES.refresh_most : REFRESH_MOST);
             }
         }
     int med, p90, most;

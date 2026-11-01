@@ -148,6 +148,8 @@ int cards_effect(Battle *b, int e, int t, int n) {
         break;
     case E_sunbeam: {
         int m = sh[ST_MANA] + n, over = m > MOST_MANA ? m - MOST_MANA : 0;
+        if (over > SUNBEAM_REROLLS)
+            over = SUNBEAM_REROLLS;
         sh[ST_MANA] = (int32_t)(m < MOST_MANA ? m : MOST_MANA);
         b->rerolls = (int16_t)sat(b->rerolls + over); /* mana past the most */
         b->t_gain = (uint8_t)sat(b->t_gain + over);
@@ -201,7 +203,7 @@ void items_after_play(Battle *b, int s) {
         mask = all;
         why = 3;
     }
-    if (!mask || b->refreshes >= (RULES.refresh_most ? RULES.refresh_most : 255))
+    if (!mask || b->refreshes >= (RULES.refresh_most ? RULES.refresh_most : REFRESH_MOST))
         return;
     b->refreshes++;
     if (why == 1)

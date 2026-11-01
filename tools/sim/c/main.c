@@ -122,9 +122,11 @@ static int player_by_name(const char *s) {
     exit(2);
 }
 
+int check_targets(int runs, uint64_t seed, int jobs); /* targets.c */
+
 int main(int argc, char **argv) {
     const char *player = "all";
-    int runs = 300, jobs = 8, logs = 0, dumping = 0, picks = 0;
+    int runs = 300, jobs = 8, logs = 0, dumping = 0, picks = 0, check = 0;
     uint64_t seed = 1;
     for (int i = 1; i < argc; i++) {
         const char *a = argv[i];
@@ -197,13 +199,19 @@ int main(int argc, char **argv) {
         } else if (!strcmp(a, "--mult-cap")) {
             RULES.mult_cap = atoi(v);
             i++;
-        } else if (!strcmp(a, "--habit-fight")) {
-            RULES.habit_fight = 1; /* a test: scratching habit's +1s last the fight */
+        } else if (!strcmp(a, "--blunder")) {
+            BLUNDER_PLAY = atof(v); /* the skill ladder: a random play's chance at each play */
+            i++;
+        } else if (!strcmp(a, "--blunder-pick")) {
+            BLUNDER_PICK = atof(v); /* and a random pick's between fights */
+            i++;
         } else if (!strcmp(a, "--dot-turns")) {
             RULES.dot_charges = 0; /* red dot's # is the turns it lasts (else how many times) */
         } else if (!strcmp(a, "--refresh-most")) {
             RULES.refresh_most = atoi(v); /* refreshes a turn at most */
             i++;
+        } else if (!strcmp(a, "--check-targets")) {
+            check = 1; /* the owner's targets, PASS or FAIL (targets.c) */
         } else if (!strcmp(a, "--study")) {
             judge_init();
             search_init();
@@ -215,6 +223,8 @@ int main(int argc, char **argv) {
     }
     judge_init();
     search_init();
+    if (check)
+        return check_targets(runs, seed, jobs);
     for (int p = 0; p < P_COUNT; p++) {
         if (strcmp(player, "all") && player_by_name(player) != p)
             continue;

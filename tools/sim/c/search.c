@@ -250,6 +250,17 @@ static void play_path(Battle *c, const Cand *cand) {
         b_play(c, cand->path[j].s, cand->path[j].t);
 }
 
+/* the real board: a candidate's plays, each of which may be a blunder instead; 0 if one was
+   (the plan is then stale) */
+static int play_path_real(Player *p, Battle *b, const Cand *cand) {
+    for (int j = 0; j < cand->npath && b->result == R_NONE; j++) {
+        if (blunder(p, b))
+            return 0;
+        b_play(b, cand->path[j].s, cand->path[j].t);
+    }
+    return 1;
+}
+
 /* the set of dice to play before re-rolling (an index of cands, its worth in *worth), or -1 */
 static int choose_reroll(const Battle *b, uint8_t (*samp)[MAX_HAND], Cand *cands, double *worth) {
     int n = 0;
@@ -357,22 +368,25 @@ void search_turn(Player *p, Battle *b) {
             if (k >= 0 && (bv <= v0 + MARGIN || (i >= 0 && bv <= rv)))
                 k = -1;
             if (k >= 0) {
-                play_path(b, &backs[k]); /* its last play brings the dice back */
+                play_path_real(p, b, &backs[k]); /* its last play brings the dice back */
                 continue;
             }
             if (i >= 0) {
-                play_path(b, &cands[i]);
-                if (b->result == R_NONE)
+                if (play_path_real(p, b, &cands[i]) && b->result == R_NONE)
                     b_reroll(b);
                 continue;
             }
         }
-        for (int j = 0; j < nplan; j++) {
-            b_play(b, plan[j].s, plan[j].t);
-            if (b->result != R_NONE)
+        int stale = 0;
+        for (int j = 0; j < nplan && b->result == R_NONE; j++) {
+            if (blunder(p, b)) {
+                stale = 1;
                 break;
+            }
+            b_play(b, plan[j].s, plan[j].t);
         }
-        break;
+        if (!stale || b->result != R_NONE)
+            break;
     }
 }
 

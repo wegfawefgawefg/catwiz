@@ -95,10 +95,14 @@ static void trick(Battle *b, const ItemRow *face, int n) {
     case E_stretch:
         b->stretch = (uint8_t)sat(b->stretch + n); /* items_after_play picks the dice */
         break;
-    case E_gamble: { /* the next die times n; left unused at the turn's end, n hp */
+    case E_gamble: { /* the next die times n, for n hp: paid now (GAMBLE_UPFRONT), or at
+                        the turn's end if no die took it */
         int m = st[ST_MULT] > 1 ? st[ST_MULT] : 1;
         st[ST_MULT] = sat((int64_t)m * n);
-        st[ST_GAMBLE] = sat((int64_t)st[ST_GAMBLE] + n);
+        if (GAMBLE_UPFRONT)
+            b_lose(b, HERO, n);
+        else
+            st[ST_GAMBLE] = sat((int64_t)st[ST_GAMBLE] + n);
         break;
     }
     default:

@@ -15,6 +15,23 @@
 
 const char *const PLAYER_NAME[P_COUNT] = {"random", "greedy", "strong", "search"};
 
+double BLUNDER_PLAY = 0.0, BLUNDER_PICK = 0.0;
+
+/* a blunder: by BLUNDER_PLAY's chance, a random legal play (a die and a target) instead of the
+   player's own; 1 if it made one (the player plans again after it) */
+int blunder(Player *p, Battle *b) {
+    if (BLUNDER_PLAY <= 0.0 || mt_random(p->rng) >= BLUNDER_PLAY)
+        return 0;
+    Play opts[24];
+    int n = options(b, opts);
+    if (!n)
+        return 0;
+    Play o = opts[mt_below(p->rng, n)];
+    b_play(b, o.s, o.t);
+    b->blunders++;
+    return 1;
+}
+
 /* the distinct plays now: one slot for each face shown, each enemy for a face that picks */
 int options(const Battle *b, Play *out) {
     int n = 0;

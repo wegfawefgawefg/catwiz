@@ -142,6 +142,8 @@ static int kind_rank(int what) {
 static int choose(Player *p, const Kit *kit, int hp, int f, const Pick *opts, int n) {
     if (n == 1)
         return 0;
+    if (p->kind == P_SEARCH && BLUNDER_PICK > 0.0 && mt_random(p->rng) < BLUNDER_PICK)
+        return mt_below(p->rng, n); /* the skill ladder: a random pick */
     if (p->kind == P_RANDOM) {
         int kinds[3] = {0, 0, 0}, nk = 0, order[3];
         for (int i = 0; i < n; i++)
@@ -241,6 +243,11 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
         take_heal = mt_random(p->rng) < 0.5;
     } else if (p->kind == P_GREEDY) {
         take_heal = heal - *hp >= 5; /* a rest worth 5 or more */
+    } else if (p->kind == P_SEARCH && BLUNDER_PICK > 0.0 && mt_random(p->rng) < BLUNDER_PICK) {
+        best = (int)mt_below(p->rng, n + 1) - 1; /* the skill ladder: a random rest */
+        take_heal = best < 0;
+        if (best < 0)
+            best = 0;
     } else if (p->kind == P_SEARCH && DRAFT.ahead > 0) {
         best = search_nap(p, kit, *hp, heal, ups, n, f); /* every level, not the table's one */
         take_heal = best < 0;
@@ -401,6 +408,8 @@ int pick_door(Player *p, const Kit *kit, int hp, int f, int other) {
             b += KINDS[FIGHTS[other].enemies[i]].hp;
         return a <= b ? f : other;
     }
+    if (p->kind == P_SEARCH && BLUNDER_PICK > 0.0 && mt_random(p->rng) < BLUNDER_PICK)
+        return mt_random(p->rng) < 0.5 ? f : other; /* the skill ladder: a random door */
     if (p->kind == P_SEARCH && DRAFT.ahead > 0)
         return search_door(p, kit, hp, f, other);
     uint32_t seeds[ROLLOUTS];

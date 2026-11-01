@@ -20,7 +20,6 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
         int n = b->st[HERO][ST_KITTENS] + kit->kittens;
         b->st[HERO][ST_KITTENS] = n < KITTENS_MOST ? n : KITTENS_MOST;
     }
-    b->habit = RULES.habit_fight ? 0 : kit->habit;
     if (k.charm_n[K_lives9] && !kit->revived) /* nine lives: once a run */
         b->revive = (uint8_t)(charm_amount(b, K_lives9) / k.charm_n[K_lives9]);
     b->tell = tell;
@@ -58,6 +57,8 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
     }
     if (b->result == R_NONE)
         b->result = R_LOST;
+    if (use)
+        use->blunders += b->blunders;
     if (use && b->kitten_peak > use->kitten_peak)
         use->kitten_peak = b->kitten_peak;
     if (use)
@@ -125,7 +126,6 @@ void run_one(int player, uint64_t seed, RunResult *out, int want_log) {
             break;
         hp = b.hp[HERO];
         kit.kittens = kit_has(&kit, K_litterbox) ? (uint8_t)b.st[HERO][ST_KITTENS] : 0;
-        kit.habit = b.habit;
         kit.revived = kit.revived || (kit_has(&kit, K_lives9) && !b.revive);
         f++;
         if (f >= FIGHT_COUNT) {
