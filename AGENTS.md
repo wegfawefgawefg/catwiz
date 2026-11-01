@@ -23,9 +23,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   multiplies (it cost the redraw about half its speed once). Pass indices, not pointers.
 - Early returns and flat branching; concrete names; code easy to trace in the listing
   (`tisple build --asm`).
-- Explicit dispatch: effects and enemy actions are a `match` on a kind enum, in one obvious
-  place (`content/effects.tsp`). Function pointers only where a table is clearly the plainer
-  form, and say so where you use one (none so far).
+- Explicit dispatch: a card's effect is its row of steps, run by the one `match` on the step
+  (`content/play.tsp`); enemy actions are a `match` on a kind enum (`content/foes.tsp`).
+  Function pointers only where a table is clearly the plainer form, and say so where you use
+  one (none so far).
 - No generic engine layers or premature reuse. Write what this game needs, directly.
 - Plain comments that say what and why.
 - `tisple fmt -w` the files you touch.
@@ -37,15 +38,57 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   run's fights (`FIGHTS`: zone, elite, the other door), the draws' pools (`OFFER_CARDS`,
   `OFFER_CHARMS`: a card or charm, its weight, the first fight it can come after; the sim's
   tuned weights, 2026-11-01), the charms and the nap's `NAP_HEAL_SHIFT`; `rules.tsp`
-  the rules page's text), and the `match` on the effect kind
-  (`effects.tsp` the hero's faces, the boosts and threes, the curses, the kittens; `foes.tsp`
-  the enemies' moves; `charms.tsp` what the charms do; `statuses.tsp` the statuses and their
-  hooks). No macros, no separate data format, no parser, no Python step for it (one small
-  macro lays the rules page's text out: `content/rules.tsp` `page`; `draw/packs` packs the
-  generated art). The rules are
+  the rules page's text), the cards' steps (`cards.tsp`, below), the rules faces land by
+  (`effects.tsp`: a face's number, the boosts, a book's mana, the threes' count, the kittens'
+  pounce), the `match` on the enemies' move kinds (`foes.tsp`), the charms' rules
+  (`charms.tsp`) and the statuses (`statuses.tsp`). No separate data format, no parser, no
+  Python step for it (two small macros: `content/rules.tsp` `page` lays the rules page's text
+  out, `content/steps.tsp` `steps` a card's steps; `draw/packs` packs the generated art). The
+  rules are
   the balance sim's (`tools/sim/items.py`, `rules.py`; docs/balance.md, the item-slot model), its
   tuned tables since 2026-11-01 (`python3 tools/sim/tablediff.py`; docs/balance.md "What the
   engine needs").
+- Cards as data (2026-11-01, the owner: many more cards, each costing table bytes, not code):
+  what an item, a charm, a status's hook or an enemy's curse does is a row of steps in
+  `content/cards.tsp`, written with the `steps` macro of `content/steps.tsp` (the vocabulary,
+  each step explained at its top) and run by `content/play.tsp`. While steps run they keep a
+  target t, the card's number n (its # after levels and boosts) and a value v (n to start
+  with). The steps: values (num, lit k, kits k, get s, least k, kept), conditions (has s,
+  if_up, three, calm), stacks (add, set, max, times, sub on her stack s; t_add, t_set, t_sub,
+  t_get, t_has on t's), her (mana, spill, rerolls, heal), on t (hit, pierce, plain, hurt,
+  curse s, pounce), targets and loops (all, others, rep ... end; next, retarget, me), calls
+  (call k: a shared row of `cards.SUBS`), chains (back: every die comes back after this play;
+  blocked), the uniques as native steps (copy: Copycat; look and mimic: Mimic, with
+  `cards.MIMICRY` saying what each enemy move is for her), sound and log (cue c; say, say_it,
+  say_me l: a line of `effects_said.tsp`'s SAY). Triggers: `cards.HOOKS` rows (a status, a
+  moment, the stack that is its value, the steps) for a wand hit on its holder, its fall, an
+  enemy's hit on her, her turn's end; a charm's row (`encounters` CHARMS) names its moment
+  (`steps.When`: a fight's start, she is hurt, a ward takes a curse, a three, she would fall,
+  or none: a charm that changes a rule is read where the rule is, by its kind). Hooks set off
+  in the middle of a hit wait in `content/hooks` and run as soon as the step (or the enemy's
+  hit) is done. The rows are plain s-expressions a tool like the sim's `tsp.py` can read: a
+  step is `(word arg)`.
+- To add a card: its row in `content/items.tsp` (name, text with `#`, slot, amount, step,
+  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps and
+  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption) in the same order as `ITEMS`, its log lines
+  in `effects_said.tsp`, its pool row in `encounters` `OFFER_CARDS`. A status it needs: a row
+  in `statuses.tsp` (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and,
+  when it acts at a moment, a `HOOKS` row. Only an effect no step can make needs a new step
+  (a byte in `steps.tsp`, its arm in `play.run`): keep the vocabulary small.
+- The chain and combo cards (2026-11-01, the owner's picks of docs/balance.md "The chain and
+  combo cards", numbers from `tools/sim/proposal`, not retuned yet: a retune changes rows only):
+  Red Dot, Mimic, Catfight, Mirror Fur, Lucky Paw, Flea Circus, Sunbeam, Scratching Habit (its
+  +1s last the fight: her `habit` stack, which `effects.number` adds), Double or Nothing (the bet
+  is its # for now, the sim's form: `(num) (add gamble)` in its steps, so another price is a
+  table change), and the charms Nine Lives (once a run: `state.spent`) and Litter Box (the
+  kittens she won with: `state.kept`). Their rules (`cards.tsp`): her dice come back `BACK_MOST`
+  times a turn at most (5, the sim's cap: `battle/turn` after_action, `dice.back`); re-rolls stop
+  at `REROLLS_MOST` (9: the sim has no number for it; the tray shows one digit). Catfight's turn
+  of a hit is in `foes.move_target`; Nine Lives' save in `hit.lose` (`charms.saved`).
+- The sims read the game's tables with `tools/sim/tsp.py`: since the cards are data, items have
+  no `effect`, `combo` or `combo_n` (their steps are in `cards.tsp`), and `FLEA_TURNS`,
+  `ZOOMIES_HITS`, `SCREAM_SELF` moved from `effects.tsp` to `cards.tsp`; the sims' game-table
+  readers (`tablediff.py`, `content.py` "game") need that the next time they read the game.
 - Every number is a byte and stops at 255 instead of wrapping (the owner, 2026-11-01): add with
   `st.sum` (content/statuses), multiply with `fx.times`, stacks with `hit.add_stacks`. The
   badges show three digits; a floating number two (99 at most, the log has the whole number).
@@ -157,6 +200,12 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
   picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
   (`battle/kit.tsp`).
+- The chain cards borrow card pictures until they have their own (`content/items.tsp` icon):
+  Red Dot the laser pointer's, Mimic the copycat's, Catfight Knock It Off's, Mirror Fur the
+  static fur's, Lucky Paw the knead's, Flea Circus the fleas', Sunbeam the star's, Scratching
+  Habit the twig wand's, Double or Nothing Times Two's; the charm marks are & (Litter Box) and 9
+  (Nine Lives); the statuses' hud glyphs borrow too (`statuses.tsp` GLYPH: red dot ", catfight
+  !, mirror :, flea circus ,, habit ^).
 - NTSC (the TV look) is the real target and the web player starts in it (`"look": "ntsc"` in
   `tools/phone/catwiz.json`); judge the art and take screenshots there first, colour second. In
   NTSC every colour but black, white and grey shows fine stripes, the dark ones worst: big areas
@@ -320,3 +369,24 @@ splits a memory would not build.
   `look.update` and `words.their_turn` joined); bank 2 11,882 of 12,288 (was 12,229); aux
   memory 6,142 at `$0800` and 17,058 at `$6000`; the disk 64,773 bytes. A pass waiting for a
   key in fight 1, flat out: 5,812 cycles (was 5,740, measure.py "900f:RETURN" 1500 1800).
+- 2026-11-01, cards as data (branch cards-data, Tisple a48832d): every card a row of steps in aux
+  memory (`content/cards.tsp`), run by `content/play.tsp`; then the nine chain cards and two
+  charms. Before (d71ca80): squeeze 8, the functions 34,413 bytes (44,718 at the usual budget);
+  the language card 12,280 of 12,288, its bank 1 2,129 (13 functions); the overlay region 2,795;
+  aux memory 6,143 at `$0800` and 22,219 at `$6000` (2,357 left); the disk boots 69,379 bytes,
+  64 sectors free, 16 tables on it. The old cards as data (1cf46d6): 43,522 bytes at the usual
+  budget (1,196 less), but built at squeeze 10 (32,723 bytes; bank 1 643; aux 1,833 left; the
+  disk boots 68,390). With the new cards: squeeze 10, 33,438 bytes (43,975 at the usual
+  budget); the card 12,111 (177 left), bank 1 1,910 (11 functions, about 2.2 KB left); the
+  overlay region 2,636; aux 6,141 at `$0800` and 24,003 at `$6000` (573 left at `$BDC3-$BFFF`:
+  the next cards' steps and text want room found there); the disk boots 70,773 bytes, 64 sectors
+  free, 17 tables (the new rules page). Why squeeze 10: Tisple weighs a `while` loop 8 trips, so
+  every routine the steps loop calls (the log, the stacks, the hits) looks 8 times hotter than
+  under the old match, and the size budget spends room copying them; with the loop taken out
+  (one step a call) the old cards built at squeeze 8, and the new cards' code alone then needs
+  10. Speed: a pass waiting for a key, flat out, 5,719 cycles (main 5,718; measure.py
+  "950f:RETURN" 1500 3000); a pick shows in 2 frames and is drawn by 9 (was 2 and 11), a target
+  in 3 (3), a play in 2 (2) (screenshots each frame); a scripted turn and the enemies' turn
+  (passlog SEED=5, frames 1395-2300) 928 frames against 926: the heavier text passes a frame
+  slower, others a frame faster. The hud's pill and the target's row read the stacks table
+  straight (no `state.stack` call).

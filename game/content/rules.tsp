@@ -1,4 +1,4 @@
-; the rules page's text (battle/rules): ten pages, each a title and up to fifteen lines of 35
+; the rules page's text (battle/rules): eleven pages, each a title and up to fifteen lines of 35
 ; columns, on the disk (:on disk; read with lib/disk while the page is open), since aux memory is
 ; full. Every rule here is the engine's as it is (content/effects, statuses, charms, battle/turn,
 ; reward, offer): change them together. page lays a page out: the title in inverse, every line
@@ -6,7 +6,7 @@
 
 (const PAGE_LINES u8 15)
 (const PAGE_BYTES u16 560) ; the title and PAGE_LINES lines, 35 bytes each
-(const PAGE_COUNT u8 10)
+(const PAGE_COUNT u8 11)
 
 ; line s as 35 bytes, each with flag added (128: inverse)
 (macro line_bytes (s flag)
@@ -200,6 +200,23 @@
     "If Catwiz runs out of hit points,"
     "the run is over.")
 
+(page RULES_CHAINS "DICE BACK, NEW STATUSES"
+    "RED DOT N: a wand hit on it brings"
+    "all your dice back to roll again,"
+    "used or not. Each one uses a dot."
+    "Dice come back 5 times a turn at"
+    "most. A waiting plus or x stays."
+    "You can hold 9 re-rolls at most."
+    "CATFIGHT N: its next hit lands on a"
+    "friend, N harder. With no friend,"
+    "it waits."
+    "MIRROR N: hits her shield blocks"
+    "this round bounce back, N at most."
+    "FLEA CIRCUS: its fleas jump x2 to"
+    "the next enemy when it dies."
+    "NINE LIVES: the first time she"
+    "falls, she comes back.")
+
 ; page n's place on the disk, for lib/disk
 (fn page_table ((n u8)) (ptr u8)
     (match n
@@ -212,4 +229,5 @@
         (6 (addr_of (at RULES_STATUS2 0)))
         (7 (addr_of (at RULES_CHARMS 0)))
         (8 (addr_of (at RULES_REWARDS 0)))
-        (_ (addr_of (at RULES_RUN 0)))))
+        (9 (addr_of (at RULES_RUN 0)))
+        (_ (addr_of (at RULES_CHAINS 0)))))
