@@ -379,8 +379,8 @@ splits a memory would not build.
   disk boots 68,390). With the new cards: squeeze 10, 33,438 bytes (43,975 at the usual
   budget); the card 12,111 (177 left), bank 1 1,910 (11 functions, about 2.2 KB left); the
   overlay region 2,636; aux 6,141 at `$0800` and 24,003 at `$6000` (573 left at `$BDC3-$BFFF`:
-  the next cards' steps and text want room found there); the disk boots 70,773 bytes, 64 sectors
-  free, 17 tables (the new rules page). Why squeeze 10: Tisple weighs a `while` loop 8 trips, so
+  the next cards' steps and text want room found there); the disk boots 70,813 bytes, 64 sectors
+  free, 19 tables (main's 12-page guide and the third statuses page). Why squeeze 10: Tisple weighs a `while` loop 8 trips, so
   every routine the steps loop calls (the log, the stacks, the hits) looks 8 times hotter than
   under the old match, and the size budget spends room copying them; with the loop taken out
   (one step a call) the old cards built at squeeze 8, and the new cards' code alone then needs
