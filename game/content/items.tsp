@@ -437,7 +437,7 @@
             :icon icons.TILE_STAR)
         (make ac.Item
             :name "SCRATCHING HABIT"
-            :text "#. It gains +1 each use this fight."
+            :text "Hits #. +1 each use this fight."
             :slot ac.Slot.wand
             :amount 2
             :step 1
@@ -446,7 +446,7 @@
             :icon icons.TILE_TWIG)
         (make ac.Item
             :name "DOUBLE OR NOTHING"
-            :text "Next die x#. Unused, you lose # hp."
+            :text "Next die x#. If unused, lose # hp."
             :slot ac.Slot.trick
             :amount 3
             :step 1

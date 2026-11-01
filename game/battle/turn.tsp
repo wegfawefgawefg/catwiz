@@ -31,7 +31,7 @@
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
 (const SAY (array (ptr u8) 9)
     (make (array (ptr u8) 9)
-        "Pick a die 1-5, then an enemy ZXC."
+        "Pick a die 1-5, then who it is for."
         "E ends the turn. B: kit. ?: rules."
         "Your turn: pick a die (1-5)."
         "R re-roll or E end turn."
