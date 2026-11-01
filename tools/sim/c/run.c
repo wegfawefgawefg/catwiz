@@ -20,7 +20,7 @@ int play_fight(int player, Mt *prng, const Kit *kit, int hp, int index, Mt *rng,
         int n = b->st[HERO][ST_KITTENS] + kit->kittens;
         b->st[HERO][ST_KITTENS] = n < KITTENS_MOST ? n : KITTENS_MOST;
     }
-    b->habit = kit->habit;
+    b->habit = RULES.habit_fight ? 0 : kit->habit;
     if (k.charm_n[K_lives9] && !kit->revived) /* nine lives: once a run */
         b->revive = (uint8_t)(charm_amount(b, K_lives9) / k.charm_n[K_lives9]);
     b->tell = tell;

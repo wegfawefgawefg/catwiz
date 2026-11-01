@@ -154,8 +154,10 @@ typedef struct {
     int mult_cap; /* a waiting times stacks to this at most (0: 255, the byte; the default) */
     int kitten_rule; /* 0: a kitten runs off each time she loses hit points; 1: when a
                         hit-all lands on her */
-    int dot_charges; /* red dot's # is how many times it fires (0: the turns it lasts) */
+    int dot_charges; /* red dot's # is how many times it fires (the default; 0: the turns
+                        it lasts, --dot-turns) */
     int refresh_most; /* refreshes a turn at most (0: 255, a byte) */
+    int habit_fight; /* a test: scratching habit's +1s last the fight, not the run */
 } Rules;
 extern Rules RULES;
 

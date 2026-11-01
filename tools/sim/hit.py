@@ -27,7 +27,7 @@ class Hits:
         st = self.st[target]
         if by == r.HERO and self.wand_on and st[r.DOT] and not self.dot_fired:
             self.dot_fired = True  # PROPOSAL: a wand hit on a red dot: all dice back
-            if "dotcharges" in self.R.variant:
+            if "dotturns" not in self.R.variant:  # # is how many times it fires
                 st[r.DOT] -= 1
         damage = self.dealt(by, amount, True)
         damage += st[r.MARK] + st[r.BRAND]  # PROPOSAL

@@ -197,8 +197,10 @@ int main(int argc, char **argv) {
         } else if (!strcmp(a, "--mult-cap")) {
             RULES.mult_cap = atoi(v);
             i++;
-        } else if (!strcmp(a, "--dot-charges")) {
-            RULES.dot_charges = 1; /* red dot's # is how many times it fires (else turns) */
+        } else if (!strcmp(a, "--habit-fight")) {
+            RULES.habit_fight = 1; /* a test: scratching habit's +1s last the fight */
+        } else if (!strcmp(a, "--dot-turns")) {
+            RULES.dot_charges = 0; /* red dot's # is the turns it lasts (else how many times) */
         } else if (!strcmp(a, "--refresh-most")) {
             RULES.refresh_most = atoi(v); /* refreshes a turn at most */
             i++;

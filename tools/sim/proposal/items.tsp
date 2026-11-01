@@ -485,7 +485,7 @@
             :icon art.TILE_WAND)
         (make ac.Item
             :name "RED DOT"
-            :text "# TURNS: A WAND HIT ON IT, ALL BACK"
+            :text "# TIMES: A WAND HIT ON IT, ALL BACK"
             :slot Slot.curse
             :effect ac.Effect.dot
             :amount 2

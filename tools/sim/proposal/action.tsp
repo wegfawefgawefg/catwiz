@@ -45,7 +45,7 @@
         hit2 ; amount damage twice
         grow ; an enemy hits amount harder for the rest of the fight
         junk ; an enemy clogs your slot amount with a hairball for the fight
-        dot ; curse: red dot for amount turns (or amount times): a wand hit on it, all dice back
+        dot ; curse: red dot, amount times (or turns): a wand hit on it, all dice back
         swat ; wand: amount damage; if it falls, the die comes back to be played again
         paw ; fluff: amount shield, and a re-roll
         sunbeam ; star: amount mana; mana past the most is re-rolls

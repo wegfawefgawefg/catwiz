@@ -78,7 +78,7 @@ def status_end(b, who):
     st = b.st[who]
     st[r.WET] = max(0, st[r.WET] - 1)  # the game's wet is 1: dried
     st[r.TANGLE] = 0
-    if "dotcharges" not in b.R.variant:
+    if "dotturns" in b.R.variant:
         st[r.DOT] = max(0, st[r.DOT] - 1)  # PROPOSAL: red dot's turns
     turns = st[r.FLEA_TURNS]
     if turns == 0:
