@@ -39,6 +39,8 @@ def tokens(text):
                 j += 1
             out.append(("str", "".join(s)))
             i = j + 1
+        elif c == "'" and text[i + 1] == "(":
+            i += 1  # a quoted list (a macro's rows: content/faces.tsp): read as the list
         elif c == "'":
             # a char: 'x' or '\x'
             if text[i + 1] == "\\":

@@ -14,7 +14,6 @@
 (import battle/tray)
 (import content/action ac)
 (import content/items)
-(import content/cards)
 (import content/effects fx)
 (import content/foes)
 (import content/moves mv)
@@ -169,7 +168,7 @@
     (let n u8 (fx.number row))
     (if (> n 15)
         (set n 15))
-    (let tags u8 (cards.tags row))
+    (let tags u8 (items.tags row))
     (let k u8 0)
     (set (at cap_text 0) 0)
     (if (!= (& tags ac.CAP_NONE) 0)
@@ -207,7 +206,7 @@
             (tray.slot d true state.NOTHING "" false)
             (return)))
     (let row u8 (at state.hand d))
-    (tray.slot d true (items.icon row) (caption row) (= state.selected d)))
+    (tray.slot d true row (caption row) (= state.selected d)))
 
 ; whatever changed since the last frame; gives whether the tray drew anything
 (fn refresh () bool

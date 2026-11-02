@@ -95,9 +95,24 @@
 
 ; a disk table into aux memory at dst, a sector at a time on the meter; disk.DONE or the error
 (fn read ((dst (ptr u8)) (table (ptr u8))) u8
-    (let status u8 (disk.read_with dst (fetch table) disk.AUX sector))
+    (read_as dst (fetch table)))
+
+; the read of a table's record r (in main memory)
+(fn read_as ((dst (ptr u8)) (r (ptr u8))) u8
+    (let status u8 (disk.read_with dst r disk.AUX sector))
     (sector)
     status)
+
+; record k of a disk 2 table of 256-byte records (content/catalog) into aux memory at dst: the
+; table's record made to say that one sector (its slot k on from the first; 16 slots a track)
+(fn read_piece ((dst (ptr u8)) (table (ptr u8)) (k u8)) u8
+    (let r (ptr u8) (fetch table))
+    (let s u16 (+ (as u16 (load (+ r 3))) (as u16 k)))
+    (store r 0)
+    (store (+ r 1) 1)
+    (store (+ r 2) (+ (load (+ r 2)) (as u8 (>> s 4))))
+    (store (+ r 3) (as u8 (& s 15)))
+    (read_as dst r))
 
 (fn unpacked () void
     (add UNPACK))

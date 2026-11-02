@@ -291,19 +291,14 @@
                             (set on t))
                         (log.line (said.line said.SAY_COPYCAT) 0)
                         (let row u8 state.last_face)
-                        (set to (cards.fx row))
+                        (set to (items.fx row))
                         (set to_t on)
                         (set to_v (fx.prepare row on true)))))
             (steps.DO (set to (at cards.SUBS a)))
             (steps.CUE (sound.cue_byte a))
-            (steps.SAY
-                (let line (ptr u8) (said.line (& a steps.SAY_LINE)))
-                (let named u8 (if (!= (& a steps.SAY_IT) 0)
-                    t
-                    state.HERO))
-                (if (= (& a (| steps.SAY_IT steps.SAY_ME)) 0)
-                    (log.line line v)
-                    (log.who named line v)))
+            (steps.SAY (say (said.line (& a steps.SAY_LINE)) a t v))
+            ; a line in the row itself, at a: its flag byte, then the line
+            (steps.HERE (say (+ (+ p (as u16 a)) 1) (byte p a) t v))
             (_ (set go false)))
         (if write
             (state.set_stack who s now))
@@ -360,6 +355,18 @@
                     (set loops 0)
                     (set base 0))))))
 
+; a say's line into the log, with v for its #: plain, or naming t (SAY_IT) or her (SAY_ME) first
+(fn say ((line (ptr u8)) (flags u8) (t u8) (v u8)) void
+    (if (= (& flags (| steps.SAY_IT steps.SAY_ME)) 0)
+        (do
+            (log.line line v)
+            (return)))
+    (log.who
+        (if (!= (& flags steps.SAY_IT) 0)
+            t
+            state.HERO)
+        line v))
+
 ; a curse on t: s plus v, unless a ward pip takes it (the pip breaks; a rubber duck shields her
 ; then): gives whether it landed. A curse always lands otherwise
 (fn curse ((t u8) (s u8) (v u8)) bool
@@ -382,7 +389,7 @@
 ; the hero's face lands on target: a trick's steps with its number (no boosts on a trick); any
 ; other item's with its number after the boosts, its mana paid, its count towards a three
 (fn land_face ((row u8) (target u8)) void
-    (let p (ptr u8) (cards.fx row))
+    (let p (ptr u8) (items.fx row))
     (if (= (items.slot row) ac.Slot.trick)
         (do
             (run p target (fx.number row))

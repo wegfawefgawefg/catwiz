@@ -1,14 +1,13 @@
-; what every card does, as steps (content/steps.tsp: the vocabulary; content/play.tsp runs
-; them): the hero's items (content/items.tsp names each row's steps), the enemies' curses on
-; her, the hooks statuses carry, the charms' (content/encounters CHARMS names them) and Mimic's
-; table. A new card that is made of these steps costs its row here, no code. The rules are the
-; balance sim's (tools/sim/items.py, rules.py, cards.py): each card does exactly what its text
-; says.
+; the steps memory keeps (content/steps.tsp: the vocabulary; content/play.tsp runs them): the
+; shared rows a face's call names (SUBS), the enemies' curses on her, the hooks statuses carry
+; and Mimic's table. A face's and a charm's own steps are in its row (content/faces.tsp,
+; content/charm_rows.tsp) and its record on disk 2 (content/catalog), so a new card made of
+; these steps costs no memory and no code. The rules are the balance sim's (tools/sim/items.py,
+; rules.py, cards.py): each card does exactly what its text says.
 
 (import content/steps)
 (import content/action ac)
 (import content/statuses st)
-(import content/shows)
 
 (const FLEA_TURNS u8 3)      ; fleas bite for this many of its turns
 (const BACK_MOST u8 5)       ; her dice come back this many times a turn at most (the sim's cap)
@@ -17,95 +16,12 @@
 (const ZOOMIES_HITS u8 5)    ; Zoomies' hits, enemies left to right
 (const SCREAM_SELF u8 1)     ; what 3 AM Screaming does to her
 
-; ---- shared steps (call k, k a row of SUBS)
+; ---- shared steps (call k, k a row of SUBS: steps.SUB_ZAP_HIT ...)
 
 (steps.steps ZAP_HIT (cue zap) (hit))
 (steps.steps SHIELD (cue ping) (add shield) (say_me SHIELDS))
 
-; ---- the hero's items, by slot
-
-; wands
-(steps.steps TWIG_WAND (call SUB_ZAP_HIT) (three) (say THREE_HITS_ALL) (others) (hit) (end))
-
-(steps.steps YARN_WAND (call SUB_ZAP_HIT) (if_up) (lit 1) (call SUB_TANGLE))
-
-(steps.steps SPRAY_BOTTLE (call SUB_ZAP_HIT) (if_up) (lit 1) (call SUB_WET))
-
-(steps.steps FEATHER_TOY (call SUB_ZAP_HIT) (pounce))
-
-(steps.steps FISHBONE_WAND (cue zap) (pierce))
-
-(steps.steps MOUSE_STRING (call SUB_ZAP_HIT) (next) (hit))
-
-(steps.steps CANNON
-    (cue zap)
-    (get kittens)
-    (sub kittens)
-    (say KITTENS_LAUNCHED)
-    (rep)
-    (retarget)
-    (num)
-    (hit)
-    (end))
-
-; fluff: a shield, and the third fluff's three
-(steps.steps FLUFF (call SUB_SHIELD) (three) (lit 1) (set keep) (say THREE_SHIELD_STAYS))
-
-(steps.steps SPIKY_FLUFF (call SUB_SHIELD) (three) (lit 4) (max thorns) (say THREE_SPIKY))
-
-(steps.steps BOX (call SUB_SHIELD) (three) (lit 1) (set box) (add kittens) (say THREE_BOX))
-
-(steps.steps WARM_BLANKET (call SUB_SHIELD) (three) (say THREE_WARM) (lit 6) (heal))
-
-(steps.steps STATIC_FUR
-    (call SUB_SHIELD)
-    (three)
-    (say THREE_STATIC)
-    (all)
-    (lit 6)
-    (t_has wet)
-    (lit 12)
-    (hit)
-    (end))
-
-(steps.steps BELL_COLLAR (call SUB_SHIELD) (three) (lit 2) (add ward) (say THREE_WARD))
-
-; stars
-(steps.steps STAR (cue chime) (mana) (get mana) (say MANA_NOW))
-(steps.steps SHOOTING_STAR (cue zap) (lit 1) (mana) (num) (hit))
-(steps.steps MOON_BOWL (cue ping) (lit 1) (mana) (num) (add shield) (say_me SHIELDS_1_MANA))
-(steps.steps WISHING_STAR (cue chime) (mana) (lit 1) (set wish) (say WISH_NEXT_WAND))
-(steps.steps LITTER_STAR (kits 1) (cue chime) (mana) (get mana) (say MANA_NOW))
-
-; books (their mana is paid before the steps run)
-(steps.steps ZOOMIES (cue zap) (me) (lit ZOOMIES_HITS) (rep) (next) (num) (hit) (end))
-(steps.steps MEOW_BOOK (cue meow) (add kittens) (get kittens) (say KITTENS_JOIN_YOU))
-(steps.steps LASER (cue zap) (all) (num) (hit) (if_up) (lit 1) (t_set laser) (end))
-
-(steps.steps SCREAM
-    (cue wobble)
-    (all)
-    (hit)
-    (end)
-    (lit SCREAM_SELF)
-    (me)
-    (hurt)
-    (say_me TAKES_FROM_SCREAMING))
-
-(steps.steps KNOCK
-    (cue zap)
-    (lit 0)
-    (t_set shield)
-    (t_set cheer)
-    (t_set strength)
-    (t_set reflect)
-    (say_it DROPS_ITS_SHIELD)
-    (num)
-    (hit))
-
-(steps.steps FITS (lit 3) (kits 0) (call SUB_SHIELD))
-
-; curses (and the enemies' curses on her)
+; the curses a face, a call or an enemy's move puts on t (and Mimic's table names)
 (steps.steps FLEAS
     (curse poison)
     (lit FLEA_TURNS)
@@ -115,93 +31,7 @@
 
 (steps.steps WET (least 1) (curse wet) (t_get wet) (say_it WET_HALF_HITS))
 (steps.steps TANGLE (curse tangle) (t_get tangle) (say_it TANGLED_HITS))
-(steps.steps MARK (curse brand) (t_get brand) (say_it MARKED_HITS))
 (steps.steps SPOOK (curse spook) (say_it SPOOKED_DICE))
-
-; tricks: a rule for the next dice (no boosts on them, no count towards a three)
-(steps.steps PLUS (cue chime) (add plus) (lit 1) (set plus_left) (get plus) (say NEXT_DIE))
-
-(steps.steps TIMES
-    (cue chime)
-    (times plus)
-    (lit 1)
-    (max mult)
-    (num)
-    (times mult)
-    (get mult)
-    (say TIMES_NEXT))
-
-(steps.steps COPYCAT (cue chime) (copy))
-(steps.steps CATNIP (cue chime) (add nip) (lit 1) (set nipped) (num) (say CATNIP_NEXT_DICE))
-
-(steps.steps KNEAD
-    (cue chime)
-    (lit 1)
-    (set knead_fluff)
-    (num)
-    (add knead_wand)
-    (say KNEAD_NEXT_FLUFF))
-
-(steps.steps HAIRBALL (cue puff) (say HAIRBALL_NOTHING_HAPPENS))
-
-; ---- the chain and combo cards (docs/balance.md "The chain and combo cards", the owner's picks)
-
-; Red Dot (curse): its dots; a wand hit on it brings her dice back (HOOKS: DOT_FIRES)
-(steps.steps RED_DOT (cue dart) (curse dot) (t_get dot) (say_it RED_DOT))
-
-; Catfight (curse): its next hit on her goes to a friend, this much harder (content/foes)
-(steps.steps CATFIGHT (cue yowl) (curse catfight) (t_get catfight) (say_it CATFIGHT))
-
-; Flea Circus (curse): fleas on t, and as many on another enemy picked at random
-(steps.steps FLEA_CIRCUS
-    (cue hops)
-    (curse poison)
-    (lit FLEA_TURNS)
-    (t_set flea_turns)
-    (t_get poison)
-    (say_it FLEA_CIRCUS)
-    (pick)
-    (num)
-    (curse poison)
-    (lit FLEA_TURNS)
-    (t_set flea_turns)
-    (t_get poison)
-    (say_it FLEA_CIRCUS))
-
-; Mirror Fur (fluff): a shield, and what it takes this round bounces back (HOOKS: MIRROR)
-(steps.steps MIRROR_FUR (cue shimmer) (add shield) (say_me SHIELDS) (add mirror))
-
-; Lucky Paw (fluff): a shield and a re-roll
-(steps.steps LUCKY_PAW
-    (cue lucky)
-    (add shield)
-    (say_me SHIELDS)
-    (lit 1)
-    (rerolls)
-    (say FREE_REROLL))
-
-; Sunbeam (star): mana, and what goes past the most is re-rolls, SUNBEAM_REROLLS at most
-(steps.steps SUNBEAM (cue glow) (spill) (most SUNBEAM_REROLLS) (rerolls) (get mana) (say MANA_NOW))
-
-; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
-; for the fight
-(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (num) (add habit))
-
-; Double or Nothing (trick): the next die times #; the bet (gamble: the same #) is lost at her
-; turn's end if no die took the times (HOOKS: BET_LOST; content/effects clears it when a die does)
-(steps.steps DOUBLE_OR_NOTHING
-    (cue coin)
-    (lit 1)
-    (max mult)
-    (num)
-    (times mult)
-    (num)
-    (add gamble)
-    (get mult)
-    (say DOUBLE_NEXT))
-
-; Mimic (book): t's shown move, # times, done by her (MIMICRY says what each move is for her)
-(steps.steps MIMIC (cue mimic) (look) (rep) (retarget) (mimic) (end))
 
 ; what an enemy's move is for her when she mimics it, v its number: its hit on t (a hit-all on
 ; them all), its shield, its healing on her, its call a kitten, its cheer or growing a waiting
@@ -278,89 +108,10 @@
             :fx (addr_of (at BET_LOST 0))))
     :in aux)
 
-; ---- the charms' steps (v: the charm's amount, times the ones she holds)
-
+; nothing: play.drain runs it to start the waiting hooks
 (steps.steps NOTHING)
-(steps.steps MOTHER_CAT (set kittens))
-(steps.steps GRUMPY (mana))
-(steps.steps RUBBER_DUCK (add shield))
-(steps.steps STILL_WATER (calm) (mana))
-(steps.steps TRIO (all) (plain) (end))
-(steps.steps LITTER_BOX (kept) (add kittens))
-(steps.steps NINE_LIVES (cue chime) (say_me NINE_LIVES))
 
-; ---- each item's steps and tags (content/action: THREE, KITTENS, GROWS, the caption) and its
-; show (content/shows: how its play looks), in the order of content/items ITEMS: a new item adds
-; its row there and its card here
-
-(struct Card ((fx (ptr u8)) (tags u8) (show u8)))
-
-(const CARDS (array Card 43)
-    (make (array Card 43)
-        (make Card :fx (addr_of (at TWIG_WAND 0)) :tags ac.THREE :show shows.BOLT)
-        (make Card :fx (addr_of (at YARN_WAND 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at SPRAY_BOTTLE 0)) :tags 0 :show shows.SPRAY)
-        (make Card :fx (addr_of (at FEATHER_TOY 0)) :tags ac.KITTENS :show shows.BOLT)
-        (make Card :fx (addr_of (at FISHBONE_WAND 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at MOUSE_STRING 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at FLUFF 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at SPIKY_FLUFF 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at BOX 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at WARM_BLANKET 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at STATIC_FUR 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at BELL_COLLAR 0)) :tags ac.THREE :show shows.NONE)
-        (make Card :fx (addr_of (at STAR 0)) :tags 0 :show shows.NONE)
-        (make Card :fx (addr_of (at SHOOTING_STAR 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at MOON_BOWL 0)) :tags 0 :show shows.NONE)
-        (make Card :fx (addr_of (at WISHING_STAR 0)) :tags 0 :show shows.NONE)
-        (make Card :fx (addr_of (at LITTER_STAR 0)) :tags ac.KITTENS :show shows.NONE)
-        (make Card :fx (addr_of (at ZOOMIES 0)) :tags 0 :show shows.STREAK)
-        (make Card :fx (addr_of (at MEOW_BOOK 0)) :tags ac.KITTENS :show shows.NONE)
-        (make Card :fx (addr_of (at LASER 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at SCREAM 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at KNOCK 0)) :tags 0 :show shows.BOLT)
-        (make Card :fx (addr_of (at FITS 0)) :tags ac.KITTENS :show shows.NONE)
-        (make Card :fx (addr_of (at CANNON 0)) :tags ac.KITTENS :show shows.BOLT)
-        (make Card :fx (addr_of (at FLEAS 0)) :tags 0 :show shows.FLEAS)
-        (make Card :fx (addr_of (at WET 0)) :tags 0 :show shows.SPRAY)
-        (make Card :fx (addr_of (at TANGLE 0)) :tags 0 :show shows.PUFF)
-        (make Card :fx (addr_of (at MARK 0)) :tags 0 :show shows.PUFF)
-        (make Card :fx (addr_of (at PLUS 0)) :tags ac.CAP_PLUS :show shows.NONE)
-        (make Card :fx (addr_of (at TIMES 0)) :tags ac.CAP_TIMES :show shows.NONE)
-        (make Card :fx (addr_of (at COPYCAT 0)) :tags ac.CAP_PLUS :show shows.NONE)
-        (make Card :fx (addr_of (at CATNIP 0)) :tags 0 :show shows.NONE)
-        (make Card :fx (addr_of (at KNEAD 0)) :tags ac.CAP_PLUS :show shows.NONE)
-        (make Card :fx (addr_of (at HAIRBALL 0)) :tags ac.CAP_NONE :show shows.NONE)
-        (make Card :fx (addr_of (at RED_DOT 0)) :tags 0 :show shows.RED_DOT)
-        (make Card :fx (addr_of (at MIMIC 0)) :tags 0 :show shows.MIMIC)
-        (make Card :fx (addr_of (at CATFIGHT 0)) :tags 0 :show shows.CATFIGHT)
-        (make Card :fx (addr_of (at MIRROR_FUR 0)) :tags 0 :show shows.MIRROR)
-        (make Card :fx (addr_of (at LUCKY_PAW 0)) :tags 0 :show shows.LUCKY_PAW)
-        (make Card :fx (addr_of (at FLEA_CIRCUS 0)) :tags 0 :show shows.FLEAS)
-        (make Card :fx (addr_of (at SUNBEAM 0)) :tags 0 :show shows.SUNBEAM)
-        (make Card :fx (addr_of (at SCRATCHING_HABIT 0)) :tags ac.GROWS :show shows.CLAWS)
-        (make Card :fx (addr_of (at DOUBLE_OR_NOTHING 0)) :tags ac.CAP_TIMES :show shows.COIN))
-    :in aux)
-
-; a card's fields, read from aux memory (CARDS is :in aux: main memory is full)
-(fn fx ((row u8)) (ptr u8)
-    (with_aux true false
-        (at CARDS row fx)))
-
-(fn tags ((row u8)) u8
-    (with_aux true false
-        (at CARDS row tags)))
-
-(fn show ((row u8)) u8
-    (with_aux true false
-        (at CARDS row show)))
-
-; ---- the shared steps' rows, for call
-
-(const SUB_ZAP_HIT u8 0)
-(const SUB_SHIELD u8 1)
-(const SUB_TANGLE u8 2)
-(const SUB_WET u8 3)
+; ---- the shared steps' rows, for call (in steps.SUB_'s order)
 
 (const SUBS (array (ptr u8) 4)
     (make (array (ptr u8) 4)

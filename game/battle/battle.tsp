@@ -18,7 +18,6 @@
 (import draw/meter)
 (import draw/stage)
 (import draw/blit)
-(import art/charm_pictures charm_art)
 (import draw/text)
 (import battle/place)
 (import battle/look)
@@ -43,7 +42,7 @@
 ; for test builds, flipped in a copy: the run starts at fight START_STAGE (0 the first; with
 ; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before the run is won
 ; (fights 3-10 fight on fight 1-2's screens with stand-in figures); START_CHARM is held from
-; the start (a row of enc.CHARMS); WIN_AT_ONCE wins every fight as it starts, to walk what
+; the start (its name in content/charm_rows, (catalog.charm_id NAME)); WIN_AT_ONCE wins every fight as it starts, to walk what
 ; comes between fights (the cards, charms, the rest, the doors); SEED, when not 0, seeds the
 ; run's random numbers (the dice and the draws between fights) the same every time, for testing
 ; the draws. The kit: items.STARTING_ITEMS
@@ -55,7 +54,9 @@
 (const SEED u16 0)
 
 ; a new run: the second disk found (the first time: title/disk2), the starting items, no
-; levels or charms (none spent), no kittens kept, full hit points, the first fight
+; levels or charms (none spent), no kittens kept, full hit points, the first fight. Her faces'
+; records (and a test's charm) are read from disk 2 here, in resident code, so the overlay groups
+; that read records later (the reward's) share no code with the fight's start
 (fn enter () void
     (disk2.find)
     (if (!= SEED 0)
@@ -66,13 +67,9 @@
     (for k u8 0 state.SLOTS
         (set (at state.items k) (at items.STARTING_ITEMS k))
         (set (at state.levels k) 0))
-    (for c u8 0 charms.CHARM_COUNT
-        (set (at state.charms c) 0)
-        (set (at state.spent c) false))
+    (items.load_kit)
+    (charms.start START_CHARM)
     (set state.kept 0)
-    (let charm u8 START_CHARM)
-    (if (< charm charms.CHARM_COUNT)
-        (set (at state.charms charm) 1))
     (set state.hero_hp enc.HERO.hp)
     (set state.stage START_STAGE)
     (set state.fight START_FIGHT)
@@ -97,16 +94,6 @@
     (stage.fight_runs n)
     (meter.stop)
     (map.draw screen.SPARE)
-    ; the charms' pictures onto the spare page's aux hud rows (draw/paint takes them from there),
-    ; read through page 1, free again now its runs are unpacked
-    (meter.read (as (ptr u8) blit.READ_AT) (addr_of (at charm_art.PICTURES 0)))
-    (dhgr.copy screen.SPARE
-        dhgr.AUX
-        0
-        charm_art.CHARM_ROW
-        charm_art.CHARM_BYTES
-        charm_art.CHARM_ROWS
-        (as (ptr u8) blit.READ_AT))
     ; the stage and the tray's rows; the text's rows black (the spare page keeps the tray's
     ; pictures there: battle/tray)
     (screen.copy_box screen.PAGE 0 0 40 TEXT_TOP screen.SPARE)

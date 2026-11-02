@@ -30,6 +30,7 @@
 (let col u8 0)
 (let inverse bool false)
 (let mark_number bool false) ; an item's line: its # drawn inverse (add_item)
+(let number_end u8 0)        ; the column after the last # written (battle/card_words' note)
 
 ; colours (2026-11-01, the owner: colour makes the text easier to read), the double hi-res
 ; palette's numbers. A line starts white; in a string a byte under 16 (a \x escape: WHITE \x0f,
@@ -124,6 +125,7 @@
                     (if mark_number
                         (set inverse true))
                     (number n)
+                    (set number_end col)
                     (set inverse was))
                 (char c)))
         (set i (+ i 1))))

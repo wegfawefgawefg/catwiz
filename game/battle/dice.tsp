@@ -32,11 +32,11 @@
 (fn random_face () u8
     (as u8 (>> (* (as u16 (random.byte)) (as u16 state.SLOTS)) 8)))
 
-; the item face f shows: the slot's, or a hairball
+; the item face f shows, as its row (content/items): the slot's (row f), or the hairball
 (fn item_on ((f u8)) u8
     (if (at state.clogged f)
         items.HAIRBALL
-        (at state.items f)))
+        f))
 
 ; die d lands on a random face
 (fn roll ((d u8)) void

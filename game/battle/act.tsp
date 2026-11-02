@@ -14,7 +14,6 @@
 (import content/foes)
 (import content/items)
 (import content/moves mv)
-(import content/cards)
 (import content/shows)
 (import content/move_looks looks)
 (import battle/place)
@@ -48,7 +47,7 @@
     ; the bolt when a lunge is shot over someone in the way); nothing for the meow. A FOE
     ; show's sprites are roles of the mover's kind
     (shows.start (match source
-        (state.Source.face (cards.show row))
+        (state.Source.face (items.show row))
         (state.Source.move
             (if (and (= (mv.motion row) state.Motion.lunge) (blocked by target))
                 shows.BOLT

@@ -1,8 +1,9 @@
 # the item cards' pictures, hand-pixelled at 11 x 15 wide pixels for the tray's white cards:
 # black ink lines, one or two colours each. KEY maps the letters to colours; '.' is the card.
-# One for each item of game/content/items.tsp (the game's TILE_ names, game_hud.ICON_ORDER),
-# the hairball, and the cards between fights: the nap, a door; and a grabbed die (the charms'
-# are in charm_icons.py).
+# By name: a face's row (game/content/faces.tsp :picture) names its picture, and game.py
+# lays them out for the catalog on disk 2 (art/pictures); the cards between fights that are no
+# face (the nap, a door, plus1 for the bonus upgrade) and a grabbed die stay in memory
+# (art/icons). The charms' are in charm_icons.py.
 #   wands    twig, yarn, spray bottle, feather toy, fishbone, mouse on a string
 #   fluff    fluff (hackles up), spiky, cardboard box, warm blanket, static, bell collar
 #   stars    star (a bold yellow star, as the mana meter's), shooting, moon bowl, wishing, litter

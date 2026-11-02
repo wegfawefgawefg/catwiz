@@ -30,15 +30,15 @@
 (fn show () void
     (set framed state.NOTHING)
     (for k u8 0 state.SLOTS
-        (cell k (at state.items k) false false)))
+        (cell k k false false)))
 
-; slot's cell framed, showing item (with a level more, up); the one framed before as it is.
-; slot NOTHING: none framed
+; slot's cell framed, showing the item of row item (content/items: the slot's own, or one
+; offered), with a level more (up); the one framed before as it is. slot NOTHING: none framed
 (fn preview ((slot u8) (item u8) (up bool)) void
     (let was u8 framed)
     (set framed slot)
     (if (and (!= was state.NOTHING) (!= was slot))
-        (cell was (at state.items was) false false))
+        (cell was was false false))
     (if (!= slot state.NOTHING)
         (cell slot item true up)))
 
@@ -57,7 +57,7 @@
         (set k (+ k 2))))
 
 ; a card at pixel x, row top, over what the page shows round it: a frame in yellow (frame),
-; white, the picture tile (art/icons) on it, and under it pips yellow pips, or the hud glyph mark
+; white, the picture tile (draw/paint: a row in play, or art/icons') on it, and under it pips yellow pips, or the hud glyph mark
 ; (a charm's; "" for none)
 (fn card ((x u8) (top u8) (tile u8) (pips u8) (frame bool) (mark (ptr u8))) void
     (paint.picture (addr_of (at picture 0)) tile)
@@ -104,9 +104,9 @@
         (+ TOP 26)
         TOP))
 
-; cell k showing item, framed or not, with a level more (up)
+; cell k showing the item of row item, framed or not, with a level more (up)
 (fn cell ((k u8) (item u8) (frame bool) (up bool)) void
     (let pips u8 (at state.levels k))
     (if up
         (set pips (+ pips 1)))
-    (card (cell_x k) (cell_top k) (items.icon item) pips frame ""))
+    (card (cell_x k) (cell_top k) item pips frame ""))

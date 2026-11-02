@@ -1,11 +1,14 @@
-; what the charms do (content/encounters CHARMS: passives kept all run, state.charms counts each
-; one held). A charm that acts at a moment runs its steps then (content/cards.tsp, queued here
-; with hook, run by content/play); the rest change a rule, read here by kind (amount). The
-; kittens' bite and a wand's bad milk are read in content/effects.
+; what the charms do: passives kept all run (content/charm_rows.tsp, in the catalog on disk 2).
+; The ones she holds are rows of content/items (CHARM_ROW on, held_n of them; state.charms counts
+; each, state.spent marks one that works once a run). A charm that acts at a moment runs its
+; steps then (its record's, queued here with hook, run by content/play); the rest change a rule,
+; read here by kind (amount: the totals of each kind, made when she takes one). The kittens'
+; bite and a wand's bad milk are read in content/effects.
 
 (import state)
 (import content/encounters enc)
 (import content/hooks)
+(import content/items)
 (import content/statuses st)
 (import content/steps)
 (import battle/log)
@@ -15,49 +18,93 @@
 
 (const SAY_KITTEN_RUNS_OFF u8 0)
 
-(const CHARM_COUNT u8 12)
+(const KINDS u8 12) ; enc.CharmKind's members
 
-; each kind's row of enc.CHARMS
-(const KIND_ROW (array u8 12)
-    (make (array u8 12)
-        enc.CHARM_BAD_MILK
-        enc.CHARM_RUBBER_DUCK
-        enc.CHARM_GRUMPY
-        enc.CHARM_MITTENS
-        enc.CHARM_MOTHER_CAT
-        enc.CHARM_SCRATCH_POST
-        enc.CHARM_STILL_WATER
-        enc.CHARM_FLUFFY_TAIL
-        enc.CHARM_SIXTH_TOE
-        enc.CHARM_TRIO
-        enc.CHARM_LITTER_BOX
-        enc.CHARM_NINE_LIVES))
+(let held_n u8 0) ; the charms she holds: rows items.CHARM_ROW on
+; each kind's amount (the charms of it she holds, each its amount, as many times as she holds
+; it) and how many of it she holds: made as she takes one (refresh), read by the rules
+(let kind_amount (array u8 12))
+(let kind_count (array u8 12))
+(let mark_text (array u8 2)) ; a charm's mark as a string (the tray, the kit page)
 
-; how much of charm c the run holds: its amount, once for each one held
-(fn of ((c u8)) u8
-    (let held u8 (at state.charms c))
-    (if (= held 0)
-        (return 0))
-    (let a u8 (enc.charm_amount c))
+; held charm h's row
+(fn row ((h u8)) u8
+    (+ items.CHARM_ROW h))
+
+; how much of held charm h the run holds: its amount, once for each one held
+(fn of ((h u8)) u8
+    (let a u8 (items.amount (row h)))
     (let n u8 0)
-    (for k u8 0 held
+    (for k u8 0 (at state.charms h)
         (set n (+ n a)))
     n)
 
+; the kinds' totals again
+(fn refresh () void
+    (for k u8 0 KINDS
+        (set (at kind_amount k) 0)
+        (set (at kind_count k) 0))
+    (for h u8 0 held_n
+        (let k u8 (items.kind (row h)))
+        (set (at kind_amount k) (+ (at kind_amount k) (of h)))
+        (set (at kind_count k) (+ (at kind_count k) (at state.charms h)))))
+
 ; and of charm kind
 (fn amount ((kind enc.CharmKind)) u8
-    (of (at KIND_ROW (as u8 kind))))
+    (at kind_amount (as u8 kind)))
+
+(fn count ((kind enc.CharmKind)) u8
+    (at kind_count (as u8 kind)))
 
 (fn held ((kind enc.CharmKind)) bool
-    (> (at state.charms (at KIND_ROW (as u8 kind))) 0))
+    (> (at kind_count (as u8 kind)) 0))
+
+; whether she holds charm id (the catalog's), and which (NOTHING for none)
+(fn holding ((id u8)) u8
+    (for h u8 0 held_n
+        (if (= (at items.ids (row h)) id)
+            (return h)))
+    state.NOTHING)
+
+; charm row's mark (its record's glyph) as a string in main memory
+(fn mark ((r u8)) (ptr u8)
+    (set (at mark_text 0) (items.cost r))
+    (set (at mark_text 1) 0)
+    (addr_of (at mark_text 0)))
+
+; a run's start: none held (none spent); with id not NOTHING, that one (battle START_CHARM)
+(fn start ((id u8)) void
+    (set held_n 0)
+    (for h u8 0 items.HELD_CHARMS
+        (set (at state.charms h) 0)
+        (set (at state.spent h) false))
+    (if (!= id state.NOTHING)
+        (take id))
+    (refresh))
+
+; she takes charm id (between fights): one more of it, or its record read into her next row
+(fn take ((id u8)) void
+    (let h u8 (holding id))
+    (if (!= h state.NOTHING)
+        (do
+            (set (at state.charms h) (+ (at state.charms h) 1))
+            (refresh)
+            (return)))
+    (if (>= held_n items.HELD_CHARMS)
+        (return))
+    (items.read (row held_n) id true)
+    (set (at state.charms held_n) 1)
+    (set (at state.spent held_n) false)
+    (set held_n (+ held_n 1))
+    (refresh))
 
 ; the charms she holds that act at moment when: their steps wait to run (content/play), v their
-; amount
+; amount. In the order she took them: charms of one moment must not depend on their order (a
+; mother cat adds her kitten, as a litter box does)
 (fn hook ((when steps.When)) void
-    (for c u8 0 CHARM_COUNT
-        (if (> (at state.charms c) 0)
-            (if (= (enc.charm_when c) when)
-                (hooks.add (enc.charm_fx c) state.HERO (of c))))))
+    (for h u8 0 held_n
+        (if (= (items.step (row h)) (as u8 when))
+            (hooks.add (items.fx (row h)) state.HERO (of h)))))
 
 ; the dice a fight rolls: a sixth toe adds one
 (fn dice () u8
@@ -87,14 +134,13 @@
 ; she would fall: a charm for it not spent this run (nine lives) brings her back, with its
 ; amount of hit points (given; 0 for none), and its steps run (the log)
 (fn saved () u8
-    (for c u8 0 CHARM_COUNT
-        (if (and (> (at state.charms c) 0) (not (at state.spent c)))
-            (if (= (enc.charm_when c) steps.When.dies)
-                (do
-                    (set (at state.spent c) true)
-                    (let hp u8 (enc.charm_amount c))
-                    (hooks.add (enc.charm_fx c) state.HERO hp)
-                    (return hp)))))
+    (for h u8 0 held_n
+        (if (and (= (items.step (row h)) (as u8 steps.When.dies)) (not (at state.spent h)))
+            (do
+                (set (at state.spent h) true)
+                (let hp u8 (items.amount (row h)))
+                (hooks.add (items.fx (row h)) state.HERO hp)
+                (return hp))))
     0)
 
 ; she lost hit points: a kitten runs off; the charms for it (a grumpy face's mana)

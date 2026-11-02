@@ -9,12 +9,11 @@
 
 (import apple2 a2)
 (import state)
-(import art/icons)
 (import draw/text)
 (import battle/kit)
-(import battle/reward)
+(import battle/card_words cw)
 (import content/action ac)
-(import content/cards)
+(import content/charms)
 (import content/encounters enc)
 (import content/effects fx)
 (import content/items)
@@ -97,26 +96,17 @@
 (const SAY_PLACES u8 29)
 (const SAY_PRESS u8 30)
 
-(let held (array u8 4) :address 0x0771) ; the charm rows she holds, in order
-(let held_n u8 0)
+(let held_n u8 0)       ; her charms on the page (content/charms: rows items.CHARM_ROW on)
 (let sel u8 255)        ; the entry picked: 0-5 a slot, 6 on a charm; NOTHING for none
 (let first_pick u8 255) ; the entry to pick as the page opens (a face clicked between fights)
 
 ; slot n's card: in tray slot n's place (35 n / 2 of the tray's pixels)
 (fn slot_card ((n u8) (frame bool)) void
-    (kit.card (>> (* n 35) 1)
-        SLOT_TOP
-        (items.icon (at state.items n))
-        (at state.levels n)
-        frame
-        ""))
+    (kit.card (>> (* n 35) 1) SLOT_TOP n (at state.levels n) frame ""))
 
 (fn charm_card ((k u8) (frame bool)) void
-    (kit.card (at CHARM_X k)
-        (at CHARM_Y k)
-        (+ icons.TILE_CHARMS (at held k))
-        0 frame
-        (at enc.MARKS (at held k))))
+    (let r u8 (charms.row k))
+    (kit.card (at CHARM_X k) (at CHARM_Y k) r 0 frame (charms.mark r)))
 
 (fn entry_card ((e u8) (frame bool)) void
     (if (< e state.SLOTS)
@@ -135,18 +125,15 @@
     (text.add_aux s)
     (text.show r))
 
-; her charms and her six faces' cards, under the lines charms and slots (SAY's)
-(fn kit_cards ((charms (ptr u8)) (slots (ptr u8))) void
+; her charms and her six faces' cards, under the lines heading and slots (SAY's)
+(fn kit_cards ((heading (ptr u8)) (slots (ptr u8))) void
     (set sel state.NOTHING)
-    (set held_n 0)
-    (for c u8 0 enc.OFFER_CHARM_COUNT
-        (if (and (> (at state.charms c) 0) (< held_n CHARMS_MOST))
-            (do
-                (set (at held held_n) c)
-                (set held_n (+ held_n 1)))))
+    (set held_n charms.held_n)
+    (if (> held_n CHARMS_MOST)
+        (set held_n CHARMS_MOST))
     (if (= held_n 0)
         (stage_line 40 (at SAY SAY_NO_CHARMS))
-        (stage_line 40 charms))
+        (stage_line 40 heading))
     (for k u8 0 held_n
         (charm_card k false))
     (stage_line 108 slots)
@@ -207,7 +194,7 @@
     (for d u8 0 state.DICE_MOST
         (if (and (!= (at state.held d) state.NOTHING) (= (at state.face_of d) slot))
             (text.add_aux (at SAY SAY_HELD))))
-    (let tags u8 (cards.tags item))
+    (let tags u8 (items.tags item))
     (if (!= (& tags ac.THREE) 0)
         (text.add_aux_n (at SAY SAY_THREE) (at state.combo slot)))
     (match (items.slot item)
@@ -232,7 +219,7 @@
     (text.show 3))
 
 (fn describe_slot ((slot u8)) void
-    (let item u8 (at state.items slot))
+    (let item u8 slot) ; her slot's row (content/items)
     (let level u8 (at state.levels slot))
     (title (items.name item))
     (text.tab 22)
@@ -246,7 +233,7 @@
     (if (= (as u16 part) 0)
         (do
             (text.start)
-            (text.add_item (at reward.BASE slot) n)
+            (text.add_item (at cw.BASE slot) n)
             (if (> level 0)
                 (text.add_aux_n (at SAY SAY_UP) level))
             (text.show 1)
@@ -265,16 +252,16 @@
         (live slot item)))
 
 (fn describe_charm ((k u8)) void
-    (let c u8 (at held k))
-    (title (enc.charm_name c))
+    (let r u8 (charms.row k))
+    (title (items.name r))
     (text.show 0)
     (text.start)
-    (text.add_item (enc.charm_text c) (enc.charm_amount c))
+    (text.add_item (items.text r) (items.amount r))
     (text.show 1)
     (row 2 (at SAY SAY_ALL_RUN))
     (text.start)
-    (if (> (at state.charms c) 1)
-        (text.add_aux_n (at SAY SAY_HAS) (at state.charms c)))
+    (if (> (at state.charms k) 1)
+        (text.add_aux_n (at SAY SAY_HAS) (at state.charms k)))
     (text.show 3))
 
 ; entry e picked: its card framed (the one before not), its text

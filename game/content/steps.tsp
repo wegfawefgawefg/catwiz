@@ -23,13 +23,16 @@
 ;             (t = the next enemy standing after t; the steps stop when none), pick (t = another
 ;             enemy standing, picked at random; the steps stop when none), retarget (t is
 ;             down: the next standing), me (t = her)
-; calls:      call k (a shared row of cards.SUBS, then on), stop (the end: the macro adds it)
+; calls:      call k (a shared row of cards.SUBS by name: ZAP_HIT, SHIELD, TANGLE, WET; then on),
+;             stop (the end: the macro adds it)
 ; chains:     back (every die comes back to be rolled again after this play; stops when they
 ;             already will), blocked (v at most what her shield took of the last hit on her)
 ; the uniques, each a native routine: copy (copycat: her last face again), look and mimic
 ;             (Mimic: what t's shown move would be for her, then do it)
 ; sound, log: cue c (a sound), say l, say_it l, say_me l (a line of effects_said's SAY, with v
-;             for its #; say_it and say_me name t or her first)
+;             for its #; say_it and say_me name t or her first); or the line itself, a string
+;             ((say "Third in a turn: static!")): it goes in the card's own row (after its stop),
+;             so a face's own lines cost no memory but its catalog record (content/catalog)
 ;
 ; Triggers: content/cards.tsp HOOKS runs steps when an enemy holding a status is hit by a wand
 ; or falls, when she is hit holding one, or at her turn's end; a charm's row (content/encounters
@@ -81,6 +84,13 @@
 (const CUE u8 37)
 (const SAY u8 38)
 (const MOST u8 39)
+(const HERE u8 40) ; a say whose line is in the row itself: its argument the line's place there
+
+; the shared rows a call names (content/cards SUBS, in this order)
+(const SUB_ZAP_HIT u8 0)
+(const SUB_SHIELD u8 1)
+(const SUB_TANGLE u8 2)
+(const SUB_WET u8 3)
 
 ; a stack step's argument: the status, plus ON_T for t's stack instead of hers
 (const ON_T u8 0x80)
@@ -95,11 +105,18 @@
 ; brings her back, content/charms saved), none (a charm that changes a rule instead)
 (enum When (wand_hit falls hit_her turn_end fight_start hurt warded three dies none))
 
-; (steps NAME (op arg) ...): a card's steps as a byte row in aux memory, a stop added at the end.
-; kind_of: a step as written in content/cards.tsp, its op and the kind of its argument; arg_of:
-; the argument for its kind (none, a number: a form from the card's file, a status: hers or
-; t's, a sound cue, a log line)
+; (steps NAME (op arg) ...): a card's steps as a byte row in aux memory (step_bytes)
 (macro steps (name & rows)
+    (let bytes (step_bytes rows))
+    `(const ,name (array u8 ,(len bytes)) (make (array u8 ,(len bytes)) ,@bytes) :in aux))
+
+; a card's steps as the bytes of its row, a stop added at the end, then the lines its says
+; give as strings (a flag byte, SAY_IT or SAY_ME or 0, the line, a 0; the say's argument is its
+; place from the row's start, 255 at most). kind_of: a step as written (content/cards.tsp,
+; content/faces.tsp), its op and the kind of its argument; arg_of: the argument for its kind
+; (none, a number: a form from the card's file, a status: hers or t's, a sound cue, a log line,
+; a shared row)
+(macro step_bytes (rows)
     (let kind_of (fn (word)
         (match word
             ('num (list 'NUM 'none))
@@ -141,7 +158,7 @@
             ('pick (list 'NEXT 'pick))
             ('retarget (list 'RETARGET 'none))
             ('me (list 'ME 'none))
-            ('call (list 'DO 'num))
+            ('call (list 'DO 'sub))
             ('stop (list 'STOP 'none))
             ('back (list 'BACK 'none))
             ('blocked (list 'BLOCKED 'none))
@@ -160,6 +177,7 @@
             ('her `(as u8 ,(symbol 'st.Status. a)))
             ('its `(+ (as u8 ,(symbol 'st.Status. a)) ON_T))
             ('cue `(as u8 ,(symbol 'sound.Cue. a)))
+            ('sub (symbol 'SUB_ a))
             ('say (symbol 'said.SAY_ a))
             ('say_it `(+ ,(symbol 'said.SAY_ a) SAY_IT))
             ('say_me `(+ ,(symbol 'said.SAY_ a) SAY_ME))
@@ -167,15 +185,40 @@
             ('mimic 1)
             ('pick 1)
             (_ (error "steps: no argument kind " sort)))))
+    (let flag_of (fn (sort)
+        (match sort
+            ('say 0)
+            ('say_it 0x80)
+            ('say_me 0x40)
+            (_ (error "steps: a line as a string only for say, say_it, say_me")))))
     (let bytes (list))
+    (let lines (list)) ; the says' strings, as (flag line) in order
     (for i 0 (len rows)
         (let r (nth rows i))
         (let k (kind_of (head r)))
-        (set bytes
-            (append bytes
-                (list (nth k 0)
-                    (arg_of (nth k 1) (if (> (len r) 1)
-                        (nth r 1)
-                        0))))))
+        (let a (if (> (len r) 1)
+            (nth r 1)
+            0))
+        (if (= (kind a) 'string)
+            (do
+                (set bytes (append bytes (list 'HERE (list 'line (len lines)))))
+                (set lines (append lines (list (list (flag_of (nth k 1)) a)))))
+            (set bytes (append bytes (list (nth k 0) (arg_of (nth k 1) a))))))
     (set bytes (append bytes (list 'STOP 0)))
-    `(const ,name (array u8 ,(len bytes)) (make (array u8 ,(len bytes)) ,@bytes) :in aux))
+    ; the lines after the stop, and each say's argument their place
+    (let places (list))
+    (let place (len bytes))
+    (for i 0 (len lines)
+        (let ln (nth lines i))
+        (set places (append places (list place)))
+        (set bytes (append bytes (list (nth ln 0)) (chars (nth ln 1)) (list 0)))
+        (set place (len bytes)))
+    (if (> place 256)
+        (error "steps: the row and its lines are " place " bytes, 256 at most"))
+    (let out (list))
+    (for i 0 (len bytes)
+        (let b (nth bytes i))
+        (if (and (= (kind b) 'list) (and (= (len b) 2) (= (nth b 0) 'line)))
+            (set out (append out (list (nth places (nth b 1)))))
+            (set out (append out (list b)))))
+    out)

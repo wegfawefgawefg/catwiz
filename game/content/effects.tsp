@@ -8,7 +8,6 @@
 (import state)
 (import battle/hit)
 (import content/action ac)
-(import content/cards)
 (import content/charms)
 (import content/encounters enc)
 (import content/items)
@@ -34,7 +33,7 @@
 (fn cost ((row u8)) u8
     (let c u8 (items.cost row))
     (if (= (items.slot row) ac.Slot.book)
-        (set c (+ c (at state.charms enc.CHARM_BAD_MILK))))
+        (set c (+ c (charms.count enc.CharmKind.badmilk))))
     c)
 
 ; whether item row is a book she has too little mana for: it can't be played (the owner,
@@ -61,7 +60,7 @@
     (if (= slot ac.Slot.junk)
         (return 0))
     (let n u8 (number_at row (at state.levels (as u8 slot))))
-    (if (!= (& (cards.tags row) ac.GROWS) 0)
+    (if (!= (& (items.tags row) ac.GROWS) 0)
         (set n (st.sum n (hero st.Status.habit))))
     n)
 

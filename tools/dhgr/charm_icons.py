@@ -1,8 +1,6 @@
-# the charms' card pictures, hand-pixelled at 11 x 15 like the items' (icons.py, its KEY), one
-# for each row of game/content/encounters.tsp CHARMS in its order. They are not in aux memory
-# with the items' (it is full): game.py writes them as one table on the second disk
-# (art/charm_pictures), read onto the spare page's hud rows as each fight's art loads, where
-# draw/paint takes them from (battle.load_art).
+# the charms' card pictures, hand-pixelled at 11 x 15 like the faces' (icons.py, its KEY), by
+# name: a charm's row (game/content/charm_rows.tsp) names its picture. game.py writes them with
+# the faces' into art/pictures, which the catalog lays into each charm's record on disk 2.
 
 CHARMS = {
     # a sisal post on a base, the rope's wraps and fresh claw marks
@@ -222,7 +220,3 @@ CHARMS = {
         "...........",
     ],
 }
-
-# the CHARMS row each picture is for, by its name there (game.py checks the order)
-NAMES = ["SCRATCH POST", "SIXTH TOE", "STILL WATER", "PURRFECT TRIO", "KITTEN MITTENS", "MOTHER CAT",
-         "FLUFFY TAIL", "GRUMPY FACE", "RUBBER DUCK", "BAD MILK", "LITTER BOX", "NINE LIVES"]
