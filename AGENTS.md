@@ -52,18 +52,22 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   `content/cards.tsp`, written with the `steps` macro of `content/steps.tsp` (the vocabulary,
   each step explained at its top) and run by `content/play.tsp`. While steps run they keep a
   target t, the card's number n (its # after levels and boosts) and a value v (n to start
-  with). The steps: values (num, lit k, kits k, get s, least k, kept), conditions (has s,
-  if_up, three, calm), stacks (add, set, max, times, sub on her stack s; t_add, t_set, t_sub,
-  t_get, t_has on t's), her (mana, spill, rerolls, heal), on t (hit, pierce, plain, hurt,
-  curse s, pounce), targets and loops (all, others, rep ... end; next, retarget, me), calls
-  (call k: a shared row of `cards.SUBS`), chains (back: every die comes back after this play;
-  blocked), the uniques as native steps (copy: Copycat; look and mimic: Mimic, with
-  `cards.MIMICRY` saying what each enemy move is for her), sound and log (cue c; say, say_it,
-  say_me l: a line of `effects_said.tsp`'s SAY). Triggers: `cards.HOOKS` rows (a status, a
+  with). The steps: values (num, lit k, kits k, get s, least k, most k, kept, plus s, more k,
+  half), conditions (has s, if_up, fell, landed, three, calm, if_calm, low k, coin k), stacks
+  (add, set, max, times, sub on her stack s; t_add, t_set, t_sub, t_get, t_has, t_plus, t_times
+  on t's), her (mana, spill, rerolls, no_rerolls, heal), on t (hit, pierce, plain, hurt,
+  curse s, pounce), targets and loops (all, others, rep ... end; next, pick, retarget, me),
+  calls (call k: a shared row of `cards.SUBS`), chains (back: every die comes back after this
+  play; blocked), the uniques as native steps (copy: Copycat; look and mimic: Mimic, with
+  `cards.MIMICRY` saying what each enemy move is for her; hat: a face from the catalog, read
+  from disk 2 mid-fight), sound and log (cue c; say, say_it, say_me l: a line of
+  `effects_said.tsp`'s SAY). `steps.tsp`'s top says what each does; docs/faces.md "As built"
+  what the faces round added. Triggers: `cards.HOOKS` rows (a status, a
   moment, the stack that is its value, the steps) for a wand hit on its holder, its fall, an
   enemy's hit on her, her turn's end; a charm's row (`encounters` CHARMS) names its moment
-  (`steps.When`: a fight's start, she is hurt, a ward takes a curse, a three, she would fall,
-  or none: a charm that changes a rule is read where the rule is, by its kind). Hooks set off
+  (`steps.When`: a fight's start, her turn's start, she is hurt, a ward takes a curse, a three,
+  she would fall, an enemy beaten, or none: a charm that changes a rule is read where the rule
+  is, by its kind; plain is the kind of a charm whose steps are all it does). Hooks set off
   in the middle of a hit wait in `content/hooks` and run as soon as the step (or the enemy's
   hit) is done. The rows are plain s-expressions a tool like the sim's `tsp.py` can read: a
   step is `(word arg)`.
@@ -81,7 +85,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   rows only (`content/items`): rows 0-5 her faces (row k is slot k's item), 6 the hairball,
   7-10 her charms (`content/charms`), in aux memory all run; 11-15 the five faces offered and
   16-18 the three charms, at the end of `blit.sprite_aux` between fights (the last fight's
-  enemies' sprites, dead then). What a fight reads each play (slot, amount, step, cost, aim,
+  enemies' sprites, dead then); 19 a face a hat trick drew, in aux memory's text page 1. What a fight reads each play (slot, amount, step, cost, aim,
   tags, show) is copied into main memory as a row loads. Records are read only between fights
   (`items.read`, `meter.read_piece`: one sector, about a fifth of a second): her six faces and
   the hairball as a run starts (in resident `battle.enter`, so the overlay groups that read
@@ -92,7 +96,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   `python3 tools/dhgr/game.py` (it writes `art/pictures`), then its row in its slot's file:
   nothing else, no memory, a sector of disk 2. A status it needs: a row in `statuses.tsp`
   (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and, when it acts at a
-  moment, a `HOOKS` row. Only an effect no step can make needs a new step (a byte in
+  moment, a `HOOKS` row. The statuses an enemy can have come first (`FOE_COUNT`, state
+  `FOE_SLOTS`): an enemy's stacks are only those (state `FIRST_STACK`, 120 bytes for all four),
+  so a status only she has goes after them, and no step may put one of hers on an enemy. Only an effect no step can make needs a new step (a byte in
   `steps.tsp`, its arm in `play.run`): keep the vocabulary small. A line more than one card
   says goes in `effects_said.tsp`.
 - The chain and combo cards (2026-11-01, the owner's picks of docs/balance.md "The chain and
@@ -591,6 +597,27 @@ splits a memory would not build.
   (about 1.5 s for all five), a face taken one record; a fight's start no longer reads the charm
   pictures. The reward's group 3,068 bytes (the pages' 3,099 sizes the region). Main memory and
   the card stay full: the next round's engine code wants room found (aux memory has it).
+- 2026-11-02, the faces round's engine (branch faces-engine, Tisple 5ee9476): 52 faces, 23
+  charms, their steps, hooks, statuses and rules (docs/faces.md "As built"). Room, as Tisple
+  gained three things: a boot disk keeps `$BF00-$BFFF` (no zero page saved for a caller), a
+  layout out of room with bank 1 code's data retried with those vars and the biggest first, and
+  marked overlay roots that only share code stay apart. Catwiz: the title's set-up, its jingle,
+  the sound card's set-up and finding disk 2 in the title's group (`title.begin`, the set-up at
+  its step), the run's set-up in the fight's start (`battle.start_run`, `new_run`); the stacks
+  as hers and an enemy's few; the statuses' SHOW and GLYPH in aux memory (read only for a stack
+  not 0); lets set before they are read moved to fixed scratch: items' row fields (`$0272`,
+  `$0310`, `$03CD`), the action's and the bolt's (text page 1's holes left by the cards'
+  firmware: never `$xx7C`, slot 4's, the mouse's), and in the 6502 stack page's bottom
+  (`$0100-$01A7`: charms' kinds, the meter's record, blit's blocks, the offer's draws, the hooks'
+  queue, text segments, a record's top, the side's glyphs; a session's stack never went below
+  `$01DA`). Before (113e226, Tisple 3719474): the card 12,280 of 12,282, bank 1 3,523, aux
+  21,066 at `$6000`, disk 2 tracks 1-19. After (with the looks and the art merged): the card
+  12,180, bank 1 3,681 (25 functions), aux 6,142 at `$0800` and 23,431 at `$6000` (1,145 left),
+  disk 2 tracks 1-24 (10 free); the overlay region 3,092 bytes. Speed (measure.py): a pass
+  waiting for a key 5,913 cycles in fight 1 (5,917), 6,496 in fight 10 (6,498); the scripted
+  turn (SEED 5) ends at frame 1911 as before. A fight's art is up about 10 frames later (the
+  fight's start group reads the run's set-up). `battle.enter` sets `state.hitstop` (scratch now:
+  battle.step reads it first).
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page
