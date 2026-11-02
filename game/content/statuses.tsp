@@ -7,7 +7,7 @@
 (import content/enemies en)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) " takes # from fleas.") :strings aux)
+(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) " \x09takes # from fleas.") :strings aux)
 
 (const SAY_TAKES_FROM_FLEAS u8 0)
 
@@ -80,7 +80,12 @@
         "Spooked -" "Sends back " "Lasered" "Spiky " "Strength +" "Kittens " "Tangled " "Marked "
         "Catnip +" "" "Knead" "Knead +" "Shield stays" "Wished" "" "" "Red dot " "Catfight +"
         "Mirror " "Flea circus" "" "Habit +")
-    :strings aux)
+    :in aux) ; with its strings: main memory is full (name reads it)
+
+; status s's name, out of aux memory
+(fn name ((s u8)) (ptr u8)
+    (with_aux true false
+        (at NAME s)))
 
 ; a + b, MOST at most instead of wrapping
 (fn sum ((a u8) (b u8)) u8

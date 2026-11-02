@@ -8,6 +8,7 @@
 ; string stands for the number given to add_n.
 
 (import auxmem)
+(import dhgr)
 (import art/hud_data hud)
 (import art/font40)
 (import draw/screen)
@@ -29,11 +30,51 @@
 (let inverse bool false)
 (let mark_number bool false) ; an item's line: its # drawn inverse (add_item)
 
+; colours (2026-11-01, the owner: colour makes the text easier to read), the double hi-res
+; palette's numbers. A line starts white; in a string a byte under 16 (a \x escape: WHITE \x0f,
+; YELLOW \x0d her numbers, PINK \x0b hurts to her and enemy attacks, GREEN \x0c shields and
+; healing, AQUA \x0e mana, ORANGE \x09 statuses, LBLUE \x07 names: aqua reads like green in the
+; colour look, so the names, the most often, are light blue) is the colour of what
+; follows, taking no column. A line keeps up to RUNS changes (runs: the column, the colour; an
+; unused one's column 255), and each row the runs it shows (shown_runs), so a row drawn again
+; in new colours is drawn whole. A line kept elsewhere keeps its runs too (save_runs)
+(const WHITE u8 15)
+(const YELLOW u8 13)
+(const PINK u8 11)
+(const GREEN u8 12)
+(const LBLUE u8 7)
+(const ORANGE u8 9)
+(const AQUA u8 14)
+(const RUNS u8 3)
+(let colour u8 15)
+(let runs (array u8 6) :address 0x0A03) ; scratch, right after line: see AGENTS.md, Memory
+(let run_n u8 :address 0x0A09)
+(const LINE_BYTES u16 41) ; line and its runs, one after the other (the log's history)
+(let shown_runs (array u8 24) :address 0x07DA) ; 6 bytes a row
+; the line's colour masks for lib/dhgr_pixels' cells, 4 bytes a 7-pixel group, all 255 while
+; masks_white (a white line's)
+(let masks (array u8 80) :address 0x0A9C)
+(let masks_white bool false)
+
 (fn start () void
     (for i u8 0 COLUMNS
         (set (at line i) ' '))
     (set col 0)
-    (set inverse false))
+    (set inverse false)
+    (set colour WHITE)
+    (set run_n 0)
+    (for i u8 0 6
+        (set (at runs i) 255)))
+
+; what follows in colour c
+(fn paint ((c u8)) void
+    (if (or (= c colour) (= run_n RUNS))
+        (return))
+    (let k u8 (<< run_n 1))
+    (set (at runs k) col)
+    (set (at runs (+ k 1)) c)
+    (set run_n (+ run_n 1))
+    (set colour c))
 
 ; one ASCII character
 (fn char ((c u8)) void
@@ -44,27 +85,47 @@
         c))
     (set col (+ col 1)))
 
+; n's decimal digits, by subtraction (a division would pull in the runtime's routines: AGENTS.md
+; Memory); battle/hud and battle/hit read them too
+(let hundreds u8 0)
+(let tens u8 0)
+(let ones u8 0)
+
+(fn digits ((n u8)) void
+    (set hundreds 0)
+    (while (>= n 100)
+        (set n (- n 100))
+        (set hundreds (+ hundreds 1)))
+    (set tens 0)
+    (while (>= n 10)
+        (set n (- n 10))
+        (set tens (+ tens 1)))
+    (set ones n))
+
 ; n in decimal
 (fn number ((n u8)) void
-    (if (>= n 100)
-        (char (+ '0' (/ n 100))))
-    (if (>= n 10)
-        (char (+ '0' (% (/ n 10) 10))))
-    (char (+ '0' (% n 10))))
+    (digits n)
+    (if (> hundreds 0)
+        (char (+ '0' hundreds)))
+    (if (or (> hundreds 0) (> tens 0))
+        (char (+ '0' tens)))
+    (char (+ '0' ones)))
 
 ; a string, with n for each #
 (fn add_n ((s (ptr u8)) (n u8)) void
     (let i u8 0)
     (while (!= (load (+ s i)) 0)
         (let c u8 (load (+ s i)))
-        (if (= c '#')
-            (do
-                (let was bool inverse)
-                (if mark_number
-                    (set inverse true))
-                (number n)
-                (set inverse was))
-            (char c))
+        (if (< c 16)
+            (paint c)
+            (if (= c '#')
+                (do
+                    (let was bool inverse)
+                    (if mark_number
+                        (set inverse true))
+                    (number n)
+                    (set inverse was))
+                (char c)))
         (set i (+ i 1))))
 
 (fn add ((s (ptr u8))) void
@@ -108,6 +169,7 @@
 (let cells (array u8 35) :address 0x0424)
 
 (fn glyphs35 () void
+    (line_masks)
     (for i u8 0 COLUMNS
         (let c u8 (at line i))
         (set (at flip i) 0)
@@ -117,13 +179,45 @@
                 (set c (& c 0x7F))))
         (set (at glyph_at i) (<< (as u16 (- c 32)) 3))))
 
+; the line's masks: each pixel's colour (its character's) into pix.px, free while text draws,
+; then each 7-pixel group's mask from them; a white line's all 255, set once
+(fn line_masks () void
+    (if (= run_n 0)
+        (do
+            (if masks_white
+                (return))
+            (for i u8 0 80
+                (set (at masks i) 255))
+            (set masks_white true)
+            (return)))
+    (set masks_white false)
+    (let c u8 WHITE)
+    (let k u8 0)
+    (let p u8 0)
+    (for i u8 0 COLUMNS
+        (if (and (< k run_n) (= (at runs (<< k 1)) i))
+            (do
+                (set c (at runs (+ (<< k 1) 1)))
+                (set k (+ k 1))))
+        (for j u8 0 4
+            (set (at pix.px p) c)
+            (set p (+ p 1))))
+    (let g u8 0)
+    (for m u8 0 20
+        (dhgr_pixels.colour_mask (addr_of (at pix.px g)) (addr_of (at masks (<< m 2))))
+        (set g (+ g 7))))
+
 ; its blocks of 7 characters from block b0, n of them
 (fn row35 ((r u8) (y u8) (b0 u8) (n u8)) void
     (let i0 u8 (* b0 7))
     (for i u8 i0 (+ i0 (* n 7))
         (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
         (set (at cells i) (^ bits (at flip i))))
-    (dhgr_pixels.cells screen.PAGE (<< b0 3) y n (addr_of (at cells i0))))
+    (dhgr_pixels.cells screen.PAGE
+        (<< b0 3)
+        y n
+        (addr_of (at cells i0))
+        (addr_of (at masks (<< b0 4)))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte
 (fn row40 ((r u8) (y u8)) void
@@ -173,6 +267,14 @@
                 (if (= first COLUMNS)
                     (set first i))
                 (set last (+ i 1)))))
+    ; new colours: the row whole
+    (let ra u8 (* r 6))
+    (for i u8 0 6
+        (if (!= (at shown_runs (+ ra i)) (at runs i))
+            (do
+                (set (at shown_runs (+ ra i)) (at runs i))
+                (set first 0)
+                (set last COLUMNS))))
     (if (= first COLUMNS)
         (return))
     (for i u8 0 COLUMNS
@@ -184,8 +286,9 @@
                 (row40 k (+ y k)))
             (scene.mark 0 y 40 8)
             (return)))
-    (let b0 u8 (/ first 7))
-    (let b1 u8 (/ (+ last 6) 7))
+    ; the blocks of 7 characters from first's to last's (dhgr.X_GROUP: a pixel's 7-pixel group)
+    (let b0 u8 (at dhgr.X_GROUP first))
+    (let b1 u8 (at dhgr.X_GROUP (+ last 6)))
     (glyphs35)
     (for k u8 0 8
         (row35 k (+ y k) b0 (- b1 b0)))
@@ -214,6 +317,19 @@
             0)))
     b)
 
+; the line's runs kept at to, and back (6 bytes)
+(fn save_runs ((to (ptr u8))) void
+    (for i u8 0 6
+        (store (+ to i) (at runs i))))
+
+(fn load_runs ((from (ptr u8))) void
+    (set run_n 0)
+    (for i u8 0 6
+        (set (at runs i) (load (+ from i))))
+    (for k u8 0 RUNS
+        (if (!= (at runs (<< k 1)) 255)
+            (set run_n (+ run_n 1)))))
+
 ; the line kept elsewhere (the log), and back
 (fn save ((to (ptr u8))) void
     (for i u8 0 COLUMNS
@@ -226,7 +342,9 @@
 ; all four rows blank; forget delays nothing: a new backdrop has none of the lines on it
 (fn forget () void
     (for i u8 0 140
-        (set (at shown i) 0)))
+        (set (at shown i) 0))
+    (for i u8 0 24
+        (set (at shown_runs i) 255)))
 
 (fn clear () void
     (start)

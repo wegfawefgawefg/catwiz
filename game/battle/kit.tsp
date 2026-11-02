@@ -91,16 +91,22 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< g 1) top (<< gn 1) rows))
 
-; cell k (slot k: wand, fluff, star on the first row, book, curse, trick on the second) showing
-; item, framed or not, with a level more (up)
-(fn cell ((k u8) (item u8) (frame bool) (up bool)) void
-    (let c u8 k)
-    (let top u8 TOP)
+; cell k's first pixel and top row: slot k (wand, fluff, star on the first row, book, curse,
+; trick on the second)
+(fn cell_x ((k u8)) u8
+    (let c u8 (if (>= k 3)
+        (- k 3)
+        k))
+    (+ (* (+ G0 (* c 3)) 7) 2))
+
+(fn cell_top ((k u8)) u8
     (if (>= k 3)
-        (do
-            (set c (- k 3))
-            (set top (+ TOP 26))))
+        (+ TOP 26)
+        TOP))
+
+; cell k showing item, framed or not, with a level more (up)
+(fn cell ((k u8) (item u8) (frame bool) (up bool)) void
     (let pips u8 (at state.levels k))
     (if up
         (set pips (+ pips 1)))
-    (card (+ (* (+ G0 (* c 3)) 7) 2) top (at items.ITEMS item icon) pips frame ""))
+    (card (cell_x k) (cell_top k) (items.icon item) pips frame ""))

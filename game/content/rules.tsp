@@ -237,7 +237,10 @@
     "door: the vet or the big bath."
     ""
     "The map at the top of the screen"
-    "shows where you are in the run.")
+    "shows where you are in the run."
+    ""
+    "Lost track? Press H, or tap the"
+    "log, to read what just happened.")
 
 ; page n's place on the disk, for lib/disk
 (fn page_table ((n u8)) (ptr u8)

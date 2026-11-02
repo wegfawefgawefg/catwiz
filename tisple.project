@@ -3,6 +3,6 @@
 (origin 0x8000)
 (disk build/catwiz.dsk)
 (disk2 build/catwiz2.dsk)
-(mockingboard 4)
+(mockingboard 5)
 (scale 2)
 (taps tools/phone/catwiz.json)

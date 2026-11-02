@@ -20,6 +20,7 @@
 (import draw/pix)
 (import draw/scene)
 (import dhgr)
+(import battle/kit)
 
 (const BLACK u8 0)
 (const GREY u8 5)
@@ -31,17 +32,28 @@
 (const ICON_H u8 15)
 (const SIDE_G0 u8 15) ; the buttons' groups: pixels 105-139
 (const SIDE_GN u8 5)
+; the boxes battle/boxes takes clicks in: the side's pixels (the re-roll button's from the
+; tray's top, END TURN's to its foot), and the small BAG and ? buttons
+(const SIDE_X u8 105)
+(const SIDE_W u8 35)
+(const REROLL_H u8 27)
+(const END_TOP u8 145)
+(const SIDE_END u8 160)
+(const SMALL_X u8 124)
+(const SMALL_W u8 16)
+(const SMALL_H u8 9)
+(const BAG_TOP u8 121)
+(const RULES_TOP u8 130)
 
 ; what each slot shows (not game state: the tray's own record): a card or not, its picture
 ; (icons' TILE number or state.NOTHING), its caption and where it starts, whether it is picked
-(let card (array bool 6))
-(let icon (array u8 6))
-(let caption (array (ptr u8) 6))
-(let caption_len (array u8 6))
-(let caption_x (array u8 6))
-(let picked (array bool 6))
-(let lifted (array bool 6))   ; what the page shows
-(let pictures (array u8 540)) ; each slot's picture, icons.ICON_BYTES a slot
+(let card (array bool 6) :address 0x0710)
+(let icon (array u8 6) :address 0x0716)
+(let caption (array u8 12) :address 0x0669) ; two glyphs a slot (0 for none): a caption is 2 at most
+(let caption_len (array u8 6) :address 0x03AC)
+(let caption_x (array u8 6) :address 0x03B2)
+(let picked (array bool 6) :address 0x03B8)
+(let lifted (array bool 6) :address 0x03BE) ; what the page shows
 (let side_on bool false)
 ; the groups of pixels to draw again at the next flush, and whether only the faces changed
 (let dirty_g0 u8 255)
@@ -52,22 +64,49 @@
 (const FACE_TOP u8 124) ; the rows a face (picture and caption) may change, picked or not
 (const FACE_END u8 153)
 
+; each slot's copy of its picture (art/icons: 15 rows of 6 bytes) is on the spare page, slot n's
+; row r in bytes 6n to 6n + 5 of its row PICTURE_ROW + r, in main memory: rows of the spare page
+; nothing reads once the fight's picture is shown (a page closing copies back rows 0-159), and
+; main memory is full. The fight's picture comes with tray.forget after it, so they are copied
+; again
+(const PICTURE_ROW u8 160)
+
+(fn picture_at ((n u8) (r u8)) (ptr u8)
+    (as (ptr u8) (screen.row_at screen.SPARE (+ PICTURE_ROW r) (* n 6))))
+
 ; a slot's card and what is on it; drawn at the next flush, composed again only when the card
 ; or what is on it changed
 (fn slot ((n u8) (has_card bool) (tile u8) (text (ptr u8)) (is_picked bool)) void
     (set (at picked n) is_picked)
-    (if (and (and (= (at card n) has_card) (= (at icon n) tile)) (= (at caption n) text))
+    (let t0 u8 (load text))
+    (let t1 u8 (if (= t0 0)
+        0
+        (load (+ text 1))))
+    (let c u8 (<< n 1))
+    (if (and (and (= (at card n) has_card) (= (at icon n) tile))
+            (and (= (at caption c) t0) (= (at caption (+ c 1)) t1)))
         (return))
     (if (!= (at card n) has_card)
         (set faces_only false))
     (if (and (!= (at icon n) tile) (!= tile state.NOTHING))
-        (paint.picture (addr_of (at pictures (* (as u16 n) icons.ICON_BYTES))) tile))
+        (do
+            ; unpacked (art/icons) into the kit's scratch, then its rows to the spare page
+            (paint.picture (addr_of (at kit.picture 0)) tile)
+            (let from u8 0)
+            (for r u8 0 ICON_H
+                (let to (ptr u8) (picture_at n r))
+                (for i u8 0 6
+                    (store (+ to i) (at kit.picture (+ from i))))
+                (set from (+ from 6)))))
     (set (at card n) has_card)
     (set (at icon n) tile)
-    (set (at caption n) text)
-    (let len u8 0)
-    (while (!= (load (+ text len)) 0)
-        (set len (+ len 1)))
+    (set (at caption c) t0)
+    (set (at caption (+ c 1)) t1)
+    (let len u8 (if (= t0 0)
+        0
+        (if (= t1 0)
+            1
+            2)))
     (set (at caption_len n) len)
     (set (at caption_x n) (- (at hud.CARD_X n) (>> (pix.glyphs_width text len) 1)))
     (let g0 u8 (at hud.SLOT_G0 n))
@@ -165,6 +204,7 @@
     (for n u8 0 hud.SLOTS
         (set (at card n) false)
         (set (at icon n) state.NOTHING)
+        (set (at caption (<< n 1)) 255)
         (set (at picked n) false)
         (set (at lifted n) false))
     (set dirty_g0 255)
@@ -172,10 +212,14 @@
     (set faces_only true)
     (set side_on false))
 
-; row y of slot n's card: its white
+; row y of slot n's card: its white (its shape's row, moved to the slot: art/hud_data)
 (fn card_row ((n u8) (y u8)) void
-    (let at u8 (+ (* n hud.TRAY_ROWS) (- y hud.TRAY_TOP)))
-    (pix.span (at hud.CARD_FIRST at) (at hud.CARD_END at) WHITE))
+    (let r u8 (- (- y hud.TRAY_TOP) hud.CARD_ROW0))
+    (if (>= r hud.CARD_ROWS) ; above the cards, r wraps past it
+        (return))
+    (let at u8 (+ (at hud.CARD_SHAPE n) r))
+    (let d u8 (at hud.CARD_SHIFT n))
+    (pix.span (+ (at hud.CARD_FIRST at) d) (+ (at hud.CARD_END at) d) WHITE))
 
 ; row y of slot n's picture and caption
 (fn face_row ((n u8) (y u8)) void
@@ -187,7 +231,7 @@
     (let cap_y u8 hud.CAPTION_Y)
     (if (and (>= y top) (< y (+ top ICON_H)))
         (do
-            (let at u16 (+ (* (as u16 n) icons.ICON_BYTES) (as u16 (* (- y top) 6))))
+            (let row (ptr u8) (picture_at n (- y top)))
             ; the picture's pixels in the stretch: from i0 to i1 of its 11, at px k on
             (let i0 u8 0)
             (if (< x pix.origin)
@@ -200,7 +244,7 @@
                     0)))
             (let k u8 (- (+ x i0) pix.origin))
             (for i u8 i0 i1
-                (let b u8 (at pictures (+ at (as u16 (>> i 1)))))
+                (let b u8 (load (+ row (>> i 1))))
                 (let c u8 (if (= (& i 1) 0)
                     (>> b 4)
                     (& b 15)))
@@ -208,11 +252,15 @@
                     (set (at pix.px k) c))
                 (set k (+ k 1)))))
     (if (and (>= y cap_y) (< y (+ cap_y 5)))
-        (pix.glyphs (at caption_x n) (at caption n) (at caption_len n) (- y cap_y) BLACK)))
+        (pix.glyphs (at caption_x n)
+            (addr_of (at caption (<< n 1)))
+            (at caption_len n)
+            (- y cap_y)
+            BLACK)))
 
 ; groups g0 to g0 + gn - 1 of the tray's rows composed anew, every card down (flush lifts the
 ; picked one after)
-(let near (array bool 6)) ; the slots with a card that reaches into the groups drawn
+(let near (array bool 6) :address 0x03C4) ; the slots with a card that reaches into the groups drawn
 
 (fn draw_groups ((g0 u8) (gn u8) (y0 u8) (y1 u8)) void
     (pix.begin g0 gn)
@@ -233,7 +281,7 @@
 
 ; the re-roll button (a die, X and the re-rolls left, grey with none), the bag and rules buttons
 ; (B, ?) right of it, the mana stars lit for what the hero has, END TURN, in pixels 105-139
-(let side_glyphs (array u8 8))
+(let side_glyphs (array u8 8) :address 0x02F6)
 
 (fn side_row ((y u8) (rerolls u8) (mana u8) (most u8) (shake u8)) void
     (pix.fill BLACK)
@@ -258,18 +306,7 @@
             (set (at side_glyphs 1) (+ '0' rerolls))
             (pix.glyphs 115 (addr_of (at side_glyphs 0)) 2 (- y 128) WHITE)))
     ; the bag (her kit) and the rules: small white pills
-    (if (and (>= y 122) (< y 129))
-        (do
-            (pix.span
-                (if (or (= y 122) (= y 128))
-                    125
-                    124)
-                (if (or (= y 122) (= y 128))
-                    139
-                    140)
-                WHITE)
-            (if (and (>= y 123) (< y 128))
-                (pix.glyphs 127 "BAG" 3 (- y 123) BLACK))))
+    (bag_button y)
     (if (and (>= y 131) (< y 138))
         (do
             (pix.span
@@ -308,6 +345,21 @@
             (if (and (>= y 151) (< y 156))
                 (pix.glyphs 107 "END TURN" 8 (- y 151) WHITE)))))
 
+; row y of the BAG button (her kit): a small white pill
+(fn bag_button ((y u8)) void
+    (if (and (>= y 122) (< y 129))
+        (do
+            (pix.span
+                (if (or (= y 122) (= y 128))
+                    125
+                    124)
+                (if (or (= y 122) (= y 128))
+                    139
+                    140)
+                WHITE)
+            (if (and (>= y 123) (< y 128))
+                (pix.glyphs 127 "BAG" 3 (- y 123) BLACK)))))
+
 ; the side as it shows: drawn whole the first time, then only the rows of the re-roll button
 ; and the stars, and only when what they show changed (the hero's badge changing asks too)
 (let side_rerolls u8 0)
@@ -335,11 +387,12 @@
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
 
-; the buttons off, between fights
+; between fights: the buttons off but BAG (her kit, battle/bag)
 (fn clear_side () void
     (set side_on false)
     (pix.begin SIDE_G0 SIDE_GN)
-    (pix.fill BLACK)
     (for y u8 HUD_TOP (+ hud.TRAY_TOP hud.TRAY_ROWS)
+        (pix.fill BLACK)
+        (bag_button y)
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) HUD_TOP (<< SIDE_GN 1) (- (+ hud.TRAY_TOP hud.TRAY_ROWS) HUD_TOP)))

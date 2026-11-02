@@ -16,23 +16,24 @@
 (const PROMPT_COL u8 16) ; after the longest item name
 
 ; the rows' words, in aux memory (text.add_aux): SAY_ and their words
-(const SAY (array (ptr u8) 15)
-    (make (array (ptr u8) 15)
+(const SAY (array (ptr u8) 16)
+    (make (array (ptr u8) 16)
         "All is quiet again."
         " hp"
-        "# damage"
-        "Shield #"
+        "\x0d# damage"
+        "\x0cShield #"
         "Re-roll it"
-        "Needs more mana"
+        "\x0eNeeds more mana"
         "Pick an enemy"
         "Again: hits all"
         "Again: on you"
         "Next: "
         "Their turn"
         "Rolling"
-        "To be continued..."
         " is down. The run is over."
-        "Press RETURN or tap.")
+        "Press RETURN or tap."
+        " has this die."
+        "Beat it and the die comes back.")
     :strings aux)
 
 (const SAY_QUIET u8 0)
@@ -47,9 +48,10 @@
 (const SAY_NEXT u8 9)
 (const SAY_THEIR_TURN u8 10)
 (const SAY_ROLLING u8 11)
-(const SAY_CONTINUED u8 12)
-(const SAY_DOWN u8 13)
-(const SAY_PRESS u8 14)
+(const SAY_DOWN u8 12)
+(const SAY_PRESS u8 13)
+(const SAY_HAS_DIE u8 14)
+(const SAY_BEAT_IT u8 15)
 
 ; what the rows were drawn for, so a change of phase draws them again
 (let shown_phase state.Phase state.Phase.won)
@@ -57,20 +59,23 @@
 ; who's name, hit points and statuses on one row
 (fn actor_row ((who u8)) void
     (text.start)
+    (text.paint text.LBLUE)
     (text.add_aux (log.name who))
+    (text.paint text.WHITE)
     (text.char ' ')
     (text.number (at state.actors who hp))
     (text.char '/')
     (text.number (at state.actors who max_hp))
     (text.add_aux (at SAY SAY_HP))
     (let first u8 (at state.FIRST_STACK who))
+    (text.paint text.ORANGE)
     (for s u8 0 st.STATUS_COUNT
         (let n u8 (at state.stacks (+ first s)))
         (let show st.Show (at st.SHOW s))
         (if (and (> n 0) (!= show st.Show.hidden))
             (do
                 (text.char ' ')
-                (text.add_aux (at st.NAME s))
+                (text.add_aux (st.name s))
                 (if (!= show st.Show.flag)
                     (text.number n)))))
     (text.show 0))
@@ -82,25 +87,35 @@
     (let n u8 (fx.boosted row false))
     (text.start)
     (set text.inverse true)
-    (text.add_aux (at items.ITEMS row name))
+    (text.add_aux (items.name row))
     (set text.inverse false)
     (text.tab (+ text.col 1)) ; a space after the longer names
     (text.tab PROMPT_COL)
-    (match (at items.ITEMS row slot)
+    (match (items.slot row)
         (ac.Slot.wand (text.add_item (at SAY SAY_DAMAGE) n))
         (ac.Slot.fluff (text.add_item (at SAY SAY_SHIELD) n))
         (ac.Slot.junk (text.add_aux (at SAY SAY_REROLL)))
         (_
             (if (fx.short_of_mana row)
                 (text.add_aux (at SAY SAY_SHORT))
-                (match (at items.ITEMS row aim)
+                (match (items.aim row)
                     (state.Aim.foe (text.add_aux (at SAY SAY_PICK_ENEMY)))
                     (state.Aim.all (text.add_aux (at SAY SAY_HITS_ALL)))
                     (_ (text.add_aux (at SAY SAY_ON_YOU)))))))
     (text.show 0)
     (text.start)
-    (text.add_item (at items.ITEMS row text) n)
+    (text.add_item (items.text row) n)
     (text.show 1))
+
+; a die enemy who holds: who has it, how to get it back
+(fn held_rows ((who u8)) void
+    (text.start)
+    (set text.inverse true)
+    (text.add_aux (log.name who))
+    (set text.inverse false)
+    (text.add_aux (at SAY SAY_HAS_DIE))
+    (text.show 0)
+    (line_row 1 (at SAY SAY_BEAT_IT)))
 
 ; the target's next move
 (fn intent_row ((who u8)) void
@@ -109,6 +124,7 @@
         (do
             (let row u8 (at state.actors who move))
             (text.add_aux (at SAY SAY_NEXT))
+            (text.paint text.PINK)
             (text.add_aux_n (foes.intent_text who row) (foes.intent_amount who row))))
     (text.show 1))
 
@@ -158,24 +174,23 @@
                 (do
                     (their_turn)
                     (return)))
+            (if (and (!= state.looked state.NOTHING)
+                    (!= (at state.held state.looked) state.NOTHING))
+                (do
+                    (held_rows (at state.held state.looked))
+                    (return)))
             (if (!= state.selected state.NOTHING)
                 (die_rows state.selected)
                 (do
                     (actor_row state.target)
                     (intent_row state.target))))))
 
-; the run is over: won (to be continued) or lost
-(fn ending ((won bool)) void
+; the run is lost (won, its page says so: battle/bag won)
+(fn lost () void
     (text.start)
-    (if won
-        (do
-            (text.add_aux (at SAY SAY_QUIET))
-            (text.show 0)
-            (line_row 1 (at SAY SAY_CONTINUED)))
-        (do
-            (text.add_aux (log.name state.HERO))
-            (text.add_aux (at SAY SAY_DOWN))
-            (text.show 0)
-            (blank_row 1)))
+    (text.add_aux (log.name state.HERO))
+    (text.add_aux (at SAY SAY_DOWN))
+    (text.show 0)
+    (blank_row 1)
     (blank_row 2)
     (line_row 3 (at SAY SAY_PRESS)))

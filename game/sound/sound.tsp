@@ -20,6 +20,7 @@
 (import sound/music)
 (import sound/card_fx fx)
 (import sound/songs)
+(import draw/meter)
 
 (enum Cue (rattle ; one shake of the dice
         tok       ; a die played
@@ -146,13 +147,13 @@
 (fn cue ((c Cue)) void
     (cue_byte (as u8 c)))
 
-; each song in aux memory, in Song's order
+; each song's table on the disk, in Song's order (aux memory is full)
 (const SONG_BYTES (array (ptr u8) 4)
     (make (array (ptr u8) 4)
-        (addr_of (at songs.title 0))
-        (addr_of (at songs.battle 0))
-        (addr_of (at songs.won 0))
-        (addr_of (at songs.lost 0))))
+        (addr_of (at songs.TITLE 0))
+        (addr_of (at songs.BATTLE 0))
+        (addr_of (at songs.WON 0))
+        (addr_of (at songs.LOST 0))))
 
 ; no song for a moment: before a screen's art unpacks into the aux language card with
 ; interrupts off, which would hold the notes playing
@@ -160,9 +161,16 @@
     (if mb.found
         (mb.stop)))
 
-; a song from its start: on the card, copied in from aux memory with interrupts off (the
-; handler would read the song playing while it changes; about 6,500 cycles, so it delays a tick
-; and loses none) and played; on the speaker, the title's jingle and the battle's ends
+; a song from its start: on the card, read from the disk into aux memory's text page 1 (the
+; rules page's buffer, which reads its page again when it opens) with the song before stopped,
+; then copied into main memory with interrupts off (the handler would read the song playing
+; while it changes; about 6,500 cycles, so it delays a tick and loses none) and played; on the
+; speaker, the title's jingle and the battle's ends. A song starts with a screen (a read of a
+; sector or two, as the screen loads anyway) or at the run's end
+; a let, not a constant pointer: the layout checks a constant one against main memory's lets
+; there, which aux memory's bytes are not
+(let song_buffer u16 0x0400)
+
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
@@ -172,6 +180,8 @@
                 (Song.lost (sfx.lose))
                 (_))
             (return)))
+    (mb.stop)
+    (meter.read (as (ptr u8) song_buffer) (at SONG_BYTES (as u8 s)))
     (sei)
-    (auxmem.read (addr_of (at playing 0)) (at SONG_BYTES (as u8 s)) PLAYING)
+    (auxmem.read (addr_of (at playing 0)) (as (ptr u8) song_buffer) PLAYING)
     (mb.play (addr_of (at playing 0))))

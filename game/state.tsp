@@ -30,8 +30,9 @@
 ; after an elite (the nap or a bonus upgrade), the slot the upgrade levels, one of two doors
 (enum Pick (cards charms nap nap_slot door))
 
-; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules)
-(enum Page (none bag rules))
+; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules), the
+; log's history (battle/history), the run won (battle/bag won)
+(enum Page (none bag rules log won))
 
 ; the face an actor shows (battle/look turns it into a frame of the art)
 (enum Mood (idle angry worried hurt attack happy ko surprised))
@@ -95,12 +96,15 @@
 ; the Mockingboard's ticks, one a frame (main.irq): the frames that really went by, however
 ; long drawing one took
 (let clock u8)
+(let mouse_on bool false) ; a mouse card, set up (title.enter): main's handler reads it then
 (let frame u8) ; counts up every frame but in hit-stop
-(let idle u8)  ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
+(let idle u8) ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
-(let stacks (array u8 132)) ; status stacks: actor * STATUS_SLOTS + status
+(let stacks (array u8 132) :address 0x0272) ; status stacks: actor * STATUS_SLOTS + status (scratch, after drawn: cleared as a run starts)
+; (the run's kit and the fight's dice are scratch at $0300-$033B and in text page 1's holes,
+; set as a run, a fight and a turn start: AGENTS.md, Memory)
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
 ; stage's, or its other door), the hero's hit points between fights, and her kit: the item in
 ; each of the six slots (rows of content/items), each slot's level, and how many of each charm
@@ -109,22 +113,22 @@
 (let fight u8)
 (let next_fight u8) ; the row the next fight is: the next stage's, or the door picked
 (let hero_hp u8)
-(let items (array u8 6))
-(let levels (array u8 6))
-(let charms (array u8 12))
-(let spent (array bool 12)) ; a charm that works once a run has (nine lives)
+(let items (array u8 6) :address 0x0300)
+(let levels (array u8 6) :address 0x0306)
+(let charms (array u8 12) :address 0x030C)
+(let spent (array bool 12) :address 0x0318) ; a charm that works once a run has (nine lives)
 ; the fight's dice: dice_n of them roll each turn (die d in tray slot d). A die an enemy holds
 ; (held: its actor, NOTHING) stays out until that enemy is beaten; a slot a hairball clogs shows
 ; the hairball on every die until a re-roll coughs it up
 (let dice_n u8)
-(let held (array u8 6))
-(let clogged (array bool 6))
-(let face_of (array u8 6)) ; the face (slot) each die shows
-(let hand (array u8 6))    ; and the item it is, a row in content/items
-(let played (array bool 6))
+(let held (array u8 6) :address 0x0324)
+(let clogged (array bool 6) :address 0x032A)
+(let face_of (array u8 6) :address 0x0330) ; the face (slot) each die shows
+(let hand (array u8 6) :address 0x0336)    ; and the item it is, a row in content/items
+(let played (array bool 6) :address 0x06D6)
 (let rerolls u8)
 (let rerolled bool)      ; a re-roll this turn (still water)
-(let combo (array u8 6)) ; faces of each slot played this turn, for the threes
+(let combo (array u8 6) :address 0x06D0) ; faces of each slot played this turn, for the threes
 (let last_face u8)       ; the item played last (copycat), and on whom
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)
@@ -135,6 +139,7 @@
 (let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
 (let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8)    ; the die picked to play next, or NOTHING
+(let looked u8)      ; a die an enemy holds, picked to read who has it (battle/words), or NOTHING
 (let target u8)      ; the enemy the dice go to
 (let log_hold u8)    ; frames the enemies wait, so the last log line can be read
 (let page Page)      ; the page open over the stage, none for the fight itself

@@ -14,14 +14,14 @@
 (const DRAW u8 3)
 
 ; what the last draw gave, and how many
-(let drawn (array u8 3))
+(let drawn (array u8 3) :address 0x03CD)
 (let count u8 0)
 
 ; the slot card c goes to, and whether it is a level (else a new item there)
 (fn card_slot ((c u8)) u8
     (if (>= c UP)
         (return (- c UP)))
-    (as u8 (at items.ITEMS c slot)))
+    (as u8 (items.slot c)))
 
 (fn card_levels ((c u8)) bool
     (or (>= c UP) (= (at state.items (card_slot c)) c)))

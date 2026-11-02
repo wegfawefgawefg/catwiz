@@ -1,7 +1,7 @@
 # the item cards' pictures, hand-pixelled at 11 x 15 wide pixels for the tray's white cards:
 # black ink lines, one or two colours each. KEY maps the letters to colours; '.' is the card.
 # One for each item of game/content/items.tsp (the game's TILE_ names, game_hud.ICON_ORDER),
-# the hairball, and the cards between fights: a charm, the nap, a door.
+# the hairball, and the cards between fights: a charm, the nap, a door; and a grabbed die.
 #   wands    twig, yarn, spray bottle, feather toy, fishbone, mouse on a string
 #   fluff    fluff (hackles up), spiky, cardboard box, warm blanket, static, bell collar
 #   stars    star (a bold yellow star, as the mana meter's), shooting, moon bowl, wishing, litter
@@ -805,6 +805,24 @@ ICONS = {
         ".KHK...KHK.",
         ".KHKKKKKHK.",
         ".KKKKKKKKK.",
+    ],
+    # a die an enemy grabbed (its tray card while it holds it): a brown paw on a die
+    "grabbed": [
+        "...........",
+        "..K..K..K..",
+        ".KHKKHKKHK.",
+        ".KHHKHKHHK.",
+        ".KHHHHHHHK.",
+        ".KHHRRRHHK.",
+        "..KHRRRHK..",
+        "...KHHHK...",
+        "..KKKKKKK..",
+        "..K.....K..",
+        "..K.K.K.K..",
+        "..K.....K..",
+        "..K.K.K.K..",
+        "..K.....K..",
+        "..KKKKKKK..",
     ],
 }
 

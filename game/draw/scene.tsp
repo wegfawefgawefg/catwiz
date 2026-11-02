@@ -24,7 +24,7 @@
 (let redo (array u8 19) :address 0x055F) ; rows to draw again from the top, 0 for none
 (let restored (array state.Rect 30) :address 0x0480)
 (let restored_count u8 0)
-(let cut (array bool 4)) ; an actor whose box meets another's: drawn without its black
+(let cut (array bool 4) :address 0x06F4) ; an actor whose box meets another's: drawn without its black
 (const MOST_RESTORED u8 30)
 
 ; the hud drew onto the page (fresh: the frame has something new, whatever the looks do)

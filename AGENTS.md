@@ -112,8 +112,21 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   fight: the place, a mark a fight (an elite's bigger, hers lit), the king's crown. Its box is a
   lane (`tools/dhgr/lanes.py` MAP), so the scenery stays out of it.
 - Pages over the stage in her turn (`battle/page.tsp`): her kit (`battle/bag.tsp`, B) and the
-  rules (`battle/rules.tsp`, ?). The fight waits under one; closing puts the stage back from the
-  spare page, which keeps the fight's picture all fight.
+  rules (`battle/rules.tsp`, ?); between fights her kit too (B, the BAG button), and closing
+  it draws the reward's step again as it was (`reward.reshow`). A page opens at the step after
+  its key (`page.fresh`), so only the pages' code draws pages (their overlay group). The
+  fight waits under one; closing puts the stage back from the spare page, which keeps the
+  fight's picture all fight.
+- Clicks (2026-11-01, the owner: exact boxes for everything clickable): the game reads an
+  AppleMouse (lib/mouse, set up in `title.enter`) once a pass of the main loop (`main.poll_click`;
+  not in the handler: a call into the card's firmware may change anything for all the compiler
+  knows, which would slow the whole game). A press goes in the key line as CLICK with where it
+  was, and `main.next_key` gives the key of the box it hits on the screen as it is then
+  (`battle/boxes.tsp`, made from the drawing's own numbers: tray slots, `tray.SIDE_X`...,
+  `page.CLOSE_X`..., `kit.cell_x`, the actors' idle frames where they stand); a click on
+  nothing is `.`. So every screen takes clicks as keys. Add a box there with anything new that
+  takes a click. The emulator (`tisple machine --taps` with `"mouse": true`, the web player)
+  puts the mouse where a click or tap is and holds each press until READMOUSE has seen it.
 - Test builds: the constants at the top of `battle/battle.tsp` (start at fight N or its other
   door, play on past fight 2 on stand-in art, a charm held from the start, every fight won as it
   starts, `SEED`: the run's random numbers, the dice and the draws, the same every time) and
@@ -211,9 +224,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
   from `art/icons`), the buttons, the text. The card pictures (`tools/dhgr/icons.py`, 11 x 15, one
-  an item, the hairball, a charm, the nap, a door) live in aux memory; each tray slot copies its
-  picture to main memory when it changes (`battle/tray.tsp`), the stage's slots one at a time
-  (`battle/kit.tsp`).
+  an item, the hairball, a charm, the nap, a door, a grabbed die) live in aux memory, each packed
+  (`draw/packs` aux_packs, 2,039 bytes less than plain); each tray slot unpacks its picture when
+  it changes (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
+  cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
 - Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
   or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
   arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
@@ -257,13 +271,15 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (Flea Circus), glow (Sunbeam), scratch (Scratching Habit), coin (Double or Nothing). On the
   speaker each borrows the sound it replaced (the zap, the ping, the chime), and the curses'
   have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
-- The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:in aux` and
-  copied into main when it starts (`sound.PLAYING` bytes: keep it at the largest song's size,
-  which `tisple expand` shows).
+- The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:on disk`
+  (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
+  rules page's buffer) and copied into main (`sound.PLAYING` bytes: keep it at the largest
+  song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
-- `tisple machine ... --mockingboard 4 --wav x.wav` plays and saves it; `MB=4` makes
-  `tools/measure.py` measure with the card in.
+- `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
+  `tools/measure.py` measure with the card in. Slot 5: the emulator's mouse card is in slot 4
+  (`tisple.project`, `tools/phone/catwiz.json`; the game finds either card in any slot).
 
 ## Building and running
 
@@ -292,8 +308,8 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
-  with `--mockingboard 4 --scale 2 --taps tools/phone/catwiz.json` (needs Tisple 71899ed or
-  later). When the program does not fit, Tisple builds it with a tighter size budget
+  with `--mockingboard 5 --scale 2 --taps tools/phone/catwiz.json` (the config's `"mouse":
+  true`: a click is the mouse card's mouse there, pressed; Tisple's mouse-player branch). When the program does not fit, Tisple builds it with a tighter size budget
   (squeeze levels) and says which functions it kept as calls instead of copying them into
   their callers; `TISPLE_SIZE_NOTES=1` lists what the budget weighs. The game keeps no list of
   its own (it had `game/noinline.txt` until 2026-10-30).
@@ -350,7 +366,12 @@ splits a memory would not build.
   floaters, the dice, the badges, the counter; and since the kit round the text's glyph tables
   `$0424`, `$0600-$0668`, the log's waiting lines `$0447-$0476`, the hud's `was` `$0700`, the
   kit's picture `$0780`). Each such let says so. The screen shows no text page (`dhgr_text2` is
-  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer.
+  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer (and
+  where a song is read from the disk), `$0630-$07F6` the log's history (13 lines of 35:
+  `battle/log` writes each line there, `battle/history`, H, shows them).
+- The tray's copies of its cards' pictures are on the spare page (rows 160-174, 6 bytes a slot
+  each: `tray.picture_at`), which nothing reads once a fight's picture is shown: main memory is
+  full. Numbers are split into digits by subtraction (`text.digits`): no division routines.
 - No multiply or division routines: `(* a b)` and `/` on variables pull in tables and routines
   (1 KB for the quarter squares); the game multiplies by constants and uses shifts. Watch the
   listing for `rt.` calls.

@@ -1,12 +1,13 @@
 # Catwiz
 
 A dice roguelike for the 128K Apple IIe, in double hi-res graphics. You are a cat wizard rolling
-five dice of her own items against the forest's spooky-cute things, on the way to a big bad dog. Written in
+five dice of her own items against the spooky-cute things of the woods, the garden and the yard,
+on the way to a big bad dog: the Bulldog King. Written in
 [Tisple](https://github.com/wegfawefgawefg/tisple), a typed Lisp that compiles to 6502.
 
-Two fights and what comes between them play now; ten are in the rules (the woods, the garden
-and the yard, three fights each with an elite at the end, then the Bulldog King), the rest
-waiting for their art.
+The whole run plays: ten fights (the woods, the garden and the yard, three fights each with an
+elite at the end, then the Bulldog King), the later ones on stand-in figures till their art
+comes.
 
 **[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
 get the disk from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
@@ -23,7 +24,7 @@ On a TV or composite monitor (NTSC), the look it is drawn for:
 
 ![the two doors](shots/doors_ntsc.png) ![six dice with the sixth toe](shots/toe_ntsc.png)
 
-![the run won (to be continued)](shots/win_ntsc.png) ![the run lost](shots/lose_ntsc.png)
+![the run won: her kit at the end](shots/win_ntsc.png) ![the run lost](shots/lose_ntsc.png)
 
 In flat colour (an RGB monitor, the web player's other look):
 [title](shots/title_color.png), [fight 1](shots/fight1_color.png), [fight 2](shots/fight2_color.png),
@@ -99,17 +100,20 @@ emulator:
 
 ```sh
 tisple machine --disk build/catwiz.dsk --window                       # speaker sound
-tisple machine --disk build/catwiz.dsk --mockingboard 4 --window      # with music
-tisple machine --disk build/catwiz.dsk --window --taps tools/phone/catwiz.json   # mouse taps
+tisple machine --disk build/catwiz.dsk --mockingboard 5 --window      # with music
+tisple machine --disk build/catwiz.dsk --mockingboard 5 --window --taps tools/phone/catwiz.json   # clicks
 ```
 
-With `--taps`, a click anywhere on the screen presses what a tap there would (the dice, the
-enemies, the re-roll, BAG, ? and END buttons, the cat, the cards between fights, the pages'
-buttons; elsewhere ESC). On the phone the pad has BAG and RULES, and < > for the pages.
+The game reads an AppleMouse (the emulator's is in slot 4, so the Mockingboard goes in 5): with
+`--taps` and its `"mouse": true`, a click puts the mouse there and presses it, as a tap does on
+the phone, and the game hit-tests what it drew there (the dice, the enemies and the cat, the
+re-roll, BAG, ? and END buttons, the log's rows, the cards between fights, the pages' cards and
+buttons). A real Apple with a mouse card plays the same. On the phone the pad has BAG, RULES,
+MEOW, LET GO and LOG, and < > for the pages.
 
 On a real enhanced IIe with 128 KB, write `build/catwiz.dsk` to a floppy (ADTPro) or put it on
 a FloppyEmu, and boot it. A Mockingboard in any slot plays the music; without one the speaker
-plays the effects.
+plays the effects. An AppleMouse in any slot takes clicks.
 
 ## The repo
 
@@ -120,8 +124,8 @@ plays the effects.
 - `tools/dhgr/`: the art, drawn at 140 x 192 in the double hi-res colours; `game.py` writes the
   game's tables. `tools/measure.py` measures frame costs. `tools/art/` and `tools/hgr.py`: the
   hi-res art the game had until 2026-10-30, kept for the record.
-- `tools/phone/catwiz.json`: the phone player's buttons (its portrait pad) and the screen's tap
-  boxes, for Tisple's web player and `--taps`.
+- `tools/phone/catwiz.json`: the phone player's buttons (its portrait pad) and `"mouse": true`
+  (taps are the mouse card's clicks), for Tisple's web player and `--taps`.
 - `tools/reference/`: scripts from the prototype; see its README.
 - `mockup/`: the hi-res mockups of the battle screen the look came from.
 - `shots/`: screenshots (NTSC and colour); `shots/dhgr/` the art's previews; `shots/art/` the
