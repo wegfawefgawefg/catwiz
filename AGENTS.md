@@ -34,11 +34,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Content
 
 - Game rules content is hand-written Tisple in `content/`: plain tables of structs written out
-  (`items.tsp` the hero's items, `enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the
-  run's fights (`FIGHTS`: zone, elite, the other door), the draws' pools (`OFFER_CARDS`,
-  `OFFER_CHARMS`: a card or charm, its weight, the first fight it can come after; the sim's
-  tuned weights, 2026-11-01), the charms and the nap's `NAP_HEAL_SHIFT`; `rules.tsp`
-  the rules page's text), the cards' steps (`cards.tsp`, below), the rules faces land by
+  (`enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the run's fights (`FIGHTS`: zone,
+  elite, the other door), the charms' kinds and the nap's `NAP_HEAL_SHIFT`; `rules.tsp` the
+  rules page's text), the faces and charms as rows of data (`faces.tsp` and a file a slot,
+  `charm_rows.tsp`: the disk catalog, below), the shared steps (`cards.tsp`), the rules faces land by
   (`effects.tsp`: a face's number, the boosts, a book's mana, the threes' count, the kittens'
   pounce), the `match` on the enemies' move kinds (`foes.tsp`), the charms' rules
   (`charms.tsp`) and the statuses (`statuses.tsp`). No separate data format, no parser, no
@@ -68,13 +67,34 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   in the middle of a hit wait in `content/hooks` and run as soon as the step (or the enemy's
   hit) is done. The rows are plain s-expressions a tool like the sim's `tsp.py` can read: a
   step is `(word arg)`.
-- To add a card: its row in `content/items.tsp` (name, text with `#`, slot, amount, step,
-  cost, aim, icon; a row const), its steps in `content/cards.tsp` and its `CARDS` row (steps,
-  tags: `ac.THREE`, `KITTENS`, `GROWS`, the caption; and its show) in the same order as `ITEMS`, its log lines
-  in `effects_said.tsp`, its pool row in `encounters` `OFFER_CARDS`. A status it needs: a row
-  in `statuses.tsp` (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and,
-  when it acts at a moment, a `HOOKS` row. Only an effect no step can make needs a new step
-  (a byte in `steps.tsp`, its arm in `play.run`): keep the vocabulary small.
+- The disk catalog (2026-11-02, docs/faces.md: faces and charms cost no memory). A face is a row
+  of data in its slot's file (`content/faces_wand.tsp` ... `faces_trick.tsp`, the hairball in
+  `faces.tsp`, whose top says what each field is), a charm a row of `content/charm_rows.tsp`:
+  name, text with `#`, slot (a charm: kind, when, mark), amount, step, cost, aim, tags, show,
+  picture by name, weight (its share of the draws; 0 never offered) and steps (a say may carry
+  its own line as a string, kept in the record). `content/catalog.tsp` lays every row out while
+  compiling as one sector of a disk 2 table (`FACES`, `CHARMS`: the hot fields, the 15 x 11
+  picture from `art/pictures`, the steps and their lines, the name, the text; a face's id is
+  its row's place, `(catalog.id TWIG_WAND)`) and the draws' pools (`FACE_POOL`, `CHARM_POOL`,
+  with `faces.upgrades`' six weights). It fails the build on an unknown field, slot, tag or
+  picture, a name past 17 columns, a text part past 35, a record past 256 bytes. Memory holds
+  rows only (`content/items`): rows 0-5 her faces (row k is slot k's item), 6 the hairball,
+  7-10 her charms (`content/charms`), in aux memory all run; 11-15 the five faces offered and
+  16-18 the three charms, at the end of `blit.sprite_aux` between fights (the last fight's
+  enemies' sprites, dead then). What a fight reads each play (slot, amount, step, cost, aim,
+  tags, show) is copied into main memory as a row loads. Records are read only between fights
+  (`items.read`, `meter.read_piece`: one sector, about a fifth of a second): her six faces and
+  the hairball as a run starts (in resident `battle.enter`, so the overlay groups that read
+  records share no code), the offer as the reward shows it (a card a step, after the prompt),
+  a face or charm again as she takes it. `state.items` holds her slots' catalog ids.
+  `python3 tools/sim/catalog.py` lists the rows as the build reads them.
+- To add a face: its picture in `tools/dhgr/icons.py` (a charm's: `charm_icons.py`) and
+  `python3 tools/dhgr/game.py` (it writes `art/pictures`), then its row in its slot's file:
+  nothing else, no memory, a sector of disk 2. A status it needs: a row in `statuses.tsp`
+  (`Status`, `SHOW`, `GLYPH`, `NAME`; `STATUS_SLOTS` in `state.tsp`) and, when it acts at a
+  moment, a `HOOKS` row. Only an effect no step can make needs a new step (a byte in
+  `steps.tsp`, its arm in `play.run`): keep the vocabulary small. A line more than one card
+  says goes in `effects_said.tsp`.
 - The chain and combo cards (2026-11-01, the owner's picks of docs/balance.md "The chain and
   combo cards", numbers from `tools/sim/proposal`, not retuned yet: a retune changes rows only):
   Red Dot, Mimic, Catfight, Mirror Fur, Lucky Paw, Flea Circus, Sunbeam, Scratching Habit (its
@@ -96,14 +116,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the tables and calls the hooks in `content/`, so the content files can be replaced without
   touching the engine.
 - The hero rolls five identical dice (six with a charm); each die's six faces are her six item
-  slots (`state.items`), so a face is the item in its slot (`battle/dice.tsp`). Levels belong to
-  the slot (`state.levels`). The run (2026-10-31, the owner): ten fights, three places of three
+  slots (`state.items`), so a face is the item in its slot (`battle/dice.tsp`; `state.hand` holds
+  rows of `content/items`). Levels belong to the slot (`state.levels`). The run (2026-10-31, the owner): ten fights, three places of three
   (the woods, the garden, the yard), each ending with an elite, then the Bulldog King; the two
   doors (the vet or the big bath) are the yard's elite. Between fights (`battle/reward.tsp`):
-  one of three cards drawn at random (`battle/offer.tsp`: by weight from `OFFER_CARDS`, three
-  different, no level on a slot at its most; the item she holds is a level, the same card to a
-  draw as the slot's upgrade); after an elite also one of three charms drawn the same way (ones
-  she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
+  one of five cards drawn at random (`battle/offer.tsp`: by weight from the faces' pool, five
+  different, no gates by fight, no level on a slot at its most; the item she holds is a level,
+  the same card to a draw as the slot's upgrade), in the tray's slots, a card's lines on the
+  text rows when it is picked (`battle/card_words`: a new face on a slot with levels shows how
+  they make its number, "Hits 10 (6, +4 from your levels)."); after an elite also one of three
+  charms drawn the same way (ones she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
   choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
   fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM has its own
   figure and screen (the clearing's scenery round its lanes, `screen_fight3`), and the
@@ -136,11 +158,12 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 ## Text
 
 - Strings: main memory is full, so text lives in aux memory. The content's tables are
-  `:strings aux` (items, the hero, the status names) or wholly `:in aux` (moves, enemies, fights,
-  charms, the offers: read through their modules' accessors, `(mv.text row)`, `(en.hp kind)`,
+  `:strings aux` (the hero, the status names) or wholly `:in aux` (moves, enemies, fights:
+  read through their modules' accessors, `(mv.text row)`, `(en.hp kind)`,
   `(enc.elite f)`, a `with_aux` each). The code's sentences are `SAY` tables, `:strings aux`, one
-  a module with a `SAY_` name for each (`(at SAY SAY_SHORT)`; the hero's faces' in
-  `content/effects_said.tsp`). All are read with `text.add_aux` / `add_aux_n` (a copy under
+  a module with a `SAY_` name for each (`(at SAY SAY_SHORT)`; the lines more than one face says
+  in `content/effects_said.tsp`, a face's own in its row and record). A face's and charm's name
+  and text are in its row's record in aux memory (`items.name row`, `items.text row`). All are read with `text.add_aux` / `add_aux_n` (a copy under
   with_aux, then as `add_n`), and the log takes only aux strings. Strings written in the code
   stay in main memory (`text.add`, `add_n`): only those lib/dhgr_pixels' glyphs read (the tray's
   captions, `battle/hud.tsp` DIGITS...; the buttons' words; the map's places; the charms'
@@ -227,20 +250,19 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   forest (`forest.py`, `palettes.py`) and its previews are the old plan, kept for the record.
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
-  from `art/icons`), the buttons, the text. The card pictures (`tools/dhgr/icons.py`, 11 x 15, one
-  an item, the hairball, the nap, a door, a grabbed die) live in aux memory, each packed
-  (`draw/packs` aux_packs, 2,039 bytes less than plain); each tray slot unpacks its picture when
-  it changes (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
+  from the rows' records and `art/icons`), the buttons, the text. The card pictures
+  (`tools/dhgr/icons.py`, 11 x 15, by name) are in the faces' and charms' records on disk 2
+  (`game.py` writes them as a macro, `art/pictures`, which `content/catalog` reads while
+  compiling): a row's picture is in its record in aux memory (`draw/paint`: a tile below
+  `icons.FIRST` is a row); the nap, the bonus upgrade (plus1), a door and a grabbed die stay in
+  aux memory packed (`art/icons`). Each tray slot copies its picture when it changes
+  (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
   cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
-- The charms' pictures (2026-11-02, `tools/dhgr/charm_icons.py`, one a row of `encounters`
-  CHARMS, checked by name) are not in aux memory (full): `game.py` writes them as one table on
-  disk 2 (`art/charm_pictures`, 1,080 bytes plain), which `battle.load_art` reads through page 1
-  and copies onto the spare page's aux memory, rows 160-189 (two bands of six, 6 bytes each),
-  as every fight's art loads. `draw/paint` copies a charm's (tiles from `icons.TILE_CHARMS`) out
-  of there; the kit page, the charm pick and the ending page show them. Nothing else touches
-  those rows after a load (the meter's paws are cleared first, the tray's copies are in main
-  memory, a page closing copies back rows 0-159).
-- Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
+- The charms' pictures (2026-11-02, `tools/dhgr/charm_icons.py`, by name, a charm's row names its
+  own) are in the charms' records like the faces' (the kit page, the charm pick and the ending
+  page show them). Until the catalog they were a disk table copied onto the spare page's aux
+  rows 160-189 as every fight's art loaded; nothing uses those rows now.
+- Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its row's `:show`): one
   or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
   arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
   step every 2 frames at a path's places, then the effect lands: the red dot skittering, claws
@@ -552,6 +574,23 @@ splits a memory would not build.
   3,605; aux 6,144 at `$0800` and 24,549 at `$6000` (27 bytes left); a pass waiting for a key,
   flat out, 5,936 cycles in fight 1 (5,940), 6,521 in fight 10. An enemy's floating number now
   starts at row 32 at the highest (it rose into the map of the run and erased the zone's name).
+- 2026-11-02, the disk catalog (branch faces): every face's and charm's record on disk 2
+  (content/catalog), memory holds only the rows in play. Before (bfeffdc): squeeze 10, the
+  functions 39,804 bytes (50,485 at the usual budget); the language card 12,135 of 12,282 (147
+  left), bank 1 3,605 (491 left); aux 6,144 at `$0800` and 24,549 at `$6000` (27 left); disk 2
+  tracks 1-16 (18 free). After: squeeze 10, 40,555 (52,695); the card 12,280 (2 left), bank 1
+  3,444 (652 left: the card and bank 1 together 16 bytes less used); aux 6,143 and 20,963 (3,613
+  left at `$B1E3-$BFFF`: 6.4 KB of faces' and charms' tables, text, steps and pictures gone, 2.8
+  KB of it back as the eleven resident rows); disk 2 tracks 1-19 (15 free: the faces 43 sectors,
+  the charms 12, the pools 2, the charm pictures' 5 gone). A face or charm more costs a sector
+  of disk 2 and no memory. Speed: a pass waiting for a key, flat out, 5,915 cycles in fight 1
+  (5,936), 6,500 in fight 10 (6,521); the scripted turn (SEED 5, VSYNC=1, keys 41 frames later
+  to match the later start) 59/33/42/39/48/81/120 passes against 59/33/42/39/49/82/119. Loads: a
+  record about a fifth of a second; a run's first fight ready 41 frames later (her seven
+  records); the reward's prompt 26 frames later (the pool), its five cards one a step after it
+  (about 1.5 s for all five), a face taken one record; a fight's start no longer reads the charm
+  pictures. The reward's group 3,068 bytes (the pages' 3,099 sizes the region). Main memory and
+  the card stay full: the next round's engine code wants room found (aux memory has it).
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page

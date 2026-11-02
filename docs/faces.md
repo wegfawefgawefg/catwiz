@@ -164,6 +164,9 @@ thunder, thump, a heal chime, a slurp, a dice rattle, a snore, a boing, a coin.
 
 1. The disk catalog: every face's row, text, steps and picture on disk 2; memory holds only her six
    faces, her charms and the offer, so adding or cutting a face costs no memory and no repack.
+   Built 2026-11-02 (branch faces): a face is a row of content/faces_<slot>.tsp, a charm of
+   content/charm_rows.tsp; content/catalog lays them out on disk 2 a sector each (AGENTS.md, The
+   disk catalog). The five-card reward, no gates and the levels in an offer's number came with it.
 2. The faces and charms in batches by domain, run side by side: steps, text, picture, look,
    sound, each checked in a real fight. No sim work until all the content is in (the owner).
 3. The owner plays the full roster; balance after that.
