@@ -156,6 +156,9 @@
             (for i u8 1 state.ACTORS
                 (if (at state.actors i alive)
                     (spawn.nobody i)))
+            ; their badges go too
+            (set state.hud_pills 0x0E)
+            (set state.hud_intents 0x0E)
             (end_battle state.Phase.won)
             (return true)))
     (if (and (and (>= seen 5) (charms.held enc.CharmKind.lucky7)) (not state.lucky))

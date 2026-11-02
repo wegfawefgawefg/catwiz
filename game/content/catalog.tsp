@@ -156,8 +156,9 @@
                 (charm_record (nth rows i))))))
     `(const ,name (array u8 ,(len bytes)) (make (array u8 ,(len bytes)) ,@bytes) :on disk2 :in aux))
 
-; the faces' draw: a count, then each face that can be offered (weight not 0) as its id, weight
-; and slot, then the six upgrades (UP + the slot); the charms': a count, then id and weight
+; the faces' draw: a count, then each face that can be offered (weight not 0) as its id and its
+; weight times 16 plus its slot, then the six upgrades (UP + the slot); the charms': a count,
+; then id and weight. Two bytes a row: 127 rows in a sector
 (macro face_pool ()
     (let rows (faces.rows))
     (let bytes (list))
@@ -166,16 +167,20 @@
         (let w (field (nth rows i) :weight 0))
         (if (> w 0)
             (do
+                (if (> w 15)
+                    (error "catalog: " (head (nth rows i)) "'s weight is " w ", 15 at most"))
                 (set bytes
                     (append bytes
-                        (list i w `(as u8 ,(symbol 'ac.Slot. (field (nth rows i) :slot 'need))))))
+                        (list i
+                            `(+ ,(* w 16)
+                                (as u8 ,(symbol 'ac.Slot. (field (nth rows i) :slot 'need)))))))
                 (set n (+ n 1)))))
     (let ups (faces.upgrades))
     (for s 0 (len ups)
-        (set bytes (append bytes (list (+ UP s) (nth ups s) s)))
+        (set bytes (append bytes (list (+ UP s) (+ (* (nth ups s) 16) s))))
         (set n (+ n 1)))
-    (if (> n 85)
-        (error "catalog: the faces' pool has " n " rows, 85 at most (a sector)"))
+    (if (> n 127)
+        (error "catalog: the faces' pool has " n " rows, 127 at most (a sector)"))
     `(const FACE_POOL (array u8 ,(+ 1 (len bytes)))
         (make (array u8 ,(+ 1 (len bytes))) ,n ,@bytes)
         :on disk2

@@ -77,14 +77,16 @@
 
 ; she was hit through mirror fur: what her shield took goes back, the mirror's most
 (steps.steps MIRROR (blocked) (sub mirror) (hurt) (say_it BOUNCED))
-; she was hit while spiky: who hit her takes the spikes (and a porcupine's, hit.strike)
+; she was hit while spiky: who hit her takes the spikes
 (steps.steps THORNS (hurt))
+; her shield took a whole hit with a porcupine: the hitter takes its quills (hit.strike)
+(steps.steps QUILLS (hurt) (say_it " \x0dtakes # from the quills."))
 ; she was hit in a flea collar: who hit her gets its fleas (FLEAS); in a hairball wall: tangled
 ; at its next turn (a snag: content/statuses turn_end)
 (steps.steps SNAG (curse snag) (t_get snag) (say_it TANGLED_NEXT))
-; a hit she landed on a leech: she heals 1; on a mana leech: 1 mana
+; a hit she landed on a leech: she heals 1; on a mana leech: its mana (v)
 (steps.steps LEECHED (lit 1) (me) (heal))
-(steps.steps MANA_LEECHED (lit 1) (mana))
+(steps.steps MANA_LEECHED (mana))
 
 (struct Hook ((status st.Status) (when steps.When) (value st.Status) (fx (ptr u8))))
 

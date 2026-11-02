@@ -130,4 +130,75 @@
                 (say_me SHIELDS)
                 (lit 1)
                 (rerolls)
-                (say "You get a free re-roll.")))))
+                (say "You get a free re-roll.")))
+        ; the faces round (docs/faces.md)
+        (THICK_FUR
+            :name "THICK FUR"
+            :text "Shield #."
+            :slot fluff
+            :amount 6
+            :step 2
+            :cost 0
+            :aim self
+            :tags ()
+            :show NONE
+            :picture thickfur
+            :weight 3
+            :steps ((call SHIELD)))
+        (FLEA_COLLAR
+            :name "FLEA COLLAR"
+            :text "Shield #.|Who hits you gets fleas 2 a turn."
+            :slot fluff
+            :amount 4
+            :step 2
+            :cost 0
+            :aim self
+            :tags ()
+            :show FLEAS
+            :picture fleacollar
+            :weight 3
+            :steps ((call SHIELD) (lit 2) (max collar)))
+        (PUFFED_UP
+            :name "PUFFED UP"
+            :text "Doubles your shield, then +#."
+            :slot fluff
+            :amount 2
+            :step 2
+            :cost 0
+            :aim self
+            :tags (plus)
+            :show NONE
+            :picture puffedup
+            :weight 3
+            :steps ((cue ping) (lit 2)
+                (times shield)
+                (num)
+                (add shield)
+                (get shield)
+                (say_me " \x0chas shield #.")))
+        (HAIRBALL_WALL
+            :name "HAIRBALL WALL"
+            :text "Shield #.|Who hits you hits 1 less next turn."
+            :slot fluff
+            :amount 4
+            :step 2
+            :cost 0
+            :aim self
+            :tags ()
+            :show NONE
+            :picture hairballwall
+            :weight 3
+            :steps ((call SHIELD) (lit 1) (max wall)))
+        (CATNAP
+            :name "CATNAP"
+            :text "Shield #.|No re-roll this turn: you heal 3."
+            :slot fluff
+            :amount 4
+            :step 2
+            :cost 0
+            :aim self
+            :tags ()
+            :show HEART
+            :picture catnap
+            :weight 3
+            :steps ((call SHIELD) (calm) (lit 3) (heal)))))

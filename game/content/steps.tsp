@@ -19,7 +19,7 @@
 ;             sub s (less v, 0 at least). t_add, t_set, t_sub, t_get, t_has, t_plus, t_times: t's
 ;             stack instead
 ; her:        mana (+v, 5 at most), spill (+v mana; v becomes what went past 5), rerolls (+v,
-;             9 at most), heal (v hit points back)
+;             9 at most; no_rerolls: none left), heal (v hit points back)
 ; on t:       hit (v, her statuses and its shield), pierce (no shield), plain (its shield
 ;             only), hurt (v hit points off, none for 0), curse s (a ward pip on t takes it and
 ;             the steps stop; else its stack s plus v), pounce (her kittens pounce t)
@@ -181,6 +181,7 @@
             ('mana (list 'MANA 'none))
             ('spill (list 'SPILL 'none))
             ('rerolls (list 'REROLLS 'none))
+            ('no_rerolls (list 'REROLLS 'others))
             ('heal (list 'HEAL 'none))
             ('hit (list 'HIT 'none))
             ('pierce (list 'PIERCE 'none))

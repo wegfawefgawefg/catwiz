@@ -88,4 +88,137 @@
                 (most cards.SUNBEAM_REROLLS)
                 (rerolls)
                 (get mana)
-                (say MANA_NOW)))))
+                (say MANA_NOW)))
+        ; the faces round (docs/faces.md)
+        (BRIGHT_STAR
+            :name "BRIGHT STAR"
+            :text "Makes # mana."
+            :slot star
+            :amount 3
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show MANA_SWIRL
+            :picture brightstar
+            :weight 3
+            :steps ((cue sparkle) (mana) (get mana) (say MANA_NOW)))
+        (STAR_CLUSTER
+            :name "STAR CLUSTER"
+            :text "Makes # mana.|3rd star this turn: +2 re-rolls."
+            :slot star
+            :amount 2
+            :step 1
+            :cost 0
+            :aim self
+            :tags (three)
+            :show MANA_SWIRL
+            :picture starcluster
+            :weight 3
+            :steps ((cue sparkle) (mana)
+                (get mana)
+                (say MANA_NOW)
+                (three)
+                (lit 2)
+                (rerolls)
+                (say "Third in a turn: +2 re-rolls.")))
+        (FLEA_MARKET
+            :name "FLEA MARKET"
+            :text "Makes # mana.|1 more for each enemy with fleas."
+            :slot star
+            :amount 1
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show MANA_SWIRL
+            :picture fleamarket
+            :weight 3
+            :steps ((cue buzz) (mana)
+                (lit 1)
+                (all)
+                (t_has poison)
+                (mana)
+                (end)
+                (get mana)
+                (say MANA_NOW)))
+        (MOON_TIDE
+            :name "MOON TIDE"
+            :text "Makes # mana.|1 more for each wet enemy."
+            :slot star
+            :amount 2
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show MANA_SWIRL
+            :picture moontide
+            :weight 3
+            :steps ((cue splash) (mana)
+                (lit 1)
+                (all)
+                (t_has wet)
+                (mana)
+                (end)
+                (get mana)
+                (say MANA_NOW)))
+        (FORTIFY
+            :name "FORTIFY"
+            :text "Makes # mana, then shield as much|as your mana."
+            :slot star
+            :amount 1
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show MANA_SWIRL
+            :picture fortify
+            :weight 3
+            :steps ((cue sparkle) (mana) (get mana) (add shield) (say_me SHIELDS)))
+        (PURR
+            :name "PURR"
+            :text "Makes # mana, and you heal 1."
+            :slot star
+            :amount 1
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show HEART
+            :picture purr
+            :weight 3
+            :steps ((cue chime) (mana) (lit 1) (heal)))
+        (OVERFLOW
+            :name "OVERFLOW"
+            :text "Makes # mana.|Past your most: 2 to a random enemy|for each."
+            :slot star
+            :amount 3
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show MANA_SWIRL
+            :picture overflow
+            :weight 3
+            :steps ((cue sparkle) (spill)
+                (rep)
+                (me)
+                (pick)
+                (lit 2)
+                (hit)
+                (end)
+                (get mana)
+                (say MANA_NOW)))
+        (RATTLE
+            :name "RATTLE"
+            :text "Makes # mana, and +1 re-roll."
+            :slot star
+            :amount 1
+            :step 1
+            :cost 0
+            :aim self
+            :tags ()
+            :show DIE_FLIP
+            :picture rattle
+            :weight 3
+            :steps ((cue rattle) (mana) (lit 1) (rerolls) (get mana) (say MANA_NOW)))))

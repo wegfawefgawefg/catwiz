@@ -92,7 +92,7 @@
             ; a porcupine: her shield took all of a hit, and the hitter takes some
             (if (and (>= shield damage) (> damage 0))
                 (if (charms.held enc.CharmKind.porcupine)
-                    (hooks.add (addr_of (at cards.THORNS 0))
+                    (hooks.add (addr_of (at cards.QUILLS 0))
                         by
                         (charms.amount enc.CharmKind.porcupine))))))
     (if pierce
