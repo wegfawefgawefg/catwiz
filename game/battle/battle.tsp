@@ -34,7 +34,8 @@
 (import sound/sound)
 (import title/disk2)
 
-(const BANNER_AFTER u8 56) ; frames from the last blow to the end: the poof has finished
+(const BANNER_AFTER u8 56)
+(const TEXT_TOP u8 160) ; the text's rows (draw/text) to the foot of the screen ; frames from the last blow to the end: the poof has finished
 
 ; for test builds, flipped in a copy: the run starts at fight START_STAGE (0 the first; with
 ; START_FIGHT its row, for the other door) and goes on to STOP_STAGE before the run is won
@@ -93,7 +94,10 @@
     (stage.fight_runs n)
     (meter.stop)
     (map.draw screen.SPARE)
-    (screen.copy_page screen.SPARE screen.PAGE)
+    ; the stage and the tray's rows; the text's rows black (the spare page keeps the tray's
+    ; pictures there: battle/tray)
+    (screen.copy_box screen.PAGE 0 0 40 TEXT_TOP screen.SPARE)
+    (dhgr.box screen.PAGE 0 TEXT_TOP 40 (- 192 TEXT_TOP) 0)
     (dhgr.show screen.PAGE)
     (scene.forget)
     (text.forget)
@@ -131,7 +135,9 @@
     (log.clear)
     (set state.hud_pills 0x0F)
     (set state.hud_intents 0x0E)
-    (set state.hud_dice 0x3F)
+    ; the tray starts empty: each die's card comes as the roll deals it (turn.roll_step), so
+    ; the last fight's dice never show
+    (set state.hud_dice 0)
     (set state.hud_rerolls true)
     (set state.hud_words true)
     (sound.song sound.Song.battle)

@@ -182,7 +182,16 @@
     (shift col true)
     (let left u8 (- hud.CARD_BOTTOM hud.LIFT))
     (dhgr.box screen.PAGE col left hud.SLOT_COLS hud.LIFT BLACK)
-    (dhgr.box screen.PAGE (+ col 1) (- hud.CARD_BOTTOM hud.GLOW_ROWS) 3 hud.GLOW_ROWS FOCUS)
+    ; the glow bar in whole pixels, under the card's middle three columns: a box of byte
+    ; columns would cut a pixel at an edge (a column is 3.5 pixels), and that half pixel shows
+    ; as stripes of other colours (the phone's coloured lines under a picked die)
+    (let x0 u8 (>> (+ (- (<< (+ col 1) 3) (+ col 1)) 1) 1))
+    (let x1 u8 (>> (- (<< (+ col 4) 3) (+ col 4)) 1))
+    (pix.begin (>> col 1) 3)
+    (for y u8 (- hud.CARD_BOTTOM hud.GLOW_ROWS) hud.CARD_BOTTOM
+        (pix.read screen.PAGE y)
+        (pix.span x0 x1 FOCUS)
+        (pix.write screen.PAGE y))
     (set (at lifted n) true)
     (mark_slot col))
 
