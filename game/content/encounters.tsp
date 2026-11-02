@@ -257,14 +257,14 @@
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "STILL WATER"
-            :text "No re-roll in a turn: +2 mana."
+            :text "A turn with no re-roll: +2 mana."
             :kind CharmKind.still
             :amount 2
             :when steps.When.turn_end
             :fx (addr_of (at cards.STILL_WATER 0)))
         (make Charm
             :name "PURRFECT TRIO"
-            :text "Each third in a turn: 2 to all."
+            :text "Each three of a kind: 2 to all."
             :kind CharmKind.trio
             :amount 2
             :when steps.When.three
@@ -299,7 +299,7 @@
             :fx (addr_of (at cards.GRUMPY 0)))
         (make Charm
             :name "RUBBER DUCK"
-            :text "A blocked curse gives shield 2."
+            :text "Your ward blocks a curse: shield 2."
             :kind CharmKind.duck
             :amount 2
             :when steps.When.warded

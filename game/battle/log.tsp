@@ -103,11 +103,16 @@
     (if (< hist_count HISTORY)
         (set hist_count (+ hist_count 1))))
 
+; whether a picked die's line took the two rows (battle/words): they show the log again when it
+; is let go
+(let taken bool false)
+
 ; the lines waiting made and the two rows drawn again, if a line came since they were
 (fn flush () void
     (if (not unshown)
         (return))
     (set unshown false)
+    (set taken false)
     (for k u8 0 waiting
         (text.start)
         (let kind u8 (at w_kind k))

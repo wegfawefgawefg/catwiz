@@ -140,7 +140,7 @@
     (let to (ptr u8) (addr_of (at aux_text 0)))
     (with_aux true false
         (let i u8 0)
-        (while (and (< i 35) (!= (load (+ s i)) 0))
+        (while (and (< i 35) (and (!= (load (+ s i)) 0) (!= (load (+ s i)) PART)))
             (store (+ to i) (load (+ s i)))
             (set i (+ i 1)))
         (store (+ to i) 0))
@@ -148,6 +148,21 @@
 
 (fn add_aux ((s (ptr u8))) void
     (add_aux_n s 0))
+
+; an item's line may come in parts, a row each, split by PART: what it always does, then an
+; extra and its condition. add_aux_n stops at the end of a part; the next part of the aux string
+; s, or 0 when s has no more
+(const PART u8 '|')
+
+(fn next_part ((s (ptr u8))) (ptr u8)
+    (with_aux true false
+        (for i u8 0 36
+            (let c u8 (load (+ s i)))
+            (if (= c 0)
+                (return (as (ptr u8) 0)))
+            (if (= c PART)
+                (return (+ s (+ i 1))))))
+    (as (ptr u8) 0))
 
 ; an item's line (aux memory), its number inverse: the number a boost or an upgrade changes, so
 ; it stands out from the line's fixed numbers (the owner, 2026-10-31)
@@ -206,6 +221,14 @@
 ; block in colour's 4 masks: a 7-pixel group of one colour (its characters alike) from
 ; COLOUR_MASK, else from its 7 pixels' colours (dhgr_pixels.colour_mask, at pix.px 40 on)
 (fn line_masks ((b0 u8) (n u8)) void
+    (if (= run_n 0)
+        (do
+            ; a white line: one stretch, no masks
+            (set (at seg_first 0) b0)
+            (set (at seg_count 0) n)
+            (set (at seg_white 0) true)
+            (set seg_n 1)
+            (return)))
     (let c u8 WHITE)
     (let from u8 0)
     (for k u8 0 run_n

@@ -105,7 +105,18 @@
     (text.show 0)
     (text.start)
     (text.add_item (items.text row) n)
-    (text.show 1))
+    (text.show 1)
+    ; a line in parts: the others on the log's rows while the die is picked (refresh puts the
+    ; log back)
+    (let part (ptr u8) (text.next_part (items.text row)))
+    (for r u8 2 text.ROWS
+        (if (!= (as u16 part) 0)
+            (do
+                (text.start)
+                (text.add_item part n)
+                (text.show r)
+                (set log.taken true)
+                (set part (text.next_part part))))))
 
 ; a die enemy who holds: who has it, how to get it back
 (fn held_rows ((who u8)) void
@@ -157,6 +168,11 @@
         (return))
     (set state.hud_words false)
     (set shown_phase state.phase)
+    ; the log's rows back, if a die's line took them
+    (if log.taken
+        (do
+            (set log.taken false)
+            (log.reshow)))
     (match state.phase
         (state.Phase.enemies (their_turn))
         (state.Phase.rolling

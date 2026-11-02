@@ -68,7 +68,7 @@
     (make (array ac.Item 43)
         (make ac.Item
             :name "TWIG WAND"
-            :text "Hits #. Third in a turn hits all."
+            :text "Hits #.|3rd wand this turn: it hits all."
             :slot ac.Slot.wand
             :amount 4
             :step 2
@@ -77,7 +77,7 @@
             :icon icons.TILE_TWIG)
         (make ac.Item
             :name "YARN WAND"
-            :text "Hits #. Tangles it: hits 1 less."
+            :text "Hits #.|If it stands: its hits are 1 less."
             :slot ac.Slot.wand
             :amount 6
             :step 2
@@ -86,7 +86,7 @@
             :icon icons.TILE_YARNWAND)
         (make ac.Item
             :name "SPRAY BOTTLE"
-            :text "Hits #. Wets it: its hits halved."
+            :text "Hits #.|If it stands: it hits half, 1 turn."
             :slot ac.Slot.wand
             :amount 4
             :step 2
@@ -95,7 +95,7 @@
             :icon icons.TILE_SPRAY)
         (make ac.Item
             :name "FEATHER TOY"
-            :text "Hits #, and your kittens pounce."
+            :text "Hits #, then kittens pounce on it."
             :slot ac.Slot.wand
             :amount 10
             :step 2
@@ -122,7 +122,7 @@
             :icon icons.TILE_MOUSE)
         (make ac.Item
             :name "FLUFF"
-            :text "Third in a turn: shield stays on."
+            :text "Shield #.|3rd fluff this turn: shield stays."
             :slot ac.Slot.fluff
             :amount 4
             :step 2
@@ -131,7 +131,7 @@
             :icon icons.TILE_FLUFF)
         (make ac.Item
             :name "SPIKY FLUFF"
-            :text "Third: who hits you takes 6."
+            :text "Shield #.|3rd fluff this turn: hitters take 6"
             :slot ac.Slot.fluff
             :amount 6
             :step 2
@@ -140,7 +140,7 @@
             :icon icons.TILE_SPIKY)
         (make ac.Item
             :name "CARDBOARD BOX"
-            :text "Third: +1 kitten, group hits miss."
+            :text "Shield #.|3rd fluff this turn: +1 kitten,|and attacks on all miss you."
             :slot ac.Slot.fluff
             :amount 6
             :step 2
@@ -149,7 +149,7 @@
             :icon icons.TILE_BOX)
         (make ac.Item
             :name "WARM BLANKET"
-            :text "Third in a turn: heal 6."
+            :text "Shield #.|3rd fluff this turn: heal 6."
             :slot ac.Slot.fluff
             :amount 4
             :step 2
@@ -158,7 +158,7 @@
             :icon icons.TILE_BLANKET)
         (make ac.Item
             :name "STATIC FUR"
-            :text "Third: 10 to all (20 if wet)."
+            :text "Shield #.|3rd fluff this turn: 10 to all,|or 20 to an enemy that is wet."
             :slot ac.Slot.fluff
             :amount 6
             :step 2
@@ -167,7 +167,7 @@
             :icon icons.TILE_STATIC)
         (make ac.Item
             :name "BELL COLLAR"
-            :text "Third: blocks the next 2 curses."
+            :text "Shield #.|3rd fluff this turn: block 2 curses"
             :slot ac.Slot.fluff
             :amount 6
             :step 2
@@ -185,7 +185,7 @@
             :icon icons.TILE_STAR)
         (make ac.Item
             :name "SHOOTING STAR"
-            :text "Makes 1 mana, and hits #."
+            :text "Makes 1 mana, and hits an enemy #."
             :slot ac.Slot.star
             :amount 6
             :step 2
@@ -212,7 +212,7 @@
             :icon icons.TILE_WISHING)
         (make ac.Item
             :name "LITTER STAR"
-            :text "Makes # mana, +1 for each kitten."
+            :text "Makes # mana.|Each kitten you have adds 1 more."
             :slot ac.Slot.star
             :amount 2
             :step 1
@@ -239,7 +239,7 @@
             :icon icons.TILE_MEOWBOOK)
         (make ac.Item
             :name "LASER POINTER"
-            :text "3 mana: # to all, who hit friends."
+            :text "3 mana: # to every enemy.|Their next hit goes to a friend."
             :slot ac.Slot.book
             :amount 12
             :step 2
@@ -257,7 +257,7 @@
             :icon icons.TILE_SCREAM)
         (make ac.Item
             :name "KNOCK IT OFF"
-            :text "3 mana: hits #, strips its shield."
+            :text "3 mana: hits #.|Its shield and boosts go first."
             :slot ac.Slot.book
             :amount 24
             :step 2
@@ -266,7 +266,7 @@
             :icon icons.TILE_KNOCK)
         (make ac.Item
             :name "IF IT FITS"
-            :text "2 mana: shield #, +2 per kitten."
+            :text "2 mana: shield #.|Each kitten you have adds 2 more."
             :slot ac.Slot.book
             :amount 16
             :step 2
@@ -302,7 +302,7 @@
             :icon icons.TILE_WET)
         (make ac.Item
             :name "BALL OF YARN"
-            :text "Its hits are # weaker (tangled)."
+            :text "Its next turn's hits are # less."
             :slot ac.Slot.curse
             :amount 2
             :step 1
@@ -311,7 +311,7 @@
             :icon icons.TILE_YARNBALL)
         (make ac.Item
             :name "MARK TERRITORY"
-            :text "Your hits on it do # more."
+            :text "Every hit on it does # more.|Your kittens go for it first."
             :slot ac.Slot.curse
             :amount 3
             :step 1
@@ -320,7 +320,7 @@
             :icon icons.TILE_MARK)
         (make ac.Item
             :name "PLUS ONE"
-            :text "Next die: +# to each hit and star."
+            :text "Your next die's number is +#."
             :slot ac.Slot.trick
             :amount 4
             :step 2
@@ -329,7 +329,7 @@
             :icon icons.TILE_PLUS1)
         (make ac.Item
             :name "TIMES TWO"
-            :text "Next die counts # times."
+            :text "Your next die's number is x#."
             :slot ac.Slot.trick
             :amount 2
             :step 1
@@ -338,7 +338,7 @@
             :icon icons.TILE_TIMES2)
         (make ac.Item
             :name "COPYCAT"
-            :text "Plays your last die again, +#."
+            :text "Plays your last die again, # more."
             :slot ac.Slot.trick
             :amount 0
             :step 2
@@ -347,7 +347,7 @@
             :icon icons.TILE_COPYCAT)
         (make ac.Item
             :name "CATNIP"
-            :text "Next # dice +1; kittens act twice"
+            :text "Next # dice +1.|Kittens pounce twice this turn."
             :slot ac.Slot.trick
             :amount 4
             :step 1
@@ -374,7 +374,7 @@
             :icon icons.TILE_HAIRBALL)
         (make ac.Item
             :name "RED DOT"
-            :text "# wand hits on it bring dice back."
+            :text "Puts # red dots on it.|A wand hit on it brings dice back."
             :slot ac.Slot.curse
             :amount 2
             :step 1
@@ -383,7 +383,7 @@
             :icon icons.TILE_REDDOT)
         (make ac.Item
             :name "MIMIC"
-            :text "2 mana: copy its next move # times"
+            :text "2 mana: use its next move # times."
             :slot ac.Slot.book
             :amount 1
             :step 1
@@ -392,7 +392,7 @@
             :icon icons.TILE_MIMIC)
         (make ac.Item
             :name "CATFIGHT"
-            :text "It hits a friend next, # harder."
+            :text "Its next hit goes to a friend, +#."
             :slot ac.Slot.curse
             :amount 6
             :step 2
@@ -401,7 +401,7 @@
             :icon icons.TILE_CATFIGHT)
         (make ac.Item
             :name "MIRROR FUR"
-            :text "Shield #. Blocked hits bounce back."
+            :text "Shield #.|Blocked hits bounce back: # most."
             :slot ac.Slot.fluff
             :amount 5
             :step 2
@@ -428,7 +428,7 @@
             :icon icons.TILE_FLEACIRCUS)
         (make ac.Item
             :name "SUNBEAM"
-            :text "+# mana. Past 5, up to 2 re-rolls."
+            :text "Makes # mana.|Mana past 5: re-rolls, 2 at most."
             :slot ac.Slot.star
             :amount 2
             :step 1
@@ -437,7 +437,7 @@
             :icon icons.TILE_SUNBEAM)
         (make ac.Item
             :name "SCRATCHING HABIT"
-            :text "Hits #, +2 each use this fight."
+            :text "Hits #, +2 per use this fight."
             :slot ac.Slot.wand
             :amount 6
             :step 2
@@ -446,7 +446,7 @@
             :icon icons.TILE_HABIT)
         (make ac.Item
             :name "DOUBLE OR NOTHING"
-            :text "Next die x#. A dud costs # hp."
+            :text "Next die's number x#.|If no die uses it: you lose # hp."
             :slot ac.Slot.trick
             :amount 2
             :step 1

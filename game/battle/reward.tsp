@@ -279,6 +279,25 @@
         (text.add_aux_n (at SAY SAY_UP) level))
     (show 1))
 
+; item's line at level from row 1: a line in parts (text.next_part) a row each, in place of the
+; slot's base (its first part says what the item always does); else the slot's base and the line.
+; Gives the next row free, 4 for none
+(fn item_lines ((slot u8) (item u8) (level u8)) u8
+    (let n u8 (fx.number_at item level))
+    (let part (ptr u8) (text.next_part (items.text item)))
+    (if (= (as u16 part) 0)
+        (do
+            (base_row slot item level)
+            (item_aux 2 (items.text item) n)
+            (return 3)))
+    (item_aux 1 (items.text item) n)
+    (let r u8 2)
+    (while (and (!= (as u16 part) 0) (< r text.ROWS))
+        (item_aux r part n)
+        (set r (+ r 1))
+        (set part (text.next_part part)))
+    r)
+
 ; the card the item or level c makes of its slot, in the balance's four lines: what it is, the
 ; slot's base at its level, the item's line, what it replaces (or the level it gives)
 (fn describe_card ((c u8)) void
@@ -294,29 +313,29 @@
                 (>= c UP))
             (if (not (card_ok c))
                 (do
-                    (base_row slot old level)
-                    (item_aux 2 (items.text old) (fx.number_at old level))
-                    (text.start)
-                    (text.add_aux (at SLOT_NAME slot))
-                    (text.add_aux (at SAY SAY_AT_MOST))
-                    (show 3)
+                    (if (< (item_lines slot old level) text.ROWS)
+                        (do
+                            (text.start)
+                            (text.add_aux (at SLOT_NAME slot))
+                            (text.add_aux (at SAY SAY_AT_MOST))
+                            (show 3)))
                     (return)))
-            (base_row slot old (+ level 1))
-            (item_aux 2 (items.text old) (fx.number_at old (+ level 1)))
-            (text.start)
-            (text.add_aux (if (>= c UP)
-                (at SAY SAY_ON_SLOT)
-                (at SAY SAY_HAVE_IT)))
-            (text.add_aux (items.name old))
-            (show 3)
+            (if (< (item_lines slot old (+ level 1)) text.ROWS)
+                (do
+                    (text.start)
+                    (text.add_aux (if (>= c UP)
+                        (at SAY SAY_ON_SLOT)
+                        (at SAY SAY_HAVE_IT)))
+                    (text.add_aux (items.name old))
+                    (show 3)))
             (return)))
     (title (items.name c) false)
-    (base_row slot c level)
-    (item_aux 2 (items.text c) (fx.number_at c level))
-    (text.start)
-    (text.add_aux (at SAY SAY_REPLACES))
-    (text.add_aux (items.name old))
-    (show 3))
+    (if (< (item_lines slot c level) text.ROWS)
+        (do
+            (text.start)
+            (text.add_aux (at SAY SAY_REPLACES))
+            (text.add_aux (items.name old))
+            (show 3))))
 
 ; choice n's text, picked: rows 0 to 3
 (fn describe ((n u8)) void
