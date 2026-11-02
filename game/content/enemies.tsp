@@ -46,7 +46,7 @@
     (make (array Enemy 22)
         (make Enemy
             :name "Puffcap"
-            :hp 20
+            :hp 40
             :ward 0
             :figure art.FIG_PUFFCAP
             :first_move 0
@@ -56,7 +56,7 @@
             :stall 0)
         (make Enemy
             :name "Sporelet"
-            :hp 9
+            :hp 20
             :ward 0
             :figure art.FIG_SPORELET
             :first_move 2
@@ -66,7 +66,7 @@
             :stall 0)
         (make Enemy
             :name "Nightflap"
-            :hp 7
+            :hp 20
             :ward 1
             :figure art.FIG_NIGHTFLAP
             :first_move 4
@@ -76,7 +76,7 @@
             :stall 0)
         (make Enemy
             :name "Garden gnome"
-            :hp 14
+            :hp 36
             :ward 1
             :figure art.FIG_GNOME
             :first_move 7
@@ -86,7 +86,7 @@
             :stall 0)
         (make Enemy
             :name "Possum"
-            :hp 15
+            :hp 40
             :ward 0
             :figure art.FIG_POSSUM
             :first_move 9
@@ -96,7 +96,7 @@
             :stall 0)
         (make Enemy
             :name "Possum (faked it)"
-            :hp 4
+            :hp 8
             :ward 0
             :figure art.FIG_POSSUM_UP
             :first_move 11
@@ -106,7 +106,7 @@
             :stall 0)
         (make Enemy
             :name "Squirrel"
-            :hp 9
+            :hp 24
             :ward 0
             :figure art.FIG_SQUIRREL
             :first_move 12
@@ -116,7 +116,7 @@
             :stall 0)
         (make Enemy
             :name "Roomba"
-            :hp 62
+            :hp 40
             :ward 0
             :figure art.FIG_ROOMBA
             :first_move 14
@@ -126,7 +126,7 @@
             :stall 0)
         (make Enemy
             :name "Dust bunny"
-            :hp 5
+            :hp 16
             :ward 0
             :figure art.FIG_DUSTBUNNY
             :first_move 17
@@ -136,7 +136,7 @@
             :stall 0)
         (make Enemy
             :name "Cucumber"
-            :hp 14
+            :hp 36
             :ward 1
             :figure art.FIG_CUCUMBER
             :first_move 19
@@ -146,7 +146,7 @@
             :stall 0)
         (make Enemy
             :name "Sprinkler"
-            :hp 16
+            :hp 36
             :ward 0
             :figure art.FIG_SPRINKLER
             :first_move 21
@@ -156,7 +156,7 @@
             :stall 0)
         (make Enemy
             :name "Hoover Jr."
-            :hp 50
+            :hp 40
             :ward 2
             :figure art.FIG_HOOVER
             :first_move 23
@@ -166,7 +166,7 @@
             :stall 0)
         (make Enemy
             :name "Lawnmower"
-            :hp 34
+            :hp 40
             :ward 2
             :figure art.FIG_MOWER
             :first_move 26
@@ -176,7 +176,7 @@
             :stall 16)
         (make Enemy
             :name "The mailman"
-            :hp 80
+            :hp 100
             :ward 2
             :figure art.FIG_MAILMAN
             :first_move 28
@@ -186,7 +186,7 @@
             :stall 0)
         (make Enemy
             :name "The vet"
-            :hp 66
+            :hp 60
             :ward 2
             :figure art.FIG_VET
             :first_move 32
@@ -196,7 +196,7 @@
             :stall 0)
         (make Enemy
             :name "The big bath"
-            :hp 70
+            :hp 100
             :ward 2
             :figure art.FIG_BATH
             :first_move 37
@@ -206,7 +206,7 @@
             :stall 0)
         (make Enemy
             :name "Drain gremlin"
-            :hp 40
+            :hp 80
             :ward 1
             :figure art.FIG_GREMLIN
             :first_move 40
@@ -216,7 +216,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king"
-            :hp 108
+            :hp 80
             :ward 2
             :figure art.FIG_PUFFCAP
             :first_move 42
@@ -226,7 +226,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, cross"
-            :hp 108
+            :hp 80
             :ward 1
             :figure art.FIG_PUFFCAP
             :first_move 45
@@ -236,7 +236,7 @@
             :stall 0)
         (make Enemy
             :name "Bulldog king, furious"
-            :hp 108
+            :hp 80
             :ward 0
             :figure art.FIG_PUFFCAP
             :first_move 49
@@ -246,7 +246,7 @@
             :stall 0)
         (make Enemy
             :name "Royal pug"
-            :hp 8
+            :hp 20
             :ward 0
             :figure art.FIG_SPORELET
             :first_move 53
@@ -256,7 +256,7 @@
             :stall 0)
         (make Enemy
             :name "The old shroom"
-            :hp 60
+            :hp 75
             :ward 1
             :figure art.FIG_SHROOM
             :first_move 55

@@ -20,7 +20,8 @@
 ;             the steps stop; else its stack s plus v), pounce (her kittens pounce t)
 ; targets:    all ... end (the steps between for each enemy standing, left to right), others
 ;             ... end (the same, not t), rep ... end (v times; no loop inside a loop), next
-;             (t = the next enemy standing after t; the steps stop when none), retarget (t is
+;             (t = the next enemy standing after t; the steps stop when none), pick (t = another
+;             enemy standing, picked at random; the steps stop when none), retarget (t is
 ;             down: the next standing), me (t = her)
 ; calls:      call k (a shared row of cards.SUBS, then on), stop (the end: the macro adds it)
 ; chains:     back (every die comes back to be rolled again after this play; stops when they
@@ -137,6 +138,7 @@
             ('rep (list 'REP 'none))
             ('end (list 'END 'none))
             ('next (list 'NEXT 'none))
+            ('pick (list 'NEXT 'pick))
             ('retarget (list 'RETARGET 'none))
             ('me (list 'ME 'none))
             ('call (list 'DO 'num))
@@ -163,6 +165,7 @@
             ('say_me `(+ ,(symbol 'said.SAY_ a) SAY_ME))
             ('others 1)
             ('mimic 1)
+            ('pick 1)
             (_ (error "steps: no argument kind " sort)))))
     (let bytes (list))
     (for i 0 (len rows)

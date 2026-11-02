@@ -3,6 +3,7 @@
 ; are steps here too. Also her turn's end (the boosts go, the kittens pounce) and drain, which
 ; runs the hooks and charms an enemy's hit or a status set off (content/hooks).
 
+(import random)
 (import state)
 (import battle/hit)
 (import battle/log)
@@ -64,6 +65,23 @@
 ; the steps at start run, on t0 with number n (content/steps.tsp says what each does); then the
 ; charms' threes and whatever waits (content/hooks). A step that runs other steps (call, copy,
 ; mimic) or sets off a hook enters them as a call: to, on to_t with to_v, and back after
+;  another enemy standing than t, picked at random (pick), NOTHING for none
+(fn other_at_random ((t u8)) u8
+    (let k u8 0)
+    (for i u8 1 state.ACTORS
+        (if (and (!= i t) (at state.actors i alive))
+            (set k (+ k 1))))
+    (if (= k 0)
+        (return state.NOTHING))
+    (let r u8 (as u8 (>> (* (as u16 (random.byte)) (as u16 k)) 8)))
+    (for i u8 1 state.ACTORS
+        (if (and (!= i t) (at state.actors i alive))
+            (do
+                (if (= r 0)
+                    (return i))
+                (set r (- r 1)))))
+    state.NOTHING)
+
 (fn run ((start (ptr u8)) (t0 u8) (n0 u8)) void
     (let p (ptr u8) start)
     (let pc u8 0)
@@ -205,7 +223,9 @@
                                 (set t after)
                                 (set pc (at loop_pc k)))))))
             (steps.NEXT
-                (set t (fx.next_standing t))
+                (if (= a 0)
+                    (set t (fx.next_standing t))
+                    (set t (other_at_random t)))
                 (if (= t state.NOTHING)
                     (set go false)))
             (steps.RETARGET
@@ -236,7 +256,15 @@
                                 (set go false))
                             (do
                                 (set mimicked (cards.mimicry_fx k))
-                                (set mimicked_v (mv.amount row)))))
+                                (set mimicked_v (mv.amount row))
+                                ; a hit at its strength: what it would do to her
+                                (if (or (= (mv.effect row) ac.Effect.hit)
+                                        (= (mv.effect row) ac.Effect.hit2))
+                                    (set mimicked_v
+                                        (st.sum
+                                            (st.sum mimicked_v
+                                                (state.stack t (as u8 st.Status.strength)))
+                                            (state.stack t (as u8 st.Status.cheer))))))))
                     ; mimic: do it, with its number
                     (do
                         (set to mimicked)

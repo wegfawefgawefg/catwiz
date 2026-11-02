@@ -37,7 +37,7 @@
         " gets a flea circus: #."
         " catches the fleas: #."
         "You get a free re-roll."
-        "Your next die is x#. It cost 1 hp."
+        "Your next die is x#. Use it or pay!"
         " loses the bet: # hp."
         "There is nothing to mimic."
         " gets spiky: # back."

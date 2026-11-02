@@ -19,7 +19,7 @@
 
 (struct Hero ((name (ptr u8)) (hp u8) (figure u8) (col u8)))
 
-(const HERO Hero (make Hero :name "Catwiz" :hp 30 :figure art.KIND_CAT :col 4) :strings aux)
+(const HERO Hero (make Hero :name "Catwiz" :hp 10 :figure art.KIND_CAT :col 4) :strings aux)
 
 (enum Zone (woods garden house))
 
@@ -130,11 +130,11 @@
         (make Fight
             :backdrop 4
             :zone Zone.house
-            :count 1
+            :count 3
             :spots (make (array Spot 3)
                 (make Spot :enemy en.KING :col 22)
-                (make Spot :enemy en.KING :col 32)
-                (make Spot :enemy en.KING :col 14))
+                (make Spot :enemy en.PUG :col 32)
+                (make Spot :enemy en.PUG :col 14))
             :elite false
             :other state.NOTHING)
         (make Fight
@@ -168,19 +168,19 @@
 
 (const OFFER_CARDS (array Offer 42)
     (make (array Offer 42)
-        (make Offer :card items.YARN_WAND :weight 4 :from 1)
+        (make Offer :card items.YARN_WAND :weight 3 :from 1)
         (make Offer :card items.SPRAY_BOTTLE :weight 4 :from 1)
-        (make Offer :card items.MOUSE_STRING :weight 4 :from 1)
+        (make Offer :card items.MOUSE_STRING :weight 3 :from 1)
         (make Offer :card items.FISHBONE_WAND :weight 3 :from 1)
         (make Offer :card items.FEATHER_TOY :weight 3 :from 1)
         (make Offer :card items.SPIKY_FLUFF :weight 4 :from 1)
-        (make Offer :card items.BOX :weight 4 :from 1)
+        (make Offer :card items.BOX :weight 3 :from 1)
         (make Offer :card items.BELL_COLLAR :weight 3 :from 1)
         (make Offer :card items.SHOOTING_STAR :weight 4 :from 1)
-        (make Offer :card items.MOON_BOWL :weight 4 :from 1)
+        (make Offer :card items.MOON_BOWL :weight 2 :from 1)
         (make Offer :card items.LITTER_STAR :weight 4 :from 1)
         (make Offer :card items.WET :weight 4 :from 1)
-        (make Offer :card items.TANGLE :weight 4 :from 1)
+        (make Offer :card items.TANGLE :weight 3 :from 1)
         (make Offer :card UP_WAND :weight 3 :from 1)
         (make Offer :card UP_FLUFF :weight 3 :from 1)
         (make Offer :card UP_STAR :weight 3 :from 1)
@@ -196,20 +196,20 @@
         (make Offer :card items.CANNON :weight 3 :from 3)
         (make Offer :card UP_BOOK :weight 2 :from 3)
         (make Offer :card UP_CURSE :weight 2 :from 3)
-        (make Offer :card items.TIMES :weight 2 :from 3)
-        (make Offer :card items.COPYCAT :weight 2 :from 4)
-        (make Offer :card items.WISHING_STAR :weight 2 :from 5)
+        (make Offer :card items.TIMES :weight 1 :from 5)
+        (make Offer :card items.COPYCAT :weight 1 :from 5)
+        (make Offer :card items.WISHING_STAR :weight 1 :from 6)
         (make Offer :card items.KNEAD :weight 2 :from 4)
-        (make Offer :card UP_TRICK :weight 2 :from 5)
-        (make Offer :card items.RED_DOT :weight 3 :from 3)
-        (make Offer :card items.LUCKY_PAW :weight 3 :from 1)
+        (make Offer :card UP_TRICK :weight 1 :from 6)
+        (make Offer :card items.RED_DOT :weight 1 :from 5)
+        (make Offer :card items.LUCKY_PAW :weight 2 :from 1)
         (make Offer :card items.SUNBEAM :weight 3 :from 1)
-        (make Offer :card items.MIMIC :weight 3 :from 3)
-        (make Offer :card items.CATFIGHT :weight 3 :from 1)
-        (make Offer :card items.MIRROR_FUR :weight 3 :from 1)
+        (make Offer :card items.MIMIC :weight 1 :from 5)
+        (make Offer :card items.CATFIGHT :weight 1 :from 1)
+        (make Offer :card items.MIRROR_FUR :weight 2 :from 1)
         (make Offer :card items.FLEA_CIRCUS :weight 3 :from 1)
         (make Offer :card items.SCRATCHING_HABIT :weight 3 :from 1)
-        (make Offer :card items.DOUBLE_OR_NOTHING :weight 2 :from 3))
+        (make Offer :card items.DOUBLE_OR_NOTHING :weight 1 :from 6))
     :in aux)
 
 ; charms: passives kept all run. kind says what it is (the sim's rules.py has each), amount
@@ -243,9 +243,9 @@
     (make (array Charm 12)
         (make Charm
             :name "SCRATCH POST"
-            :text "Two more re-rolls every turn"
+            :text "One more re-roll every turn"
             :kind CharmKind.pocket
-            :amount 2
+            :amount 1
             :when steps.When.none
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
@@ -264,16 +264,16 @@
             :fx (addr_of (at cards.STILL_WATER 0)))
         (make Charm
             :name "PURRFECT TRIO"
-            :text "Each 3 in a turn also hits all 1"
+            :text "Each 3 in a turn also hits all 2"
             :kind CharmKind.trio
-            :amount 1
+            :amount 2
             :when steps.When.three
             :fx (addr_of (at cards.TRIO 0)))
         (make Charm
             :name "KITTEN MITTENS"
-            :text "Your kittens hit 1 harder"
+            :text "Your kittens hit 2 harder"
             :kind CharmKind.mittens
-            :amount 1
+            :amount 2
             :when steps.When.none
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
@@ -299,16 +299,16 @@
             :fx (addr_of (at cards.GRUMPY 0)))
         (make Charm
             :name "RUBBER DUCK"
-            :text "A curse a ward blocks: shield 3"
+            :text "A curse a ward blocks: shield 2"
             :kind CharmKind.duck
-            :amount 3
+            :amount 2
             :when steps.When.warded
             :fx (addr_of (at cards.RUBBER_DUCK 0)))
         (make Charm
             :name "BAD MILK"
-            :text "Wands +2; books cost 1 more"
+            :text "Wands +3; books cost 1 more"
             :kind CharmKind.badmilk
-            :amount 2
+            :amount 3
             :when steps.When.none
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
@@ -322,7 +322,7 @@
             :name "NINE LIVES"
             :text "You come back once with # hp."
             :kind CharmKind.lives9
-            :amount 10
+            :amount 6
             :when steps.When.dies
             :fx (addr_of (at cards.NINE_LIVES 0))))
     :in aux)
@@ -331,18 +331,18 @@
 
 (const OFFER_CHARMS (array Offer 12)
     (make (array Offer 12)
-        (make Offer :card CHARM_SCRATCH_POST :weight 2 :from 1)
+        (make Offer :card CHARM_SCRATCH_POST :weight 1 :from 6)
         (make Offer :card CHARM_SIXTH_TOE :weight 1 :from 6)
         (make Offer :card CHARM_STILL_WATER :weight 2 :from 1)
         (make Offer :card CHARM_TRIO :weight 1 :from 6)
         (make Offer :card CHARM_MITTENS :weight 2 :from 1)
-        (make Offer :card CHARM_MOTHER_CAT :weight 2 :from 1)
-        (make Offer :card CHARM_FLUFFY_TAIL :weight 2 :from 1)
+        (make Offer :card CHARM_MOTHER_CAT :weight 1 :from 6)
+        (make Offer :card CHARM_FLUFFY_TAIL :weight 1 :from 1)
         (make Offer :card CHARM_GRUMPY :weight 2 :from 1)
         (make Offer :card CHARM_RUBBER_DUCK :weight 2 :from 1)
         (make Offer :card CHARM_BAD_MILK :weight 2 :from 1)
         (make Offer :card CHARM_LITTER_BOX :weight 2 :from 1)
-        (make Offer :card CHARM_NINE_LIVES :weight 2 :from 1))
+        (make Offer :card CHARM_NINE_LIVES :weight 1 :from 6))
     :in aux)
 
 ; each charm's mark on its card (the hud font, tools/dhgr/game_hud.py), so they tell apart: a plus

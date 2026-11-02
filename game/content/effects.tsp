@@ -15,7 +15,7 @@
 (import content/statuses st)
 
 (const COMBO_AT u8 3)       ; the third face of a slot in a turn sets off its three
-(const KITTEN_HIT u8 1)     ; what a kitten's pounce does (kitten mittens add theirs)
+(const KITTEN_HIT u8 2)     ; what a kitten's pounce does (kitten mittens add theirs)
 (const KITTENS_MOST u8 255) ; kittens at most (a byte: no cap)
 
 (fn hero ((s st.Status)) u8

@@ -14,7 +14,7 @@
 (const BACK_MOST u8 5)       ; her dice come back this many times a turn at most (the sim's cap)
 (const REROLLS_MOST u8 9)    ; re-rolls she can hold at most (the tray shows one digit)
 (const SUNBEAM_REROLLS u8 2) ; the re-rolls a sunbeam's mana past 5 gives at most (the sim's)
-(const GAMBLE_PRICE u8 1)    ; the hit points a double or nothing costs when played (the sim's)
+(const HABIT_GROWTH u8 2)    ; what each use of scratching habit adds to it for the fight
 (const ZOOMIES_HITS u8 5)    ; Zoomies' hits, enemies left to right
 (const SCREAM_SELF u8 1)     ; what 3 AM Screaming does to her
 
@@ -52,20 +52,20 @@
 ; fluff: a shield, and the third fluff's three
 (steps.steps FLUFF (call SUB_SHIELD) (three) (lit 1) (set keep) (say THREE_SHIELD_STAYS))
 
-(steps.steps SPIKY_FLUFF (call SUB_SHIELD) (three) (lit 3) (max thorns) (say THREE_SPIKY))
+(steps.steps SPIKY_FLUFF (call SUB_SHIELD) (three) (lit 6) (max thorns) (say THREE_SPIKY))
 
 (steps.steps BOX (call SUB_SHIELD) (three) (lit 1) (set box) (add kittens) (say THREE_BOX))
 
-(steps.steps WARM_BLANKET (call SUB_SHIELD) (three) (say THREE_WARM) (lit 2) (heal))
+(steps.steps WARM_BLANKET (call SUB_SHIELD) (three) (say THREE_WARM) (lit 6) (heal))
 
 (steps.steps STATIC_FUR
     (call SUB_SHIELD)
     (three)
     (say THREE_STATIC)
     (all)
-    (lit 5)
-    (t_has wet)
     (lit 10)
+    (t_has wet)
+    (lit 20)
     (hit)
     (end))
 
@@ -153,14 +153,19 @@
 ; Catfight (curse): its next hit on her goes to a friend, this much harder (content/foes)
 (steps.steps CATFIGHT (cue yowl) (curse catfight) (t_get catfight) (say_it CATFIGHT))
 
-; Flea Circus (curse): fleas, and when it falls they jump on (HOOKS: CIRCUS_JUMPS)
+; Flea Circus (curse): fleas on t, and as many on another enemy picked at random
 (steps.steps FLEA_CIRCUS
     (cue hops)
     (curse poison)
     (lit FLEA_TURNS)
     (t_set flea_turns)
-    (lit 1)
-    (t_set circus)
+    (t_get poison)
+    (say_it FLEA_CIRCUS)
+    (pick)
+    (num)
+    (curse poison)
+    (lit FLEA_TURNS)
+    (t_set flea_turns)
     (t_get poison)
     (say_it FLEA_CIRCUS))
 
@@ -181,19 +186,18 @@
 
 ; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
 ; for the fight
-(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (lit 1) (add habit))
+(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (lit HABIT_GROWTH) (add habit))
 
-; Double or Nothing (trick): the next die times #, and it costs her GAMBLE_PRICE hit points as
-; it is played (the sim's final form: x3 for 1 hp)
+; Double or Nothing (trick): the next die times #; the bet (gamble: the same #) is lost at her
+; turn's end if no die took the times (HOOKS: BET_LOST; content/effects clears it when a die does)
 (steps.steps DOUBLE_OR_NOTHING
     (cue coin)
     (lit 1)
     (max mult)
     (num)
     (times mult)
-    (lit GAMBLE_PRICE)
-    (me)
-    (hurt)
+    (num)
+    (add gamble)
     (get mult)
     (say DOUBLE_NEXT))
 
@@ -239,17 +243,8 @@
 ; a wand hit on a red dot: her dice come back (once a play), and a dot is used
 (steps.steps DOT_FIRES (back) (lit 1) (t_sub dot))
 
-; a flea circus's host fell: its fleas jump to the next one standing, doubled, fresh turns
-(steps.steps CIRCUS_JUMPS
-    (next)
-    (t_set poison)
-    (t_add poison)
-    (lit FLEA_TURNS)
-    (t_set flea_turns)
-    (lit 1)
-    (t_set circus)
-    (t_get poison)
-    (say_it FLEAS_JUMP))
+; her turn ended with a double or nothing's times still waiting
+(steps.steps BET_LOST (sub gamble) (hurt) (say_me BET_LOST))
 
 ; she was hit through mirror fur: what her shield took goes back, the mirror's most
 (steps.steps MIRROR (blocked) (sub mirror) (hurt) (say_it BOUNCED))
@@ -268,11 +263,6 @@
             :value st.Status.dot
             :fx (addr_of (at DOT_FIRES 0)))
         (make Hook
-            :status st.Status.circus
-            :when steps.When.falls
-            :value st.Status.poison
-            :fx (addr_of (at CIRCUS_JUMPS 0)))
-        (make Hook
             :status st.Status.mirror
             :when steps.When.hit_her
             :value st.Status.mirror
@@ -281,7 +271,12 @@
             :status st.Status.thorns
             :when steps.When.hit_her
             :value st.Status.thorns
-            :fx (addr_of (at THORNS 0))))
+            :fx (addr_of (at THORNS 0)))
+        (make Hook
+            :status st.Status.gamble
+            :when steps.When.turn_end
+            :value st.Status.gamble
+            :fx (addr_of (at BET_LOST 0))))
     :in aux)
 
 ; ---- the charms' steps (v: the charm's amount, times the ones she holds)
