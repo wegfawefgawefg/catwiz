@@ -3,7 +3,7 @@
 ; what the screen shows then, with the numbers its drawing uses, so a box is always where its
 ; picture is. In a fight: the buttons by the tray, the dice cards, the cat and each enemy
 ; where it stands, the log's rows. On a page: its cards and buttons. Between fights: the cards
-; in the tray, BAG, and for a bonus upgrade her six faces on the stage. The first box that holds
+; in the tray, BAG, SKIP, and her six faces on the stage (to read, or for a bonus upgrade to pick). The first box that holds
 ; the click gives its key; a click on nothing gives '.', a tap on the stage. Keys are the
 ; keyboard's, so a click does just what its key does.
 
@@ -86,9 +86,15 @@
     (box tray.SMALL_X tray.BAG_TOP tray.SMALL_W tray.SMALL_H 'B')
     (for n u8 0 reward.choices
         (slot n (+ '1' n)))
-    (if (= state.pick state.Pick.nap_slot)
-        (for k u8 0 state.SLOTS
-            (box (kit.cell_x k) (kit.cell_top k) kit.WIDE kit.ROWS (+ '1' k)))))
+    ; SKIP where END TURN is (not for the doors)
+    (if (!= state.pick state.Pick.door)
+        (box tray.SIDE_X tray.END_TOP tray.SIDE_W (- tray.SIDE_END tray.END_TOP) 'S'))
+    ; her faces on the stage: the choices for a bonus upgrade, else read (reward.FACE_KEY)
+    (let first u8 (if (= state.pick state.Pick.nap_slot)
+        '1'
+        reward.FACE_KEY))
+    (for k u8 0 state.SLOTS
+        (box (kit.cell_x k) (kit.cell_top k) kit.WIDE kit.ROWS (+ first k))))
 
 ; ---- the pages: CLOSE where END TURN was, the rules' BACK and NEXT (battle/page)
 

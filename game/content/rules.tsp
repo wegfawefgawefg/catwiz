@@ -34,7 +34,7 @@
                         (nth lines i)
                         "")
                     0))))
-    `(const ,name (array u8 560) (make (array u8 560) ,@bytes) :on disk2))
+    `(const ,name (array u8 560) (make (array u8 560) ,@bytes) :on disk2 :in aux))
 
 (page RULES_GOAL "HOW TO PLAY"
     "You are Catwiz, a cat witch. Beat"

@@ -30,6 +30,7 @@
 (import battle/reward)
 (import battle/map)
 (import battle/page)
+(import battle/bag)
 (import random)
 (import sound/sound)
 (import title/disk2)
@@ -214,11 +215,15 @@
                 (turn.after_action)))
         (state.Phase.enemies (turn.enemies_step))
         (state.Phase.reward
-            ; B opens her kit (in a branch that returns: the reward's step keeps its facts,
+            ; B opens her kit, a click on a face on it (in a branch that returns: the reward's step keeps its facts,
             ; page none, and its overlay group stays apart from the pages')
-            (if (= (& key 0xDF) 'B')
+            (if (or (= (& key 0xDF) 'B')
+                    (and (>= key reward.FACE_KEY) (< key (+ reward.FACE_KEY state.SLOTS))))
                 (do
-                    (page.opens key false)
+                    ; a face clicked on the stage: the page opens on it
+                    (if (>= key reward.FACE_KEY)
+                        (set bag.first_pick (- key reward.FACE_KEY)))
+                    (page.opens 'B' false)
                     (return state.Screen.battle)))
             (if (reward.step key)
                 (do

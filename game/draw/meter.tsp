@@ -7,6 +7,7 @@
 ; way (one way to read keeps lib/disk's plain read out of a full main memory).
 
 (import disk)
+(import auxmem)
 (import dhgr)
 (import tables)
 (import draw/screen)
@@ -57,8 +58,17 @@
     (dhgr.copy screen.SPARE dhgr.MAIN col top 2 ROWS (addr_of (at PAW_MAIN 0))))
 
 ; the sectors a disk table's record says it has (lib/disk: its length first, low byte first)
+; a table's record (every table on the disks has its record in aux memory: main memory is full),
+; copied here, where lib/disk reads it; 16 bytes, the longest (a boot disk table's)
+(let record (array u8 16))
+
+(fn fetch ((table (ptr u8))) (ptr u8)
+    (auxmem.read (addr_of (at record 0)) table 16)
+    (addr_of (at record 0)))
+
 (fn sectors ((table (ptr u8))) u8
-    (+ (load (+ table 1)) (if (= (load table) 0)
+    (let r (ptr u8) (fetch table))
+    (+ (load (+ r 1)) (if (= (load r) 0)
         0
         1)))
 
@@ -85,7 +95,7 @@
 
 ; a disk table into aux memory at dst, a sector at a time on the meter; disk.DONE or the error
 (fn read ((dst (ptr u8)) (table (ptr u8))) u8
-    (let status u8 (disk.read_with dst table disk.AUX sector))
+    (let status u8 (disk.read_with dst (fetch table) disk.AUX sector))
     (sector)
     status)
 

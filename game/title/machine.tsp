@@ -35,5 +35,4 @@
     (for i u16 0 0x0400
         (io_write u8 (+ PROBE i) 0xA0))
     (say 1 "CATWIZ NEEDS A 128K APPLE IIE")
-    (say 2 "(AN EXTENDED 80-COLUMN CARD)")
     (while true))

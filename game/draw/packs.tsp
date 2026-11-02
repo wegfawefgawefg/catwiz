@@ -2,7 +2,8 @@
 ; several parts, each packed while compiling (ZX0, as tables.packed), read whole with lib/disk
 ; and unpacked part by part (lib/unpack). (packs NAME where (bytes...) (bytes...) ...) makes the
 ; const :on where (disk, the boot disk, or disk2, the second): a count, each part's offset
-; from the table's start (2 bytes, low first), then the packed parts one after another.
+; from the table's start (2 bytes, low first), then the packed parts one after another. Its
+; record is in aux memory (:in aux: main memory is full; draw/meter copies it for lib/disk).
 
 (macro packs (name where & parts)
     (let n (len parts))
@@ -17,7 +18,10 @@
     (let bytes offsets)
     (for i 0 n
         (set bytes (append bytes (nth packed i))))
-    `(const ,name (array u8 ,(len bytes)) (make (array u8 ,(len bytes)) ,@bytes) :on ,where))
+    `(const ,name (array u8 ,(len bytes))
+        (make (array u8 ,(len bytes)) ,@bytes)
+        :on ,where
+        :in aux))
 
 ; part k of a packs table read to table in aux memory
 (fn part ((table (ptr u8)) (k u8)) (ptr u8)

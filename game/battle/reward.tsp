@@ -41,14 +41,14 @@
 ; the screen's words, in aux memory (text.add_aux): SAY_ and their words
 (const SAY (array (ptr u8) 23)
     (make (array (ptr u8) 23)
-        "A reward! Pick a card (1-3)."
+        "A reward: pick a card, S to skip."
         "+1 "
-        "A charm! Pick one (1-3)."
-        "A rest. Pick one (1-2)."
+        "A charm: pick one, or S to skip."
+        "A rest: pick one, or S to skip."
         "1 Nap: # hit points back"
         "2 Bonus upgrade: +1 on a face"
         "Upgrade: +1 on which face? (1-6)"
-        "ESC: back to the rest"
+        "ESC: back to the rest. S: skip."
         "Two doors. Pick one (1-2)."
         "Again: take"
         " (+#)"
@@ -59,7 +59,7 @@
         "A charm works all run."
         "NAP"
         "# hit points back,"
-        "up to # of 30."
+        "up to #."
         "BONUS UPGRADE"
         "+1 on a face of your choice."
         "# hit points"
@@ -90,15 +90,28 @@
 (const SAY_HP u8 21)
 (const SAY_WARD u8 22)
 
+; the keys of her six faces on the stage, clicked (battle/boxes): her kit's page opens on that
+; face (battle.step), to read it before she picks
+(const FACE_KEY u8 0x11)
+
+; what comes between fights starts (battle.ending): the draws for all of it now, three cards and
+; after an elite three charms (code only the ending's overlay group has, so the reward's group is
+; smaller); the reward's first step draws its screen (fresh)
+(let fresh bool false)
+(let cards (array u8 3)) ; the cards drawn (offer.drawn keeps the charms)
+(let cards_n u8 0)
+
 (fn start () void :overlay
     (set state.phase state.Phase.reward)
     (set state.selected state.NOTHING)
     (set state.next_fight (+ state.stage 1))
     (set reshow false)
-    (tray.clear_side)
-    (kit.show)
-    (offer.draw false)
-    (go state.Pick.cards))
+    (set fresh true)
+    (set cards_n (offer.draw false))
+    (for k u8 0 cards_n
+        (set (at cards k) (at offer.drawn k)))
+    (if (enc.elite state.fight)
+        (offer.draw true)))
 
 ; her kit's page closed (battle/page): the step as it was, drawn again over the fight's picture:
 ; the BAG button, her six faces on the stage, the choices, the text (the pick's, if one is)
@@ -107,6 +120,7 @@
 (fn show_again () void
     (set reshow false)
     (tray.clear_side)
+    (tray.skip_button (!= state.pick state.Pick.door))
     (kit.show)
     (draw_cards)
     (if (= state.picked state.NOTHING)
@@ -135,6 +149,7 @@
             (add state.next_fight)
             (add (enc.other state.next_fight))))
     (kit.preview state.NOTHING state.NOTHING false)
+    (tray.skip_button (!= pick state.Pick.door))
     (draw_cards)
     (prompt))
 
@@ -144,6 +159,11 @@
 
 ; the cards or charms drawn for the step (drawn once, as it starts: letting go keeps them)
 (fn add_drawn () void
+    (if (= state.pick state.Pick.cards)
+        (do
+            (for k u8 0 cards_n
+                (add (at cards k)))
+            (return)))
     (for k u8 0 offer.count
         (add (at offer.drawn k))))
 
@@ -223,25 +243,10 @@
     (match state.pick
         (state.Pick.cards
             (row 0 (at SAY SAY_REWARD) 0)
-            (for k u8 0 choices
-                (text.start)
-                (text.char (+ '1' k))
-                (text.char ' ')
-                (let c u8 (at choice k))
-                (if (>= c UP)
-                    (do
-                        (text.add_aux (at SAY SAY_PLUS1))
-                        (text.add_aux (at SLOT_NAME (card_slot c))))
-                    (text.add_aux (items.name c)))
-                (show (+ k 1))))
+            (choice_rows))
         (state.Pick.charms
             (row 0 (at SAY SAY_CHARM) 0)
-            (for k u8 0 choices
-                (text.start)
-                (text.char (+ '1' k))
-                (text.char ' ')
-                (text.add_aux (enc.charm_name (at choice k)))
-                (show (+ k 1))))
+            (choice_rows))
         (state.Pick.nap
             (row 0 (at SAY SAY_REST) 0)
             (row 1 (at SAY SAY_NAP_BACK) (- (healed) state.hero_hp))
@@ -251,13 +256,27 @@
             (row 1 (at SAY SAY_BACK_REST) 0))
         (state.Pick.door
             (row 0 (at SAY SAY_DOORS) 0)
-            (for k u8 0 2
-                (text.start)
-                (text.char (+ '1' k))
-                (text.char ' ')
-                (text.add_aux (en.name (enc.first_enemy (at choice k))))
-                (show (+ k 1)))))
+            (choice_rows)))
     (rest))
+
+; rows 1 on: each choice's key and name (a card's item, or +1 and its slot; a charm; a door's
+; first enemy)
+(fn choice_rows () void
+    (for k u8 0 choices
+        (text.start)
+        (text.char (+ '1' k))
+        (text.char ' ')
+        (let c u8 (at choice k))
+        (match state.pick
+            (state.Pick.cards
+                (if (>= c UP)
+                    (do
+                        (text.add_aux (at SAY SAY_PLUS1))
+                        (text.add_aux (at SLOT_NAME (card_slot c))))
+                    (text.add_aux (items.name c))))
+            (state.Pick.charms (text.add_aux (enc.charm_name c)))
+            (_ (text.add_aux (en.name (enc.first_enemy c)))))
+        (show (+ k 1))))
 
 ; row 0: the name (a content string, in aux memory), inverse, and how to take it
 (fn title ((name (ptr u8)) (up bool)) void
@@ -389,7 +408,6 @@
 (fn after_cards () bool
     (if (enc.elite state.fight)
         (do
-            (offer.draw true)
             (go state.Pick.charms)
             (if (> choices 0)
                 (return false))))
@@ -490,11 +508,19 @@
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
 (fn step ((key u8)) bool :overlay_disk2
+    (if fresh
+        (do
+            (set fresh false)
+            (tray.clear_side)
+            (kit.show)
+            (go state.Pick.cards)))
     (if reshow
         (show_again))
     (describe_due)
     (if (and (>= key '1') (< key (+ '1' choices)))
         (return (pick (- key '1'))))
+    (if (= (& key 0xDF) 'S')
+        (return (skip)))
     (match key
         (0 false)
         (a2.KEY_RETURN
@@ -508,6 +534,20 @@
         (_
             (sound.cue sound.Cue.nope)
             false)))
+
+; S or SKIP: this step taken with nothing (not the doors: one must be picked)
+(fn skip () bool
+    (if (= state.pick state.Pick.door)
+        (do
+            (sound.cue sound.Cue.nope)
+            (return false)))
+    (sound.cue sound.Cue.confirm)
+    (set due state.NOTHING)
+    (set staged state.NOTHING)
+    (match state.pick
+        (state.Pick.cards (after_cards))
+        (state.Pick.charms (after_charms))
+        (_ (after_nap))))
 
 ; ESC: back to the rest from its slots, else the step again with nothing picked
 (fn back () bool

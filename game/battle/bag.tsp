@@ -61,7 +61,7 @@
         "Her six faces at the end:"
         "Catwiz beat the Bulldog King!"
         "Ten fights won: the woods, the"
-        "garden, the yard and the King."
+        "garden, the house and the King."
         "Press RETURN or tap.")
     :strings aux)
 
@@ -99,7 +99,8 @@
 
 (let held (array u8 4) :address 0x0771) ; the charm rows she holds, in order
 (let held_n u8 0)
-(let sel u8 255) ; the entry picked: 0-5 a slot, 6 on a charm; NOTHING for none
+(let sel u8 255)        ; the entry picked: 0-5 a slot, 6 on a charm; NOTHING for none
+(let first_pick u8 255) ; the entry to pick as the page opens (a face clicked between fights)
 
 ; slot n's card: in tray slot n's place (35 n / 2 of the tray's pixels)
 (fn slot_card ((n u8) (frame bool)) void
@@ -162,7 +163,11 @@
     (row 1 (at SAY SAY_KEYS))
     (text.start)
     (text.show 2)
-    (row 3 (at SAY SAY_BACK)))
+    (row 3 (at SAY SAY_BACK))
+    (if (!= first_pick state.NOTHING)
+        (do
+            (pick first_pick)
+            (set first_pick state.NOTHING))))
 
 ; the run won, after the Bulldog King (battle.ending opens it as a page): her kit at the end and
 ; the fights she won; any key goes to the title (battle.step)

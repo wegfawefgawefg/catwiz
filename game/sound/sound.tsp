@@ -21,6 +21,7 @@
 (import sound/card_fx fx)
 (import sound/songs)
 (import draw/meter)
+(import title/disk2)
 
 (enum Cue (rattle ; one shake of the dice
         tok       ; a die played
@@ -180,7 +181,12 @@
                 (_))
             (return)))
     (mb.stop)
-    (meter.read (as (ptr u8) song_buffer) (at SONG_BYTES (as u8 s)))
+    ; the title's from the first disk until the second is found (a machine with one drive has
+    ; the second in it then)
+    (let table (ptr u8) (at SONG_BYTES (as u8 s)))
+    (if (and (= s Song.title) disk2.found)
+        (set table (addr_of (at songs.TITLE2 0))))
+    (meter.read (as (ptr u8) song_buffer) table)
     (sei)
     (auxmem.read (addr_of (at playing 0)) (as (ptr u8) song_buffer) PLAYING)
     (mb.play (addr_of (at playing 0))))

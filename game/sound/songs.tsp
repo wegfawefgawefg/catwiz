@@ -22,38 +22,45 @@
 ; bell   5 + 5 pulses, from pulse 168
 ; pad    one chord tone every 14 pulses
 ; The voices come in one at a time over the first 20 s, then all play on.
-(tune.song TITLE
-    (pattern in_tick "l1 r")
-    (pattern in_two "l2 r")
-    (pattern in_arp_b "l2 r l56 r r r r r r r")
-    (pattern in_drums "l56 r r r r r r r r r r r r r r")
-    (pattern in_bell "l1 r l56 r r r r r r r r r r r r r r r r r r r r r")
-    (pattern bass_e "l7 v13 k2 e2 - e2 r b1 d2 e2")
-    (pattern bass_c "l7 v13 k2 c2 - c2 r g1 b1 c2")
-    (pattern bass_a "l7 v13 k2 a1 - a1 r e1 g1 a1")
-    (pattern bass_d "l7 v13 k2 d2 - d2 r a1 c2 d2")
-    (pattern bass_b "l7 v13 k2 b1 - b1 r f#1 a1 b1")
-    (pattern arp_a "l7 v11 k1 e4 b4 e5 r d5 b4 f#5 r e5 g5 d5 b4")
-    (pattern arp_b "l7 v10 k1 e4 b4 e5 r d5 b4 f#5 r e5 g5 d5 b4 r")
-    (pattern drums
-        "l7 n1 m1 v13 k1 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 m1 v12 e1 m2 v9 c4")
-    (pattern bell_1 "l7 v7 k1 b5 r e6 r d6")
-    (pattern bell_2 "l7 v7 k1 b5 r f#6 r r")
-    (pattern pad_e "l49 v8 k9 g3 - b3 - g3 - f#3 -")
-    (pattern pad_c "l49 v8 k9 e3 - g3 - e3 - b3 -")
-    (pattern pad_a "l49 v8 k9 c4 - e3 - c4 - g3 -")
-    (pattern pad_d "l49 v8 k9 f#3 - a3 -")
-    (pattern pad_b "l49 v8 k9 f#3 - d3 -")
-    (voice 0 bass_e bass_e bass_e bass_e bass_e bass_e bass_e bass_e
-        bass_c bass_c bass_c bass_c bass_c bass_c bass_c bass_c
-        bass_a bass_a bass_a bass_a bass_a bass_a bass_a bass_a
-        bass_d bass_d bass_d bass_d bass_b bass_b bass_b bass_b)
-    (voice 1 in_tick loop arp_a)
-    (voice 2 in_two loop pad_e pad_c pad_a pad_d pad_b)
-    (voice 3 in_arp_b loop arp_b)
-    (voice 4 in_bell loop bell_1 bell_2)
-    (voice 5 in_drums loop drums)
-    :on disk)
+; the title's song is on both disks: the first title plays before the second disk is found, the
+; titles after a run from the second disk (as the title's art: draw/stage)
+(macro title_song (name where)
+    `(tune.song ,name
+        (pattern in_tick "l1 r")
+        (pattern in_two "l2 r")
+        (pattern in_arp_b "l2 r l56 r r r r r r r")
+        (pattern in_drums "l56 r r r r r r r r r r r r r r")
+        (pattern in_bell "l1 r l56 r r r r r r r r r r r r r r r r r r r r r")
+        (pattern bass_e "l7 v13 k2 e2 - e2 r b1 d2 e2")
+        (pattern bass_c "l7 v13 k2 c2 - c2 r g1 b1 c2")
+        (pattern bass_a "l7 v13 k2 a1 - a1 r e1 g1 a1")
+        (pattern bass_d "l7 v13 k2 d2 - d2 r a1 c2 d2")
+        (pattern bass_b "l7 v13 k2 b1 - b1 r f#1 a1 b1")
+        (pattern arp_a "l7 v11 k1 e4 b4 e5 r d5 b4 f#5 r e5 g5 d5 b4")
+        (pattern arp_b "l7 v10 k1 e4 b4 e5 r d5 b4 f#5 r e5 g5 d5 b4 r")
+        (pattern drums
+            "l7 n1 m1 v13 k1 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 v5 c4 m1 v13 e1 m2 v8 c4 m1 v12 e1 m2 v9 c4")
+        (pattern bell_1 "l7 v7 k1 b5 r e6 r d6")
+        (pattern bell_2 "l7 v7 k1 b5 r f#6 r r")
+        (pattern pad_e "l49 v8 k9 g3 - b3 - g3 - f#3 -")
+        (pattern pad_c "l49 v8 k9 e3 - g3 - e3 - b3 -")
+        (pattern pad_a "l49 v8 k9 c4 - e3 - c4 - g3 -")
+        (pattern pad_d "l49 v8 k9 f#3 - a3 -")
+        (pattern pad_b "l49 v8 k9 f#3 - d3 -")
+        (voice 0 bass_e bass_e bass_e bass_e bass_e bass_e bass_e bass_e
+            bass_c bass_c bass_c bass_c bass_c bass_c bass_c bass_c
+            bass_a bass_a bass_a bass_a bass_a bass_a bass_a bass_a
+            bass_d bass_d bass_d bass_d bass_b bass_b bass_b bass_b)
+        (voice 1 in_tick loop arp_a)
+        (voice 2 in_two loop pad_e pad_c pad_a pad_d pad_b)
+        (voice 3 in_arp_b loop arp_b)
+        (voice 4 in_bell loop bell_1 bell_2)
+        (voice 5 in_drums loop drums)
+        :on ,where
+        :in aux))
+
+(title_song TITLE disk)
+(title_song TITLE2 disk2)
 
 ; ---- the battle: A dorian, a pulse of 9 ticks (16ths at 100 bpm), soft
 ;
@@ -91,7 +98,8 @@
     (voice 3 in_mallet_b loop mallet_b)
     (voice 4 in_sparkle loop sparkle)
     (voice 5 shaker)
-    :on disk)
+    :on disk2
+    :in aux)
 
 ; ---- the stingers: once, then quiet. A voice's last pattern is a long rest it loops on.
 ;
@@ -107,7 +115,8 @@
     (voice 1 w_low loop quiet)
     (voice 3 w_high loop quiet)
     (voice 4 w_ring loop quiet)
-    :on disk)
+    :on disk2
+    :in aux)
 
 ; lost: A minor, falling. Thirds that slide down at 8 and at 12 ticks a note (3 against 2)
 ; over a bass that sinks F E, onto a low A minor; 1.8 s with the ring
@@ -119,4 +128,5 @@
     (voice 0 l_bass loop quiet)
     (voice 1 l_fast loop quiet)
     (voice 3 l_slow loop quiet)
-    :on disk)
+    :on disk2
+    :in aux)

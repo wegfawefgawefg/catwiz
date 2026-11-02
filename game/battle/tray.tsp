@@ -342,7 +342,11 @@
                     '\''
                     '$')))
             (pix.glyphs x (addr_of (at side_glyphs 0)) most (- y 139) WHITE)))
-    ; END TURN: a magenta pill, a pink shine along its top
+    (end_pill y 107 "END TURN" 8))
+
+; row y of END TURN (or SKIP between fights): a magenta pill, a pink shine along its top, the
+; word s (n glyphs) from pixel x
+(fn end_pill ((y u8) (x u8) (s (ptr u8)) (n u8)) void
     (if (and (>= y 147) (< y 159))
         (do
             (let inset u8 (if (or (= y 147) (= y 158))
@@ -352,7 +356,7 @@
             (if (= y 148)
                 (pix.span 107 138 PINK))
             (if (and (>= y 151) (< y 156))
-                (pix.glyphs 107 "END TURN" 8 (- y 151) WHITE)))))
+                (pix.glyphs x s n (- y 151) WHITE)))))
 
 ; row y of the BAG button (her kit): a small white pill
 (fn bag_button ((y u8)) void
@@ -395,6 +399,16 @@
         (side_row y rerolls mana most shake)
         (pix.write screen.PAGE y))
     (scene.mark (<< SIDE_G0 1) y0 (<< SIDE_GN 1) (- y1 y0)))
+
+; between fights: SKIP where END TURN is, on, or black off (the doors)
+(fn skip_button ((on bool)) void
+    (pix.begin SIDE_G0 SIDE_GN)
+    (for y u8 147 159
+        (pix.fill BLACK)
+        (if on
+            (end_pill y 115 "SKIP" 4))
+        (pix.write screen.PAGE y))
+    (scene.mark (<< SIDE_G0 1) 147 (<< SIDE_GN 1) 12))
 
 ; between fights: the buttons off but BAG (her kit, battle/bag)
 (fn clear_side () void

@@ -13,7 +13,7 @@
 (const LABEL_BYTES u8 8)
 
 ; the second disk's label, and the bytes it must hold (in aux memory, where it is read to)
-(const LABEL (array u8 8) (make (array u8 8) 67 65 84 87 73 90 32 50) :on disk2) ; CATWIZ 2
+(const LABEL (array u8 8) (make (array u8 8) 67 65 84 87 73 90 32 50) :on disk2 :in aux) ; CATWIZ 2
 (const WANT (array u8 8) (make (array u8 8) 67 65 84 87 73 90 32 50) :in aux)
 
 ; where the label is read: aux memory's text page 1, the rules page's buffer, free now (a let:
