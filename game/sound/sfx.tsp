@@ -16,8 +16,8 @@
 
 (struct Part ((kind Kind) (half u16) (step i16) (count u8)))
 
-(const PARTS (array Part 27)
-    (make (array Part 27)
+(const PARTS (array Part 37)
+    (make (array Part 37)
         ; 0 rattle: one shake of the dice, a few dry clicks
         (make Part :kind Kind.noise :half 120 :step 0 :count 2)
         (make Part :kind Kind.noise :half 1200 :step 0 :count 2)
@@ -58,7 +58,24 @@
         (make Part :kind Kind.slide :half 1360 :step 2 :count 40)
         ; 25 meow: a mew up, then down
         (make Part :kind Kind.slide :half 520 :step -10 :count 30)
-        (make Part :kind Kind.slide :half 250 :step 9 :count 40))
+        (make Part :kind Kind.slide :half 250 :step 9 :count 40)
+        ; ---- the faces round's, each about as long as the sound it took the place of (sound.tsp)
+        ; 27 splash: a short bright wash of noise
+        (make Part :kind Kind.noise :half 80 :step 0 :count 24)
+        ; 28 thunder: a crack, then a low rumble
+        (make Part :kind Kind.noise :half 60 :step 0 :count 6)
+        (make Part :kind Kind.noise :half 1500 :step 0 :count 14)
+        ; 30 slurp: a slide up, then a sweet note
+        (make Part :kind Kind.slide :half 700 :step -12 :count 40)
+        (make Part :kind Kind.tone :half 250 :step 0 :count 60)
+        ; 32 snore: a slow low rasp
+        (make Part :kind Kind.noise :half 900 :step 0 :count 18)
+        ; 33 whoosh: a quick hiss
+        (make Part :kind Kind.noise :half 40 :step 0 :count 22)
+        ; 34 sparkle: three high twinkles
+        (make Part :kind Kind.tone :half 130 :step 0 :count 50)
+        (make Part :kind Kind.tone :half 100 :step 0 :count 60)
+        (make Part :kind Kind.tone :half 115 :step 0 :count 50))
     :in aux) ; main memory is full; read a field at a time (play)
 
 ; count clicks from half cycles apart, the gap moving by step after each (0 for a tone);

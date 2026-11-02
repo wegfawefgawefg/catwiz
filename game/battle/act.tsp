@@ -250,10 +250,16 @@
     (place_on k)
     false)
 
-; step k of the action's ON show over whoever it is for: its place, its sprite by turns
+; step k of the action's ON show over whoever it is for (or the fighter its path names, while
+; they stand: the rain over each enemy, the heart back to her): its place, its sprite by turns
 (fn place_on ((k u8)) void
     (let who u8 state.act_on)
-    (shows.place (+ state.show_first k))
+    (let named u8 (shows.place (+ state.show_first k)))
+    (if (!= named 0)
+        (do
+            (set named (- named 1))
+            (if (at state.actors named alive)
+                (set who named))))
     (set state.bolt_sprite (if (= (& k 1) 0)
         state.show_a
         state.show_b))
