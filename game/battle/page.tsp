@@ -15,7 +15,6 @@
 (import battle/reward)
 (import battle/rules)
 (import battle/history)
-(import battle/map)
 (import battle/log)
 (import battle/tray)
 (import sound/sound)
@@ -126,7 +125,8 @@
     (if close
         (shut)))
 
-; the page closed: the stage and the tray's rows as the fight's picture has them, the map, then
+; the page closed: the stage and the tray's rows as the fight's picture has them (the map too),
+; then
 ; the tray, the text and the looks drawn again as they are; between fights the reward's next
 ; step draws its own again (reward.reshow)
 (fn shut () void
@@ -134,7 +134,6 @@
     (sound.cue sound.Cue.blip)
     (screen.copy_box screen.PAGE 0 0 40 COVER_ROWS screen.SPARE)
     (scene.forget)
-    (map.draw)
     (tray.forget)
     (if (= state.phase state.Phase.reward)
         (do

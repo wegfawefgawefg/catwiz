@@ -12,7 +12,7 @@
 ; title jingle, and no other music.
 ;
 ; The songs live in aux memory (songs.tsp); the one playing is copied into playing, with
-; interrupts on: setup puts in lib/auxmem's guard.
+; interrupts on: main puts in lib/auxmem's guard.
 
 (import auxmem)
 (import mockingboard mb)
@@ -70,11 +70,10 @@
 (const PLAYING u16 395)
 (let playing (array u8 395) :address 0x0800) ; scratch: see AGENTS.md, Memory
 
-; at the start: find the card, if there is one, and start its tick; the guard lets aux copies
-; run while it ticks
+; at the start: find the card, if there is one, and start its tick (main puts lib/auxmem's guard
+; in first, which lets aux copies run while it ticks)
 (fn setup () void
-    (mb.init)
-    (auxmem.guard))
+    (mb.init))
 
 ; the card's effect for each cue, in Cue's order
 (const CARD_EFFECT (array (ptr u8) 27)

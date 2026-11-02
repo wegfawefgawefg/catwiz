@@ -73,7 +73,7 @@
     (set state.stage START_STAGE)
     (set state.fight START_FIGHT)
     (set state.screen state.Screen.battle)
-    (enter_fight))
+    (set state.phase state.Phase.start))
 
 ; the fight's art, from the disk (draw/stage): its screen's picture unpacked onto the spare page
 ; and shown there (so it never shows half unpacked) while the screen's runs (the hero's, the small
@@ -92,15 +92,18 @@
     (meter.start (stage.runs_weight n))
     (stage.fight_runs n)
     (meter.stop)
+    (map.draw screen.SPARE)
     (screen.copy_page screen.SPARE screen.PAGE)
     (dhgr.show screen.PAGE)
     (scene.forget)
     (text.forget)
     (hud.forget))
 
-(fn enter_fight () void
+; the next fight (state.fight) set up and its art loaded, at the step after the reward or the
+; run's start (Phase.start): its code is read from the second disk when it comes (an overlay
+; group: main memory is full)
+(fn enter_fight () void :overlay_disk2
     (load_art)
-    (map.draw)
     (set state.turn 0)
     (set state.hitstop 0)
     (set state.bolt_on false)
@@ -215,7 +218,8 @@
                 (do
                     (set state.stage (+ state.stage 1))
                     (set state.fight state.next_fight)
-                    (enter_fight))))
+                    (set state.phase state.Phase.start))))
+        (state.Phase.start (enter_fight))
         (state.Phase.won (return (ending key true)))
         (state.Phase.lost (return (ending key false))))
     state.Screen.battle)
@@ -258,7 +262,7 @@
 (let drawn_phase state.Phase state.Phase.won)
 
 (fn will_change () bool
-    (if (!= state.page state.Page.none)
+    (if (or (!= state.page state.Page.none) (= state.phase state.Phase.start))
         (return false))
     (if (or (or (!= state.hud_pills 0) (!= state.hud_intents 0))
             (or (!= state.hud_dice 0) (or state.hud_rerolls state.hud_words)))
@@ -272,7 +276,7 @@
 ; the tray first: a pick shows a pass before the rows of words it changes (each a few frames
 ; to draw), which wait for the next
 (fn draw () void
-    (if (!= state.page state.Page.none)
+    (if (or (!= state.page state.Page.none) (= state.phase state.Phase.start))
         (return))
     (scene.begin)
     (set drawn_phase state.phase)

@@ -1,13 +1,13 @@
 ; the map of the run at the top of the stage, over the cat (pixels 77-104, rows 0-11: kept black
 ; like a lane, tools/dhgr/lanes.py MAP): the zone's name, a mark for each of its fights (an elite's
 ; bigger), the one she is on lit, the ones behind her grey, and a crown for the boss. Drawn once
-; when a fight starts (and when a page over the stage closes), never during a fight.
+; when a fight starts, onto the spare page with the fight's picture (battle.load_art), so a page
+; over the stage that closes puts it back with the stage; never during a fight.
 
 (import state)
 (import content/encounters enc)
 (import draw/pix)
 (import draw/screen)
-(import draw/scene)
 
 (const G0 u8 11) ; pixel 77
 (const GN u8 4)
@@ -50,7 +50,7 @@
         (3 (pix.span x (+ x 5) c))
         (_)))
 
-(fn draw () void
+(fn draw ((page u8)) void
     (let boss u8 (- enc.FIGHT_COUNT 1))
     (let zone enc.Zone (enc.zone state.fight))
     (let name (ptr u8) (at enc.ZONE_NAME (as u8 zone)))
@@ -74,5 +74,4 @@
                 (crown_row x r (if (= state.stage boss)
                     YELLOW
                     LBLUE))))
-        (pix.write screen.PAGE y))
-    (scene.mark (<< G0 1) 0 (<< GN 1) ROWS))
+        (pix.write page y)))

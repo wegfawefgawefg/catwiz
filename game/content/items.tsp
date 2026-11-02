@@ -453,39 +453,33 @@
             :cost 0
             :aim state.Aim.self
             :icon icons.TILE_DOUBLE))
-    :in aux) ; with its strings: main memory is full. Its fields are read here, one at a time
+    :strings aux) ; its strings in aux memory; the table in main memory: the fights read its
+
+; numbers every play (a read from aux memory each cost a fight's frames 14%)
 
 (fn name ((row u8)) (ptr u8)
-    (with_aux true false
-        (at ITEMS row name)))
+    (at ITEMS row name))
 
 (fn text ((row u8)) (ptr u8)
-    (with_aux true false
-        (at ITEMS row text)))
+    (at ITEMS row text))
 
 (fn slot ((row u8)) ac.Slot
-    (with_aux true false
-        (at ITEMS row slot)))
+    (at ITEMS row slot))
 
 (fn amount ((row u8)) u8
-    (with_aux true false
-        (at ITEMS row amount)))
+    (at ITEMS row amount))
 
 (fn step ((row u8)) u8
-    (with_aux true false
-        (at ITEMS row step)))
+    (at ITEMS row step))
 
 (fn cost ((row u8)) u8
-    (with_aux true false
-        (at ITEMS row cost)))
+    (at ITEMS row cost))
 
 (fn aim ((row u8)) state.Aim
-    (with_aux true false
-        (at ITEMS row aim)))
+    (at ITEMS row aim))
 
 (fn icon ((row u8)) u8
-    (with_aux true false
-        (at ITEMS row icon)))
+    (at ITEMS row icon))
 
 ; what she starts with, a slot each: wand, fluff, star, book, curse, then the sixth slot
 (const STARTING_ITEMS (array u8 6) (make (array u8 6) TWIG_WAND FLUFF STAR ZOOMIES FLEAS PLUS))

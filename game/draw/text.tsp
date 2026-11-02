@@ -14,6 +14,7 @@
 (import draw/screen)
 (import draw/pix)
 (import dhgr_pixels)
+(import tables)
 (import draw/scene)
 
 (const FONT_35 bool true) ; the one place the text's font is chosen
@@ -51,10 +52,9 @@
 (let run_n u8 :address 0x0A09)
 (const LINE_BYTES u16 41) ; line and its runs, one after the other (the log's history)
 (let shown_runs (array u8 24) :address 0x07DA) ; 6 bytes a row
-; the line's colour masks for lib/dhgr_pixels' cells, 4 bytes a 7-pixel group, all 255 while
-; masks_white (a white line's)
+; the line's colour masks for lib/dhgr_pixels' cells, 4 bytes a 7-pixel group (the blocks in
+; colour's: white ones are drawn without)
 (let masks (array u8 80) :address 0x0A9C)
-(let masks_white bool false)
 
 (fn start () void
     (for i u8 0 COLUMNS
@@ -168,56 +168,109 @@
 (let flip (array u8 35) :address 0x0646)
 (let cells (array u8 35) :address 0x0424)
 
-(fn glyphs35 () void
-    (line_masks)
-    (for i u8 0 COLUMNS
+(fn glyphs35 ((b0 u8) (n u8)) void
+    (let i0 u8 (* b0 7))
+    (for i u8 i0 (+ i0 (* n 7))
         (let c u8 (at line i))
         (set (at flip i) 0)
         (if (>= c INVERSE)
             (do
                 (set (at flip i) 15)
                 (set c (& c 0x7F))))
-        (set (at glyph_at i) (<< (as u16 (- c 32)) 3))))
+        (set (at glyph_at i) (<< (as u16 (- c 32)) 3)))
+    (line_masks b0 n))
 
-; the line's masks: each pixel's colour (its character's) into pix.px, free while text draws,
-; then each 7-pixel group's mask from them; a white line's all 255, set once
-(fn line_masks () void
-    (if (= run_n 0)
-        (do
-            (if masks_white
-                (return))
-            (for i u8 0 80
-                (set (at masks i) 255))
-            (set masks_white true)
-            (return)))
-    (set masks_white false)
+; the masks of 7 pixels all of one colour c, at 4 c (as dhgr_pixels.colour_mask makes them)
+(macro colour_mask_byte (i)
+    (let c (>> i 2))
+    (let k (& i 3))
+    (if (= k 0)
+        (| c (<< (& c 7) 4))
+        (if (= k 1)
+            (| (| (>> c 3) (<< c 1)) (<< (& c 3) 5))
+            (if (= k 2)
+                (| (| (>> c 2) (<< c 2)) (<< (& c 1) 6))
+                (| (>> c 1) (<< c 3))))))
+
+(tables.table COLOUR_MASK u8 64 colour_mask_byte)
+
+; the stretches of blocks drawn alike: all white (drawn without masks, faster) or not, each
+; its first block, how many and whether white
+(let seg_first (array u8 5))
+(let seg_count (array u8 5))
+(let seg_white (array bool 5))
+(let seg_n u8 0)
+
+; blocks b0 to b0 + n - 1 of the line: each character's colour (from the runs) into pix.px (free
+; while text draws), each block all white or not, a stretch of blocks alike at a time; and each
+; block in colour's 4 masks: a 7-pixel group of one colour (its characters alike) from
+; COLOUR_MASK, else from its 7 pixels' colours (dhgr_pixels.colour_mask, at pix.px 40 on)
+(fn line_masks ((b0 u8) (n u8)) void
     (let c u8 WHITE)
-    (let k u8 0)
-    (let p u8 0)
-    (for i u8 0 COLUMNS
-        (if (and (< k run_n) (= (at runs (<< k 1)) i))
+    (let from u8 0)
+    (for k u8 0 run_n
+        (let to u8 (at runs (<< k 1)))
+        (if (> to COLUMNS)
+            (set to COLUMNS))
+        (for i u8 from to
+            (set (at pix.px i) c))
+        (set c (at runs (+ (<< k 1) 1)))
+        (set from to))
+    (for i u8 from COLUMNS
+        (set (at pix.px i) c))
+    (set seg_n 0)
+    (for b u8 b0 (+ b0 n)
+        (let i0 u8 (* b 7))
+        (let white bool true)
+        (for i u8 i0 (+ i0 7)
+            (if (!= (at pix.px i) WHITE)
+                (set white false)))
+        (if (not white)
+            (block_masks b))
+        (if (and (> seg_n 0) (= (at seg_white (- seg_n 1)) white))
+            (set (at seg_count (- seg_n 1)) (+ (at seg_count (- seg_n 1)) 1))
             (do
-                (set c (at runs (+ (<< k 1) 1)))
-                (set k (+ k 1))))
-        (for j u8 0 4
-            (set (at pix.px p) c)
-            (set p (+ p 1))))
-    (let g u8 0)
-    (for m u8 0 20
-        (dhgr_pixels.colour_mask (addr_of (at pix.px g)) (addr_of (at masks (<< m 2))))
-        (set g (+ g 7))))
+                (set (at seg_first seg_n) b)
+                (set (at seg_count seg_n) 1)
+                (set (at seg_white seg_n) white)
+                (set seg_n (+ seg_n 1))))))
 
-; its blocks of 7 characters from block b0, n of them
-(fn row35 ((r u8) (y u8) (b0 u8) (n u8)) void
-    (let i0 u8 (* b0 7))
-    (for i u8 i0 (+ i0 (* n 7))
-        (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
-        (set (at cells i) (^ bits (at flip i))))
-    (dhgr_pixels.cells screen.PAGE
-        (<< b0 3)
-        y n
-        (addr_of (at cells i0))
-        (addr_of (at masks (<< b0 4)))))
+; block b's 4 groups' masks, from its characters' colours
+(fn block_masks ((b u8)) void
+    (let p u8 (* b 28)) ; the group's first pixel
+    (for m u8 (<< b 2) (+ (<< b 2) 4)
+        (let first u8 (at pix.px (>> p 2)))
+        (let at u8 (<< m 2))
+        (if (and (= first (at pix.px (>> (+ p 6) 2))) (= first (at pix.px (>> (+ p 3) 2))))
+            (do
+                (let from u8 (<< first 2))
+                (set (at masks at) (at COLOUR_MASK from))
+                (set (at masks (+ at 1)) (at COLOUR_MASK (+ from 1)))
+                (set (at masks (+ at 2)) (at COLOUR_MASK (+ from 2)))
+                (set (at masks (+ at 3)) (at COLOUR_MASK (+ from 3))))
+            (do
+                (for j u8 0 7
+                    (set (at pix.px (+ 40 j)) (at pix.px (>> (+ p j) 2))))
+                (dhgr_pixels.colour_mask (addr_of (at pix.px 40)) (addr_of (at masks at)))))
+        (set p (+ p 7))))
+
+; pixel row r of the line's blocks glyphs35 set up, onto row y: each stretch with one call
+(fn row35 ((r u8) (y u8)) void
+    (for s u8 0 seg_n
+        (let b u8 (at seg_first s))
+        (let count u8 (at seg_count s))
+        (let i0 u8 (* b 7))
+        (for i u8 i0 (+ i0 (* count 7))
+            (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
+            (set (at cells i) (^ bits (at flip i))))
+        (if (at seg_white s)
+            (dhgr_pixels.cells_white screen.PAGE (<< b 3) y count (addr_of (at cells i0)))
+            (dhgr_pixels.cells screen.PAGE
+                (<< b 3)
+                y
+                count
+                (addr_of (at cells i0))
+                (addr_of (at masks (<< b 4)))))))
 
 ; row y of the line in the 40-column font: a character is one aux byte and one main byte
 (fn row40 ((r u8) (y u8)) void
@@ -267,15 +320,33 @@
                 (if (= first COLUMNS)
                     (set first i))
                 (set last (+ i 1)))))
-    ; new colours: the row whole
+    ; new colours: from the first run that differs to the last character either line shows (a
+    ; blank is black in any colour)
     (let ra u8 (* r 6))
-    (for i u8 0 6
-        (if (!= (at shown_runs (+ ra i)) (at runs i))
+    (let recolour u8 COLUMNS)
+    (for k u8 0 RUNS
+        (let i u8 (+ ra (<< k 1)))
+        (if (or (!= (at shown_runs i) (at runs (<< k 1)))
+                (!= (at shown_runs (+ i 1)) (at runs (+ (<< k 1) 1))))
             (do
-                (set (at shown_runs (+ ra i)) (at runs i))
-                (set first 0)
-                (set last COLUMNS))))
-    (if (= first COLUMNS)
+                (let c u8 (at shown_runs i))
+                (if (> c (at runs (<< k 1)))
+                    (set c (at runs (<< k 1))))
+                (if (< c recolour)
+                    (set recolour c)))))
+    (if (< recolour COLUMNS)
+        (do
+            (for i u8 0 6
+                (set (at shown_runs (+ ra i)) (at runs i)))
+            (if (< recolour first)
+                (set first recolour))
+            (let was u8 (reach (addr_of (at shown at))))
+            (let now u8 (reach (addr_of (at line 0))))
+            (if (> was last)
+                (set last was))
+            (if (> now last)
+                (set last now))))
+    (if (>= first last)
         (return))
     (for i u8 0 COLUMNS
         (set (at shown (+ at i)) (at line i)))
@@ -289,10 +360,41 @@
     ; the blocks of 7 characters from first's to last's (dhgr.X_GROUP: a pixel's 7-pixel group)
     (let b0 u8 (at dhgr.X_GROUP first))
     (let b1 u8 (at dhgr.X_GROUP (+ last 6)))
-    (glyphs35)
+    (glyphs35 b0 (- b1 b0))
     (for k u8 0 8
-        (row35 k (+ y k) b0 (- b1 b0)))
+        (row35 k (+ y k)))
     (scene.mark (<< b0 3) y (<< (- b1 b0) 3) 8))
+
+; text row from's picture moved onto text row to, with what it shows: the log's lines move up a
+; row as one comes, a copy of 8 pixel rows (both memories) instead of drawing the line again
+(fn move_row ((from u8) (to u8)) void
+    (for k u8 0 8
+        (let src (ptr u8) (as (ptr u8) (screen.row_at screen.PAGE (+ (+ TOP (<< from 3)) k) 0)))
+        (let dst (ptr u8) (as (ptr u8) (screen.row_at screen.PAGE (+ (+ TOP (<< to 3)) k) 0)))
+        (for i u8 0 40
+            (store (+ dst i) (load (+ src i))))
+        (auxmem.copy dst src 40))
+    (let f u8 (* from COLUMNS))
+    (let t u8 (* to COLUMNS))
+    (for i u8 0 COLUMNS
+        (set (at shown (+ t i)) (at shown (+ f i))))
+    (set f (* from 6))
+    (set t (* to 6))
+    (for i u8 0 6
+        (set (at shown_runs (+ t i)) (at shown_runs (+ f i))))
+    (scene.mark 0 (+ TOP (<< to 3)) 40 8))
+
+; whether text row r shows the line kept at chars (COLUMNS) with its runs at rs (6)
+(fn shows ((r u8) (chars (ptr u8)) (rs (ptr u8))) bool
+    (let at u8 (* r COLUMNS))
+    (for i u8 0 COLUMNS
+        (if (!= (at shown (+ at i)) (load (+ chars i)))
+            (return false)))
+    (set at (* r 6))
+    (for i u8 0 6
+        (if (!= (at shown_runs (+ at i)) (load (+ rs i)))
+            (return false)))
+    true)
 
 ; the line onto row y of the page, its first blocks of 7 characters (5 the whole width), not
 ; kept as one of the four rows: the pages over the stage (battle/bag, rules)
@@ -301,9 +403,9 @@
 (fn draw_at ((y u8) (blocks u8)) void
     (if (= blocks 0)
         (return))
-    (glyphs35)
+    (glyphs35 0 blocks)
     (for k u8 0 8
-        (row35 k (+ y k) 0 blocks))
+        (row35 k (+ y k)))
     (scene.mark 0 y (<< blocks 3) 8))
 
 ; the blocks of 7 characters the line reaches

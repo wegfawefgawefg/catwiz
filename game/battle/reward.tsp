@@ -470,7 +470,7 @@
     (set staged state.NOTHING))
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
-(fn step ((key u8)) bool :overlay
+(fn step ((key u8)) bool :overlay_disk2
     (if reshow
         (show_again))
     (describe_due)

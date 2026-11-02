@@ -127,6 +127,9 @@
             (text.char '.'))
         (push))
     (set waiting 0)
+    ; the line the newer row shows is now the older: moved up, not drawn again
+    (if (text.shows ROW_NEWER (addr_of (at older 0)) (addr_of (at older_runs 0)))
+        (text.move_row ROW_NEWER ROW_OLDER))
     (text.load_line (addr_of (at newer 0)))
     (text.load_runs (addr_of (at newer_runs 0)))
     (text.show ROW_NEWER)

@@ -4,6 +4,7 @@
 
 (import apple2 a2)
 (import keys)
+(import auxmem)
 (import state)
 (import title/title)
 (import title/machine)
@@ -134,8 +135,14 @@
 (fn main () void
     (if (not (machine.has_aux))
         (machine.refuse))
-    (sound.setup)
+    ; lib/auxmem's guard, before the card's tick starts (title.enter): aux copies run with
+    ; interrupts on. The mouse card found and set up, then the loop reads it. Here, not in
+    ; title.enter: a call to an address (the guard's, the mouse's firmware) keeps a function out
+    ; of the card's bank 1
+    (auxmem.guard)
     (set state.ticks 0)
+    (mouse.init)
+    (set state.mouse_on mouse.found)
     (title.enter)
     (while true
         (set state.ticks (+ state.ticks 1))

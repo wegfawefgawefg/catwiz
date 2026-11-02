@@ -24,7 +24,9 @@
 
 (enum Screen (title battle))
 
-(enum Phase (rolling player acting enemies won lost reward))
+; start: the next fight is set up at the next step (battle.enter_fight), out of the reward's
+; step and the run's start, so its code is an overlay group of its own
+(enum Phase (rolling player acting enemies won lost reward start))
 
 ; the steps between fights (battle/reward): one of three cards, one of three charms, the rest
 ; after an elite (the nap or a bonus upgrade), the slot the upgrade levels, one of two doors
@@ -127,9 +129,9 @@
 (let hand (array u8 6) :address 0x0336)    ; and the item it is, a row in content/items
 (let played (array bool 6) :address 0x06D6)
 (let rerolls u8)
-(let rerolled bool)      ; a re-roll this turn (still water)
+(let rerolled bool)                      ; a re-roll this turn (still water)
 (let combo (array u8 6) :address 0x06D0) ; faces of each slot played this turn, for the threes
-(let last_face u8)       ; the item played last (copycat), and on whom
+(let last_face u8)                       ; the item played last (copycat), and on whom
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)
 (let wand_on bool)   ; a wand face's steps are running (a hook on a wand hit: content/hooks)
