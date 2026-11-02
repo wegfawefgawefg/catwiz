@@ -123,6 +123,21 @@ Gambles. Have: Double or Nothing.
 65. Cursed Coin (charm): roll 6 dice, but lose 1 hp each turn.*
 66. Jackpot (charm): five matching faces wins the fight.*
 
+More charms, so every domain has at least two (the owner: charms go with the new domains):
+67. Rain Boots (charm, wet): wet enemies take 1 more from every hit.
+68. Storm Cloud (charm, wet): each fight starts with every enemy wet for 1 turn.
+69. Troublemaker (charm, chaos): an enemy's hit on a friend is doubled.
+70. Pied Piper (charm, chaos): at the start of each fight, a random enemy is hypnotized.
+71. Momentum (charm, growth): each fight, her first wand each turn hits 1 more than the turn
+    before.
+72. Thick Skin (charm, growth): each time she is hurt this fight, +1 shield at the start of each
+    of her turns.
+73. Lucky Collar (charm, simple): +2 max hp.
+74. Spare Yarn (charm, simple): +1 re-roll on the first turn of each fight.
+75. Head Start (charm, simple): each fight starts with 2 mana.
+
+In all: 52 new faces and 23 new charms; with what we have, about 95 faces and 35 charms.
+
 ## Engine additions
 
 - Steps: count s (+1 for each enemy with status s), half, fell (the rest only when the last hit
@@ -149,6 +164,6 @@ thunder, thump, a heal chime, a slurp, a dice rattle, a snore, a boing, a coin.
 
 1. The disk catalog: every face's row, text, steps and picture on disk 2; memory holds only her six
    faces, her charms and the offer, so adding or cutting a face costs no memory and no repack.
-2. The faces in batches by domain: steps, text, picture, look, sound, checked in a real fight;
-   the C sim (tools/sim/c) taught the new faces to flag anything broken.
-3. The owner plays; numbers by hand from there.
+2. The faces and charms in batches by domain, run side by side: steps, text, picture, look,
+   sound, each checked in a real fight. No sim work until all the content is in (the owner).
+3. The owner plays the full roster; balance after that.
