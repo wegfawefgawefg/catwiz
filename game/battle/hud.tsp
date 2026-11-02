@@ -143,7 +143,13 @@
     (start_glyphs (- (+ state.ACTORS who) 1))
     (put icon)
     (if (and (= icon (mv.icon row)) (foes.shows_amount row))
-        (put_number (foes.intent_amount who row)))
+        (do
+            (put_number (foes.intent_amount who row))
+            ; a move that hits twice says so: 3X2
+            (if (= (mv.effect row) ac.Effect.hit2)
+                (do
+                    (put 'X')
+                    (put '2')))))
     (finish look (place.centre_x who) (- (place.top who) 12)))
 
 ; a fresh fight: no badges yet, the tray empty
