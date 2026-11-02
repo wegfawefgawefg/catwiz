@@ -200,7 +200,7 @@ def boxes(n):
             starts = [((home + K.cols) & 0xFE, 44)]
         else:
             col = (middle(K, home) - 1) & 0xFE
-            top = K.top - 34 if K.top > 54 else 20
+            top = K.top - 34 if K.top > 65 else 32
             starts = [(col, top), (col - 2, top)]
         for col, top in starts:
             # the second digit 2 columns on (draw/scene.tsp box_of)
@@ -245,6 +245,13 @@ def boxes(n):
             sx += tx - x0
             sy += ty - y0
             out.append((col & 0xFE, top - ARC[k], w, h, "bolt"))
+    # the map is drawn once a fight and nothing draws it again: a look whose box met it would
+    # leave a black hole in it (the scene fills what a look leaves black)
+    mc, mt, mw, mh = MAP
+    for col, top, cols, rows, why in out[1:]:
+        if col < mc + mw and mc < col + cols and top < mt + mh and mt < top + rows:
+            raise SystemExit("lanes.py: fight %d: a %s's box (%d, %d, %d x %d) meets the map of the run"
+                             % (n, why, col, top, cols, rows))
     return out
 
 

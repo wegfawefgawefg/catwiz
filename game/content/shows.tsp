@@ -119,8 +119,8 @@
 
 ; the ON shows' places, a show's steps one after another: byte columns from the left of the
 ; spot of whoever it is for (even: a sprite's colours hold only on 7-pixel steps), rows from its
-; top. Keep a sprite inside the narrowest spot it can be for: an enemy's is 8 columns at least
-; (the sporelet), hers 10
+; top. Keep a sprite inside the narrowest spot it can be for: an enemy's is 6 columns at least
+; (the royal pug: the claws, 4 wide from column 4, reach 2 past it, over its lane's black), hers 10
 (const PATH_COL (array u8 57)
     (make (array u8 57)
         2 4 2 0 4 ; red dot

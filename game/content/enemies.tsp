@@ -218,7 +218,7 @@
             :name "Bulldog king"
             :hp 66
             :ward 2
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_KING
             :first_move 42
             :move_count 3
             :calls state.NOTHING
@@ -228,7 +228,7 @@
             :name "Bulldog king, cross"
             :hp 66
             :ward 1
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_KING_CROSS
             :first_move 45
             :move_count 4
             :calls PUG
@@ -238,7 +238,7 @@
             :name "Bulldog king, furious"
             :hp 68
             :ward 0
-            :figure art.FIG_PUFFCAP
+            :figure art.FIG_KING_FURIOUS
             :first_move 49
             :move_count 4
             :calls state.NOTHING
@@ -248,7 +248,7 @@
             :name "Royal pug"
             :hp 8
             :ward 0
-            :figure art.FIG_SPORELET
+            :figure art.FIG_PUG
             :first_move 53
             :move_count 2
             :calls state.NOTHING

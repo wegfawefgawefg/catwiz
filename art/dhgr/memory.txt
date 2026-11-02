@@ -20,10 +20,13 @@ hoover         3158+3154          7     1432   1160
 dustbunny      1404+1393          6      939   580
 roomba         1220+1282          7      797   425
 vet            3290+3223          7     1117   1200
+king           2594+2871          7     1358   832
+king_furious   1651+1651          4      973   1124
+pug            1094+1092          6      451   416
 bath           2441+2427          6     1245   887
 gremlin        1408+1430          6      724   430
 
-the screen's tables (art/sprites tab, main memory): 54 sprites, 5 kinds, 5 blocks at most
+the screen's tables (art/sprites tab, main memory): 54 sprites, 6 kinds, 5 blocks at most
 the hero's blocks: bank 2 7638, bank 1 0, sprite_aux 7869
 
 fight 1 (woods): cat, misc, puffcap, sporelet
@@ -36,7 +39,7 @@ fight 1 (woods): cat, misc, puffcap, sporelet
 
 fight 2 (woods): cat, misc, squirrel, possum
    24915 bytes: bank 2 11452 of 12272, bank 1 2792 of 4096, sprite_aux 10671 of 10752: 2205 to spare
-  the picture, zlib 498, into sprite_aux's 2883 after the hero's
+  the picture, zlib 502, into sprite_aux's 2883 after the hero's
            squirrel main 1912: bank 2
            possum main 2792: bank 1
            squirrel aux 1902: bank 2
@@ -70,13 +73,13 @@ fight 5 (garden): cat, misc, cucumber, sprinkler, gnome
 
 fight 6 (garden): cat, misc, mailman
    23624 bytes: bank 2 11697 of 12272, bank 1 4058 of 4096, sprite_aux 7869 of 10752: 3496 to spare
-  the picture, zlib 923, into sprite_aux's 2883 after the hero's
+  the picture, zlib 916, into sprite_aux's 2883 after the hero's
            mailman main 4059: bank 2
            mailman aux 4058: bank 1
 
 fight 7 (house): cat, misc, hoover, dustbunny
    24616 bytes: bank 2 12185 of 12272, bank 1 3158 of 4096, sprite_aux 9273 of 10752: 2504 to spare
-  the picture, zlib 504, into sprite_aux's 2883 after the hero's
+  the picture, zlib 510, into sprite_aux's 2883 after the hero's
            hoover main 3154: bank 2
            dustbunny main 1393: bank 2
            hoover aux 3158: bank 1
@@ -96,13 +99,15 @@ fight 9 (house): cat, misc, vet
            vet main 3223: bank 2
            vet aux 3290: bank 1
 
-fight 10 (house): cat, misc, puffcap, sporelet
-   22368 bytes: bank 2 11073 of 12272, bank 1 3426 of 4096, sprite_aux 7869 of 10752: 4752 to spare
-  the picture, zlib 512, into sprite_aux's 2883 after the hero's
-           puffcap main 1895: bank 2
-           sporelet main 1540: bank 2
-           puffcap aux 1886: bank 1
-           sporelet aux 1540: bank 1
+fight 10 (house): cat, misc, king, king_furious, pug
+   26460 bytes: bank 2 12160 of 12272, bank 1 3686 of 4096, sprite_aux 10614 of 10752: 660 to spare
+  the picture, zlib 500, into sprite_aux's 2883 after the hero's
+           king main 2871: bank 2
+           king_furious main 1651: bank 2
+           pug main 1092: bank 1
+           king aux 2594: bank 1
+           king_furious aux 1651: sprite_aux
+           pug aux 1094: sprite_aux
 
 fight 11 (house): cat, misc, bath, gremlin
    23213 bytes: bank 2 11495 of 12272, bank 1 3849 of 4096, sprite_aux 7869 of 10752: 3907 to spare

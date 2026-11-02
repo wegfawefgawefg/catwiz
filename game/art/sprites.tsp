@@ -9,7 +9,7 @@
 (const NONE u8 255) ; no sprite, no kind
 (const ROLE_COUNT u8 10) ; idle attack hurt happy surprised flap flash shot shot2 shot3
 (const SPRITES_MOST u8 54)
-(const KINDS_MOST u8 5)
+(const KINDS_MOST u8 6)
 (const BLOCKS_MOST u8 5)
 
 (const CAT_IDLE u8 0) ; 10 x 87
@@ -94,13 +94,13 @@
         (main_hi (array u8 54))
         (kind_of (array u8 54))
         (solid (array u8 54))
-        (kcol (array u8 5))
-        (ktop (array u8 5))
-        (kfeet (array u8 5))
-        (kcols (array u8 5))
-        (kreach (array u8 5))
-        (kleft (array u8 5))
-        (frame (array u8 50))
+        (kcol (array u8 6))
+        (ktop (array u8 6))
+        (kfeet (array u8 6))
+        (kcols (array u8 6))
+        (kreach (array u8 6))
+        (kleft (array u8 6))
+        (frame (array u8 60))
         (aux_size_lo (array u8 5))
         (aux_size_hi (array u8 5))
         (main_size_lo (array u8 5))

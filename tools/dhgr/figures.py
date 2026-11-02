@@ -119,19 +119,19 @@ block("bath", at(hf.bath, 70, 108), hf.FRAMES["bath"], flash="hurt", shots=hf.SH
 block("gremlin", at(hf.gremlin, 70, 108), hf.FRAMES["gremlin"], flash="hurt", shots=hf.SHOTS["gremlin"],
       roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "bubbles"})
 
-# the Bulldog King: asleep on his couch throne (his first phase), cross on it (his second, the
-# same block), then furious off it (his third, a block of its own with its own flash); and
-# the royal pugs he calls
+# the Bulldog King: sat up on his throne (his first form, smug), cross on it (his second, the
+# same block: its own idle, the bite and the knock shared), then furious off it (his third, a
+# block of its own with its own flash); and the royal pugs he calls. Their shots: the bite's
+# teeth, the slobber thrown, the furious one's blows (content/move_looks)
 block("king", at(kg.king, 70, 108), kg.FRAMES["king"], flash="hurt", shots=kg.SHOTS["king"],
-      roles={"attack": "attack", "hurt": "hurt", "shot": "bark", "shot2": "chomp", "shot3": "zzz"})
+      roles={"attack": "attack", "hurt": "hurt", "shot": "chomp", "shot2": "chomp"})
 borrow("king_cross", "king", {"idle": "cross", "attack": "attack", "hurt": "hurt", "happy": "cross",
                               "shot": "slobber", "shot2": "chomp"})
 block("king_furious", at(kg.king_off, 70, 108), kg.FRAMES["king_furious"], flash="furious",
       shots=kg.SHOTS["king_furious"],
-      roles={"attack": "flop", "hurt": "furious", "happy": "furious", "shot": "impact"})
+      roles={"attack": "flop", "hurt": "furious", "happy": "furious", "shot": "impact", "shot2": "impact"})
 block("pug", at(kg.pug, 70, 108), kg.FRAMES["pug"], flash="hurt", shots=kg.SHOTS["pug"],
       roles={"attack": "attack", "hurt": "hurt", "happy": "happy", "shot": "yap"})
-
 
 def frame_names(b):
     # a block's sprites in order: its frames, its flash, its shots

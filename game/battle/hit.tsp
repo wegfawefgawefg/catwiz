@@ -46,6 +46,7 @@
 (const HURT_FRAMES u8 24)
 (const HURT_HELD u8 255) ; until the enemies' turn ends (turn.end_enemies)
 (const FLOAT_FRAMES u8 26)
+(const FLOAT_LOWEST u8 32) ; an enemy's number starts here at the highest: 20 rows of rise end at 12
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
 
 ; by hits target for amount: a wand of hers sets off the hooks of target's statuses for it; by's
@@ -225,16 +226,17 @@
         (do
             (set first art.DIGIT_PLUS)
             (set second (+ art.DIGIT_0 n))))
-    ; enemies: above the intent over the head, low enough to rise without leaving the screen.
-    ; The hero: beside her face, clear of the tall hat, so the number never has to be drawn
-    ; over her
+    ; enemies: above the intent over the head, and never up into the map of the run (rows 0-11,
+    ; battle/map: it is drawn once a fight, and the number's box is filled black as it rises):
+    ; a tall one's starts at row 32 and rises to 12. The hero: beside her face, clear of the
+    ; tall hat, so the number never has to be drawn over her
     (let col u8 (& (- (place.middle who) 1) 0xFE))
     (if (!= second state.NOTHING)
         (set col (- col 2)))
     (let top u8 (place.top who))
-    (set top (if (> top 54)
+    (set top (if (> top 65)
         (- top 34)
-        20))
+        FLOAT_LOWEST))
     (if (= who state.HERO)
         (do
             (set col

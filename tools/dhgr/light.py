@@ -74,10 +74,11 @@ DAY = {
     "tap": YELLOW, "tap_eye": WHITE,
     "slime": GREEN, "slime_hi": AQUA, "chain": GREY, "plug": GREY, "gr_eye": YELLOW,
     # the Bulldog King and his pugs
-    "dog": WHITE, "dog_hi": WHITE, "dog_jowl": WHITE, "dog_belly": LBLUE, "dog_ear": PINK, "dog_nose": GREY,
+    "dog": WHITE, "dog_hi": WHITE, "dog_jowl": WHITE, "dog_belly": LBLUE, "dog_ear": BROWN, "dog_nose": GREY,
     "red_eye": PINK, "drool": LBLUE, "zzz": LBLUE, "gold": YELLOW, "gold_hi": WHITE, "gem": PINK, "gem2": AQUA,
     "robe_k": PURPLE, "ermine": WHITE, "ermine_dot": BLACK, "velvet": MAGENTA, "velvet_hi": PINK,
-    "cushion": PINK, "pug": YELLOW, "pug_mask": GREY,
+    "cushion": PINK, "pug": ORANGE, "pug_mask": GREY,
+    "brow": BLACK, "patch": ORANGE, "vein": MAGENTA, "mad": PINK, "mad_jowl": PINK, "fury_eye": MAGENTA,
     # nightflap
     "bat": PURPLE, "bat_sh": PURPLE, "bat_hi": PINK, "wing": BLACK, "wing_sh": BLACK,
     "bone": MAGENTA, "fang": WHITE, "bat_eye": WHITE,

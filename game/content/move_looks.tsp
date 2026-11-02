@@ -55,18 +55,18 @@
         (make MoveLook :show shows.BOLT :cue GROWL) ; the big bath: Hairball: your wand
         (make MoveLook :show shows.BOLT :cue GROWL) ; drain gremlin: Glug glug # twice
         (make MoveLook :show shows.BOLT :cue GROWL) ; drain gremlin: Gurgles: +# for good
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king: Royal bark: dice -#
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king: Chomp for #
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king: Throne nap: shield #
+        (make MoveLook :show shows.BUMP :cue GROWL) ; bulldog king: Royal bite # twice (its teeth over her)
+        (make MoveLook :show shows.BUMP :cue GROWL) ; bulldog king: Chomp # twice
+        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king: Royal swat # twice
         (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, cross: Calls # royal pugs
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, cross: Slobber all for #
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, cross: Chomp for #
+        (make MoveLook :show shows.ACORN :cue GROWL) ; bulldog king, cross: Slobber # twice (thrown)
+        (make MoveLook :show shows.BUMP :cue GROWL) ; bulldog king, cross: Chomp # twice
         (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, cross: Decree: +# for good
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, furious: Winds up: flop in 2
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, furious: Winds up: flop in 1
-        (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, furious: Belly flop all #
+        (make MoveLook :show shows.SMACK :cue GROWL) ; bulldog king, furious: Paw swipe # twice (a blow's star)
+        (make MoveLook :show shows.BITE :cue GROWL) ; bulldog king, furious: Flails # twice
+        (make MoveLook :show shows.BUMP :cue GROWL) ; bulldog king, furious: Belly flop # twice
         (make MoveLook :show shows.BOLT :cue GROWL) ; bulldog king, furious: Growl: +# for good
-        (make MoveLook :show shows.BOLT :cue GROWL) ; royal pug: Yap for #
+        (make MoveLook :show shows.FRIGHT :cue GROWL) ; royal pug: Yap for # (over her head)
         (make MoveLook :show shows.BOLT :cue GROWL) ; royal pug: Cheer: king +# next
         (make MoveLook :show shows.BOLT :cue GROWL) ; the old shroom: Calls # sporelets
         (make MoveLook :show shows.BOLT :cue GROWL) ; the old shroom: Cap slam for #
