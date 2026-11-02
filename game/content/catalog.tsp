@@ -106,6 +106,7 @@
                 ('plus 'ac.CAP_PLUS)
                 ('times 'ac.CAP_TIMES)
                 ('none 'ac.CAP_NONE)
+                ('hp 'ac.HP)
                 (_ (error "catalog: " (head row) " has no tag " (nth words i)))))))
     out)
 

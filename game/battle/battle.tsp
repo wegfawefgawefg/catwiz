@@ -52,27 +52,35 @@
 (const WIN_AT_ONCE bool false)
 (const SEED u16 0)
 
-; a new run (the second disk found by then: title.step), the starting items, no
-; levels or charms (none spent), no kittens kept, full hit points, the first fight. Her faces'
-; records (and a test's charm) are read from disk 2 here, in resident code, so the overlay groups
-; that read records later (the reward's) share no code with the fight's start
+; a new run: its first fight's start sets it up (start_run, in that overlay group)
+(let new_run bool false)
+
 (fn enter () void
-    (if (!= SEED 0)
-        (set random.seed SEED))
+    (set new_run true)
     (set state.page state.Page.none)
-    (for i u8 0 132
-        (set (at state.stacks i) 0))
-    (for k u8 0 state.SLOTS
-        (set (at state.items k) (at items.STARTING_ITEMS k))
-        (set (at state.levels k) 0))
-    (items.load_kit)
-    (charms.start START_CHARM)
-    (set state.kept 0)
-    (set state.hero_hp enc.HERO.hp)
+    (set state.hitstop 0) ; scratch (state.tsp): battle.step reads it first
     (set state.stage START_STAGE)
     (set state.fight START_FIGHT)
     (set state.screen state.Screen.battle)
     (set state.phase state.Phase.start))
+
+; the run set up (the second disk found by then: title.step): the starting items, no levels or
+; charms (none spent), no kittens kept, full hit points; her faces' records (and a test's charm)
+; read from disk 2
+(fn start_run () void
+    (if (!= SEED 0)
+        (set random.seed SEED))
+    (set state.page state.Page.none)
+    (for i u8 0 state.STACKS
+        (set (at state.stacks i) 0))
+    (for k u8 0 state.SLOTS
+        (set (at state.items k) (at items.STARTING_ITEMS k))
+        (set (at state.levels k) 0))
+    (set state.hero_hp enc.HERO.hp)
+    (set state.hero_max enc.HERO.hp)
+    (items.load_kit)
+    (charms.start START_CHARM)
+    (set state.kept 0))
 
 ; the fight's art, from the disk (draw/stage): its screen's picture unpacked onto the spare page
 ; and shown there (so it never shows half unpacked) while the screen's runs (the hero's, the small
@@ -105,6 +113,10 @@
 ; run's start (Phase.start): its code is read from the second disk when it comes (an overlay
 ; group: main memory is full)
 (fn enter_fight () void :overlay_disk2
+    (if new_run
+        (do
+            (set new_run false)
+            (start_run)))
     (load_art)
     (set state.turn 0)
     (set state.hitstop 0)
@@ -119,16 +131,18 @@
     (dice.gather)
     (for i u8 0 state.FLOATERS
         (set (at state.floaters i time) 0))
+    (set state.nap_die state.NOTHING)
     (set_hero)
     (st.start state.HERO state.NOTHING)
-    (charms.hook steps.When.fight_start)
-    (play.drain)
     (let count u8 (enc.count state.fight))
     (for i u8 1 state.ACTORS
         (if (> i count)
             (spawn.nobody i)
             (spawn.enemy i (enc.spot_enemy state.fight (- i 1)) false))
         (set (at state.actors i mood) (look.resting_mood i)))
+    ; the charms for a fight's start, once the enemies are there (a flea farm's fleas)
+    (charms.hook steps.When.fight_start)
+    (play.drain)
     (text.clear)
     (log.clear)
     (set state.hud_pills 0x0F)
@@ -153,7 +167,7 @@
             :kind state.NOTHING
             :figure enc.HERO.figure
             :hp state.hero_hp
-            :max_hp enc.HERO.hp
+            :max_hp state.hero_max
             :col enc.HERO.col
             :home enc.HERO.col
             :lift 0

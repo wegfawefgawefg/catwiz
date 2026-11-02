@@ -13,7 +13,10 @@
 (import content/effects fx)
 (import content/hooks)
 (import content/items)
+(import content/catalog)
 (import content/moves mv)
+(import content/enemies en)
+(import content/encounters enc)
 (import content/statuses st)
 (import content/steps)
 (import content/effects_said said)
@@ -40,6 +43,12 @@
 (let loop_t (array u8 3) :address 0x07F3)
 (let loops u8 0)
 (let threes bool false) ; a three's steps ran: the charms' threes come when the face is done
+; again: at the stop of call again_at, the steps run once more from again (an echo charm: the
+; rest after a three; a spell echo: a book from its start, echo_next set by land_face)
+(let again u8 0)
+(let again_at u8 0)
+(let again_on bool false)
+(let echo_next bool false)
 ; Mimic's: the steps the move it looked at is for her (cards.MIMICRY), and that move's number
 (let mimicked (ptr u8))
 (let mimicked_v u8 0)
@@ -65,16 +74,17 @@
 ; the steps at start run, on t0 with number n (content/steps.tsp says what each does); then the
 ; charms' threes and whatever waits (content/hooks). A step that runs other steps (call, copy,
 ; mimic) or sets off a hook enters them as a call: to, on to_t with to_v, and back after
-;  another enemy standing than t, picked at random (pick), NOTHING for none
-(fn other_at_random ((t u8)) u8
+;  another fighter standing than t from actor from on (1: an enemy; pick), picked at random,
+; NOTHING for none
+(fn other_at_random ((t u8) (from u8)) u8
     (let k u8 0)
-    (for i u8 1 state.ACTORS
+    (for i u8 from state.ACTORS
         (if (and (!= i t) (at state.actors i alive))
             (set k (+ k 1))))
     (if (= k 0)
         (return state.NOTHING))
     (let r u8 (as u8 (>> (* (as u16 (random.byte)) (as u16 k)) 8)))
-    (for i u8 1 state.ACTORS
+    (for i u8 from state.ACTORS
         (if (and (!= i t) (at state.actors i alive))
             (do
                 (if (= r 0)
@@ -92,6 +102,10 @@
     (set calls 0)
     (set loops 0)
     (set threes false)
+    (set again 0)
+    (set again_at 0)
+    (set again_on echo_next)
+    (set echo_next false)
     (while true
         (let op u8 (byte p pc))
         (let a u8 (byte p (+ pc 1)))
@@ -108,6 +122,7 @@
         (let old u8 (state.stack who s))
         (let now u8 old)
         (let write bool false)
+        (let cut bool false) ; the rest of the loop, or of the steps, is skipped
         (match op
             (steps.NUM (set v n))
             (steps.LIT (set v a))
@@ -119,6 +134,13 @@
                 (for k u8 0 per
                     (set v (st.sum v (fx.hero st.Status.kittens)))))
             (steps.GET (set v old))
+            (steps.PLUS (set v (st.sum v old)))
+            (steps.HALF (set v (>> v 1)))
+            (steps.MORE
+                (set v
+                    (st.sum v (if (= a 0)
+                        n
+                        a))))
             (steps.LEAST
                 (if (< v a)
                     (set v a)))
@@ -129,20 +151,33 @@
             (steps.IF
                 (if (= old 0)
                     (set pc (+ pc 2))))
-            (steps.IF_UP
-                (if (not (at state.actors t alive))
-                    (if (> loops base)
-                        (set pc (- (past_close p pc) 2))
-                        (set go false))))
+            (steps.IF_UP (set cut (not (at state.actors t alive))))
+            ; fell: the rest once t is down; landed: when the last hit took hit points
+            (steps.FELL
+                (set cut (if (= a 0)
+                    (at state.actors t alive)
+                    (= hit.lost 0))))
+            (steps.LOW (set cut (>= (at state.actors state.HERO hp) a)))
+            (steps.COIN
+                (if (< (random.byte) 128)
+                    (set pc (+ pc (<< a 1)))))
             (steps.THREE
                 (if fx.three
                     (do
                         (set threes true)
-                        (sound.cue_byte (as u8 sound.Cue.chime)))
+                        (sound.cue_byte (as u8 sound.Cue.chime))
+                        ; an echo: the rest runs again from here at the stop
+                        (if (charms.held enc.CharmKind.echo)
+                            (do
+                                (set again pc)
+                                (set again_at calls)
+                                (set again_on true))))
                     (set go false)))
             (steps.CALM
                 (if state.rerolled
-                    (set go false)))
+                    (if (= a 0)
+                        (set cut true)
+                        (set pc (+ pc 2)))))
             (steps.ADD
                 (set now (st.sum old v))
                 (set write true))
@@ -164,13 +199,16 @@
             (steps.SPILL
                 (let m u8 (st.sum (fx.mana) v))
                 (set v 0)
-                (if (> m st.MOST_MANA)
+                (if (> m state.mana_most)
                     (do
-                        (set v (- m st.MOST_MANA))
-                        (set m st.MOST_MANA)))
+                        (set v (- m state.mana_most))
+                        (set m state.mana_most)))
                 (fx.set_hero st.Status.mana m))
+            ; plus v, or with a 1 none left (all in)
             (steps.REROLLS
-                (let r u8 (st.sum state.rerolls v))
+                (let r u8 (if (= a 0)
+                    (st.sum state.rerolls v)
+                    0))
                 (if (> r cards.REROLLS_MOST)
                     (set r cards.REROLLS_MOST))
                 (set state.rerolls r)
@@ -229,7 +267,7 @@
             (steps.NEXT
                 (if (= a 0)
                     (set t (fx.next_standing t))
-                    (set t (other_at_random t)))
+                    (set t (other_at_random t 1)))
                 (if (= t state.NOTHING)
                     (set go false)))
             (steps.RETARGET
@@ -295,11 +333,39 @@
                         (set to_t on)
                         (set to_v (fx.prepare row on true)))))
             (steps.DO (set to (at cards.SUBS a)))
+            ; hat trick: a face from the whole catalog (the hairball, last, left out), read into its
+            ; row, at her levels, free; on her or on the target, as its aim says
+            (steps.HAT
+                (let id u8
+                    (as u8 (>> (* (as u16 (random.byte)) (as u16 (- catalog.FACE_COUNT 1))) 8)))
+                (items.read items.HAT_ROW id false)
+                (log.wait log.WHO (items.name items.HAT_ROW) (said.line said.SAY_OUT_OF_HAT) 0)
+                (set to (items.fx items.HAT_ROW))
+                (if (!= (items.aim items.HAT_ROW) state.Aim.self)
+                    (set to_t state.target))
+                (set to_v (fx.number items.HAT_ROW)))
+            ; the end, or again (on the next enemy standing when t fell)
+            (steps.STOP
+                (set go false)
+                (if (and again_on (= again_at calls))
+                    (do
+                        (set again_on false)
+                        (if (not (at state.actors t alive))
+                            (set t (fx.next_standing t)))
+                        (if (!= t state.NOTHING)
+                            (do
+                                (log.line (said.line said.SAY_ECHO) 0)
+                                (set pc again)
+                                (set go true))))))
             (steps.CUE (sound.cue_byte a))
             (steps.SAY (say (said.line (& a steps.SAY_LINE)) a t v))
             ; a line in the row itself, at a: its flag byte, then the line
             (steps.HERE (say (+ (+ p (as u16 a)) 1) (byte p a) t v))
             (_ (set go false)))
+        (if cut
+            (if (> loops base)
+                (set pc (- (past_close p pc) 2))
+                (set go false)))
         (if write
             (state.set_stack who s now))
         (if go
@@ -378,6 +444,15 @@
             (log.who t (said.line said.SAY_WARD_BROKEN_NO) 0)
             (charms.hook steps.When.warded)
             (return false)))
+    ; the Bulldog King never sleeps (Lullaby)
+    (let kind u8 (at state.actors t kind))
+    (if (and (= s (as u8 st.Status.sleep)) (and (>= kind en.KING) (<= kind en.KING_3)))
+        (do
+            (log.who t (said.line said.SAY_WONT_SLEEP) 0)
+            (return false)))
+    ; a monsoon: wet twice as long
+    (if (and (= s (as u8 st.Status.wet)) (charms.held enc.CharmKind.monsoon))
+        (set v (st.sum v v)))
     (hit.add_stacks t s v)
     true)
 
@@ -390,10 +465,16 @@
 ; other item's with its number after the boosts, its mana paid, its count towards a three
 (fn land_face ((row u8) (target u8)) void
     (let p (ptr u8) (items.fx row))
-    (if (= (items.slot row) ac.Slot.trick)
+    (let slot ac.Slot (items.slot row))
+    (if (= slot ac.Slot.trick)
         (do
             (run p target (fx.number row))
             (return)))
+    ; a spell echo: a book is cast twice (run: again), the second free
+    (if (and (= slot ac.Slot.book) (> (fx.hero st.Status.echo) 0))
+        (do
+            (fx.set_hero st.Status.echo 0)
+            (set echo_next true)))
     (run p target (fx.prepare row target false)))
 
 ; her turn ends: the charms for it (still water's mana); the turn's boosts go, a waiting plus and
@@ -405,6 +486,9 @@
     (fx.set_hero st.Status.plus 0)
     (fx.set_hero st.Status.plus_left 0)
     (fx.set_hero st.Status.mult 0)
+    (fx.set_hero st.Status.allin 0)
+    (fx.set_hero st.Status.flip 0)
+    (fx.set_hero st.Status.echo 0)
     (hooks.status steps.When.turn_end state.HERO state.HERO)
     (drain)
     (if (not (at state.actors state.HERO alive))

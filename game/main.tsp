@@ -143,7 +143,7 @@
     (set state.ticks 0)
     (mouse.init)
     (set state.mouse_on mouse.found)
-    (title.enter)
+    (title.begin)
     (while true
         (set state.ticks (+ state.ticks 1))
         (if state.mouse_on
@@ -169,7 +169,7 @@
             (set steps (- steps 1)))
         (if (!= next state.screen)
             (match next
-                (state.Screen.title (title.enter))
+                (state.Screen.title (title.begin))
                 (state.Screen.battle (battle.enter))))
         ; draw frame, then show it at the next vertical blank
         (match state.screen

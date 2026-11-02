@@ -3,7 +3,9 @@
 
 (const ACTORS u8 4) ; the hero, then up to three enemies
 (const HERO u8 0)
-(const STATUS_SLOTS u8 33)
+(const STATUS_SLOTS u8 51)
+(const FOE_SLOTS u8 23)
+(const STACKS u8 120)  ; STATUS_SLOTS + 3 FOE_SLOTS
 (const DICE u8 5)      ; dice she rolls (a charm adds one)
 (const DICE_MOST u8 6) ; and at most: the tray's six slots
 (const SLOTS u8 6)     ; item slots: a die's six faces
@@ -104,7 +106,9 @@
 (let phase Phase)
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
-(let stacks (array u8 132) :address 0x0272) ; status stacks: actor * STATUS_SLOTS + status (scratch, after drawn: cleared as a run starts)
+; status stacks: hers (STATUS_SLOTS), then each enemy's (FOE_SLOTS, the statuses an enemy can have:
+; content/statuses FOE_COUNT), at FIRST_STACK (cleared as a run starts)
+(let stacks (array u8 120))
 ; (the run's kit and the fight's dice are scratch at $0300-$033B and in text page 1's holes,
 ; set as a run, a fight and a turn start: AGENTS.md, Memory)
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the
@@ -115,10 +119,12 @@
 (let fight u8)
 (let next_fight u8) ; the row the next fight is: the next stage's, or the door picked
 (let hero_hp u8)
+(let hero_max u8)    ; and her most (10, more with charms: content/charms grow_hp)
+(let mana_most u8 5) ; mana she can hold at most (content/charms refresh: a mana battery's more)
 (let items (array u8 6) :address 0x0300)
 (let levels (array u8 6) :address 0x0306)
 (let charms (array u8 4) :address 0x030C)
-(let spent (array bool 4) :address 0x0318) ; a charm that works once a run has (nine lives)
+(let spent (array bool 4) :address 0x033C) ; a charm that works once a run has (nine lives)
 ; the fight's dice: dice_n of them roll each turn (die d in tray slot d). A die an enemy holds
 ; (held: its actor, NOTHING) stays out until that enemy is beaten; a slot a hairball clogs shows
 ; the hairball on every die until a re-roll coughs it up
@@ -134,45 +140,49 @@
 (let last_face u8)                       ; the item played last (copycat), and on whom
 (let last_on u8)
 (let last_played u8) ; the die played last this turn (an enemy may grab it)
-(let wand_on bool)   ; a wand face's steps are running (a hook on a wand hit: content/hooks)
-(let back_due bool)  ; her dice come back once this play is done (a red dot)
-(let refreshes u8)   ; times her dice came back this turn (cards.BACK_MOST at most)
-(let risen u8)       ; a bit per actor: got up as its next form this turn, not hurt till it ends
-(let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
-(let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
-(let selected u8)    ; the die picked to play next, or NOTHING
-(let looked u8)      ; a die an enemy holds, picked to read who has it (battle/words), or NOTHING
-(let target u8)      ; the enemy the dice go to
-(let log_hold u8)    ; frames the enemies wait, so the last log line can be read
-(let page Page)      ; the page open over the stage, none for the fight itself
+(let wand_on bool) ; a wand face's steps are running (a hook on a wand hit: content/hooks)
+(let back_due bool) ; her dice come back once this play is done (a red dot)
+(let booked bool) ; she played a book this turn (a cheap trick's first book costs less)
+(let lucky bool) ; a lucky seven gave its re-rolls this turn
+(let nap_die u8) ; a die a nap spot keeps from her last turn (not rolled at the turn's start), or NOTHING
+(let refreshes u8) ; times her dice came back this turn (cards.BACK_MOST at most)
+(let risen u8) ; a bit per actor: got up as its next form this turn, not hurt till it ends
+(let kept u8) ; the kittens she had when she won the last fight (a litter box keeps them)
+(let end_wait u8) ; frames until the hero's turn ends by itself, 0 for not
+(let selected u8) ; the die picked to play next, or NOTHING
+(let looked u8) ; a die an enemy holds, picked to read who has it (battle/words), or NOTHING
+(let target u8) ; the enemy the dice go to
+(let log_hold u8) ; frames the enemies wait, so the last log line can be read
+(let page Page) ; the page open over the stage, none for the fight itself
 ; the reward screen
 (let pick Pick)
 (let picked u8)     ; the card picked, or NOTHING
 (let next_enemy u8) ; on the enemies' turn, who acts next
 (let turn u8)
-; the action in flight
+; the action in flight (most of it scratch in text page 1's holes, set as an action starts:
+; AGENTS.md, Memory)
 (let act_source Source)
 (let act_row u8) ; its row in the faces or moves table
-(let act_by u8)
-(let act_on u8)
-(let act_time u8)
-(let act_done bool) ; its effect has landed
-(let hitstop u8)    ; frames everything holds still after a hit
-(let bolt_col u8)
-(let bolt_top u8)
-(let bolt_on bool)
-(let bolt_sx i16) ; k steps of the way, times 8: see battle/act.tsp
-(let bolt_sy i16)
-(let bolt_sprite u8) ; what the bolt's look shows: the bolt, or a card show's sprite
+(let act_by u8 :address 0x06F8)
+(let act_on u8 :address 0x06F9)
+(let act_time u8 :address 0x06FA)
+(let act_done bool :address 0x06FB) ; its effect has landed
+(let hitstop u8 :address 0x0776)    ; frames everything holds still after a hit
+(let bolt_col u8 :address 0x06FD)   ; ($06FC is the mouse card's: slot 4's screen hole)
+(let bolt_top u8 :address 0x06FE)
+(let bolt_on bool :address 0x06FF)
+(let bolt_sx i16 :address 0x071C) ; k steps of the way, times 8: see battle/act.tsp
+(let bolt_sy i16 :address 0x071E)
+(let bolt_sprite u8 :address 0x0720) ; what the bolt's look shows: the bolt, or a card show's sprite
 ; the action's show (content/shows): its row, copied as it starts, and the step's place
-(let show_way u8)
-(let show_a u8)
-(let show_b u8)
-(let show_first u8)
-(let show_steps u8)
-(let show_flags u8)
-(let show_col u8)
-(let show_row u8)
+(let show_way u8 :address 0x0721)
+(let show_a u8 :address 0x0722)
+(let show_b u8 :address 0x0723)
+(let show_first u8 :address 0x0771)
+(let show_steps u8 :address 0x0772)
+(let show_flags u8 :address 0x0773)
+(let show_col u8 :address 0x0774)
+(let show_row u8 :address 0x0775)
 (let floaters (array Floater 4) :address 0x06BC)
 ; the hud parts that need drawing again
 (let hud_pills u8)   ; a bit for each actor whose hit points or statuses changed
@@ -194,7 +204,7 @@
 (let glow_time u8)
 
 ; actor who's first stack, and its bit in the hud's flags
-(const FIRST_STACK (array u8 4) (make (array u8 4) 0 33 66 99))
+(const FIRST_STACK (array u8 4) (make (array u8 4) 0 51 74 97))
 (const BIT (array u8 4) (make (array u8 4) 1 2 4 8))
 
 (fn stack ((who u8) (status u8)) u8

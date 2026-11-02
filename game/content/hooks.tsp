@@ -9,7 +9,7 @@
 
 (const QUEUE u8 4)
 
-(let fx_of (array (ptr u8) 4))
+(let fx_of (array (ptr u8) 4) :address 0x0180) ; scratch: AGENTS.md, Memory
 (let on (array u8 4) :address 0x0AF8)
 (let value (array u8 4) :address 0x0AFC)
 (let head u8 0)
@@ -46,10 +46,13 @@
     (at fx_of k))
 
 ; the hooks of moment when that holder's statuses set off, run on t: each whose status holder
-; carries, with v its value stack (none when that is 0)
+; carries, with v its value stack (none when that is 0). A hit of hers (her_hit) sets off the
+; wand_hit ones too while a wand's steps run
 (fn status ((when steps.When) (holder u8) (t u8)) void
     (for k u8 0 cards.HOOK_COUNT
-        (if (= (cards.hook_when k) when)
+        (let w steps.When (cards.hook_when k))
+        (if (or (= w when)
+                (and (= w steps.When.wand_hit) (and state.wand_on (= when steps.When.her_hit))))
             (if (> (state.stack holder (cards.hook_status k)) 0)
                 (do
                     (let v u8 (state.stack holder (cards.hook_value k)))

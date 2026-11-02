@@ -19,8 +19,8 @@
 (const CHARMS_DRAWN u8 3)
 
 ; what the last draw gave: each card (a face's id, UP + a slot, or a charm's id) and its slot
-(let drawn (array u8 5))
-(let drawn_slot (array u8 5))
+(let drawn (array u8 5) :address 0x0168) ; scratch: AGENTS.md, Memory
+(let drawn_slot (array u8 5) :address 0x016D)
 (let count u8 0)
 
 ; whether card c (on slot) is a level (else a new face there)

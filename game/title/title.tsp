@@ -12,6 +12,8 @@
 (import draw/blit)
 (import draw/stage)
 (import sound/sound)
+(import sound/music)
+(import mockingboard mb)
 (import title/disk2)
 
 (const GLOW_STEPS u8 4)   ; the rim's colours in turn (tools/dhgr/title.py, GLOW)
@@ -19,6 +21,15 @@
 
 (let shown bool false)    ; the title has been on the screen
 (let card_due bool false) ; the sound card is set up at the first title's first step
+(let song_due bool false) ; the title's song (or with no card its jingle) starts at its step
+(let due bool false)      ; the title is set up at its next step (begin): in the title's group
+
+; the title comes next: its step sets it up (enter), so that code is in the title's overlay group
+; (from aux memory), not resident
+(fn begin () void
+    (set state.screen state.Screen.title)
+    (set state.glow_time 0)
+    (set due true))
 
 (fn enter () void
     ; the first time: the sound card is set up at the title's first step (step, in the title's
@@ -42,17 +53,26 @@
     (set state.glow_time 0)
     ; a tap or key from the loading or the run before waits in the keyboard: not a start
     (io_read u8 a2.KBDSTRB)
-    ; the first time the song starts with the card set up (step)
-    (if (not card_due)
-        (sound.song sound.Song.title)))
+    ; the song starts at the step (the first time with the card set up)
+    (set song_due true))
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen :overlay
+    (if due
+        (do
+            (set due false)
+            (enter)))
     (if card_due
         (do
             (set card_due false)
-            (sound.setup)
-            (sound.song sound.Song.title)))
+            (sound.setup)))
+    ; the song, or on the speaker the jingle (here: the title's group has its code)
+    (if song_due
+        (do
+            (set song_due false)
+            (if mb.found
+                (sound.song sound.Song.title)
+                (music.jingle))))
     ; the time to the key press seeds the dice
     (set random.seed (+ random.seed 1))
     (if (!= key 0)

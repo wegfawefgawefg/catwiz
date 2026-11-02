@@ -150,7 +150,36 @@
 ; (the sim's rules.py has each): a charm that changes a rule (when none) is read where the rule
 ; is, by its kind (content/charms amount: the dice, the re-rolls, the shield, the kittens' bite,
 ; a wand's number, a book's cost)
-(enum CharmKind (badmilk duck grumpy mittens mother pocket still tail toe trio litterbox lives9))
+(enum CharmKind (badmilk
+        duck
+        grumpy
+        mittens
+        mother
+        pocket
+        still
+        tail
+        toe
+        trio
+        litterbox
+        lives9
+        ; the faces round's (docs/faces.md); plain: a charm whose steps are all it does
+        plain
+        echo
+        itchy
+        porcupine
+        coat
+        cheap
+        battery
+        nap
+        lucky7
+        cursedcoin
+        jackpot
+        boots
+        trouble
+        skin
+        collar
+        monsoon
+        ninth))
 
 ; FIGHTS is in aux memory (:in aux: main memory is full): its fields are read here, one at a time
 (fn backdrop ((f u8)) u8

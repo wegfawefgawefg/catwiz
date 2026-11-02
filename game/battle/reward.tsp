@@ -88,8 +88,8 @@
 ; after an elite three charms, and their records read (code only the ending's overlay group has,
 ; so the reward's group is smaller); the reward's first step draws its screen (fresh)
 (let fresh bool false)
-(let cards (array u8 5)) ; the cards drawn (offer.drawn keeps the charms), and their slots
-(let card_slots (array u8 5))
+(let cards (array u8 5) :address 0x0172) ; the cards drawn (offer.drawn keeps the charms), and their slots
+(let card_slots (array u8 5) :address 0x0177)
 (let cards_n u8 0)
 
 (fn start () void :overlay
@@ -103,7 +103,10 @@
         (set (at cards k) (at offer.drawn k))
         (set (at card_slots k) (at offer.drawn_slot k)))
     (if (enc.elite state.fight)
-        (offer.draw true)))
+        (do
+            ; ninth life: her most hit points grow after each elite
+            (charms.grow_hp (charms.amount enc.CharmKind.ninth))
+            (offer.draw true))))
 
 ; her kit's page closed (battle/page): the step as it was, drawn again over the fight's picture:
 ; the BAG button, her six faces on the stage, the choices, the text (the pick's, if one is)
@@ -336,7 +339,7 @@
 ; her hit points after a nap: the ones she is missing, shifted right enc.NAP_HEAL_SHIFT (rounded
 ; up), back
 (fn healed () u8
-    (let missing u8 (- enc.HERO.hp state.hero_hp))
+    (let missing u8 (- state.hero_max state.hero_hp))
     (let part u8 (>> (+ missing (- (<< 1 enc.NAP_HEAL_SHIFT) 1)) enc.NAP_HEAL_SHIFT))
     (+ state.hero_hp part))
 

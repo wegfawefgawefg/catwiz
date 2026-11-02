@@ -6,13 +6,18 @@
 ; steps that give or take an amount use.
 ;
 ; values:     num (v = n), lit k (v = k), kits k (v + k a kitten; kits 0: + n a kitten), get s (v = her stack s),
-;             least k (v at least k), most k (v at most k), kept (v = the kittens kept from the last fight)
+;             least k (v at least k), most k (v at most k), kept (v = the kittens kept from the last fight),
+;             plus s (v + her stack s), more k (v + k; more 0: v + n, so twice n after num),
+;             half (v halved, rounded down)
 ; conditions: has s (the next step only when her stack s is not 0), if_up (the rest of the loop, or
-;             of the steps, only while t stands), three (the rest only when this face is her
-;             slot's third this turn: the item's three), calm (the rest only when she has not
-;             re-rolled this turn)
+;             of the steps, only while t stands), fell (the same, only once t is down), landed
+;             (only when the last hit took hit points), three (the rest only when this face is
+;             her slot's third this turn: the item's three), calm (the rest only when she has not
+;             re-rolled this turn; if_calm: the next step only), low k (the rest only when her hit
+;             points are under k), coin k (half the time, the next k steps are skipped)
 ; stacks:     add s, set s, max s, times s (her stack s plus, set to, at least, times v),
-;             sub s (less v, 0 at least). t_add, t_set, t_sub, t_get, t_has: t's stack instead
+;             sub s (less v, 0 at least). t_add, t_set, t_sub, t_get, t_has, t_plus, t_times: t's
+;             stack instead
 ; her:        mana (+v, 5 at most), spill (+v mana; v becomes what went past 5), rerolls (+v,
 ;             9 at most), heal (v hit points back)
 ; on t:       hit (v, her statuses and its shield), pierce (no shield), plain (its shield
@@ -23,12 +28,13 @@
 ;             (t = the next enemy standing after t; the steps stop when none), pick (t = another
 ;             enemy standing, picked at random; the steps stop when none), retarget (t is
 ;             down: the next standing), me (t = her)
-; calls:      call k (a shared row of cards.SUBS by name: ZAP_HIT, SHIELD, TANGLE, WET; then on),
+; calls:      call k (a shared row of cards.SUBS by name: ZAP_HIT, SHIELD, TANGLE, WET, FLEAS; then on),
 ;             stop (the end: the macro adds it)
 ; chains:     back (every die comes back to be rolled again after this play; stops when they
 ;             already will), blocked (v at most what her shield took of the last hit on her)
 ; the uniques, each a native routine: copy (copycat: her last face again), look and mimic
-;             (Mimic: what t's shown move would be for her, then do it)
+;             (Mimic: what t's shown move would be for her, then do it), hat (Hat Trick: a face
+;             drawn from the whole catalog, read from disk 2, played at her levels, free)
 ; sound, log: cue c (a sound), say l, say_it l, say_me l (a line of effects_said's SAY, with v
 ;             for its #; say_it and say_me name t or her first); or the line itself, a string
 ;             ((say "Third in a turn: static!")): it goes in the card's own row (after its stop),
@@ -85,12 +91,20 @@
 (const SAY u8 38)
 (const MOST u8 39)
 (const HERE u8 40) ; a say whose line is in the row itself: its argument the line's place there
+(const HALF u8 41)
+(const MORE u8 43)
+(const PLUS u8 44)
+(const FELL u8 45)
+(const LOW u8 46)
+(const COIN u8 47)
+(const HAT u8 48)
 
 ; the shared rows a call names (content/cards SUBS, in this order)
 (const SUB_ZAP_HIT u8 0)
 (const SUB_SHIELD u8 1)
 (const SUB_TANGLE u8 2)
 (const SUB_WET u8 3)
+(const SUB_FLEAS u8 4)
 
 ; a stack step's argument: the status, plus ON_T for t's stack instead of hers
 (const ON_T u8 0x80)
@@ -99,11 +113,24 @@
 (const SAY_ME u8 0x40)
 (const SAY_LINE u8 0x3F)
 
-; when a hook runs: an enemy with the status is hit by a wand (wand_hit), falls (falls), she is
-; hit by an enemy holding it (hit_her), her turn ends (turn_end); and the charms' moments: a
-; fight starts, she is hurt, a ward pip takes a curse, a three, she would die (dies: the charm
-; brings her back, content/charms saved), none (a charm that changes a rule instead)
-(enum When (wand_hit falls hit_her turn_end fight_start hurt warded three dies none))
+; when a hook runs: an enemy with the status is hit by a wand (wand_hit) or by any hit of hers
+; (her_hit), falls (falls), she is hit by an enemy holding it (hit_her), her turn ends
+; (turn_end); and the charms' moments: a fight starts, she is hurt, a ward pip takes a curse, a
+; three, she would die (dies: the charm brings her back, content/charms saved), an enemy falls
+; (kill), her turn starts (turn_start), none (a charm that changes a rule instead)
+(enum When (wand_hit
+        falls
+        hit_her
+        turn_end
+        fight_start
+        hurt
+        warded
+        three
+        dies
+        none
+        her_hit
+        kill
+        turn_start))
 
 ; (steps NAME (op arg) ...): a card's steps as a byte row in aux memory (step_bytes)
 (macro steps (name & rows)
@@ -124,6 +151,16 @@
             ('kits (list 'KITS 'num))
             ('get (list 'GET 'her))
             ('t_get (list 'GET 'its))
+            ('plus (list 'PLUS 'her))
+            ('t_plus (list 'PLUS 'its))
+            ('half (list 'HALF 'none))
+            ('more (list 'MORE 'num))
+            ('fell (list 'FELL 'none))
+            ('landed (list 'FELL 'landed))
+            ('low (list 'LOW 'num))
+            ('coin (list 'COIN 'num))
+            ('hat (list 'HAT 'none))
+            ('t_times (list 'TIMES 'its))
             ('least (list 'LEAST 'num))
             ('most (list 'MOST 'num))
             ('kept (list 'KEPT 'none))
@@ -132,6 +169,7 @@
             ('if_up (list 'IF_UP 'none))
             ('three (list 'THREE 'none))
             ('calm (list 'CALM 'none))
+            ('if_calm (list 'CALM 'others))
             ('add (list 'ADD 'her))
             ('t_add (list 'ADD 'its))
             ('set (list 'SET 'her))
@@ -184,6 +222,7 @@
             ('others 1)
             ('mimic 1)
             ('pick 1)
+            ('landed 1)
             (_ (error "steps: no argument kind " sort)))))
     (let flag_of (fn (sort)
         (match sort

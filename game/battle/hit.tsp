@@ -5,6 +5,8 @@
 (import state)
 (import art/sprites art)
 (import content/charms)
+(import content/cards)
+(import content/encounters enc)
 (import content/enemies en)
 (import content/statuses st)
 (import battle/spawn)
@@ -55,9 +57,18 @@
 ; comes off its hit points. An enemy's hit on her sets off the hooks of her statuses for it (who
 ; hits a spiky hero takes some back); what her shield took is hooks.blocked
 (fn strike ((by u8) (target u8) (amount u8) (pierce bool)) void
-    (if (and (= by state.HERO) state.wand_on)
-        (hooks.status steps.When.wand_hit target target))
+    (set lost 0)
+    (if (= by state.HERO)
+        (hooks.status steps.When.her_hit target target))
     (let damage u8 (st.sum (st.dealt by amount true) (state.stack target (as u8 st.Status.brand))))
+    ; rain boots: a wet enemy takes more; a troublemaker: an enemy's hit on a friend doubled
+    (if (!= target state.HERO)
+        (do
+            (if (> (state.stack target (as u8 st.Status.wet)) 0)
+                (set damage (st.sum damage (charms.amount enc.CharmKind.boots))))
+            (if (!= by state.HERO)
+                (for k u8 0 (charms.count enc.CharmKind.trouble)
+                    (set damage (st.sum damage damage))))))
     (if (= by state.HERO)
         (do
             (let back u8 (state.stack target (as u8 st.Status.reflect)))
@@ -77,7 +88,13 @@
             (let shield u8 (state.stack state.HERO (as u8 st.Status.shield)))
             (set hooks.blocked (if (> shield damage)
                 damage
-                shield))))
+                shield))
+            ; a porcupine: her shield took all of a hit, and the hitter takes some
+            (if (and (>= shield damage) (> damage 0))
+                (if (charms.held enc.CharmKind.porcupine)
+                    (hooks.add (addr_of (at cards.THORNS 0))
+                        by
+                        (charms.amount enc.CharmKind.porcupine))))))
     (if pierce
         (do
             (set state.hud_pills (| state.hud_pills (<< 1 target)))
@@ -86,6 +103,9 @@
         (plain target damage))
     (if at_her
         (hooks.status steps.When.hit_her state.HERO by)))
+
+; the hit points the last strike took (a face's landed step)
+(let lost u8 0)
 
 ; the line for who taking damage: her number pink, an enemy's yellow (her hits)
 (fn takes ((who u8)) (ptr u8)
@@ -118,6 +138,7 @@
     (if (> n hp)
         (set n hp))
     (let left u8 (- hp n))
+    (set lost n)
     ; she would fall: a charm may bring her back (nine lives), her max at most
     (if (and (and (= left 0) (> n 0)) (= who state.HERO))
         (do
@@ -176,7 +197,10 @@
                     (return)))))
     (set (at state.actors who alive) false)
     (if (!= who state.HERO)
-        (set (at state.actors who dying) DEATH_FRAMES))
+        (do
+            (set (at state.actors who dying) DEATH_FRAMES)
+            ; the charms for an enemy beaten (hunger)
+            (charms.hook steps.When.kill)))
     (set (at state.actors who mood) state.Mood.ko)
     (set (at state.actors who mood_time) DEATH_FRAMES)
     (set state.hud_intents (| state.hud_intents (<< 1 who)))

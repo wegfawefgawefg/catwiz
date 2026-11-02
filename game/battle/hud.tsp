@@ -113,17 +113,20 @@
     (put_number (at state.actors who hp))
     ; its stacks read straight from the table (state.stack is a call when the build is squeezed)
     (let first u8 (at state.FIRST_STACK who))
-    (for s u8 0 st.STATUS_COUNT
+    (for s u8 0 (st.count_of who)
         (let n u8 (at state.stacks (+ first s)))
-        (let show st.Show (at st.SHOW s))
-        (if (= show st.Show.pips)
-            (for k u8 0 n
-                (put (at st.GLYPH s))))
-        (if (and (> n 0) (or (= show st.Show.count) (= show st.Show.flag)))
+        (if (> n 0)
             (do
-                (put (at st.GLYPH s))
-                (if (= show st.Show.count)
-                    (put_number n)))))
+                (let show st.Show (st.show_of s))
+                (let glyph u8 (st.glyph_of s))
+                (if (= show st.Show.pips)
+                    (for k u8 0 n
+                        (put glyph)))
+                (if (or (= show st.Show.count) (= show st.Show.flag))
+                    (do
+                        (put glyph)
+                        (if (= show st.Show.count)
+                            (put_number n)))))))
     ; a flyer's badge just under it, a standing one's on the ground below
     (let top u8 HP_TOP)
     (if (< (place.feet who) 100)
@@ -232,6 +235,6 @@
     (let drew bool (tray.flush))
     (if state.hud_rerolls
         (do
-            (tray.side state.rerolls (fx.mana) st.MOST_MANA state.mana_shake)
+            (tray.side state.rerolls (fx.mana) state.mana_most state.mana_shake)
             (set state.hud_rerolls false)))
     drew)

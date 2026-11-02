@@ -9,6 +9,7 @@
 (import content/action ac)
 (import content/cards)
 (import content/play)
+(import content/effects fx)
 (import content/enemies en)
 (import content/moves mv)
 (import content/statuses st)
@@ -59,16 +60,27 @@
     (let effect ac.Effect (mv.effect row))
     (if (= aim state.Aim.self)
         (return by))
-    (if (and (> (state.stack by (as u8 st.Status.laser)) 0)
-            (or (= effect ac.Effect.hit) (= effect ac.Effect.hit2)))
+    (let attack bool (or (= effect ac.Effect.hit) (= effect ac.Effect.hit2)))
+    ; hypnotized: a random fighter, her or a friend
+    (if (and attack (> (state.stack by (as u8 st.Status.hypno)) 0))
+        (do
+            (let t u8 (play.other_at_random by 0))
+            (if use
+                (state.set_stack by (as u8 st.Status.hypno) 0))
+            (return t)))
+    ; lasered: the friend to its right (round again from the left), her when it has none
+    (if (and attack (> (state.stack by (as u8 st.Status.laser)) 0))
         (do
             (if use
                 (state.set_stack by (as u8 st.Status.laser) 0))
-            (return (friend by state.HERO))))
+            (let f u8 (fx.next_standing by))
+            (return (if (= f by)
+                state.HERO
+                f))))
     (if (= aim state.Aim.friend)
         (return (friend by by)))
     (let fight u8 (state.stack by (as u8 st.Status.catfight)))
-    (if (and (> fight 0) (or (= effect ac.Effect.hit) (= effect ac.Effect.hit2)))
+    (if (and (> fight 0) attack)
         (do
             (let f u8 (friend by state.NOTHING))
             (if (!= f state.NOTHING)
@@ -108,9 +120,13 @@
 
 ; what the bottom text says an enemy will do next: its move's text, or that it will skip it (in
 ; aux memory, as the moves' are: text.add_aux)
-(const QUIET (array (ptr u8) 2) (make (array (ptr u8) 2) "Finds its feet" "Stalls") :strings aux)
+(const QUIET (array (ptr u8) 3)
+    (make (array (ptr u8) 3) "Finds its feet" "Stalls" "Sleeps")
+    :strings aux)
 
 (fn intent_text ((who u8) (row u8)) (ptr u8)
+    (if (> (state.stack who (as u8 st.Status.sleep)) 0)
+        (return (at QUIET 2)))
     (if (st.skips who)
         (return (at QUIET 0)))
     (if (stalls who)
@@ -127,7 +143,25 @@
             (return)))
     (let extra u8 fight_extra)
     (set fight_extra 0)
-    (apply (mv.effect row) by target (st.sum (mv.amount row) extra)))
+    (let effect ac.Effect (mv.effect row))
+    (let n u8 (st.sum (mv.amount row) extra))
+    (if (or (= effect ac.Effect.hit) (= effect ac.Effect.hit2))
+        (do
+            ; scared: a shield of its number on itself instead
+            (if (> (state.stack by (as u8 st.Status.scared)) 0)
+                (do
+                    (state.set_stack by (as u8 st.Status.scared) 0)
+                    (apply ac.Effect.shield by by n)
+                    (return)))
+            ; berserk: every fighter standing, itself too
+            (if (> (state.stack by (as u8 st.Status.berserk)) 0)
+                (do
+                    (state.set_stack by (as u8 st.Status.berserk) 0)
+                    (for i u8 0 state.ACTORS
+                        (if (at state.actors i alive)
+                            (apply effect by i n)))
+                    (return)))))
+    (apply effect by target n))
 
 (fn apply ((effect ac.Effect) (by u8) (target u8) (n u8)) void
     (match effect

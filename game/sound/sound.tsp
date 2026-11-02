@@ -130,7 +130,8 @@
 ; Mirror Fur and Lucky Paw the ping, Sunbeam and Double or Nothing the chime), and the curses'
 ; have none (the curse's hiss follows them), so the speaker holds the processor no longer
 (const SPEAKER_FIRST (array u8 35)
-    (make (array u8 35) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8 0 15 4 8 11 0 3 8)
+    (make (array u8 35)
+        0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8 0 15 4 8 11 0 3 8)
     :in aux)
 
 (const SPEAKER_COUNT (array u8 35)
@@ -190,8 +191,8 @@
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
+            ; (the title's jingle: title.step)
             (match s
-                (Song.title (music.jingle))
                 (Song.won (sfx.win))
                 (Song.lost (sfx.lose))
                 (_))

@@ -32,8 +32,8 @@
         "ESC, ? or CLOSE: back to the fight.")
     :strings aux)
 
-(let shown u8 0)          ; the page shown; the last one read comes up again next time
-(let drawn (array u8 15)) ; how many blocks of each line the stage shows
+(let shown u8 0) ; the page shown; the last one read comes up again next time
+(let drawn (array u8 15) :address 0x03E1) ; how many blocks of each line the stage shows (scratch: AGENTS.md, Memory)
 
 ; the line k (0 the title) of the page read, into text's line
 (fn fetch ((k u8)) void
