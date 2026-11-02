@@ -19,8 +19,8 @@
 (const CHARMS_DRAWN u8 3)
 
 ; what the last draw gave: each card (a face's id, UP + a slot, or a charm's id) and its slot
-(let drawn (array u8 5))
-(let drawn_slot (array u8 5))
+(let drawn (array u8 5) :address 0x0168) ; scratch: AGENTS.md, Memory
+(let drawn_slot (array u8 5) :address 0x016D)
 (let count u8 0)
 
 ; whether card c (on slot) is a level (else a new face there)
@@ -40,25 +40,23 @@
         (return c))
     (+ UP slot))
 
-; the pool read (aux memory, in the offer's scratch): its count first, then rows of 3 bytes (a
-; face's id or UP + a slot, its weight, its slot) or 2 (a charm's id, its weight)
+; the pool read (aux memory, in the offer's scratch): its count first, then rows of 2 bytes: a
+; face's id or UP + a slot, and its weight times 16 plus its slot; or a charm's id and weight
 (fn pool_byte ((i u8)) u8
     (let p (ptr u8) (+ (items.scratch) (as u16 i)))
     (with_aux true false
         (load p)))
 
-(fn row_at ((of_charms bool) (k u8)) u8
-    (if of_charms
-        (return (+ 1 (<< k 1))))
-    (+ 1 (+ k (<< k 1))))
+(fn row_at ((k u8)) u8
+    (+ 1 (<< k 1)))
 
 (fn card_at ((of_charms bool) (k u8)) u8
-    (pool_byte (row_at of_charms k)))
+    (pool_byte (row_at k)))
 
 (fn slot_at ((of_charms bool) (k u8)) u8
     (if of_charms
         (return 0))
-    (pool_byte (+ (row_at of_charms k) 2)))
+    (& (pool_byte (+ (row_at k) 1)) 15))
 
 ; row k's weight, 0 when it cannot come now
 (fn weight ((of_charms bool) (k u8)) u8
@@ -72,7 +70,10 @@
             (return 0))
         (if (not (ok c slot))
             (return 0)))
-    (pool_byte (+ (row_at of_charms k) 1)))
+    (let w u8 (pool_byte (+ (row_at k) 1)))
+    (if of_charms
+        w
+        (>> w 4)))
 
 ; a random number below n (1 on): a random u16 cut to the bits n needs, again until it is below
 ; n (no division routine)

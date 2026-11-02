@@ -79,13 +79,21 @@
 (steps.steps MIRROR (blocked) (sub mirror) (hurt) (say_it BOUNCED))
 ; she was hit while spiky: who hit her takes the spikes
 (steps.steps THORNS (hurt))
+; her shield took a whole hit with a porcupine: the hitter takes its quills (hit.strike)
+(steps.steps QUILLS (hurt) (say_it " \x0dtakes # from the quills."))
+; she was hit in a flea collar: who hit her gets its fleas (FLEAS); in a hairball wall: tangled
+; at its next turn (a snag: content/statuses turn_end)
+(steps.steps SNAG (curse snag) (t_get snag) (say_it TANGLED_NEXT))
+; a hit she landed on a leech: she heals 1; on a mana leech: its mana (v)
+(steps.steps LEECHED (lit 1) (me) (heal))
+(steps.steps MANA_LEECHED (mana))
 
 (struct Hook ((status st.Status) (when steps.When) (value st.Status) (fx (ptr u8))))
 
-(const HOOK_COUNT u8 4)
+(const HOOK_COUNT u8 8)
 
-(const HOOKS (array Hook 4)
-    (make (array Hook 4)
+(const HOOKS (array Hook 8)
+    (make (array Hook 8)
         (make Hook
             :status st.Status.dot
             :when steps.When.wand_hit
@@ -105,7 +113,27 @@
             :status st.Status.gamble
             :when steps.When.turn_end
             :value st.Status.gamble
-            :fx (addr_of (at BET_LOST 0))))
+            :fx (addr_of (at BET_LOST 0)))
+        (make Hook
+            :status st.Status.collar
+            :when steps.When.hit_her
+            :value st.Status.collar
+            :fx (addr_of (at FLEAS 0)))
+        (make Hook
+            :status st.Status.wall
+            :when steps.When.hit_her
+            :value st.Status.wall
+            :fx (addr_of (at SNAG 0)))
+        (make Hook
+            :status st.Status.leech
+            :when steps.When.her_hit
+            :value st.Status.leech
+            :fx (addr_of (at LEECHED 0)))
+        (make Hook
+            :status st.Status.mleech
+            :when steps.When.her_hit
+            :value st.Status.mleech
+            :fx (addr_of (at MANA_LEECHED 0))))
     :in aux)
 
 ; nothing: play.drain runs it to start the waiting hooks
@@ -113,12 +141,13 @@
 
 ; ---- the shared steps' rows, for call (in steps.SUB_'s order)
 
-(const SUBS (array (ptr u8) 4)
-    (make (array (ptr u8) 4)
+(const SUBS (array (ptr u8) 5)
+    (make (array (ptr u8) 5)
         (addr_of (at ZAP_HIT 0))
         (addr_of (at SHIELD 0))
         (addr_of (at TANGLE 0))
-        (addr_of (at WET 0))))
+        (addr_of (at WET 0))
+        (addr_of (at FLEAS 0))))
 
 ; a hook's fields, read from aux memory in one go
 (fn hook_when ((k u8)) steps.When

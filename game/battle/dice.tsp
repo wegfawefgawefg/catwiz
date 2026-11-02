@@ -44,6 +44,15 @@
     (set (at state.face_of d) f)
     (set (at state.hand d) (item_on f)))
 
+; die d turns to its next face (a paw flip)
+(fn turn ((d u8)) void
+    (let f u8 (+ (at state.face_of d) 1))
+    (if (= f state.SLOTS)
+        (set f 0))
+    (set (at state.face_of d) f)
+    (set (at state.hand d) (item_on f))
+    (set state.hud_dice (| state.hud_dice (<< 1 d))))
+
 ; every die she rolls comes back to be played again (a red dot: content/cards), used or not, but
 ; one an enemy holds; then they roll (battle/turn start_roll)
 (fn back () void

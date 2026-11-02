@@ -194,8 +194,8 @@
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
+            ; (the title's jingle: title.step)
             (match s
-                (Song.title (music.jingle))
                 (Song.won (sfx.win))
                 (Song.lost (sfx.lose))
                 (_))

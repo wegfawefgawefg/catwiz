@@ -17,8 +17,9 @@
 (const KITTEN_HIT u8 2)     ; what a kitten's pounce does (kitten mittens add theirs)
 (const KITTENS_MOST u8 255) ; kittens at most (a byte: no cap)
 
+; her stacks are the table's first (state.FIRST_STACK): read straight, no call
 (fn hero ((s st.Status)) u8
-    (state.stack state.HERO (as u8 s)))
+    (at state.stacks (as u8 s)))
 
 (fn set_hero ((s st.Status) (n u8)) void
     (state.set_stack state.HERO (as u8 s) n))
@@ -29,11 +30,21 @@
 (fn mana () u8
     (hero st.Status.mana))
 
-; the mana item row costs: a book's cost, 1 more for each bad milk she holds
+; the mana item row costs: a book's cost, 1 more for each bad milk she holds, her first book a
+; turn a cheap trick's less; none for a face paid in hit points (ac.HP: its cost is those)
 (fn cost ((row u8)) u8
+    (if (!= (& (items.tags row) ac.HP) 0)
+        (return 0))
     (let c u8 (items.cost row))
     (if (= (items.slot row) ac.Slot.book)
-        (set c (+ c (charms.count enc.CharmKind.badmilk))))
+        (do
+            (set c (+ c (charms.count enc.CharmKind.badmilk)))
+            (if (not state.booked)
+                (do
+                    (let less u8 (charms.amount enc.CharmKind.cheap))
+                    (set c (if (> c less)
+                        (- c less)
+                        0))))))
     c)
 
 ; whether item row is a book she has too little mana for: it can't be played (the owner,
@@ -42,8 +53,11 @@
     (and (= (items.slot row) ac.Slot.book) (< (mana) (cost row))))
 
 ; whether the hero can play item row: not a hairball (a re-roll coughs it up), not a book she
-; has too little mana for
+; has too little mana for, not a face paid in more hit points than she has left
 (fn can_play ((row u8)) bool
+    (if (and (!= (& (items.tags row) ac.HP) 0)
+            (<= (at state.actors state.HERO hp) (items.cost row)))
+        (return false))
     (and (!= (items.slot row) ac.Slot.junk) (not (short_of_mana row))))
 
 ; n times m, by adding (no multiply routine), 255 at most
@@ -107,16 +121,22 @@
             (set n (st.sum n 1))
             (if use
                 (set_hero st.Status.nip (- nip 1)))))
-    (if (and (= slot ac.Slot.fluff) (> (hero st.Status.knead_fluff) 0))
+    (if (= slot ac.Slot.fluff)
         (do
-            (set n (st.sum n n))
-            (if use
-                (set_hero st.Status.knead_fluff 0))))
+            ; knead's times (stone cat's, compounded), a thick coat's more
+            (let kf u8 (hero st.Status.knead_fluff))
+            (if (> kf 0)
+                (do
+                    (set n (times n kf))
+                    (if use
+                        (set_hero st.Status.knead_fluff 0))))
+            (set n (st.sum n (charms.amount enc.CharmKind.coat)))))
     (if (= slot ac.Slot.wand)
         (do
             (set n
                 (st.sum n
-                    (st.sum (hero st.Status.knead_wand) (charms.amount enc.CharmKind.badmilk))))
+                    (st.sum (st.sum (hero st.Status.knead_wand) (hero st.Status.sharp))
+                        (charms.amount enc.CharmKind.badmilk))))
             (if use
                 (set_hero st.Status.knead_wand 0))
             (if (> (hero st.Status.wish) 0)
@@ -124,6 +144,10 @@
                     (set n (st.sum n n))
                     (if use
                         (set_hero st.Status.wish 0))))))
+    ; all in: every die this turn
+    (let all u8 (hero st.Status.allin))
+    (if (> all 0)
+        (set n (times n all)))
     (let spook u8 (hero st.Status.spook))
     (if (> n spook)
         (- n spook)
@@ -148,7 +172,9 @@
             (set state.last_face row)
             (set state.last_on target)))
     (if (and (= slot ac.Slot.book) (not again))
-        (set_hero st.Status.mana (- (mana) (cost row))))
+        (do
+            (set_hero st.Status.mana (- (mana) (cost row)))
+            (set state.booked true)))
     (set state.wand_on (= slot ac.Slot.wand))
     n)
 

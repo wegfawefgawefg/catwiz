@@ -31,10 +31,11 @@
 (let sprite_aux (array u8 10824) :in aux)
 
 ; where each block's runs are now (an address, and dhgr.runs' flags saying in which memory)
-(let aux_at (array u16 art.BLOCKS_MOST))
-(let aux_flags (array u8 art.BLOCKS_MOST))
-(let card_at (array u16 art.BLOCKS_MOST))
-(let card_flags (array u8 art.BLOCKS_MOST))
+; (scratch in the 6502 stack page's unused bottom, set as a block is placed: AGENTS.md, Memory)
+(let aux_at (array u16 art.BLOCKS_MOST) :address 0x014A)
+(let aux_flags (array u8 art.BLOCKS_MOST) :address 0x0154)
+(let card_at (array u16 art.BLOCKS_MOST) :address 0x0159)
+(let card_flags (array u8 art.BLOCKS_MOST) :address 0x0163)
 ; and where the next ones go
 (let aux_next u16 0)
 (let card2_next u16 0xD000)

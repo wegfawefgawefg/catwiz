@@ -60,7 +60,7 @@
 ; the sectors a disk table's record says it has (lib/disk: its length first, low byte first)
 ; a table's record (every table on the disks has its record in aux memory: main memory is full),
 ; copied here, where lib/disk reads it; 16 bytes, the longest (a boot disk table's)
-(let record (array u8 16))
+(let record (array u8 16) :address 0x013A) ; scratch: AGENTS.md, Memory
 
 (fn fetch ((table (ptr u8))) (ptr u8)
     (auxmem.read (addr_of (at record 0)) table 16)

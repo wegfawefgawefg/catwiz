@@ -69,14 +69,13 @@
     (text.add_aux (at SAY SAY_HP))
     (let first u8 (at state.FIRST_STACK who))
     (text.paint text.ORANGE)
-    (for s u8 0 st.STATUS_COUNT
+    (for s u8 0 (st.count_of who)
         (let n u8 (at state.stacks (+ first s)))
-        (let show st.Show (at st.SHOW s))
-        (if (and (> n 0) (!= show st.Show.hidden))
+        (if (and (> n 0) (!= (st.show_of s) st.Show.hidden))
             (do
                 (text.char ' ')
                 (text.add_aux (st.name s))
-                (if (!= show st.Show.flag)
+                (if (!= (st.show_of s) st.Show.flag)
                     (text.number n)))))
     (text.show 0))
 

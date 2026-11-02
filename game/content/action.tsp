@@ -28,13 +28,14 @@
 ; an item's tags (content/cards CARDS): THREE it has a three (what the third face of its slot in a turn adds: its
 ; steps after three), KITTENS her kit page shows her kittens by it, GROWS its number grows with
 ; her habit stack (Scratching Habit), and how the tray's caption shows its number: CAP_PLUS
-; (+n), CAP_TIMES (Xn), CAP_NONE (none)
+; (+n), CAP_TIMES (Xn), CAP_NONE (none); HP its cost is hit points (its steps take them)
 (const THREE u8 1)
 (const KITTENS u8 2)
 (const GROWS u8 4)
 (const CAP_PLUS u8 8)
 (const CAP_TIMES u8 16)
 (const CAP_NONE u8 32)
+(const HP u8 64) ; its cost is hit points, not mana (Blood Moon, Hiss)
 
 ; an item: what a face does (content/items.tsp). name: the log's and the card's name; text: the
 ; card's item line (# its number); slot: which face it sits on; amount: its number, step more a

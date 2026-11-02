@@ -169,4 +169,38 @@ thunder, thump, a heal chime, a slurp, a dice rattle, a snore, a boing, a coin.
    disk catalog). The five-card reward, no gates and the levels in an offer's number came with it.
 2. The faces and charms in batches by domain, run side by side: steps, text, picture, look,
    sound, each checked in a real fight. No sim work until all the content is in (the owner).
+   Built 2026-11-02 (branch faces-engine): all 52 faces and 23 charms above, in their slots'
+   files and content/charm_rows.tsp, with the engine list (see "As built" below).
 3. The owner plays the full roster; balance after that.
+
+## As built (2026-11-02, branch faces-engine)
+
+Every entry above is in, as its row. Where the build differs from the line above:
+
+- Steps the vocabulary gained: plus s / t_plus s (v + a stack), more k (v + k; more 0: v + n,
+  which doubles a num), half, fell (the rest once t is down), landed (the rest when the last hit
+  took hit points), low k, coin k (half the time the next k steps are skipped), if_calm (the next
+  step only with no re-roll), t_times, no_rerolls, hat. Count s was not needed: an all loop with
+  t_has and mana does it (Flea Market, Moon Tide). A face paid in hit points is the tag hp (its
+  cost the hit points, which its steps take; it cannot be played with that many or fewer).
+- Hooks: her_hit (any hit she lands on the holder: Leech, Mana Leech), and the collar and wall
+  as statuses on her with hit_her hooks. Porcupine is read in hit.strike (her shield took the
+  whole hit). Charms gained the moments kill (an enemy beaten: Hunger) and turn_start (Momentum,
+  Thick Skin).
+- Hairball Wall's tangle lands at the hitter's next turn (snag), since a tangle set during its
+  own turn would be gone at once.
+- Laser Show and Laser Pointer: a lasered enemy now hits the friend to its right (round again
+  from the left). Laser Show is the laser on every enemy and no damage, so it overlaps Laser
+  Pointer (3 mana, 8 to all and the laser): the owner may want it cheaper.
+- Spook, Hypnotize, Catnip Bomb act on the enemy's next attack (a hit move); a turn of another
+  move leaves them waiting.
+- Lullaby: the King's wards break first like any curse; with none left, "will not sleep".
+- Nap Spot keeps the first die she did not play. Paw Flip: she picks a die, then each pick of
+  it again turns it a face; she plays it as any die. Jackpot and Lucky Seven read the faces the
+  dice show after each roll (Lucky Seven once a turn). Hat Trick reads a random face's record
+  (any face but the hairball) from disk 2 mid-fight into aux memory's text page 1, about a fifth
+  of a second, and plays it at her levels, free.
+- Momentum gives her first wand each turn its plus through knead's wand stack.
+- Mana Battery shows the mana as a number and a star past 5 (no room for nine stars).
+- Kitten Cannon lost its kittens tag (Catnip had none).
+- The faces' pool is two bytes a row (weight times 16 plus the slot), 127 rows a sector.

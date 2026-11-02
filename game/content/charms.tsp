@@ -18,13 +18,14 @@
 
 (const SAY_KITTEN_RUNS_OFF u8 0)
 
-(const KINDS u8 12) ; enc.CharmKind's members
+(const KINDS u8 29) ; enc.CharmKind's members
 
 (let held_n u8 0) ; the charms she holds: rows items.CHARM_ROW on
 ; each kind's amount (the charms of it she holds, each its amount, as many times as she holds
 ; it) and how many of it she holds: made as she takes one (refresh), read by the rules
-(let kind_amount (array u8 12))
-(let kind_count (array u8 12))
+; (scratch in the 6502 stack page's unused bottom: AGENTS.md, Memory)
+(let kind_amount (array u8 29) :address 0x0100)
+(let kind_count (array u8 29) :address 0x011D)
 (let mark_text (array u8 2)) ; a charm's mark as a string (the tray, the kit page)
 
 ; held charm h's row
@@ -47,7 +48,9 @@
     (for h u8 0 held_n
         (let k u8 (items.kind (row h)))
         (set (at kind_amount k) (+ (at kind_amount k) (of h)))
-        (set (at kind_count k) (+ (at kind_count k) (at state.charms h)))))
+        (set (at kind_count k) (+ (at kind_count k) (at state.charms h))))
+    ; a mana battery holds more
+    (set state.mana_most (+ st.MOST_MANA (amount enc.CharmKind.battery))))
 
 ; and of charm kind
 (fn amount ((kind enc.CharmKind)) u8
@@ -86,17 +89,24 @@
 (fn take ((id u8)) void
     (let h u8 (holding id))
     (if (!= h state.NOTHING)
+        (set (at state.charms h) (+ (at state.charms h) 1))
         (do
-            (set (at state.charms h) (+ (at state.charms h) 1))
-            (refresh)
-            (return)))
-    (if (>= held_n items.HELD_CHARMS)
-        (return))
-    (items.read (row held_n) id true)
-    (set (at state.charms held_n) 1)
-    (set (at state.spent held_n) false)
-    (set held_n (+ held_n 1))
-    (refresh))
+            (if (>= held_n items.HELD_CHARMS)
+                (return))
+            (set h held_n)
+            (items.read (row h) id true)
+            (set (at state.charms h) 1)
+            (set (at state.spent h) false)
+            (set held_n (+ held_n 1))))
+    (refresh)
+    ; a lucky collar: more hit points at most, and those hit points
+    (if (= (items.kind (row h)) (as u8 enc.CharmKind.collar))
+        (grow_hp (items.amount (row h)))))
+
+; her most hit points n more, and n more hit points (between fights)
+(fn grow_hp ((n u8)) void
+    (set state.hero_max (st.sum state.hero_max n))
+    (set state.hero_hp (st.sum state.hero_hp n)))
 
 ; the charms she holds that act at moment when: their steps wait to run (content/play), v their
 ; amount. In the order she took them: charms of one moment must not depend on their order (a
@@ -108,7 +118,7 @@
 
 ; the dice a fight rolls: a sixth toe adds one
 (fn dice () u8
-    (let n u8 (+ state.DICE (amount enc.CharmKind.toe)))
+    (let n u8 (+ (+ state.DICE (amount enc.CharmKind.toe)) (count enc.CharmKind.cursedcoin)))
     (if (> n state.DICE_MOST)
         (set n state.DICE_MOST))
     n)
@@ -122,6 +132,8 @@
     (state.set_stack state.HERO (as u8 st.Status.box) 0)
     (state.set_stack state.HERO (as u8 st.Status.thorns) 0)
     (state.set_stack state.HERO (as u8 st.Status.mirror) 0)
+    (state.set_stack state.HERO (as u8 st.Status.collar) 0)
+    (state.set_stack state.HERO (as u8 st.Status.wall) 0)
     (if (> (state.stack state.HERO (as u8 st.Status.keep)) 0)
         (do
             (state.set_stack state.HERO shield old)
@@ -129,7 +141,10 @@
     (if (held enc.CharmKind.tail)
         (if (> (>> old 1) (state.stack state.HERO shield))
             (state.set_stack state.HERO shield (>> old 1))))
-    (- (+ 2 (amount enc.CharmKind.pocket)) (amount enc.CharmKind.toe)))
+    ; spare yarn's re-rolls, this turn only
+    (let rolls u8 (state.stack state.HERO (as u8 st.Status.rolls)))
+    (state.set_stack state.HERO (as u8 st.Status.rolls) 0)
+    (+ (- (+ 2 (amount enc.CharmKind.pocket)) (amount enc.CharmKind.toe)) rolls))
 
 ; she would fall: a charm for it not spent this run (nine lives) brings her back, with its
 ; amount of hit points (given; 0 for none), and its steps run (the log)
@@ -145,6 +160,9 @@
 
 ; she lost hit points: a kitten runs off; the charms for it (a grumpy face's mana)
 (fn hero_hurt () void
+    (state.set_stack state.HERO
+        (as u8 st.Status.scars)
+        (st.sum (state.stack state.HERO (as u8 st.Status.scars)) 1))
     (let kittens u8 (state.stack state.HERO (as u8 st.Status.kittens)))
     (if (> kittens 0)
         (do

@@ -106,4 +106,160 @@
             :show MIMIC
             :picture mimic
             :weight 1
-            :steps ((cue mimic) (look) (rep) (retarget) (mimic) (end)))))
+            :steps ((cue mimic) (look) (rep) (retarget) (mimic) (end)))
+        ; the faces round (docs/faces.md)
+        (HAIRBALL_BLAST
+            :name "HAIRBALL BLAST"
+            :text "2 mana: hits #."
+            :slot book
+            :amount 9
+            :step 2
+            :cost 2
+            :aim foe
+            :tags ()
+            :show BOLT
+            :picture hairballblast
+            :weight 3
+            :steps ((call ZAP_HIT)))
+        (PLAGUE
+            :name "PLAGUE"
+            :text "2 mana: fleas # on every enemy."
+            :slot book
+            :amount 3
+            :step 1
+            :cost 2
+            :aim all
+            :tags ()
+            :show FLEAS
+            :picture plague
+            :weight 3
+            :steps ((cue buzz) (all) (call FLEAS) (end)))
+        (RAIN_CLOUD
+            :name "RAIN CLOUD"
+            :text "2 mana: wets every enemy, # turns."
+            :slot book
+            :amount 2
+            :step 1
+            :cost 2
+            :aim all
+            :tags ()
+            :show RAIN
+            :picture raincloud
+            :weight 3
+            :steps ((cue splash) (all) (call WET) (end)))
+        (THUNDER_PURR
+            :name "THUNDER PURR"
+            :text "3 mana: # to every enemy,|twice that to a wet one."
+            :slot book
+            :amount 6
+            :step 2
+            :cost 3
+            :aim all
+            :tags ()
+            :show LIGHTNING
+            :picture thunderpurr
+            :weight 3
+            :steps ((cue thunder) (all) (num) (t_has wet) (more 0) (hit) (end)))
+        (SHIELD_BASH
+            :name "SHIELD BASH"
+            :text "2 mana: every enemy takes half|your shield, +#."
+            :slot book
+            :amount 0
+            :step 2
+            :cost 2
+            :aim all
+            :tags (plus)
+            :show SHIELD_FLING
+            :picture shieldbash
+            :weight 3
+            :steps ((cue whoosh) (get shield) (half) (more 0) (all) (hit) (end)))
+        (BLOOD_MOON
+            :name "BLOOD MOON"
+            :text "Costs 3 hp, no mana: hits #."
+            :slot book
+            :amount 14
+            :step 2
+            :cost 3
+            :aim foe
+            :tags (hp)
+            :show BOLT
+            :picture bloodmoon
+            :weight 3
+            :steps ((cue zap) (hit) (lit 3) (me) (hurt) (say_me " \x0bpays # hp.")))
+        (MANA_BURN
+            :name "MANA BURN"
+            :text "All your mana: hits # for each."
+            :slot book
+            :amount 4
+            :step 2
+            :cost 1
+            :aim foe
+            :tags ()
+            :show MANA_SWIRL
+            :picture manaburn
+            :weight 3
+            :steps ((cue sparkle) (num)
+                (set tmp)
+                (get mana)
+                (more 1)
+                (times tmp)
+                (get tmp)
+                (hit)
+                (lit 0)
+                (set mana)))
+        (FRESH_ROLL
+            :name "FRESH ROLL"
+            :text "1 mana: your played dice come back."
+            :slot book
+            :amount 0
+            :step 0
+            :cost 1
+            :aim self
+            :tags (none)
+            :show DIE_FLIP
+            :picture freshroll
+            :weight 3
+            :steps ((cue rattle) (back) (say "Fresh roll: the dice come back.")))
+        (LULLABY
+            :name "LULLABY"
+            :text "3 mana: it skips its next move.|The Bulldog King stays awake."
+            :slot book
+            :amount 0
+            :step 0
+            :cost 3
+            :aim foe
+            :tags (none)
+            :show ZZZ
+            :picture lullaby
+            :weight 3
+            :steps ((cue snore) (lit 1) (curse sleep) (say_it " \x09falls asleep.")))
+        (LASER_SHOW
+            :name "LASER SHOW"
+            :text "3 mana: each enemy's next hit|goes to the friend on its right."
+            :slot book
+            :amount 0
+            :step 0
+            :cost 3
+            :aim all
+            :tags (none)
+            :show SPIRAL
+            :picture lasershow
+            :weight 3
+            :steps ((cue zap) (all)
+                (lit 1)
+                (t_set laser)
+                (end)
+                (say "Laser show! They turn on friends.")))
+        (SNOWBALL
+            :name "SNOWBALL"
+            :text "2 mana: hits #.|Each one after it this fight: +4."
+            :slot book
+            :amount 6
+            :step 2
+            :cost 2
+            :aim foe
+            :tags ()
+            :show BOLT
+            :picture snowball
+            :weight 3
+            :steps ((cue zap) (num) (plus snowball) (hit) (lit 4) (add snowball)))))

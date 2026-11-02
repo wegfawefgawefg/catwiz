@@ -3,8 +3,8 @@
 ; face or charm says is in its own row, a string in its say (content/faces.tsp), and costs no
 ; memory
 
-(const SAY (array (ptr u8) 16)
-    (make (array (ptr u8) 16)
+(const SAY (array (ptr u8) 20)
+    (make (array (ptr u8) 20)
         "The next die gets +#."
         "Nothing to copy yet."
         "Copycat!"
@@ -20,7 +20,11 @@
         " \x0bloses the bet: # hp."
         "There is nothing to mimic."
         " \x09gets spiky: # back."
-        " \x0dtakes # bounced back.")
+        " \x0dtakes # bounced back."
+        " \x09is tangled next turn: -#."
+        " comes out of the hat!"
+        " will not sleep."
+        "Again!")
     :in aux)
 
 ; sentence k's place (in aux memory, as text.add_aux takes it)
@@ -44,3 +48,7 @@
 (const SAY_NO_MIMIC u8 13)
 (const SAY_SPIKY u8 14)
 (const SAY_BOUNCED u8 15)
+(const SAY_TANGLED_NEXT u8 16)
+(const SAY_OUT_OF_HAT u8 17)
+(const SAY_WONT_SLEEP u8 18)
+(const SAY_ECHO u8 19)

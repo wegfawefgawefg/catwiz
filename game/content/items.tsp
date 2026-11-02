@@ -5,6 +5,7 @@
 ;   row 6       the hairball (an enemy clogs a slot with it mid-fight)
 ;   rows 7-10   her charms (content/charms)
 ;   rows 11-15  the five faces offered between fights; rows 16-18 the three charms offered
+;   row 19      a face a hat trick drew mid-fight (its record in aux memory's text page 1)
 ; A row's record (256 bytes) is in aux memory: rows 0-10 all run, the offer's rows only between
 ; fights, at the end of blit.sprite_aux (the last fight's enemies' sprites, dead until the next
 ; fight's art loads; the hero's stay at its start: art/dhgr/memory.txt). What a fight reads every
@@ -23,7 +24,7 @@
 
 (const ITEM_MOST u8 2)
 
-(const ROWS u8 19)
+(const ROWS u8 20)
 (const HAIRBALL u8 6)
 (const CHARM_ROW u8 7)   ; her charms: rows 7 on
 (const HELD_CHARMS u8 4) ; kinds of charm she holds at most (the kit page shows four)
@@ -32,6 +33,10 @@
 (const OFFERS u8 5)
 (const OFFER_CHARM_ROW u8 16) ; the charms offered: rows 16-18
 (const OFFER_CHARMS u8 3)
+(const HAT_ROW u8 19) ; a face a hat trick plays (content/play), its record at HAT_AT
+; its record: aux memory's text page 1, the rules page's buffer, free in her turn (a let, not a
+; constant pointer: the layout checks a constant one against main memory's lets there)
+(let hat_at u16 0x0400)
 (const SCRATCH_BYTES u16 2304) ; the draws' pool (a sector) and the offer's 8 records
 (const NAME_AT u8 7)           ; a record's bytes (content/catalog)
 (const TEXT_AT u8 8)
@@ -40,15 +45,16 @@
 
 ; what a fight reads every play, in main memory: a row's slot, number (amount, step more a level),
 ; a book's mana, aim, tags (content/action) and show (content/shows); and its catalog id
-(let slots (array ac.Slot 19))
-(let amounts (array u8 19))
-(let ups (array u8 19))
-(let costs (array u8 19))
-(let aims (array state.Aim 19))
-(let tag_bits (array u8 19))
-(let show_of (array u8 19))
-(let ids (array u8 19))
-(let kinds (array u8 19)) ; a record's first byte as it is (a charm's kind)
+; (scratch at fixed addresses, set as a row loads: AGENTS.md, Memory)
+(let slots (array ac.Slot 20) :address 0x0272)
+(let amounts (array u8 20) :address 0x0286)
+(let ups (array u8 20) :address 0x029A)
+(let costs (array u8 20) :address 0x02AE)
+(let aims (array state.Aim 20) :address 0x02C2)
+(let tag_bits (array u8 20) :address 0x02D6)
+(let show_of (array u8 20) :address 0x02EA)
+(let ids (array u8 20) :address 0x03CD)
+(let kinds (array u8 20) :address 0x0310) ; a record's first byte as it is (a charm's kind)
 
 ; where the offer's scratch starts: the draws' pool there, the records after it
 (fn scratch () (ptr u8)
@@ -56,6 +62,8 @@
 
 ; row's record, in aux memory
 (fn record ((row u8)) (ptr u8)
+    (if (= row HAT_ROW)
+        (return (as (ptr u8) hat_at)))
     (if (< row RESIDENT)
         (return (+ (addr_of (at records 0)) (<< (as u16 row) 8))))
     (+ (scratch) (<< (as u16 (- row (- OFFER_ROW 1))) 8)))
@@ -107,7 +115,7 @@
 
 ; ---- loading (between fights only)
 
-(let top (array u8 7)) ; a record's first bytes, copied here
+(let top (array u8 7) :address 0x0197) ; a record's first bytes, copied here (scratch)
 
 ; a record's slot and aim bytes as the enums (nothing converts a number back to an enum); a
 ; charm's kind past the slots reads as junk

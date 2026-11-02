@@ -290,7 +290,7 @@
 
 ; the re-roll button (a die, X and the re-rolls left, grey with none), the bag and rules buttons
 ; (B, ?) right of it, the mana stars lit for what the hero has, END TURN, in pixels 105-139
-(let side_glyphs (array u8 8) :address 0x02F6)
+(let side_glyphs (array u8 8) :address 0x01A0) ; scratch: AGENTS.md, Memory
 
 (fn side_row ((y u8) (rerolls u8) (mana u8) (most u8) (shake u8)) void
     (pix.fill BLACK)
@@ -337,11 +337,18 @@
                 (if (= (& shake 2) 0)
                     107
                     109)))
-            (for k u8 0 most
-                (set (at side_glyphs k) (if (< k mana)
-                    '\''
-                    '$')))
-            (pix.glyphs x (addr_of (at side_glyphs 0)) most (- y 139) WHITE)))
+            (let n u8 most)
+            ; past 5 (a mana battery's) no room: the number and a star
+            (if (> most 5)
+                (do
+                    (set (at side_glyphs 0) (+ '0' mana))
+                    (set (at side_glyphs 1) '\'')
+                    (set n 2))
+                (for k u8 0 most
+                    (set (at side_glyphs k) (if (< k mana)
+                        '\''
+                        '$'))))
+            (pix.glyphs x (addr_of (at side_glyphs 0)) n (- y 139) WHITE)))
     (end_pill y 107 "END TURN" 8))
 
 ; row y of END TURN (or SKIP between fights): a magenta pill, a pink shine along its top, the

@@ -28,11 +28,14 @@
 (import battle/look)
 (import battle/place)
 (import battle/words)
+(import battle/spawn)
+(import content/encounters enc)
+(import content/steps)
 (import sound/sound)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 9)
-    (make (array (ptr u8) 9)
+(const SAY (array (ptr u8) 11)
+    (make (array (ptr u8) 11)
         "Pick a die 1-5, then who it is for."
         "E ends turn. B kit, ? rules, H log."
         "Your turn: pick a die (1-5)."
@@ -41,7 +44,9 @@
         ": meow!"
         "A hairball: re-roll it to cough it up."
         "Stars fill your mana; spells spend."
-        "All your dice come back!")
+        "All your dice come back!"
+        "Jackpot! Five alike win the fight!"
+        "Lucky seven: +# re-rolls.")
     :strings aux)
 
 (const SAY_PICK_DIE_1 u8 0)
@@ -53,6 +58,10 @@
 (const SAY_HAIRBALL_RE_ROLL u8 6)
 (const SAY_STARS_FILL_MANA u8 7)
 (const SAY_ALL_BACK u8 8)
+(const SAY_JACKPOT u8 9)
+(const SAY_LUCKY u8 10)
+
+(const LUCKY_REROLLS u8 2) ; a lucky seven's re-rolls
 
 (const HURT_LEFT u8 8)  ; frames of a held hurt face left once the enemies' turn ends
 (const DEAL_EVERY u8 4) ; frames from one die landing to the next: a power of 2
@@ -73,10 +82,15 @@
 (fn start_round () void
     (set state.turn (+ state.turn 1))
     (set state.rerolls (charms.round_start))
+    ; the charms for her turn's start (momentum, thick skin)
+    (charms.hook steps.When.turn_start)
+    (play.drain)
     (set state.rerolled false)
     (set state.refreshes 0)
     (set state.risen 0)
     (set state.back_due false)
+    (set state.booked false)
+    (set state.lucky false)
     (set state.last_played state.NOTHING)
     (for k u8 0 state.SLOTS
         (set (at state.combo k) 0))
@@ -106,12 +120,57 @@
             (let d u8 (>> t DEAL_SHIFT))
             (if (and (< d state.DICE_MOST) (not (at state.played d)))
                 (do
-                    (dice.roll d)
+                    ; a nap spot's die keeps its face from her last turn
+                    (if (= d state.nap_die)
+                        (set state.nap_die state.NOTHING)
+                        (dice.roll d))
                     (set state.hud_dice (| state.hud_dice (<< 1 d)))
                     (sound.cue sound.Cue.rattle)))))
     (if (< t (<< state.DICE_MOST DEAL_SHIFT))
         (return))
+    (if (showing)
+        (return))
     (start_player))
+
+; the faces her dice show (but the ones enemies hold), for the charms that read them: a jackpot
+; (five alike win the fight: gives true, the fight is over) and a lucky seven (five different:
+; re-rolls, once a turn)
+(fn showing () bool
+    (if (not (or (charms.held enc.CharmKind.jackpot) (charms.held enc.CharmKind.lucky7)))
+        (return false))
+    (let seen u8 0)
+    (let most u8 0)
+    (for f u8 0 state.SLOTS
+        (let k u8 0)
+        (for d u8 0 state.dice_n
+            (if (and (= (at state.held d) state.NOTHING) (= (at state.face_of d) f))
+                (set k (+ k 1))))
+        (if (> k 0)
+            (set seen (+ seen 1)))
+        (if (> k most)
+            (set most k)))
+    (if (and (>= most 5) (charms.held enc.CharmKind.jackpot))
+        (do
+            (sound.cue sound.Cue.coin)
+            (log.line (at SAY SAY_JACKPOT) 0)
+            (for i u8 1 state.ACTORS
+                (if (at state.actors i alive)
+                    (spawn.nobody i)))
+            ; their badges go too
+            (set state.hud_pills 0x0E)
+            (set state.hud_intents 0x0E)
+            (end_battle state.Phase.won)
+            (return true)))
+    (if (and (and (>= seen 5) (charms.held enc.CharmKind.lucky7)) (not state.lucky))
+        (do
+            (set state.lucky true)
+            (set state.rerolls (+ state.rerolls LUCKY_REROLLS))
+            (if (> state.rerolls cards.REROLLS_MOST)
+                (set state.rerolls cards.REROLLS_MOST))
+            (set state.hud_rerolls true)
+            (sound.cue sound.Cue.lucky)
+            (log.line (at SAY SAY_LUCKY) LUCKY_REROLLS)))
+    false)
 
 ; the hero's turn goes on; with nothing left to play it ends by itself after a beat, unless
 ; a re-roll might help
@@ -254,6 +313,13 @@
             (set state.hud_words true)
             (sound.cue sound.Cue.blip)
             (return)))
+    ; a paw flip: picked again, the die turns to its next face
+    (if (> (fx.hero st.Status.flip) 0)
+        (do
+            (dice.turn d)
+            (set state.hud_words true)
+            (sound.cue sound.Cue.rattle)
+            (return)))
     (if (= (picked_aim) state.Aim.foe)
         (do
             (deselect)
@@ -287,6 +353,7 @@
             (return)))
     (sound.cue sound.Cue.tok)
     (deselect)
+    (fx.set_hero st.Status.flip 0)
     (set (at state.played d) true)
     (set state.last_played d)
     (mark_slot d)
@@ -298,7 +365,7 @@
     (act.begin state.Source.face row state.HERO target))
 
 (fn reroll () void
-    (if (= state.rerolls 0)
+    (if (or (= state.rerolls 0) (> (fx.hero st.Status.allin) 0))
         (do
             (sound.cue sound.Cue.nope)
             (return)))
@@ -364,21 +431,33 @@
         1))
 
 ; statuses that hurt at the end of who's turn: fleas bite (and say so)
+; (itchy: an enemy's fleas bite twice)
 (fn turn_end ((who u8)) void
     (let fleas bool (> (state.stack who (as u8 st.Status.flea_turns)) 0))
     (let hurt u8 (st.turn_end who))
-    (if fleas
-        (log.who who (at st.SAY st.SAY_TAKES_FROM_FLEAS) hurt))
-    (if (> hurt 0)
-        (do
-            (hit.lose who hurt)
-            (play.drain))))
+    (let bites u8 1)
+    (if (and (!= who state.HERO) (charms.held enc.CharmKind.itchy))
+        (set bites 2))
+    (for k u8 0 bites
+        (if fleas
+            (log.who who (at st.SAY st.SAY_TAKES_FROM_FLEAS) hurt))
+        (if (> hurt 0)
+            (do
+                (hit.lose who hurt)
+                (play.drain)))))
 
 ; her turn ends: her kittens pounce (content/effects), her statuses tick, a spook wears off;
 ; then the enemies' turn begins: their shields from last turn go
 (fn end_turn () void
     (set state.end_wait 0)
     (deselect)
+    ; a nap spot: the first die she did not play keeps its face for her next turn
+    (set state.nap_die state.NOTHING)
+    (if (charms.held enc.CharmKind.nap)
+        (for d u8 0 state.dice_n
+            (if (and (= state.nap_die state.NOTHING)
+                    (and (not (at state.played d)) (!= (at state.hand d) items.HAIRBALL)))
+                (set state.nap_die d))))
     (sound.cue sound.Cue.turn_off)
     (play.turn_end)
     (if (not (any_enemy_alive))
@@ -436,7 +515,9 @@
             (do
                 (state.set_stack i (as u8 st.Status.hurt) 0)
                 (if (st.skips i)
-                    (state.set_stack i (as u8 st.Status.fresh) 0)
+                    (do
+                        (state.set_stack i (as u8 st.Status.fresh) 0)
+                        (state.set_stack i (as u8 st.Status.sleep) 0))
                     (foes.next_move i))
                 ; its face follows its new intent, unless it is still showing a hurt
                 (if (= (at state.actors i mood_time) 0)

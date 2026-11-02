@@ -213,9 +213,9 @@
 
 ; the stretches of blocks drawn alike: all white (drawn without masks, faster) or not, each
 ; its first block, how many and whether white
-(let seg_first (array u8 5))
-(let seg_count (array u8 5))
-(let seg_white (array bool 5))
+(let seg_first (array u8 5) :address 0x0188) ; scratch: AGENTS.md, Memory
+(let seg_count (array u8 5) :address 0x018D)
+(let seg_white (array bool 5) :address 0x0192)
 (let seg_n u8 0)
 
 ; blocks b0 to b0 + n - 1 of the line: each character's colour (from the runs) into pix.px (free
