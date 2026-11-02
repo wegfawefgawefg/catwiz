@@ -313,7 +313,7 @@
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
             :name "LITTER BOX"
-            :text "Your kittens stay between fights."
+            :text "Half your kittens stay|for the next fight."
             :kind CharmKind.litterbox
             :amount 1
             :when steps.When.fight_start

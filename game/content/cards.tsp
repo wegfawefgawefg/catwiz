@@ -104,7 +104,7 @@
     (num)
     (hit))
 
-(steps.steps FITS (kits 2) (call SUB_SHIELD))
+(steps.steps FITS (lit 3) (kits 0) (call SUB_SHIELD))
 
 ; curses (and the enemies' curses on her)
 (steps.steps FLEAS

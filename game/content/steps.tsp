@@ -5,7 +5,7 @@
 ; card's number n (its # after levels and boosts) and a value v (n to start with), which the
 ; steps that give or take an amount use.
 ;
-; values:     num (v = n), lit k (v = k), kits k (v + k a kitten), get s (v = her stack s),
+; values:     num (v = n), lit k (v = k), kits k (v + k a kitten; kits 0: + n a kitten), get s (v = her stack s),
 ;             least k (v at least k), most k (v at most k), kept (v = the kittens kept from the last fight)
 ; conditions: has s (the next step only when her stack s is not 0), if_up (the rest of the loop, or
 ;             of the steps, only while t stands), three (the rest only when this face is her

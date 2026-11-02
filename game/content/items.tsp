@@ -266,10 +266,10 @@
             :icon icons.TILE_KNOCK)
         (make ac.Item
             :name "IF IT FITS"
-            :text "2 mana: shield #.|Each kitten you have adds 2 more."
+            :text "2 mana: shield 3, and # more|for each kitten you have."
             :slot ac.Slot.book
-            :amount 10
-            :step 2
+            :amount 1
+            :step 1
             :cost 2
             :aim state.Aim.self
             :icon icons.TILE_FITS)

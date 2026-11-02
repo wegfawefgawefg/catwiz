@@ -348,10 +348,13 @@
                     (return)))))
     (start_player))
 
-; the fight is over; won, her kittens are kept (a litter box brings them to the next)
+; the fight is over; won, half her kittens are kept (a litter box brings them to the next)
 (fn end_battle ((how state.Phase)) void
     (if (= how state.Phase.won)
-        (set state.kept (fx.hero st.Status.kittens)))
+        ; half of them, rounded up (the owner: all of them snowballed through the run)
+        (do
+            (let k u8 (fx.hero st.Status.kittens))
+            (set state.kept (- k (>> k 1)))))
     (set state.phase how)
     (set state.timer 0)
     (look.show_mood state.HERO

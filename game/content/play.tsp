@@ -111,8 +111,12 @@
         (match op
             (steps.NUM (set v n))
             (steps.LIT (set v a))
+            ; v plus a for each kitten, or with a 0 the card's number for each (If It Fits)
             (steps.KITS
-                (for k u8 0 a
+                (let per u8 (if (= a 0)
+                    n
+                    a))
+                (for k u8 0 per
                     (set v (st.sum v (fx.hero st.Status.kittens)))))
             (steps.GET (set v old))
             (steps.LEAST
