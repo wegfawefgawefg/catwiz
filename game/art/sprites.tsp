@@ -8,7 +8,7 @@
 (const KIND_GLOW u8 0) ; on the title
 (const NONE u8 255) ; no sprite, no kind
 (const ROLE_COUNT u8 10) ; idle attack hurt happy surprised flap flash shot shot2 shot3
-(const SPRITES_MOST u8 54)
+(const SPRITES_MOST u8 59)
 (const KINDS_MOST u8 6)
 (const BLOCKS_MOST u8 5)
 
@@ -47,6 +47,11 @@
 (const PAW1 u8 32) ; 2 x 9
 (const DROP u8 33) ; 2 x 8
 (const STREAK u8 34) ; 2 x 7
+(const SHIELD u8 35) ; 2 x 5
+(const HEART u8 36) ; 2 x 5
+(const DIE u8 37) ; 2 x 5
+(const ZZZ u8 38) ; 2 x 6
+(const BANG u8 39) ; 2 x 6
 (const GLOW0 u8 0) ; 32 x 32, on the title
 (const GLOW1 u8 1) ; 32 x 32, on the title
 (const GLOW2 u8 2) ; 32 x 32, on the title
@@ -84,16 +89,16 @@
 ; each role (kind * ROLE_COUNT + role, NONE for the idle frame); by block its runs' sizes;
 ; by figure its kind here (NONE: not on this screen)
 (struct Tables ((blocks u8)
-        (cols (array u8 54))
-        (rows (array u8 54))
-        (dcol (array i8 54))
-        (dtop (array i8 54))
-        (aux_lo (array u8 54))
-        (aux_hi (array u8 54))
-        (main_lo (array u8 54))
-        (main_hi (array u8 54))
-        (kind_of (array u8 54))
-        (solid (array u8 54))
+        (cols (array u8 59))
+        (rows (array u8 59))
+        (dcol (array i8 59))
+        (dtop (array i8 59))
+        (aux_lo (array u8 59))
+        (aux_hi (array u8 59))
+        (main_lo (array u8 59))
+        (main_hi (array u8 59))
+        (kind_of (array u8 59))
+        (solid (array u8 59))
         (kcol (array u8 6))
         (ktop (array u8 6))
         (kfeet (array u8 6))

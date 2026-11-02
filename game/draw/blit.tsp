@@ -24,11 +24,11 @@
 ; each fits; the hero's blocks first (their aux halves straight to sprite_aux, leaving the card
 ; to the enemies' main halves, which can go nowhere else), then the screen's (art/dhgr/
 ; memory.txt). Keep sprite_aux at what memory.py says the screens need
-(const AUX_BYTES u16 10688)
+(const AUX_BYTES u16 10824)
 (const CARD_START u16 0xD000)
 (const CARD2_END u16 0xFFF0) ; bank 2 and the shared 8 KB, short of the vectors
 (const CARD1_END u16 0xE000)
-(let sprite_aux (array u8 10688) :in aux)
+(let sprite_aux (array u8 10824) :in aux)
 
 ; where each block's runs are now (an address, and dhgr.runs' flags saying in which memory)
 (let aux_at (array u16 art.BLOCKS_MOST))
