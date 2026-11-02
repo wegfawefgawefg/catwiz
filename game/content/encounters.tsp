@@ -271,9 +271,9 @@
             :fx (addr_of (at cards.TRIO 0)))
         (make Charm
             :name "KITTEN MITTENS"
-            :text "Your kittens hit 2 harder."
+            :text "Your kittens hit 1 harder."
             :kind CharmKind.mittens
-            :amount 2
+            :amount 1
             :when steps.When.none
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm
@@ -306,9 +306,9 @@
             :fx (addr_of (at cards.RUBBER_DUCK 0)))
         (make Charm
             :name "BAD MILK"
-            :text "Wands hit +3; books cost 1 more."
+            :text "Wands hit +2; books cost 1 more."
             :kind CharmKind.badmilk
-            :amount 3
+            :amount 2
             :when steps.When.none
             :fx (addr_of (at cards.NOTHING 0)))
         (make Charm

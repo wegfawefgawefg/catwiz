@@ -14,7 +14,6 @@
 (const BACK_MOST u8 5)       ; her dice come back this many times a turn at most (the sim's cap)
 (const REROLLS_MOST u8 9)    ; re-rolls she can hold at most (the tray shows one digit)
 (const SUNBEAM_REROLLS u8 2) ; the re-rolls a sunbeam's mana past 5 gives at most (the sim's)
-(const HABIT_GROWTH u8 2)    ; what each use of scratching habit adds to it for the fight
 (const ZOOMIES_HITS u8 5)    ; Zoomies' hits, enemies left to right
 (const SCREAM_SELF u8 1)     ; what 3 AM Screaming does to her
 
@@ -186,7 +185,7 @@
 
 ; Scratching Habit (wand): a hit (her habit adds: content/action GROWS), then her habit grows
 ; for the fight
-(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (lit HABIT_GROWTH) (add habit))
+(steps.steps SCRATCHING_HABIT (cue scratch) (hit) (num) (add habit))
 
 ; Double or Nothing (trick): the next die times #; the bet (gamble: the same #) is lost at her
 ; turn's end if no die took the times (HOOKS: BET_LOST; content/effects clears it when a die does)

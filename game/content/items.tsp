@@ -97,7 +97,7 @@
             :name "FEATHER TOY"
             :text "Hits #, then kittens pounce on it."
             :slot ac.Slot.wand
-            :amount 4
+            :amount 2
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -214,7 +214,7 @@
             :name "LITTER STAR"
             :text "Makes # mana.|Each kitten you have adds 1 more."
             :slot ac.Slot.star
-            :amount 2
+            :amount 1
             :step 1
             :cost 0
             :aim state.Aim.self
@@ -224,7 +224,7 @@
             :text "2 mana: 5 hits of #, left to right"
             :slot ac.Slot.book
             :amount 2
-            :step 2
+            :step 1
             :cost 2
             :aim state.Aim.all
             :icon icons.TILE_ZOOMIES)
@@ -277,7 +277,7 @@
             :name "KITTEN CANNON"
             :text "Fires all your kittens: # each."
             :slot ac.Slot.wand
-            :amount 12
+            :amount 8
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -313,7 +313,7 @@
             :name "MARK TERRITORY"
             :text "Every hit on it does # more.|Your kittens go for it first."
             :slot ac.Slot.curse
-            :amount 3
+            :amount 1
             :step 1
             :cost 0
             :aim state.Aim.foe
@@ -322,7 +322,7 @@
             :name "PLUS ONE"
             :text "Your next die's number is +#."
             :slot ac.Slot.trick
-            :amount 4
+            :amount 2
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -376,7 +376,7 @@
             :name "RED DOT"
             :text "Puts # red dots on it.|A wand hit on it brings dice back."
             :slot ac.Slot.curse
-            :amount 2
+            :amount 1
             :step 1
             :cost 0
             :aim state.Aim.foe
@@ -437,10 +437,10 @@
             :icon icons.TILE_SUNBEAM)
         (make ac.Item
             :name "SCRATCHING HABIT"
-            :text "Hits #, +2 per use this fight."
+            :text "Hits #. Each use adds # more|for the rest of the fight."
             :slot ac.Slot.wand
-            :amount 4
-            :step 2
+            :amount 2
+            :step 1
             :cost 0
             :aim state.Aim.foe
             :icon icons.TILE_HABIT)
