@@ -79,7 +79,7 @@
             :name "YARN WAND"
             :text "Hits #.|If it stands: its hits are 1 less."
             :slot ac.Slot.wand
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -97,7 +97,7 @@
             :name "FEATHER TOY"
             :text "Hits #, then kittens pounce on it."
             :slot ac.Slot.wand
-            :amount 10
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -106,7 +106,7 @@
             :name "FISHBONE WAND"
             :text "Hits #. Goes through any shield."
             :slot ac.Slot.wand
-            :amount 12
+            :amount 6
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -115,7 +115,7 @@
             :name "MOUSE ON STRING"
             :text "Hits #, then # to the next enemy."
             :slot ac.Slot.wand
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -131,9 +131,9 @@
             :icon icons.TILE_FLUFF)
         (make ac.Item
             :name "SPIKY FLUFF"
-            :text "Shield #.|3rd fluff this turn: hitters take 6"
+            :text "Shield #.|3rd fluff this turn: hitters take 4"
             :slot ac.Slot.fluff
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -142,7 +142,7 @@
             :name "CARDBOARD BOX"
             :text "Shield #.|3rd fluff this turn: +1 kitten,|and attacks on all miss you."
             :slot ac.Slot.fluff
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -158,9 +158,9 @@
             :icon icons.TILE_BLANKET)
         (make ac.Item
             :name "STATIC FUR"
-            :text "Shield #.|3rd fluff this turn: 10 to all,|or 20 to an enemy that is wet."
+            :text "Shield #.|3rd fluff this turn: 6 to all,|or 12 to an enemy that is wet."
             :slot ac.Slot.fluff
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -169,7 +169,7 @@
             :name "BELL COLLAR"
             :text "Shield #.|3rd fluff this turn: block 2 curses"
             :slot ac.Slot.fluff
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -187,7 +187,7 @@
             :name "SHOOTING STAR"
             :text "Makes 1 mana, and hits an enemy #."
             :slot ac.Slot.star
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.foe
@@ -223,7 +223,7 @@
             :name "ZOOMIES"
             :text "2 mana: 5 hits of #, left to right"
             :slot ac.Slot.book
-            :amount 4
+            :amount 2
             :step 2
             :cost 2
             :aim state.Aim.all
@@ -241,7 +241,7 @@
             :name "LASER POINTER"
             :text "3 mana: # to every enemy.|Their next hit goes to a friend."
             :slot ac.Slot.book
-            :amount 12
+            :amount 8
             :step 2
             :cost 3
             :aim state.Aim.all
@@ -250,7 +250,7 @@
             :name "3 AM SCREAMING"
             :text "3 mana: # to all foes, 1 to you."
             :slot ac.Slot.book
-            :amount 18
+            :amount 8
             :step 2
             :cost 3
             :aim state.Aim.all
@@ -259,7 +259,7 @@
             :name "KNOCK IT OFF"
             :text "3 mana: hits #.|Its shield and boosts go first."
             :slot ac.Slot.book
-            :amount 24
+            :amount 12
             :step 2
             :cost 3
             :aim state.Aim.foe
@@ -268,7 +268,7 @@
             :name "IF IT FITS"
             :text "2 mana: shield #.|Each kitten you have adds 2 more."
             :slot ac.Slot.book
-            :amount 16
+            :amount 10
             :step 2
             :cost 2
             :aim state.Aim.self
@@ -403,7 +403,7 @@
             :name "MIRROR FUR"
             :text "Shield #.|Blocked hits bounce back: # most."
             :slot ac.Slot.fluff
-            :amount 5
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -412,7 +412,7 @@
             :name "LUCKY PAW"
             :text "Shield #. You get a free re-roll."
             :slot ac.Slot.fluff
-            :amount 5
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.self
@@ -439,7 +439,7 @@
             :name "SCRATCHING HABIT"
             :text "Hits #, +2 per use this fight."
             :slot ac.Slot.wand
-            :amount 6
+            :amount 4
             :step 2
             :cost 0
             :aim state.Aim.foe

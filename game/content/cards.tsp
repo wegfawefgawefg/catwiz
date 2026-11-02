@@ -52,7 +52,7 @@
 ; fluff: a shield, and the third fluff's three
 (steps.steps FLUFF (call SUB_SHIELD) (three) (lit 1) (set keep) (say THREE_SHIELD_STAYS))
 
-(steps.steps SPIKY_FLUFF (call SUB_SHIELD) (three) (lit 6) (max thorns) (say THREE_SPIKY))
+(steps.steps SPIKY_FLUFF (call SUB_SHIELD) (three) (lit 4) (max thorns) (say THREE_SPIKY))
 
 (steps.steps BOX (call SUB_SHIELD) (three) (lit 1) (set box) (add kittens) (say THREE_BOX))
 
@@ -63,9 +63,9 @@
     (three)
     (say THREE_STATIC)
     (all)
-    (lit 10)
+    (lit 6)
     (t_has wet)
-    (lit 20)
+    (lit 12)
     (hit)
     (end))
 
