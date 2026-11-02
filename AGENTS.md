@@ -296,6 +296,20 @@ $TISPLE machine --disk build/catwiz.dsk --drives 1 --swap 1300f:build/catwiz2.ds
 python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.json --disk2 build/catwiz2.dsk
 ```
 
+- The phone pad (portrait only; sideways the screen's click boxes are the touch interface and
+  the pad is gone) follows the game (2026-11-02, Tisple b2cc49c, docs/phone.md "The pad follows
+  the game"): each key's `when` and `live` in `tools/phone/catwiz.json` are conditions over the
+  game's lets and enums (`state.phase`, `state.actors.alive[2]`, `battle/reward.choices`,
+  `state.Phase.player`), whose addresses come from `build/catwiz.vars.json` (every build writes
+  it; publish.py copies what the conditions name). No game memory. Fight keys show in her turn
+  and while her action or the roll runs (keys wait in the line then), dim in the enemies' turn;
+  ENEMY n while that enemy is alive; DIE n up to `dice_n`, dim when played or held; < > with two
+  enemies or more and on the kit and rules pages; RE-ROLL dim with none left; LET GO dim with
+  nothing picked; between fights BAG, SKIP (not the doors) and PICK 1 to `choices`; a page
+  CLOSE; the title START; the end GO ON. Renaming a let or an enum member the config names fails
+  the publish (say which): change the config with it. The `56` in "over" is
+  `battle.BANNER_AFTER`.
+
 - Two disks (2026-11-01): disk 1 is the boot and the title's art; disk 2 (Tisple's `:on disk2`)
   everything read during play: every fight screen, the hero's runs, the rules pages, a label,
   and the title's art again for the titles after a run. A run's start finds disk 2
