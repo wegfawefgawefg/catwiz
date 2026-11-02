@@ -1,5 +1,5 @@
 ; what the hero's faces (content/effects) say in the log: its sentences, in aux memory (battle/log
-; reads them there), by name
+; reads them there), by name; the table too (line reads it: main memory is full)
 
 (const SAY (array (ptr u8) 40)
     (make (array (ptr u8) 40)
@@ -43,7 +43,12 @@
         " \x09gets spiky: # back."
         " \x0ccomes back with # hp!"
         " \x0dtakes # bounced back.")
-    :strings aux)
+    :in aux)
+
+; sentence k's place (in aux memory, as text.add_aux takes it)
+(fn line ((k u8)) (ptr u8)
+    (with_aux true false
+        (at SAY k)))
 
 (const SAY_NEXT_DIE u8 0)
 (const SAY_TIMES_NEXT u8 1)

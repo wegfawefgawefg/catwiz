@@ -252,7 +252,7 @@
                         (let k u8 (cards.mimicry (mv.effect row) (= (mv.aim row) state.Aim.all)))
                         (if (= k state.NOTHING)
                             (do
-                                (log.line (at said.SAY said.SAY_NO_MIMIC) 0)
+                                (log.line (said.line said.SAY_NO_MIMIC) 0)
                                 (set go false))
                             (do
                                 (set mimicked (cards.mimicry_fx k))
@@ -274,7 +274,7 @@
                 ; went (or t, when that one is down)
                 (if (= state.last_face state.NOTHING)
                     (do
-                        (log.line (at said.SAY said.SAY_NOTHING_COPY_YET) 0)
+                        (log.line (said.line said.SAY_NOTHING_COPY_YET) 0)
                         (set go false))
                     (do
                         (if (> v 0)
@@ -285,7 +285,7 @@
                         (let on u8 state.last_on)
                         (if (not (at state.actors on alive))
                             (set on t))
-                        (log.line (at said.SAY said.SAY_COPYCAT) 0)
+                        (log.line (said.line said.SAY_COPYCAT) 0)
                         (let row u8 state.last_face)
                         (set to (cards.fx row))
                         (set to_t on)
@@ -293,7 +293,7 @@
             (steps.DO (set to (at cards.SUBS a)))
             (steps.CUE (sound.cue_byte a))
             (steps.SAY
-                (let line (ptr u8) (at said.SAY (& a steps.SAY_LINE)))
+                (let line (ptr u8) (said.line (& a steps.SAY_LINE)))
                 (let named u8 (if (!= (& a steps.SAY_IT) 0)
                     t
                     state.HERO))
@@ -364,7 +364,7 @@
     (if (> ward 0)
         (do
             (state.set_stack t (as u8 st.Status.ward) (- ward 1))
-            (log.who t (at said.SAY said.SAY_WARD_BROKEN_NO) 0)
+            (log.who t (said.line said.SAY_WARD_BROKEN_NO) 0)
             (charms.hook steps.When.warded)
             (return false)))
     (hit.add_stacks t s v)
@@ -418,6 +418,6 @@
                     (set t i))))
         (if (!= t state.NOTHING)
             (do
-                (log.line (at said.SAY said.SAY_KITTENS_POUNCE) 0)
+                (log.line (said.line said.SAY_KITTENS_POUNCE) 0)
                 (fx.pounce t)
                 (drain)))))
