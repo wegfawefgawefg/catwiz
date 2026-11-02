@@ -131,6 +131,7 @@
 (let wand_on bool)   ; a wand face's steps are running (a hook on a wand hit: content/hooks)
 (let back_due bool)  ; her dice come back once this play is done (a red dot)
 (let refreshes u8)   ; times her dice came back this turn (cards.BACK_MOST at most)
+(let risen u8)       ; a bit per actor: got up as its next form this turn, not hurt till it ends
 (let kept u8)        ; the kittens she had when she won the last fight (a litter box keeps them)
 (let end_wait u8)    ; frames until the hero's turn ends by itself, 0 for not
 (let selected u8)    ; the die picked to play next, or NOTHING

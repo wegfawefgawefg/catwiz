@@ -101,6 +101,9 @@
 (fn lose ((who u8) (n u8)) void
     (if (not (at state.actors who alive))
         (return))
+    ; a form that just got up takes nothing more this turn (the rest of a pounce is wasted)
+    (if (!= (& state.risen (<< 1 who)) 0)
+        (return))
     (let hp u8 (at state.actors who hp))
     (if (> n hp)
         (set n hp))
@@ -152,6 +155,7 @@
             (if (!= next state.NOTHING)
                 (do
                     (spawn.enemy who next true)
+                    (set state.risen (| state.risen (<< 1 who)))
                     (set (at state.actors who mood) state.Mood.hurt)
                     (set (at state.actors who mood_time) HURT_FRAMES)
                     (set state.hud_intents (| state.hud_intents (<< 1 who)))

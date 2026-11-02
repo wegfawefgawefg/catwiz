@@ -75,6 +75,7 @@
     (set state.rerolls (charms.round_start))
     (set state.rerolled false)
     (set state.refreshes 0)
+    (set state.risen 0)
     (set state.back_due false)
     (set state.last_played state.NOTHING)
     (for k u8 0 state.SLOTS
@@ -412,6 +413,7 @@
             (end_battle state.Phase.won)
             (return)))
     (turn_end state.HERO)
+    (set state.risen 0)
     (state.set_stack state.HERO (as u8 st.Status.spook) 0)
     (if (not (at state.actors state.HERO alive))
         (do
