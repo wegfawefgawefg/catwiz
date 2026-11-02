@@ -4,8 +4,9 @@
 ; drawn in tools/dhgr/game_sprites.py SHOWS) and the way they go:
 ;   ARC  thrown from her along the bolt's arc to whoever the card is for, a and b by turns
 ;   ON   played over whoever the card is for: a step every 2 frames at the path's places
-;        (PATH_COL byte columns from its spot's left, PATH_ROW rows down from its top), a and b
-;        by turns; the effect lands after the last step
+;        (PATH_COL byte columns from its spot's left, PATH_ROW rows down from its top, over
+;        PATH_WHO: whoever it is for, or a fighter named, while they stand), a and b by turns;
+;        the effect lands after the last step
 ; and its flags: ANGRY (whoever it is for shows its angry face meanwhile). NONE: an ON show
 ; with no steps, her own card's plain hop (and the meow). A show takes no longer than what it
 ; replaces: her own cards' 3 steps are the hop's 6 frames, the rest land before the bolt would.
@@ -55,8 +56,7 @@
 (const GUARD u8 25)
 (const PARCEL u8 26)
 (const HEAVY u8 27)
-; the faces round's looks (docs/faces.md), placeholders copying an older show until the looks job
-; makes them
+; the faces round's looks (docs/faces.md "Looks and sounds")
 (const RAIN u8 28)
 (const LIGHTNING u8 29)
 (const SHIELD_FLING u8 30)
@@ -126,33 +126,35 @@
         (make Show :way ARC :a SHOT :b SHOT :first 0 :steps 0 :flags FOE)
         ; and his heavy parcel
         (make Show :way ARC :a SHOT2 :b SHOT2 :first 0 :steps 0 :flags FOE)
-        ; ---- the faces round's looks: placeholders (each copies the show named)
-        ; rain (placeholder: spray)
-        (make Show :way ARC :a art.DROP :b art.DROP :first 0 :steps 0 :flags 0)
-        ; lightning (placeholder: bolt)
-        (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
-        ; shield_fling (placeholder: bolt)
-        (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
-        ; heart (placeholder: mirror)
-        (make Show :way ON :a art.SHINE :b art.SHINE :first 9 :steps 3 :flags 0)
-        ; mana_swirl (placeholder: sunbeam)
-        (make Show :way ON :a art.BEAM :b art.BEAM :first 15 :steps 3 :flags 0)
-        ; die_flip (placeholder: lucky_paw)
-        (make Show :way ON :a art.PAW0 :b art.PAW1 :first 12 :steps 3 :flags 0)
-        ; zzz (placeholder: puff)
-        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0)
-        ; alert (placeholder: puff)
-        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0)
-        ; spiral (placeholder: puff)
-        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0))
+        ; ---- the faces round's looks (docs/faces.md "Looks and sounds"; their sprites are
+        ; game_sprites.py TIGHT, or older ones again)
+        ; rain falls over every enemy in turn, drop by drop, the last on whoever it is for
+        (make Show :way ON :a art.DROP :b art.DROP :first 57 :steps 4 :flags 0)
+        ; lightning strikes every enemy in turn: a shaft down and a flash by turns
+        (make Show :way ON :a art.BEAM :b art.SHINE :first 61 :steps 4 :flags 0)
+        ; her shield flung at it
+        (make Show :way ARC :a art.SHIELD :b art.SHIELD :first 0 :steps 0 :flags 0)
+        ; a heart over whoever it is for, then floating up over her
+        (make Show :way ON :a art.HEART :b art.HEART :first 65 :steps 3 :flags 0)
+        ; mana swirls up round her: a glint and a glow by turns
+        (make Show :way ON :a art.SHINE :b art.DOT1 :first 68 :steps 3 :flags 0)
+        ; a die shaken by her paw, then tossed up
+        (make Show :way ON :a art.DIE :b art.DIE :first 71 :steps 3 :flags 0)
+        ; Zs drifting up off it
+        (make Show :way ON :a art.ZZZ :b art.ZZZ :first 74 :steps 4 :flags 0)
+        ; a "!" pops up on it
+        (make Show :way ON :a art.BANG :b art.BANG :first 78 :steps 3 :flags 0)
+        ; a glow spirals in round its eyes
+        (make Show :way ON :a art.DOT1 :b art.DOT0 :first 81 :steps 4 :flags 0))
     :in aux)
 
 ; the ON shows' places, a show's steps one after another: byte columns from the left of the
 ; spot of whoever it is for (even: a sprite's colours hold only on 7-pixel steps), rows from its
 ; top. Keep a sprite inside the narrowest spot it can be for: an enemy's is 6 columns at least
-; (the royal pug: the claws, 4 wide from column 4, reach 2 past it, over its lane's black), hers 10
-(const PATH_COL (array u8 57)
-    (make (array u8 57)
+; (the royal pug: the claws, 4 wide from column 4, reach 2 past it, over its lane's black), hers 10;
+; and down to the shortest spot it can be for: an enemy's 17 rows (the roomba), hers 87
+(const PATH_COL (array u8 85)
+    (make (array u8 85)
         2 4 2 0 4 ; red dot
         2 0 4 2   ; catfight
         2 4 6     ; mirror fur
@@ -170,11 +172,19 @@
         4 2 4     ; fright
         4 6 4     ; bump
         6 8 6     ; hook
-        0 0 0)    ; guard (over a friend)
+        0 0 0     ; guard (over a friend)
+        0 2 4 2   ; rain (over each enemy, then it)
+        2 2 2 2   ; lightning (over each enemy)
+        2 4 4     ; heart (then over her)
+        2 6 4     ; mana swirl (over her: hers only)
+        6 8 6     ; die flip (over her: hers only)
+        0 2 4 2   ; zzz
+        2 2 2     ; alert
+        0 2 4 2)  ; spiral
     :in aux)
 
-(const PATH_ROW (array u8 57)
-    (make (array u8 57)
+(const PATH_ROW (array u8 85)
+    (make (array u8 85)
         10 4 14 18 8 ; red dot
         4 8 6 10     ; catfight
         10 18 26     ; mirror fur
@@ -192,7 +202,31 @@
         30 24 30     ; fright
         50 46 54     ; bump
         42 46 50     ; hook
-        12 10 8)     ; guard
+        12 10 8      ; guard
+        0 2 4 6      ; rain
+        0 2 0 2      ; lightning
+        10 16 8      ; heart
+        14 10 2      ; mana swirl
+        32 30 22     ; die flip
+        8 5 2 0      ; zzz
+        8 2 4        ; alert
+        4 0 4 6)     ; spiral
+    :in aux)
+
+; whom each step is over: 0 whoever the show is for, else a fighter's number + 1 (1 her, 2-4 the
+; enemies' spots), and whoever it is for when that one is down
+(const PATH_WHO (array u8 85)
+    (make (array u8 85)
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 ; the cards' and the moves' above
+        2 3 4 0                     ; rain
+        2 3 4 0                     ; lightning
+        0 1 1                       ; heart
+        0 0 0                       ; mana swirl
+        0 0 0                       ; die flip
+        0 0 0 0                     ; zzz
+        0 0 0                       ; alert
+        0 0 0 0)                    ; spiral
     :in aux)
 
 ; show k's row into the action's copy of it (state.show_*), read out of aux memory as the action
@@ -206,9 +240,12 @@
         (set state.show_steps (at SHOWS k steps))
         (set state.show_flags (at SHOWS k flags))))
 
-; step i of the paths: its byte columns from the middle and rows from the top, into
-; state.show_col and show_row
-(fn place ((i u8)) void
+; step i of the paths: its byte columns from the left and rows from the top, into
+; state.show_col and show_row; gives whom it is over (PATH_WHO)
+(fn place ((i u8)) u8
+    (let who u8 0)
     (with_aux true false
         (set state.show_col (at PATH_COL i))
-        (set state.show_row (at PATH_ROW i))))
+        (set state.show_row (at PATH_ROW i))
+        (set who (at PATH_WHO i)))
+    who)

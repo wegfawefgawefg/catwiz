@@ -50,21 +50,21 @@
         glow      ; Sunbeam
         scratch   ; Scratching Habit
         coin      ; Double or Nothing
-        buzz      ; the faces round (placeholder: hops's sound)
-        splash    ; the faces round (placeholder: puff's sound)
-        thunder   ; the faces round (placeholder: thump's sound)
-        slurp     ; the faces round (placeholder: chime's sound)
-        snore     ; the faces round (placeholder: wobble's sound)
-        boing     ; the faces round (placeholder: blip's sound)
-        whoosh    ; the faces round (placeholder: zap's sound)
-        sparkle)) ; the faces round (placeholder: glow's sound)
+        buzz      ; fleas
+        splash    ; wet
+        thunder   ; lightning
+        slurp     ; a bite that heals her
+        snore     ; asleep
+        boing     ; spooked
+        whoosh    ; her shield flung
+        sparkle)) ; mana
 
 (enum Song (title battle won lost))
 
 ; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
 (const CUE_VOICE (array u8 35)
-    (make (array u8 35) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2 5 2 5 2 5 2 2 2)
+    (make (array u8 35) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2 5 5 5 2 5 5 2 2)
     :in aux)
 
 ; whether a cue waits in line while another effect plays; false: dropped
@@ -128,13 +128,17 @@
 ; (0: none; the cues added with the card have none, but the dead key's tick). The chain
 ; cards' borrow the sound they replace in their steps (Mimic and Scratching Habit the zap,
 ; Mirror Fur and Lucky Paw the ping, Sunbeam and Double or Nothing the chime), and the curses'
-; have none (the curse's hiss follows them), so the speaker holds the processor no longer
+; have none (the curse's hiss follows them), so the speaker holds the processor no longer. The
+; faces round's have their own parts, each no longer than the sound its cue first borrowed (the
+; splash the puff's, the thunder the hit's, the slurp and the sparkle the chime's, the snore the
+; wobble's, the whoosh the zap's), and the buzz and the boing none, as the hops and the blip
 (const SPEAKER_FIRST (array u8 35)
-    (make (array u8 35) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8 0 15 4 8 11 0 3 8)
+    (make (array u8 35)
+        0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8 0 27 28 30 32 0 33 34)
     :in aux)
 
 (const SPEAKER_COUNT (array u8 35)
-    (make (array u8 35) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2 0 1 2 2 4 0 1 2)
+    (make (array u8 35) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2 0 1 2 2 1 0 1 3)
     :in aux)
 
 ; cue number c: on the card, its effect on its voice (dropped while another plays if it does

@@ -221,7 +221,7 @@ def poof(k):
 # sparse ones (claws, the glint: an outline would make them black boxes on a figure).
 # Letters: W white, Y yellow, O orange, R pink, M magenta, P purple, A aqua, L light blue
 SHOW_KEY = {"W": WHITE, "Y": YELLOW, "O": ORANGE, "R": PINK, "M": dhgr.MAGENTA, "P": dhgr.PURPLE,
-            "A": dhgr.AQUA, "L": LBLUE}
+            "A": dhgr.AQUA, "L": LBLUE, "B": dhgr.MBLUE, "K": BLACK}
 
 SHOWS = {
     # the red dot, and the dot glowing
@@ -249,13 +249,35 @@ SHOWS = {
     "drop": ["..L..", ".LLL.", "LLWLL", "LWLLL", "LLLLL", ".LLL."],
     # zoomies: a streak of fur and dust (thrown)
     "streak": ["....W", "WWW.W", "..WWW", "WWW.W", "....W"],
+    # ---- the faces round's (2026-11-02, docs/faces.md "Looks and sounds"): TIGHT, the room
+    # is the hero's blocks' (below)
+    # her shield, flung (thrown): light blue like the hud's, a white boss
+    "shield": ["LLLLL", "LWWWL", "LLWLL", ".LWL.", "..L.."],
+    # a heart: hit points back
+    "heart": ["RR.RR", "RWRRR", "RRRRR", ".RRR.", "..R.."],
+    # a die (tossed by her paw)
+    "die": ["WWWWW", "WKWWW", "WWWWW", "WWWKW", "WWWWW"],
+    # a Z: asleep (drifting up), on its own black to read over a figure
+    "zzz": ["KKKKK", "WWWWK", "KKWKK", "KWKKK", "WWWWK", "KKKKK"],
+    # a "!": spooked, the same way
+    "bang": ["KYWK", "KYWK", "KYWK", "KKKK", "KYWK", "KKKK"],
 }
 SPARSE = ("claw0", "claw1", "shine")
+# the faces round's: no outline (the Z and the "!" carry their own black), from the box's first
+# pixel and row, its box no bigger than they are. The small sprites' main halves sit in bank 2 in
+# every fight, and fight 7's bank 2 had only 87 bytes left (4 now, art/dhgr/memory.txt; past it a
+# fight's blocks land elsewhere and need about 1.7 KB more of sprite_aux): a pixel in the
+# group's first or fifth place is in an aux byte only, and a row with nothing in a half costs that
+# half a byte. Their aux halves grew blit.sprite_aux to 10,824 (fight 2 needs 10,823)
+TIGHT = ("shield", "heart", "die", "zzz", "bang")
 
 
 def show(name):
     rows = SHOWS[name]
     c = Canvas()
+    if name in TIGHT:
+        c.stamp(0, 0, rows, SHOW_KEY)
+        return Sprite(name, c, (0, 0, 7, len(rows)))
     c.stamp(1, 1, rows, SHOW_KEY)
     if name not in SPARSE:
         c.outline(BLACK, 1, 1)
