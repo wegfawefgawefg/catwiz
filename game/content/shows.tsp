@@ -55,9 +55,20 @@
 (const GUARD u8 25)
 (const PARCEL u8 26)
 (const HEAVY u8 27)
+; the faces round's looks (docs/faces.md), placeholders copying an older show until the looks job
+; makes them
+(const RAIN u8 28)
+(const LIGHTNING u8 29)
+(const SHIELD_FLING u8 30)
+(const HEART u8 31)
+(const MANA_SWIRL u8 32)
+(const DIE_FLIP u8 33)
+(const ZZZ u8 34)
+(const ALERT u8 35)
+(const SPIRAL u8 36)
 
-(const SHOWS (array Show 28)
-    (make (array Show 28)
+(const SHOWS (array Show 37)
+    (make (array Show 37)
         ; the bolt: a wand's spark (and an enemy's shot)
         (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
         ; a red dot skitters about its face
@@ -114,7 +125,26 @@
         ; the mailman's parcel, thrown
         (make Show :way ARC :a SHOT :b SHOT :first 0 :steps 0 :flags FOE)
         ; and his heavy parcel
-        (make Show :way ARC :a SHOT2 :b SHOT2 :first 0 :steps 0 :flags FOE))
+        (make Show :way ARC :a SHOT2 :b SHOT2 :first 0 :steps 0 :flags FOE)
+        ; ---- the faces round's looks: placeholders (each copies the show named)
+        ; rain (placeholder: spray)
+        (make Show :way ARC :a art.DROP :b art.DROP :first 0 :steps 0 :flags 0)
+        ; lightning (placeholder: bolt)
+        (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
+        ; shield_fling (placeholder: bolt)
+        (make Show :way ARC :a art.BOLT :b art.BOLT :first 0 :steps 0 :flags 0)
+        ; heart (placeholder: mirror)
+        (make Show :way ON :a art.SHINE :b art.SHINE :first 9 :steps 3 :flags 0)
+        ; mana_swirl (placeholder: sunbeam)
+        (make Show :way ON :a art.BEAM :b art.BEAM :first 15 :steps 3 :flags 0)
+        ; die_flip (placeholder: lucky_paw)
+        (make Show :way ON :a art.PAW0 :b art.PAW1 :first 12 :steps 3 :flags 0)
+        ; zzz (placeholder: puff)
+        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0)
+        ; alert (placeholder: puff)
+        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0)
+        ; spiral (placeholder: puff)
+        (make Show :way ON :a art.POOF1 :b art.POOF1 :first 25 :steps 2 :flags 0))
     :in aux)
 
 ; the ON shows' places, a show's steps one after another: byte columns from the left of the

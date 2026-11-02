@@ -811,6 +811,71 @@ ICONS = {
     ],
 }
 
+# placeholders for the faces round (docs/faces.md; a picture's name is its card's name in lower
+# case, letters and digits only): the art job draws each in the dict above and takes its name
+# out of this list
+_STUB = [
+    "...........", "..KKKKKKK..", ".K.......K.", ".K.KKKKK.K.", ".K.K...K.K.", ".K.....K.K.",
+    ".K....K..K.", ".K...K...K.", ".K...K...K.", ".K.......K.", ".K...K...K.", ".K.......K.",
+    "..KKKKKKK..", "...........", "...........",
+]
+_TO_DRAW = [
+    "bigstick",
+    "thickfur",
+    "brightstar",
+    "hairballblast",
+    "glare",
+    "clawswipe",
+    "starcluster",
+    "triplehex",
+    "scratchtheitch",
+    "fleacollar",
+    "fleamarket",
+    "plague",
+    "fleacomb",
+    "puddlesplash",
+    "moontide",
+    "raincloud",
+    "thunderpurr",
+    "drenched",
+    "boxslam",
+    "puffedup",
+    "fortify",
+    "shieldbash",
+    "hairballwall",
+    "stonecat",
+    "lovebite",
+    "catnap",
+    "purr",
+    "bloodmoon",
+    "hiss",
+    "leech",
+    "laststand",
+    "moonbeam",
+    "overflow",
+    "manaburn",
+    "manaleech",
+    "spellecho",
+    "calmpaw",
+    "rattle",
+    "freshroll",
+    "pawflip",
+    "chainbounce",
+    "spook",
+    "hypnotize",
+    "catnipbomb",
+    "lullaby",
+    "lasershow",
+    "grudge",
+    "snowball",
+    "sharpenclaws",
+    "coinflip",
+    "allin",
+    "hattrick",
+]
+for _n in _TO_DRAW:
+    ICONS.setdefault(_n, _STUB)
+
 def draw(c, x, y, name):
     rows = ICONS[name]
     assert len(rows) == ICON_H and all(len(r) == ICON_W for r in rows), name

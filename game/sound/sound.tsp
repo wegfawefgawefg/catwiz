@@ -49,21 +49,29 @@
         hops      ; Flea Circus
         glow      ; Sunbeam
         scratch   ; Scratching Habit
-        coin))    ; Double or Nothing
+        coin      ; Double or Nothing
+        buzz      ; the faces round (placeholder: hops's sound)
+        splash    ; the faces round (placeholder: puff's sound)
+        thunder   ; the faces round (placeholder: thump's sound)
+        slurp     ; the faces round (placeholder: chime's sound)
+        snore     ; the faces round (placeholder: wobble's sound)
+        boing     ; the faces round (placeholder: blip's sound)
+        whoosh    ; the faces round (placeholder: zap's sound)
+        sparkle)) ; the faces round (placeholder: glow's sound)
 
 (enum Song (title battle won lost))
 
 ; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
-(const CUE_VOICE (array u8 27)
-    (make (array u8 27) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2)
+(const CUE_VOICE (array u8 35)
+    (make (array u8 35) 2 2 2 5 5 2 5 5 2 5 2 5 2 2 2 2 2 2 5 2 5 2 2 5 2 5 2 5 2 5 2 5 2 2 2)
     :in aux)
 
 ; whether a cue waits in line while another effect plays; false: dropped
-(const CUE_WAITS (array bool 27)
-    (make (array bool 27)
+(const CUE_WAITS (array bool 35)
+    (make (array bool 35)
         false true true true true true true true true true true true true true false true false
-        false true true true true true true true true true)
+        false true true true true true true true true true true true true true true true true true)
     :in aux)
 
 ; the song the card plays, copied from aux memory: the largest song's size (the title's), and
@@ -77,8 +85,8 @@
     (mb.init))
 
 ; the card's effect for each cue, in Cue's order
-(const CARD_EFFECT (array (ptr u8) 27)
-    (make (array (ptr u8) 27)
+(const CARD_EFFECT (array (ptr u8) 35)
+    (make (array (ptr u8) 35)
         (addr_of (at fx.rattle 0))
         (addr_of (at fx.tok 0))
         (addr_of (at fx.zap 0))
@@ -105,7 +113,15 @@
         (addr_of (at fx.hops 0))
         (addr_of (at fx.glow 0))
         (addr_of (at fx.scratch 0))
-        (addr_of (at fx.coin 0)))
+        (addr_of (at fx.coin 0))
+        (addr_of (at fx.buzz 0))
+        (addr_of (at fx.splash 0))
+        (addr_of (at fx.thunder 0))
+        (addr_of (at fx.slurp 0))
+        (addr_of (at fx.snore 0))
+        (addr_of (at fx.boing 0))
+        (addr_of (at fx.whoosh 0))
+        (addr_of (at fx.sparkle 0)))
     :in aux)
 
 ; the speaker's version of each cue, in Cue's order: the first of sfx.parts and how many
@@ -113,12 +129,12 @@
 ; cards' borrow the sound they replace in their steps (Mimic and Scratching Habit the zap,
 ; Mirror Fur and Lucky Paw the ping, Sunbeam and Double or Nothing the chime), and the curses'
 ; have none (the curse's hiss follows them), so the speaker holds the processor no longer
-(const SPEAKER_FIRST (array u8 27)
-    (make (array u8 27) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8)
+(const SPEAKER_FIRST (array u8 35)
+    (make (array u8 35) 0 0 3 4 6 8 10 11 15 16 18 0 0 0 0 0 19 25 0 3 0 6 6 0 8 3 8 0 15 4 8 11 0 3 8)
     :in aux)
 
-(const SPEAKER_COUNT (array u8 27)
-    (make (array u8 27) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2)
+(const SPEAKER_COUNT (array u8 35)
+    (make (array u8 35) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2 0 1 2 2 4 0 1 2)
     :in aux)
 
 ; cue number c: on the card, its effect on its voice (dropped while another plays if it does

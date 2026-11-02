@@ -220,3 +220,39 @@ CHARMS = {
         "...........",
     ],
 }
+
+# placeholders for the faces round (docs/faces.md; a picture's name is its card's name in lower
+# case, letters and digits only): the art job draws each in the dict above and takes its name
+# out of this list
+_STUB = [
+    "...........", "..KKKKKKK..", ".K.......K.", ".K.KKKKK.K.", ".K.K...K.K.", ".K.....K.K.",
+    ".K....K..K.", ".K...K...K.", ".K...K...K.", ".K.......K.", ".K...K...K.", ".K.......K.",
+    "..KKKKKKK..", "...........", "...........",
+]
+_TO_DRAW = [
+    "echo",
+    "itchy",
+    "fleafarm",
+    "monsoon",
+    "porcupine",
+    "thickcoat",
+    "hunger",
+    "ninthlife",
+    "cheaptrick",
+    "manabattery",
+    "napspot",
+    "luckyseven",
+    "cursedcoin",
+    "jackpot",
+    "rainboots",
+    "stormcloud",
+    "troublemaker",
+    "piedpiper",
+    "momentum",
+    "thickskin",
+    "luckycollar",
+    "spareyarn",
+    "headstart",
+]
+for _n in _TO_DRAW:
+    CHARMS.setdefault(_n, _STUB)

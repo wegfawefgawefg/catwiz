@@ -85,3 +85,14 @@
 
 ; Double or Nothing: a coin flipped, ting, and caught
 (tune.effect coin "l2 v13 k1 b6 e7 r l10 k1 e7")
+
+; ---- the faces round's sounds (docs/faces.md): placeholders, each a copy of an older one until
+; the sounds job makes it
+(tune.effect buzz "l2 v11 k3 g6 r a6 r l4 b6") ; placeholder: hops
+(tune.effect splash "m2 n20 l10 v10 k1 c4") ; placeholder: puff
+(tune.effect thunder "m3 n12 g3 e3 c3 m2 n18 l4 k2 c4") ; placeholder: thump
+(tune.effect slurp "l4 v12 k1 c#6 e6 l14 a6") ; placeholder: chime
+(tune.effect snore "l2 v12 e5 f5 e5 d#5 d5 c#5 d5 c5 l8 k2 b4") ; placeholder: wobble
+(tune.effect boing "v9 c6 l2 k4 g6") ; placeholder: blip
+(tune.effect whoosh "v13 e5 a5 d6 g6 l3 k5 c7") ; placeholder: zap
+(tune.effect sparkle "l3 v10 k1 c5 e5 g5 l12 k1 c6") ; placeholder: glow
