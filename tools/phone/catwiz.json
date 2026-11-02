@@ -1,6 +1,6 @@
 {
  "title": "Catwiz",
- "about": "A cat witch's dice roguelike for the Apple II: tap a die, then who it is for. Between fights, tap a card twice. BAG shows her kit, ? the rules, LOG what happened.",
+ "about": "A cat witch's dice roguelike for the Apple II: tap a die, then who it is for. Between fights, tap a card twice, or SKIP; tap her faces to read them. BAG shows her kit, ? the rules, LOG what happened.",
  "mockingboard": 5,
  "mouse": true,
  "look": "color",

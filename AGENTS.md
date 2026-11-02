@@ -358,6 +358,22 @@ card pictures and most text live in aux memory; a screen's sprites in the aux la
 `blit.sprite_aux`. The disk has 10 segments, the most a disk holds: a new `:address` let that
 splits a memory would not build.
 
+- Overlay groups (Tisple `:overlay`, `:overlay_disk2`; `TISPLE_OVERLAY_NOTES=1` lists them and
+  says why one is dropped): the pages (`page.step`: kit, rules, log, the won page; from aux
+  memory, a page opens fast), the reward (`reward.step`, from disk 2), the fight's start
+  (`battle.enter_fight` with the art's loading, from disk 2: its own step, `Phase.start`, from
+  the reward and the run's start) and the ending (`battle.ending` with `reward.start`, which
+  makes the reward's draws, from aux). They take turns in one region the size of the biggest
+  (the pages', about 3.1 KB, in the language card): keep the reward's group under it. A group is
+  dropped (its code all resident, about 3 KB more) when resident code names one of its labels:
+  a `with_aux` in a group's function keeps that function resident, so read aux tables in a
+  group through functions outside it or keep their tables `:strings aux`.
+- Every disk table's record is in aux memory (`:on disk2 :in aux`, the packs macro and the
+  rules' page macro add it); `meter.read` and `meter.sectors` copy it to main memory for
+  lib/disk. Read a disk table only through them.
+- The songs are on disk 2, the title's on both (`TITLE` for the first title, before disk 2 is
+  found; `TITLE2` after: `sound.song`).
+
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
   is not zeroed at the start: `$0200-$02E3` (state.drawn), `$0800-$0BDF` once the boot loader
   is done (the song buffer, the log, the text line and what each line shows, the hud's pixel
@@ -487,3 +503,23 @@ splits a memory would not build.
   5,717), the scripted turn's actions 11,968 (11,968) and the enemies' 6,129 (6,170). The first
   fight's art is on screen 312 frames after RETURN (was 296: the label and the hero's table are
   read first); later fights skip the hero's runs.
+- 2026-11-02, the room pass (branch room-pass, Tisple 66f6679): the UI round merged onto the
+  game-range numbers and three owner requests. Tisple: overlay groups read from disk 2
+  (`:overlay_disk2`), records of disk tables in aux memory, zero page's second free run
+  (`$01-$44`) used for globals (240 of 256 bytes now), bank 1 passing over a candidate too big
+  for what is left. Catwiz: the reward's group and the fight's start on disk 2, the ending its
+  own group, the items' table back in main memory (the fights read it every play), the
+  faces' log sentences and the title jingle's notes in aux memory, cold setup code out of main
+  (the machine check, the guard and the mouse in main, the sound card in `title.enter`, bank 1).
+  Main memory, the card and bank 1: 12,032 of 12,282 in the card, bank 1 3,605 of 4,096; aux
+  6,142 at `$0800` and 24,482 at `$6000` (about 1.4 KB left). Coloured text (the UI round) made
+  text passes 20-30% slower; the masks now only for the blocks drawn and not white, white blocks
+  drawn without masks (lib/dhgr_pixels `cells_white`), new colours redraw only what they change,
+  and the log's older line moves up a row by a copy: the scripted turn (SEED 5, measure.py
+  VSYNC=1) 22/33/30/51 passes in frames 1500-1560, 1560-1620, 1622-1700, 1700-1800 (game-range
+  23/35/30/52); a pass waiting for a key, flat out, 5,940 cycles (5,845: the mouse is read every
+  pass). `tools/passlog` no longer fits (its counting code needs about 300 bytes).
+- Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
+  each extra with its condition first. A picked die's other parts use the log's two rows while it
+  is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page
+  they take the slot's base row.
