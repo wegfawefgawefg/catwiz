@@ -34,7 +34,6 @@
 (import battle/bag)
 (import random)
 (import sound/sound)
-(import title/disk2)
 
 (const BANNER_AFTER u8 56)
 (const TEXT_TOP u8 160) ; the text's rows (draw/text) to the foot of the screen ; frames from the last blow to the end: the poof has finished
@@ -53,12 +52,11 @@
 (const WIN_AT_ONCE bool false)
 (const SEED u16 0)
 
-; a new run: the second disk found (the first time: title/disk2), the starting items, no
+; a new run (the second disk found by then: title.step), the starting items, no
 ; levels or charms (none spent), no kittens kept, full hit points, the first fight. Her faces'
 ; records (and a test's charm) are read from disk 2 here, in resident code, so the overlay groups
 ; that read records later (the reward's) share no code with the fight's start
 (fn enter () void
-    (disk2.find)
     (if (!= SEED 0)
         (set random.seed SEED))
     (set state.page state.Page.none)

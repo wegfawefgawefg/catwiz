@@ -12,17 +12,19 @@
 (import draw/blit)
 (import draw/stage)
 (import sound/sound)
+(import title/disk2)
 
 (const GLOW_STEPS u8 4)   ; the rim's colours in turn (tools/dhgr/title.py, GLOW)
 (const GLOW_FRAMES u8 10) ; frames on each step
 
-(let shown bool false) ; the title has been on the screen
+(let shown bool false)    ; the title has been on the screen
+(let card_due bool false) ; the sound card is set up at the first title's first step
 
 (fn enter () void
-    ; the first time: the sound set up (here, not in main: main's code stays in main memory, and
-    ; this is cold)
+    ; the first time: the sound card is set up at the title's first step (step, in the title's
+    ; overlay group: it is cold, and main memory is full)
     (if (not shown)
-        (sound.setup))
+        (set card_due true))
     (set state.screen state.Screen.title)
     (sound.quiet)
     (screen.wait_frame)
@@ -40,15 +42,24 @@
     (set state.glow_time 0)
     ; a tap or key from the loading or the run before waits in the keyboard: not a start
     (io_read u8 a2.KBDSTRB)
-    (sound.song sound.Song.title))
+    ; the first time the song starts with the card set up (step)
+    (if (not card_due)
+        (sound.song sound.Song.title)))
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen :overlay
+    (if card_due
+        (do
+            (set card_due false)
+            (sound.setup)
+            (sound.song sound.Song.title)))
     ; the time to the key press seeds the dice
     (set random.seed (+ random.seed 1))
     (if (!= key 0)
         (do
             (sound.cue sound.Cue.confirm)
+            ; the second disk found (the first time: title/disk2), in the title's group
+            (disk2.find)
             (return state.Screen.battle)))
     (set state.glow_time (+ state.glow_time 1))
     state.Screen.title)
