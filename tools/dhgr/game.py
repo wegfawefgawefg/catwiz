@@ -23,6 +23,7 @@
 #                    (a machine with one drive has the second disk in then)
 #   hud_data.tsp     the tray's card shapes, the hud font and its icons, the 35-column font
 #   icons.tsp        the card pictures as pixels (in aux memory) and their TILE numbers
+#   charm_pictures.tsp  the charms' pictures, on the second disk
 #   font40.tsp       the 40-column font, for when the text is switched to it
 #
 # Fighters are lit for the zone of the fights in the build (night: the whole game is midnight
@@ -40,6 +41,7 @@ import dhgr  # noqa: E402
 import figures  # noqa: E402
 import game_hud  # noqa: E402
 import game_sprites as gs  # noqa: E402
+import icons  # noqa: E402
 import night  # noqa: E402
 import screens  # noqa: E402
 import title  # noqa: E402
@@ -386,12 +388,49 @@ def icons_module():
     text += "(import tables)\n\n(const ICON_BYTES u16 90)\n"
     for i, n in enumerate(H.ICON_ORDER):
         text += "(const TILE_%s u8 %d)\n" % (n.upper(), i)
+    text += "; the charms' pictures are tiles from TILE_CHARMS on (art/charm_pictures, not here)\n"
+    text += "(const TILE_CHARMS u8 %d)\n" % len(H.ICON_ORDER)
     for i, n in enumerate(H.ICON_ORDER):
         data = H.icon_pixels(n)
         text += "(tables.packed_bytes icon_%d (\n%s) :in aux)\n" % (i, numbers(data))
     text += "(const PICTURES (array (ptr u8) %d)\n    (make (array (ptr u8) %d)\n%s)\n    :in aux)\n" % (
         len(H.ICON_ORDER), len(H.ICON_ORDER),
         "\n".join("        (addr_of (at icon_%d 0))" % i for i in range(len(H.ICON_ORDER))))
+    return text
+
+
+# where the charms' pictures go on the spare page (draw/paint, battle.load_art): its aux memory's
+# hud rows CHARM_ROW on, which nothing else uses once a fight's art is in (the load meter's paws
+# are cleared by then, the tray's own copies are in main memory, a page closing copies back
+# rows 0-159 only): two bands of 15 rows, six pictures a band, 6 bytes each
+CHARM_ROW = 160
+CHARM_BAND = 6
+
+
+def charm_pictures_module():
+    import charm_icons
+    enc, _ = screens.content()
+    names = [c["name"] for c in enc.consts["CHARMS"]]
+    if names != charm_icons.NAMES:
+        raise SystemExit("game.py: charm_icons.NAMES is not encounters' CHARMS: %s" % names)
+    pics = [game_hud.icon_pixels(n, charm_icons.CHARMS[n]) for n in charm_icons.CHARMS]
+    for n, rows in charm_icons.CHARMS.items():
+        assert len(rows) == icons.ICON_H and all(len(r) == icons.ICON_W for r in rows), n
+    bands = (len(pics) + CHARM_BAND - 1) // CHARM_BAND
+    data = []
+    for b in range(bands):
+        for r in range(icons.ICON_H):
+            for j in range(CHARM_BAND):
+                k = b * CHARM_BAND + j
+                data += list(pics[k][r * 6:r * 6 + 6]) if k < len(pics) else [0xFF] * 6
+    text = HEAD + "; the charms' card pictures (tools/dhgr/charm_icons.py, encounters' CHARMS order), as\n"
+    text += "; the spare page's aux memory takes them (draw/paint): CHARM_ROWS rows of CHARM_BYTES bytes from\n"
+    text += "; row CHARM_ROW, picture k in band k / CHARM_BAND, bytes 6 (k % CHARM_BAND) on. On the second\n"
+    text += "; disk, read as a fight's art loads (battle.load_art)\n\n"
+    text += "(const CHARM_ROW u8 %d)\n(const CHARM_ROWS u8 %d)\n(const CHARM_BAND u8 %d)\n" % (
+        CHARM_ROW, bands * icons.ICON_H, CHARM_BAND)
+    text += "(const CHARM_BYTES u8 %d)\n\n" % (CHARM_BAND * 6)
+    text += table("PICTURES", "u8", data, options="    :on disk2 :in aux")
     return text
 
 
@@ -417,6 +456,7 @@ def main():
     print(write("screen_title.tsp", title_module(title_S, sizes)))
     print(write("hud_data.tsp", hud_module()))
     print(write("icons.tsp", icons_module()))
+    print(write("charm_pictures.tsp", charm_pictures_module()))
     print(write("font40.tsp", font40_module()))
 
 

@@ -105,12 +105,17 @@ def cast():
 
 
 def icon_sheet():
+    # the items' pictures, then the charms' (charm_icons.py)
+    import charm_icons
     c = Canvas(dhgr.BLACK)
-    names = list(icons.ICONS)
+    names = list(icons.ICONS) + list(charm_icons.CHARMS)
     for i, n in enumerate(names):
-        x, y = 6 + (i % 7) * 19, 6 + (i // 7) * 26
-        c.rect(x - 2, y - 2, x + 13, y + 18, dhgr.WHITE)
-        icons.draw(c, x, y, n)
+        x, y = 3 + (i % 9) * 15, 6 + (i // 9) * 26
+        c.rect(x - 1, y - 2, x + 12, y + 18, dhgr.WHITE)
+        if n in icons.ICONS:
+            icons.draw(c, x, y, n)
+        else:
+            c.stamp(x, y, charm_icons.CHARMS[n], icons.KEY)
     p = emu.show(c.px, SHOTS, "icons")
     print(p["ntsc"])
 

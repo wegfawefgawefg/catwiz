@@ -51,11 +51,11 @@ def card_rows():
 ICON_ORDER = list(icons.ICONS)
 
 
-def icon_pixels(name):
+def icon_pixels(name, rows=None):
     # 15 rows of 11 colour numbers, the card's white where the picture has none; as nibbles,
     # two pixels a byte (high first), 6 bytes a row
     out = bytearray()
-    for row in icons.ICONS[name]:
+    for row in rows or icons.ICONS[name]:
         vals = [WHITE if ch == "." else icons.KEY[ch] for ch in row] + [WHITE]
         for i in range(0, 12, 2):
             out.append(vals[i] << 4 | vals[i + 1])

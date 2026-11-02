@@ -191,7 +191,7 @@
             (if (>= c UP)
                 (tray.slot n true (items.icon (at state.items slot)) "+1" picked)
                 (tray.slot n true (items.icon c) "" picked)))
-        (state.Pick.charms (tray.slot n true icons.TILE_CHARM (at enc.MARKS c) picked))
+        (state.Pick.charms (tray.slot n true (+ icons.TILE_CHARMS c) (at enc.MARKS c) picked))
         (state.Pick.nap
             (if (= c 0)
                 (tray.slot n true icons.TILE_NAP "" picked)

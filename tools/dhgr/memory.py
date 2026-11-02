@@ -5,7 +5,7 @@
 # first (blocks 0 and 1, read once from the second disk and kept while fights follow), then
 # the screen's enemies' blocks; each time every main half into the aux language card (bank 2's
 # 12,272 bytes at $D000-$FFEF, else bank 1's 4,096), then every aux half into bank 1 first,
-# then bank 2, then blit.sprite_aux (10,752 bytes of aux memory; the hero's aux halves straight there). The fight's picture is read
+# then bank 2, then blit.sprite_aux (10,688 bytes of aux memory; the hero's aux halves straight there). The fight's picture is read
 # into what sprite_aux has after the hero's halves, before the enemies' runs go there: it must
 # fit. Keep the capacities and the order in step with blit.tsp.
 #
@@ -20,7 +20,7 @@ import game
 
 BANK2 = 0xFFF0 - 0xD000
 BANK1 = 0xE000 - 0xD000
-SPRITE_AUX = 10752
+SPRITE_AUX = 10688
 
 
 def packed(data):

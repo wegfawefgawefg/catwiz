@@ -17,6 +17,8 @@
 (import draw/scene)
 (import draw/meter)
 (import draw/stage)
+(import draw/blit)
+(import art/charm_pictures charm_art)
 (import draw/text)
 (import battle/place)
 (import battle/look)
@@ -95,6 +97,16 @@
     (stage.fight_runs n)
     (meter.stop)
     (map.draw screen.SPARE)
+    ; the charms' pictures onto the spare page's aux hud rows (draw/paint takes them from there),
+    ; read through page 1, free again now its runs are unpacked
+    (meter.read (as (ptr u8) blit.READ_AT) (addr_of (at charm_art.PICTURES 0)))
+    (dhgr.copy screen.SPARE
+        dhgr.AUX
+        0
+        charm_art.CHARM_ROW
+        charm_art.CHARM_BYTES
+        charm_art.CHARM_ROWS
+        (as (ptr u8) blit.READ_AT))
     ; the stage and the tray's rows; the text's rows black (the spare page keeps the tray's
     ; pictures there: battle/tray)
     (screen.copy_box screen.PAGE 0 0 40 TEXT_TOP screen.SPARE)

@@ -184,7 +184,11 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   of sprites; a kind is a role table over a block, and may borrow another's (the possum that
   faked it, the Bulldog King's phases): a phase costs only the frames it adds. An enemy names
   its figure (`content/enemies.tsp :figure art.FIG_...`); `spawn` turns it into its kind on the
-  screen (`art.tab.figure`).
+  screen (`art.tab.figure`). The Bulldog King (2026-11-02, `king.py`) is three looks: sat
+  up on his throne smug (`king`), cross on it (`king_cross`, the same block: folded arms, the
+  crown crooked, a vein), and furious off it (`king_furious`, its own block: flushed pink,
+  red-eyed, steaming); his frames are 4 groups wide so the three and the royal pugs (3 groups)
+  fit fight 10's sprite room (`art/dhgr/memory.txt`, 596 bytes to spare).
 - Screens (2026-11-01, `tools/dhgr/screens.py`): one a row of `encounters` FIGHTS, made from
   the table itself (the sim's `tools/sim/tsp.py` reads it): the figures of its spots up to the
   count, the spots past it when someone there (or what it becomes) calls friends, every then.
@@ -224,10 +228,18 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - The hud is drawn in whole pixels (`draw/pix.tsp`, lib/dhgr_pixels): badges (`draw/badge.tsp`,
   looks over the stage), the tray's cards (spans and rectangles from `art/hud_data`, the pictures
   from `art/icons`), the buttons, the text. The card pictures (`tools/dhgr/icons.py`, 11 x 15, one
-  an item, the hairball, a charm, the nap, a door, a grabbed die) live in aux memory, each packed
+  an item, the hairball, the nap, a door, a grabbed die) live in aux memory, each packed
   (`draw/packs` aux_packs, 2,039 bytes less than plain); each tray slot unpacks its picture when
   it changes (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
   cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
+- The charms' pictures (2026-11-02, `tools/dhgr/charm_icons.py`, one a row of `encounters`
+  CHARMS, checked by name) are not in aux memory (full): `game.py` writes them as one table on
+  disk 2 (`art/charm_pictures`, 1,080 bytes plain), which `battle.load_art` reads through page 1
+  and copies onto the spare page's aux memory, rows 160-189 (two bands of six, 6 bytes each),
+  as every fight's art loads. `draw/paint` copies a charm's (tiles from `icons.TILE_CHARMS`) out
+  of there; the kit page, the charm pick and the ending page show them. Nothing else touches
+  those rows after a load (the meter's paws are cleared first, the tray's copies are in main
+  memory, a page closing copies back rows 0-159).
 - Each card's play has a show (2026-11-01, `content/shows.tsp`, named in its `CARDS` row): one
   or two small sprites (`game_sprites.py` SHOWS, in the small sprites' kind) thrown on the bolt's
   arc (ARC: the bolt, Mimic's mask, Flea Circus's flea) or played over whoever it is for (ON: a
@@ -533,6 +545,13 @@ splits a memory would not build.
   VSYNC=1) 22/33/30/51 passes in frames 1500-1560, 1560-1620, 1622-1700, 1700-1800 (game-range
   23/35/30/52); a pass waiting for a key, flat out, 5,940 cycles (5,845: the mouse is read every
   pass). `tools/passlog` no longer fits (its counting code needs about 300 bytes).
+- 2026-11-02, the art round (branch room-pass): the King's figures (fight 10's sprites 26,460
+  bytes, 596 to spare), the charms' pictures on disk 2 (paint's copy in resident code, the load
+  in the fight's start group), `sprite_aux` cut from 10,752 to 10,688 bytes (fight 2 needs 10,671)
+  to pay the aux memory the bigger page group took. The language card 12,135 (147 left), bank 1
+  3,605; aux 6,144 at `$0800` and 24,549 at `$6000` (27 bytes left); a pass waiting for a key,
+  flat out, 5,936 cycles in fight 1 (5,940), 6,521 in fight 10. An enemy's floating number now
+  starts at row 32 at the highest (it rose into the map of the run and erased the zone's name).
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page

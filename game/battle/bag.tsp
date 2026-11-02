@@ -112,7 +112,11 @@
         ""))
 
 (fn charm_card ((k u8) (frame bool)) void
-    (kit.card (at CHARM_X k) (at CHARM_Y k) icons.TILE_CHARM 0 frame (at enc.MARKS (at held k))))
+    (kit.card (at CHARM_X k)
+        (at CHARM_Y k)
+        (+ icons.TILE_CHARMS (at held k))
+        0 frame
+        (at enc.MARKS (at held k))))
 
 (fn entry_card ((e u8) (frame bool)) void
     (if (< e state.SLOTS)
