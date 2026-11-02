@@ -30,7 +30,7 @@
             :tags (three)
             :show NONE
             :picture spiky
-            :weight 4
+            :weight 3
             :steps ((call SHIELD) (three)
                 (lit 4)
                 (max thorns)
@@ -63,7 +63,7 @@
             :tags (three)
             :show NONE
             :picture blanket
-            :weight 2
+            :weight 3
             :steps ((call SHIELD) (three) (say "Third in a turn: warm, heal 6.") (lit 6) (heal)))
         (STATIC_FUR
             :name "STATIC FUR"
@@ -112,7 +112,7 @@
             :tags ()
             :show MIRROR
             :picture mirrorfur
-            :weight 2
+            :weight 3
             :steps ((cue shimmer) (add shield) (say_me SHIELDS) (add mirror)))
         (LUCKY_PAW
             :name "LUCKY PAW"
@@ -125,7 +125,7 @@
             :tags ()
             :show LUCKY_PAW
             :picture luckypaw
-            :weight 2
+            :weight 3
             :steps ((cue lucky) (add shield)
                 (say_me SHIELDS)
                 (lit 1)

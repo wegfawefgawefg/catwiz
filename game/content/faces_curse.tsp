@@ -30,7 +30,7 @@
             :tags ()
             :show SPRAY
             :picture wet
-            :weight 4
+            :weight 3
             :steps ((least 1) (curse wet) (t_get wet) (say_it WET_HALF_HITS)))
         (TANGLE
             :name "BALL OF YARN"
@@ -82,7 +82,7 @@
             :tags ()
             :show CATFIGHT
             :picture catfight
-            :weight 1
+            :weight 3
             :steps ((cue yowl) (curse catfight) (t_get catfight) (say_it " wants a catfight: +#.")))
         (FLEA_CIRCUS
             :name "FLEA CIRCUS"

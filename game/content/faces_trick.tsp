@@ -46,7 +46,7 @@
             :tags (plus)
             :show NONE
             :picture copycat
-            :weight 1
+            :weight 3
             :steps ((cue chime) (copy)))
         (CATNIP
             :name "CATNIP"
@@ -76,7 +76,7 @@
             :tags (plus)
             :show NONE
             :picture knead
-            :weight 2
+            :weight 3
             :steps ((cue chime) (lit 1)
                 (max knead_fluff)
                 (lit 2)

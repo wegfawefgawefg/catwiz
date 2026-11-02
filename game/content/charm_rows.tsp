@@ -23,7 +23,7 @@
             :when none
             :mark "+"
             :picture scratchpost
-            :weight 1
+            :weight 3
             :steps ())
         (SIXTH_TOE
             :name "SIXTH TOE"
@@ -33,7 +33,7 @@
             :when none
             :mark "6"
             :picture sixthtoe
-            :weight 1
+            :weight 3
             :steps ())
         (STILL_WATER
             :name "STILL WATER"
@@ -43,7 +43,7 @@
             :when turn_end
             :mark "%"
             :picture stillwater
-            :weight 2
+            :weight 3
             :steps ((calm) (mana)))
         (TRIO
             :name "PURRFECT TRIO"
@@ -53,7 +53,7 @@
             :when three
             :mark "3"
             :picture trio
-            :weight 1
+            :weight 3
             :steps ((all) (plain) (end)))
         (MITTENS
             :name "KITTEN MITTENS"
@@ -63,7 +63,7 @@
             :when none
             :mark "_"
             :picture mittens
-            :weight 2
+            :weight 3
             :steps ())
         (MOTHER_CAT
             :name "MOTHER CAT"
@@ -73,7 +73,7 @@
             :when fight_start
             :mark "*"
             :picture mothercat
-            :weight 1
+            :weight 3
             :steps ((add kittens)))
         (FLUFFY_TAIL
             :name "FLUFFY TAIL"
@@ -83,7 +83,7 @@
             :when none
             :mark "#"
             :picture fluffytail
-            :weight 1
+            :weight 3
             :steps ())
         (GRUMPY
             :name "GRUMPY FACE"
@@ -93,7 +93,7 @@
             :when hurt
             :mark "'"
             :picture grumpy
-            :weight 2
+            :weight 3
             :steps ((mana)))
         (RUBBER_DUCK
             :name "RUBBER DUCK"
@@ -103,7 +103,7 @@
             :when warded
             :mark ";"
             :picture rubberduck
-            :weight 2
+            :weight 3
             :steps ((add shield)))
         (BAD_MILK
             :name "BAD MILK"
@@ -113,7 +113,7 @@
             :when none
             :mark ","
             :picture badmilk
-            :weight 2
+            :weight 3
             :steps ())
         (LITTER_BOX
             :name "LITTER BOX"
@@ -123,7 +123,7 @@
             :when fight_start
             :mark "e"
             :picture litterbox
-            :weight 2
+            :weight 3
             :steps ((kept) (add kittens)))
         (NINE_LIVES
             :name "NINE LIVES"
@@ -133,7 +133,7 @@
             :when dies
             :mark "f"
             :picture ninelives
-            :weight 1
+            :weight 3
             :steps ((cue chime) (say_me " \x0ccomes back with # hp!")))
         ; the faces round (docs/faces.md)
         (ECHO

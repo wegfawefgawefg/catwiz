@@ -27,7 +27,7 @@
             :tags ()
             :show BOLT
             :picture shooting
-            :weight 4
+            :weight 3
             :steps ((cue zap) (lit 1) (mana) (num) (hit)))
         (MOON_BOWL
             :name "MOON BOWL"
@@ -40,7 +40,7 @@
             :tags ()
             :show NONE
             :picture moonbowl
-            :weight 2
+            :weight 3
             :steps ((cue ping) (lit 1)
                 (mana)
                 (num)
@@ -57,7 +57,7 @@
             :tags ()
             :show NONE
             :picture wishing
-            :weight 1
+            :weight 3
             :steps ((cue chime) (mana) (lit 1) (set wish) (say "A wish: the next wand x2.")))
         (LITTER_STAR
             :name "LITTER STAR"
@@ -70,7 +70,7 @@
             :tags (kittens)
             :show NONE
             :picture litter
-            :weight 4
+            :weight 3
             :steps ((kits 1) (cue chime) (mana) (get mana) (say MANA_NOW)))
         (SUNBEAM
             :name "SUNBEAM"

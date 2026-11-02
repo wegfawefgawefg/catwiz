@@ -44,7 +44,7 @@
             :tags ()
             :show SPRAY
             :picture spray
-            :weight 4
+            :weight 3
             :steps ((call ZAP_HIT) (if_up) (lit 1) (call WET)))
         (FEATHER_TOY
             :name "FEATHER TOY"

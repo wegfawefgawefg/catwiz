@@ -92,7 +92,7 @@
             :tags (kittens)
             :show NONE
             :picture fits
-            :weight 2
+            :weight 3
             :steps ((lit 3) (kits 0) (call SHIELD)))
         (MIMIC
             :name "MIMIC"
@@ -105,7 +105,7 @@
             :tags ()
             :show MIMIC
             :picture mimic
-            :weight 1
+            :weight 3
             :steps ((cue mimic) (look) (rep) (retarget) (mimic) (end)))
         ; the faces round (docs/faces.md)
         (HAIRBALL_BLAST
