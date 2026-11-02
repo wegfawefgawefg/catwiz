@@ -86,13 +86,28 @@
 ; Double or Nothing: a coin flipped, ting, and caught
 (tune.effect coin "l2 v13 k1 b6 e7 r l10 k1 e7")
 
-; ---- the faces round's sounds (docs/faces.md): placeholders, each a copy of an older one until
-; the sounds job makes it
-(tune.effect buzz "l2 v11 k3 g6 r a6 r l4 b6") ; placeholder: hops
-(tune.effect splash "m2 n20 l10 v10 k1 c4") ; placeholder: puff
-(tune.effect thunder "m3 n12 g3 e3 c3 m2 n18 l4 k2 c4") ; placeholder: thump
-(tune.effect slurp "l4 v12 k1 c#6 e6 l14 a6") ; placeholder: chime
-(tune.effect snore "l2 v12 e5 f5 e5 d#5 d5 c#5 d5 c5 l8 k2 b4") ; placeholder: wobble
-(tune.effect boing "v9 c6 l2 k4 g6") ; placeholder: blip
-(tune.effect whoosh "v13 e5 a5 d6 g6 l3 k5 c7") ; placeholder: zap
-(tune.effect sparkle "l3 v10 k1 c5 e5 g5 l12 k1 c6") ; placeholder: glow
+; ---- the faces round's (docs/faces.md "Looks and sounds"), each named in its faces' steps
+
+; fleas: a tiny buzz, a trill with a little noise in it
+(tune.effect buzz "l2 v12 m3 n4 f6 f#6 f6 l10 k1 f#6")
+
+; wet: a bright splash of noise falling away
+(tune.effect splash "m2 n3 l12 v13 k1 c4")
+
+; lightning: a crack, then low rumbling noise dying down
+(tune.effect thunder "m2 n1 l2 v14 c4 n31 l16 k2 v13 c4")
+
+; a bite that heals her: a slurp sliding up to a sweet note
+(tune.effect slurp "l1 v12 e4 g4 b4 d5 f#5 l10 k1 d6")
+
+; asleep: a low buzzy breath in, then out
+(tune.effect snore "l3 m3 n24 v9 g2 v11 a2 l10 k2 v11 e2")
+
+; spooked: a spring's boing, wobbling
+(tune.effect boing "l1 v13 c5 g5 c6 a5 c6 l12 k1 b5")
+
+; a shield flung: a rush of noise, swelling, then gone
+(tune.effect whoosh "m2 n5 l2 v9 c4 l6 k2 v12 c4")
+
+; mana: a sparkle of high notes
+(tune.effect sparkle "l2 v11 k2 b6 e7 g#7 l8 k1 e8")
