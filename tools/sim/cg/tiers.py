@@ -97,25 +97,28 @@ def main():
         bl = [blank.get((slot, t)) for t in range(3)]
         below = sum(1 for t in range(3) if w[t] is not None and bl[t] is not None and
                     w[t] <= bl[t])
-        vs_blank = sum(w[t] - bl[t] for t in range(3) if w[t] is not None and bl[t] is not None) / 3
-        out.append((mean, name, slot, w, vs_blank, below))
+        pairs = [(w[t], bl[t]) for t in range(3) if w[t] is not None and bl[t] is not None]
+        vs_blank = sum(a - b for a, b in pairs) / max(1, len(pairs))
+        sk = [(w[t], skip[t]) for t in range(3) if w[t] is not None and t in skip]
+        vs_skip = sum(a - b for a, b in sk) / max(1, len(sk))
+        out.append((mean, name, slot, w, vs_blank, below, vs_skip))
     out.sort(reverse=True)
     fc = cards[0]
-    print("\n| card | slot | forced after 1, 4, 7 | vs unforced | vs a blank | offered runs | "
-          "taken when offered | held: won (not held) |")
-    print("|---|---|---|---|---|---|---|---|")
-    for mean, name, slot, w, vb, below in out:
+    print("\n| card | slot | forced after 1, 4, 7 | vs unforced | vs a skip | vs a blank | "
+          "offered runs | taken when offered | held: won (not held) |")
+    print("|---|---|---|---|---|---|---|---|---|")
+    for mean, name, slot, w, vb, below, vs_skip in out:
         c = fc.get(name)
         extra = " |  |  |"
         if c:
             extra = " | %s | %.0f%% | %.0f%% (%.0f%%) |" % (
                 c[4], 100 * float(c[7]) if c[7] != "nan" else float("nan"),
                 100 * float(c[9]) if c[9] != "nan" else float("nan"), 100 * float(c[10]))
-        print("| %s | %s | %s | %+.1f | %+.1f%s%s" % (
+        print("| %s | %s | %s | %+.1f | %+.1f | %+.1f%s%s" % (
             name.title() if not name.startswith("+1") else name, slot,
             ", ".join("%.0f%%" % (100 * x) if x is not None else "-" for x in w[:3]),
-            100 * (mean - base), 100 * vb, " (at or under in %d of 3)" % below if below else "",
-            extra))
+            100 * (mean - base), 100 * vs_skip, 100 * vb,
+            " (at or under in %d)" % below if below else "", extra))
     print("\ncharms:")
     ch = {}
     for r in rows:
