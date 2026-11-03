@@ -127,7 +127,7 @@ def main():
         ch.setdefault(r["name"], {})[r["after"]] = r["win"]
     cc = cards[1]
     print("| charm | forced after 3, 6, 9 | vs unforced | offered runs | taken when offered | "
-          "held: won (not held) |")
+          "offered: won if taken (if passed) |")
     print("|---|---|---|---|---|---|")
     lines = []
     for name, d in ch.items():
