@@ -345,4 +345,14 @@ run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any loa
    bank 1 together. Aux 649 free (456 less: the effects, and `cue_byte` grew 77 bytes in the
    mirror). Fight 1 424, fight 2 251, the title after a run 127 (126.94), the boot's title 813
    (812.49).
+4. (Table item 10.) Not done. The ending's group read from disk 2 would cost every fight's end
+   about 11 frames (Tisple's estimate for a disk group: 115 cycles a byte and 100,000 more, 763
+   bytes) against 0.7 from aux memory, and a disk read there risks a turn of the disk as the
+   title's did. Small aux tables in aux page 2 or `$0300-$033F` would be `:address` consts, which
+   the boot disk loads: a new segment (all 10 are used) or the aux `$0800` segment grown down
+   over aux text page 1. Aux memory is 880 bytes shorter after 1 and 5 (649 free, 339 of it at
+   `$BEAD-$BFFF`); that is where the next aux room has to come from.
+
+The pictures (`memory-map.png`, `memory-map-low.png`) are still the audit's; `memmap.py`
+redraws them for a build.
 
