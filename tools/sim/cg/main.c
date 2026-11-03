@@ -123,7 +123,16 @@ static int kit_parse(const char *v) {
     if (charms)
         *charms++ = 0;
     char *save = NULL;
+    static const char *const slot_name[6] = {"WAND", "FLUFF", "STAR", "BOOK", "CURSE", "TRICK"};
     for (char *p = strtok_r(buf, ",", &save); p; p = strtok_r(NULL, ",", &save)) {
+        int blank = -1; /* "BLANK CURSE": that slot's face a blank (it does nothing) */
+        for (int s = 0; s < 6; s++)
+            if (!strncmp(p, "BLANK ", 6) && !strcmp(p + 6, slot_name[s]))
+                blank = s;
+        if (blank >= 0) {
+            START.items[blank] = BLANK_ID;
+            continue;
+        }
         int id = plan_what(FORCE_CARD, p);
         if (id < 0 || id >= FACE_COUNT)
             return 1;

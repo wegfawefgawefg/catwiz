@@ -56,7 +56,8 @@ double judge_value(const Battle *b) {
             continue;
         int k = b->kind[i];
         v -= b->hp[i] + KIND_CHAIN[k] + 0.8 * stk(b, i, ST_shield) + 0.5 * stk(b, i, ST_ward);
-        v += 1.5 * stk(b, i, ST_brand) + 0.5 * stk(b, i, ST_wet);
+        int brand = stk(b, i, ST_brand), wet = stk(b, i, ST_wet);
+        v += 1.5 * (brand < 4 ? brand : 4) + 0.5 * (wet < 3 ? wet : 3);
         v -= (KIND_THREAT[k] + stk(b, i, ST_strength)) * THREAT_TURNS;
         if (stk(b, i, ST_flea_turns)) {
             int f = stk(b, i, ST_poison) * stk(b, i, ST_flea_turns);

@@ -150,8 +150,11 @@ double value_of(const Battle *b) {
         int k = b->kind[i];
         v -= W->foe_hp * (b->hp[i] + KIND_CHAIN[k]);
         v -= W->foe_shield * stk(b, i, ST_shield) + W->foe_ward * stk(b, i, ST_ward);
-        v += W->brand * stk(b, i, ST_brand) + W->wet * stk(b, i, ST_wet);
-        v += W->dot * (stk(b, i, ST_dot) > 0) + W->leech * stk(b, i, ST_leech);
+        /* a status is worth what it can still pay out, not its stack: marks and wet piled on
+           an enemy the search does not finish would be worth more than beating it */
+        int brand = stk(b, i, ST_brand), wet = stk(b, i, ST_wet), leech = stk(b, i, ST_leech);
+        v += W->brand * (brand < 4 ? brand : 4) + W->wet * (wet < 3 ? wet : 3);
+        v += W->dot * (stk(b, i, ST_dot) > 0) + W->leech * (leech < 3 ? leech : 3);
         v -= W->threat * threat(b, i);
         if (stk(b, i, ST_flea_turns)) {
             int f = stk(b, i, ST_poison) * stk(b, i, ST_flea_turns);
