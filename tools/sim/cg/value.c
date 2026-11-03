@@ -174,11 +174,22 @@ double value_of(const Battle *b) {
 double value_after_turn(const Battle *b) {
     if (b->result != R_NONE)
         return value_of(b);
-    Battle c = *b;
-    c.tell = NULL;
     int back = __builtin_popcount(b->back);
-    b_end_turn(&c);
-    return value_of(&c) + BACK_DIE * back;
+    /* a hypnotized enemy hits a fighter at random: the mean of CHANCE enemy turns, as for a
+       coin (one imagined turn made the search play Hypnotize when that turn went well) */
+    int chance = 0;
+    for (int i = 1; i < ACTORS; i++)
+        chance |= b->alive[i] && stk(b, i, ST_hypno) > 0;
+    double v = 0;
+    for (int j = 0; j < (chance ? CHANCE : 1); j++) {
+        Battle c = *b;
+        c.tell = NULL;
+        if (j)
+            c.srng = b->srng * 2654435761u + 12345u * (uint32_t)j + 7u;
+        b_end_turn(&c);
+        v += value_of(&c);
+    }
+    return v / (chance ? CHANCE : 1) + BACK_DIE * back;
 }
 
 void weights_load(const char *path) {
