@@ -313,8 +313,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   effect, `(sound.song sound.Song.battle)` for music. With a Mockingboard (any slot, found at
   start) the card plays them; without one the speaker effects of `sfx.tsp` and the title jingle
   of `music.tsp` play, and there is no other music.
-- Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. lib/mockingboard plays one at
-  a time and keeps the ones that come while another plays in its own short line; cues marked
+- Card effects are in `game/sound/card_fx.tsp` (its `effect` macro: `tune.effect` `:in aux`,
+  17 bytes at most). `sound.cue_byte` copies each as it is cued into the next of five buffers in
+  main memory, where the card's handler reads it (2026-11-03, the memory pass:
+  docs/memory-map.md). lib/mockingboard plays one at a time and keeps the ones that come while another plays in its own short line; cues marked
   not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
   music voice: 2 (left, the hero's side) or 5 (right, the enemies'), so the songs keep their
   least-missed parts there (the pad and the shaker).
@@ -466,7 +468,7 @@ then `$0BE0-$13FF`, then the language card (bank 2, and code in bank 1). Tisple'
 `$1400-$1BFF` (lib/disk's reader, main), `$1C00-$1DA5` (lib/unpack, both memories, and zero
 page `$FF`), `$1DA6-$1DF2` (lib/auxcard, main) and `$1E00-$1F50` (lib/dhgr's runs, both). The art (each
 screen's picture and runs) and the rules' text are on the disk (`:on disk`); the songs, the
-card pictures and most text live in aux memory; a screen's sprites in the aux language card and
+card pictures, the card effects and most text live in aux memory; a screen's sprites in the aux language card and
 `blit.sprite_aux`. The disk has 10 segments, the most a disk holds: a new `:address` let that
 splits a memory would not build.
 

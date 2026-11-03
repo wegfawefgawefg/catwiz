@@ -189,8 +189,8 @@ From the listing's calls: resident functions whose every caller is in an overlay
   and `scratch`, 17, at `$BFEF`): the handler reads the
   playing effect, so all of them stay resident. lib/mockingboard plays one at a time; the one
   playing could be copied from aux into a buffer of the longest effect's size (17 bytes, `scratch`) when it
-  starts, freeing about 360 bytes of main memory. `load-music` is rewriting `sound.tsp` now, so
-  this waits for it.
+  starts, freeing about 360 bytes of main memory. Done in the memory pass (below), on Catwiz's
+  side: copied as each is cued, into one of five buffers.
 - `auxmem.GUARD` (108, the card) to aux memory or the title's image: it is read once.
 - The zero-page image (107, the card): startup reads it before anything else runs, when the
   overlay region is still empty; Tisple could put it there.
@@ -258,7 +258,7 @@ chance of breaking something and the work to verify it.
 | 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) (tried, left: each cost speed, below) | Catwiz | about 200 main, 200 aux | low |
 | 3 | Once-only data out of the card: `auxmem.GUARD` to aux, the zero-page image into the empty overlay region at boot | Tisple | 215 card | low |
 | 4 | Code shared only by the title's and the fight start's groups copied into both images instead of kept resident | Tisple | about 683 main, costs 683 aux | medium |
-| 5 | Card effects in aux, the playing one copied into a 17-byte buffer (after `load-music` merges) | Catwiz, lib/mockingboard | about 360 main | medium |
+| 5 | Card effects in aux, the playing one copied into a 17-byte buffer (after `load-music` merges) (done, five buffers: below) | Catwiz, lib/mockingboard | about 360 main | medium |
 | 6 | One shared `ov.enter` for all groups instead of five (about 75 bytes each now) | Tisple | about 230 main | low-medium |
 | 7 | Boot disk: merge contiguous main segments (`$0B00-$1FFF`), put no-value aux lets past what loads | Tisple | 0 bytes; boot 4 tracks shorter, 3 segments free | low-medium |
 | 8 | Scratch lets the layout places (never zeroed, in memory free after boot) instead of 118 hand addresses | Tisple, then Catwiz | the 69 bytes of holes, and the hand work | medium |
@@ -325,6 +325,24 @@ run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any loa
    - `offer.pool_byte` (24): the draws call it for every byte of the pool they look at (the
      faces' pool is 94 rows, about 2,000 calls for a draw of five), and `auxmem.read` costs
      about 100 cycles a call more than the with_aux: by that count (not measured) about 12 frames
-     more on every reward. The
-     pool would need a main-memory buffer of a sector to be read once, and there is none.
+     more on every reward. The pool would need a main-memory buffer of a sector to be read once,
+     and there is none.
+3. (Table item 5.) The card effects (`sound/card_fx`, 379 bytes) are in aux memory, `:in aux`
+   through card_fx's own `effect` macro, which fails the build for an effect longer than the
+   buffers (17 bytes, `card_fx.MOST`) or with an end byte before its end. lib/mockingboard's
+   handler reads the playing effect from main memory and keeps up to four waiting by pointer,
+   so without changing Tisple one buffer is not enough: `sound.cue_byte` copies each cued effect
+   (up to its end byte, inside the with_aux it already had) into the next of five 17-byte
+   buffers (`sound.fx_buffers`, 85 bytes). Every cue goes in at one priority, so the card plays
+   them in the order they come, and at most five are playing or waiting: the buffer a cue takes
+   is the one of the cue five before, which is over. A cue the full line would drop takes none.
+   Interrupts are off from the check through the copy until `mb.effect` has it in line, so the
+   tick that starts it is never a later one: the title's confirm started 3.05 frames after the
+   key before and 3.04 after, a die's tok 2.05 and 2.04; a fight's first turn started 30 effects
+   in both. A tick is held up to about 230 cycles more (the latest 14,379 cycles late in the loads,
+   was 14,153; none lost). After: main 68 free, the card 213, bank 1 1,107 (17 functions,
+   2,962 bytes, about 177,460 cycles a run): 297 bytes more free in main memory, the card and
+   bank 1 together. Aux 649 free (456 less: the effects, and `cue_byte` grew 77 bytes in the
+   mirror). Fight 1 424, fight 2 251, the title after a run 127 (126.94), the boot's title 813
+   (812.49).
 
