@@ -327,6 +327,18 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
   rules page's buffer) and copied into main (`sound.PLAYING` bytes: keep it at the largest
   song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
+- Song changes fade (2026-11-03, the owner; Tisple's `mb.fade`, docs/mockingboard.md "Fades"):
+  `sound.quiet` (a screen's load, and every `sound.song`) fades the music out, a volume step
+  every 4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a
+  load slowed the disk reads: fight loads took about 20 frames longer). The new song is read
+  meanwhile and `sound.start` copies it in once the one before is silent, from `song` when it is
+  by then (a screen's song: the screen's load is longer than the fade) or from the main loop's
+  look each pass (the run's end, where the battle's song fades under the banner), and fades it in
+  from 13 steps down (`FADE_FROM`, the loudest any song has: 0.87 s); the stingers (won, lost)
+  start at full. Nothing waits for a fade: the first fight is ready 2 frames later than before
+  (the tick's work while the fade runs through the load's first second). While a song waits,
+  nothing else may read into aux text page 1 (sound.tsp says why none does).
+  `tools/music/renders/fade_demo.ogg` is the title to the first fight.
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
 - `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
@@ -370,7 +382,8 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
   once, after the first title, and never back. Two drives: no prompt.
 
 - The game needs Tisple main with lib/dhgr's runs, lib/auxcard, lib/dhgr_pixels, `:strings
-  aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged).
+  aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged), and lib/mockingboard's fade
+  (`mb.fade`, `mb.fade_in`, `mb.faded`: Tisple's `song-fade` branch, 2026-11-03).
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
@@ -382,8 +395,8 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
 - The boot shows LOADING with Tisple's meter (a percent and a bar, Tisple d14df73 or later),
   then the title by frame 784 (13 s); a fight's art loads in about 3 s, the title still
   showing while its picture is read, then the picture while its runs are read and unpacked,
-  with paw prints along the foot of the stage (`draw/meter`; the music stops first: the
-  card's halves unpack with interrupts off). Every disk read goes through `meter.read`.
+  with paw prints along the foot of the stage (`draw/meter`; the music fades out and stops
+  first, while the picture and runs are read: the card's halves unpack with interrupts off). Every disk read goes through `meter.read`.
 - 2026-11-01: main memory had about 15 bytes free; the meter's 377 bytes of code made the
   build put `battle/look.update` in bank 1 too (an action pass about 4% slower, still under
   a frame).
