@@ -1,6 +1,6 @@
 ; what comes between fights, after a won one: one of five cards drawn at random (battle/offer:
 ; a face for a slot, or a level on a slot); after an elite, one of three charms drawn too, then
-; the rest (she heals to full, counted up on her badge, and may take a
+; the rest (she heals to full, counted up on her badge with hearts rising by her, and may take a
 ; level on a slot of her choice); and the two doors before a fight that has another. The choices
 ; are cards in the tray's slots (1-5, the six slots at the rest), each card's lines on the text
 ; rows when it is picked; the stage shows her six slots (battle/kit), the one a card changes
@@ -21,6 +21,7 @@
 (import content/encounters enc)
 (import content/enemies en)
 (import content/items)
+(import battle/hit)
 (import battle/look)
 (import sound/sound)
 
@@ -339,7 +340,7 @@
     (after_rest))
 
 ; the rest after an elite: she is back to full hit points at once (state.hero_hp), and her
-; badge counts up to it (mend), her happy face meanwhile; and a face
+; badge counts up to it with hearts rising by her (mend), her happy face meanwhile; and a face
 ; of her choice may take +1, or none (S)
 (fn rest () void
     (set state.hero_hp state.hero_max)
@@ -351,8 +352,9 @@
 (const MEND_MOOD u8 96) ; frames of her happy face at the rest: the count and the last heart
 (const MEND_STEP u8 3)  ; frames a hit point counts up in, less one (a mask): 4
 
-; a frame of the rest's heal: a hit point more on her badge every 4 frames, up to her most (the
-; badge is her actor's: the next fight's start sets it from state.hero_hp)
+; a frame of the rest's heal: a hit point more on her badge every 4 frames, and a heart rising
+; by her every other one (battle/hit heart, its four places in turn), up to her most (the badge
+; is her actor's: the next fight's start sets it from state.hero_hp)
 (fn mend () void
     (let hp u8 (at state.actors state.HERO hp))
     (if (or (!= state.pick state.Pick.rest) (>= hp state.hero_max))
@@ -361,7 +363,9 @@
     (if (!= (& state.timer MEND_STEP) 0)
         (return))
     (set (at state.actors state.HERO hp) (+ hp 1))
-    (set state.hud_pills (| state.hud_pills 1)))
+    (set state.hud_pills (| state.hud_pills 1))
+    (if (!= (& state.timer 4) 0)
+        (hit.heart (& (>> state.timer 3) 3))))
 
 (fn after_rest () bool
     (if (and (< state.next_fight enc.FIGHT_COUNT) (!= (enc.other state.next_fight) state.NOTHING))

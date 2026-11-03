@@ -132,7 +132,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   text rows when it is picked (`battle/card_words`: a new face on a slot with levels shows how
   they make its number, "Hits 10 (6, +4 from your levels)."); after an elite also one of three
   charms drawn the same way (ones she has not got), then the rest (2026-11-03, the owner: she
-  heals to full, her badge counting up, then she may put +1 on a face
+  heals to full, her badge counting up with hearts rising by her, then she may put +1 on a face
   of her choice, or skip it as every pick can be); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
   fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM has its own
   figure and screen (the clearing's scenery round its lanes, `screen_fight3`), and the
@@ -283,6 +283,15 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the bolt would), and an ON sprite stays inside its fighter's idle frame (a lane always). The
   scene draws the fighter's rows again where a small look left it, with no black fill first
   (`scene.restore_drawn`), so a show (or the bolt landing) never blinks a hole in a figure.
+- Her heal's look (2026-11-03, the owner: hearts float up on her): every heal of hers (a face,
+  a charm, a leech; `hit.heal`) puts a heart in each floater the heal's number leaves free, and
+  they rise like the numbers by her head on black (`hit.heart`, HEART_COL/ROW: left of her
+  hat's brim and right of it under the number, in her lanes, out of her happy frame so she is
+  not drawn again as they move; her happy face lasts as long, HEAL_FRAMES), each 4 frames
+  shorter than the last so all move on the same frames, the last 5 frames a glint (`look.update`,
+  the shine sprite). A number takes a heart's floater when none is free. No sprite of its own:
+  the faces round's heart. The rest's full heal (`reward.mend`) counts her badge up a hit point
+  every 4 frames with a heart every 8. The hearts' lanes are in `lanes.py` (HEARTS).
 - The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
   mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
   cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a

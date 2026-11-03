@@ -23,6 +23,7 @@
 (const ROLE_SHOT u8 7)  ; the small sprites its moves throw or play (content/shows FOE)
 (const ROLE_SHOT2 u8 8)
 (const ROLE_SHOT3 u8 9)
+(const GLINT_FRAMES u8 5) ; a heart's last frames, a glint (update)
 
 ; one frame of the ambient motion; everything holds still during hit-stop
 (fn tick () void
@@ -224,10 +225,12 @@
     (for i u8 0 state.FLOATERS
         (let look u8 (+ state.LOOK_FLOATER i))
         (set (at state.looks look sprite) state.NOTHING)
-        (if (> (at state.floaters i time) 0)
+        (let time u8 (at state.floaters i time))
+        (if (> time 0)
             (do
-                (show look
-                    (at state.floaters i sprite)
-                    (at state.floaters i col)
-                    (at state.floaters i top))
+                ; a heart of her heal glints as it goes (battle/hit heart)
+                (let sprite u8 (at state.floaters i sprite))
+                (if (and (= sprite art.HEART) (< time GLINT_FRAMES))
+                    (set sprite art.SHINE))
+                (show look sprite (at state.floaters i col) (at state.floaters i top))
                 (set (at state.looks look second) (at state.floaters i second))))))
