@@ -1,0 +1,47 @@
+; c_moon: moonrise, for the title or the map. Calm and wondrous, night garden's way of
+; breathing with a slow tune floating over it.
+; Key: E major, with the moon's borrowed chord: Emaj9 | Cmaj7#11 | Amaj9 | Bsus4 -> B,
+;   8 s a chord. The C chord turns G# to G and back: the shift that makes it moonlit.
+; Tempo: a beat is 60 ticks (one a second); the chords come in waves like night garden's
+;   (bass, low pad a second later, high pad a second after that), every note let fade.
+;   It opens on the B chord alone, so the tune comes in with the first Emaj9, 8 s in.
+; Repeats: the chords every 32 s; the tune is two rounds (A rising to G#, then A' reaching
+;   up to C#6), 64 s; the stars drift against both (18.5 s), so it repeats exactly only
+;   after many minutes. Size: 345 bytes (fits the 395). Loudness about night garden's.
+;
+; voice 0  bass: the root, then the fifth, slow to fade
+; voice 1  low pad: 3rds and 7ths, a step on halfway, one beat behind the bass
+; voice 2  stars: now and then a high twinkle (b e f#, two quick blinks), very soft
+; voice 3  high pad: 9ths, #11 and the sus4 that falls to D# in the last chord, two beats
+;          behind the bass
+; voice 4  the tune: a soft bell, one note a beat or slower, rising in each phrase and
+;          sinking back; its patterns set no volume, so voice 5 can share them
+; voice 5  the tune's echo, half a beat later and soft
+(pattern in_low "l60 r")
+(pattern in_high "l60 r r")
+(pattern in_tune "l60 v9 k10 r r r r r r r r")
+(pattern in_echo "l30 v4 k10 r l60 r r r r r r r r")
+(pattern in_stars "l64 r r r r r r r")
+(pattern bass_e "e2 - - - b1 - - -")
+(pattern bass_c "c2 - - - g1 - - -")
+(pattern bass_a "a1 - - - e2 - - -")
+(pattern bass_b "l60 v10 k15 b1 - - - f#2 - - -")
+(pattern low_e "g#3 - - - b3 - - -")
+(pattern low_c "b3 - - - g3 - - -")
+(pattern low_a "g#3 - - - c#4 - - -")
+(pattern low_b "l60 v8 k15 a3 - - - b3 - - -")
+(pattern high_e "d#4 - - - f#4 - - -")
+(pattern high_c "f#4 - - - e4 - - -")
+(pattern high_a "b3 - - - e4 - - -")
+(pattern high_b "l60 v7 k15 e4 - - - - d#4 - -")
+(pattern tune_a
+    "b4 - e5 f#5 g#5 - - r g5 - f#5 e5 b4 - - r c#5 e5 a5 - g#5 - - r f#5 - e5 d#5 - - - r")
+(pattern tune_a2
+    "b4 - e5 f#5 b5 - - r b5 - a5 g5 f#5 - - r e5 - g#5 b5 c#6 - - r b5 - a5 f#5 e5 - d#5 -")
+(pattern stars "l2 v4 k1 b6 l6 r l2 e7 l64 r r r r r r r r l2 f#7 l6 r l2 b6 l64 r r r r r r r r r")
+(voice 0 bass_b loop bass_e bass_c bass_a bass_b)
+(voice 1 in_low low_b loop low_e low_c low_a low_b)
+(voice 2 in_stars loop stars)
+(voice 3 in_high high_b loop high_e high_c high_a high_b)
+(voice 4 in_tune loop tune_a tune_a2)
+(voice 5 in_echo loop tune_a tune_a2)

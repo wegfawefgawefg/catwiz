@@ -1,0 +1,49 @@
+; c_house: the house at midnight, for zone 3. A slow music-box lullaby over a creeping
+; chromatic bass, with a grandfather clock, creaking boards and something small giggling.
+; Not the lounge: no swing, no walk; a 4/4 at the clock's speed, mostly space.
+; Key: A minor. The bass creeps down by semitones under a held A minor (the "line cliche"):
+;   A  Am Am/G# Am7/G Am6/F# | F E7b9 Am Am      (the tune, its last bar a little peek)
+;   B  Dm Dm/C# Dm7/C Dm6/B  | F E7b9 Am Am      (the same a fourth up, ending on a giggle)
+; Tempo: a beat is 60 ticks, one tick of the clock (60 bpm); a bar is 4 beats (4 s).
+; Repeats: the tune is 16 bars, 3840 ticks (64 s); the creaks and the mouse go round every
+;   49.2 s against it, so the house never sounds the same twice in a row.
+; Size: 394 bytes (fits the 395). Loudness about night garden's.
+;
+; voice 0  the piano's left hand: the creeping bass on beat 1, a fifth or common tone on 3
+; voice 1  the piano's right hand: two soft notes on beats 2 and 4, held still while the
+;          bass creeps under them: E and A, which sit in nearly every chord
+; voice 2  the clock: tick (high) and tock (lower), one a second, tone and noise for a
+;          blip of a tick (lent to the hero's effects in a fight)
+; voice 3  the music box: a plucked tune (v10, gone in under a second), sparse; its
+;          patterns set no volume, so voice 5 can share them
+; voice 4  the house: a floorboard creak (a low buzzing square, its pitch stuttering up,
+;          rasped with low noise), a mouse's squeak, a door's long creak, now and then
+; voice 5  the music box's ring: the tune 8 ticks late and soft (lent to the enemies' effects)
+(pattern in2 "l60 r r")
+(pattern in_tune "l60 v10 k4 r r")
+(pattern in_ring "l64 v4 k4 r l64 r")
+(pattern wait4 "l64 r r r r")
+(pattern wait8 "l64 r r r r r r r r")
+(pattern tune_a
+    "r e5 a5 - b5 l30 c6 b5 l60 g#5 - r l30 g5 a5 l60 c6 e6 d6 l30 c6 a5 l60 f#5 -")
+(pattern tune_a2
+    "r l30 a5 c6 l60 e6 c6 d6 l30 b5 g#5 l60 f5 e5 e5 l30 a5 b5 l60 c6 - r l15 e6 r d#6 e6 l60 r r")
+(pattern tune_b
+    "r a5 d6 - e6 l30 f6 e6 l60 c#6 - r l30 c6 d6 l60 f6 d6 f6 l30 e6 d6 l60 b5 -")
+(pattern tune_b2
+    "r l30 a5 c6 l60 f6 e6 d6 l30 b5 g#5 l60 f5 g#5 a5 l30 e5 c5 l60 a4 - r r l15 e6 d#6 d6 c#6 l60 r")
+(pattern left_a
+    "l60 v9 k12 a2 - e3 - g#2 - e3 - g2 - e3 - f#2 - e3 - f2 - c3 - e2 - b2 - a2 - e3 - a2 - - -")
+(pattern left_b "d2 - a2 - c#2 - a2 - c2 - a2 - b1 - a2 - f2 - c3 - e2 - b2 - a2 - e3 - a1 - - -")
+(pattern right "l60 v6 k8 r e4 r a4")
+(pattern clock "m3 n1 k1 l1 v9 c7 l59 r l1 v8 g6 l59 r")
+(pattern creak "m3 n28 v7 k0 l2 a#1 b1 a#1 c2 b1 c#2 c2 l3 d2 c#2 l4 d#2")
+(pattern mouse "m1 v6 k1 l2 e7 l5 r l2 f7 l7 r l1 e7 f7 e7")
+(pattern door
+    "m3 n30 v6 k0 l2 g1 a1 g#1 a#1 a1 c2 b1 c#2 c2 d#2 l3 d2 e2 l4 d#2 f2 v4 e2 f#2")
+(voice 0 in2 loop left_a left_b)
+(voice 1 in2 loop right)
+(voice 2 clock)
+(voice 3 in_tune loop tune_a tune_a2 tune_b tune_b2)
+(voice 4 wait8 loop creak wait8 wait4 mouse wait8 door wait8 wait4 creak wait4 creak wait8)
+(voice 5 in_ring loop tune_a tune_a2 tune_b tune_b2)

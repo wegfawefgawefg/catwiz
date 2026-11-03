@@ -1,0 +1,44 @@
+; c_shop: the witch's curio shop. A sly little tango: the shopkeeper slinking about,
+; showing off wares, haggling. A real tune, in the habanera rhythm.
+; Key: G minor (harmonic: F# in the D7s, B in the G7).
+;   A   Gm Gm D7 D7 | D7 D7 Gm Gm       the hook: a slinky g f# g a / bb a g, then down a step
+;   A'  Gm Gm D7 D7 | D7 D7 Gm G7       the same, turning to C minor
+;   B   Cm Cm Gm Gm | Eb7 D7 Gm D7      the sighing middle: a chromatic climb, then the
+;                                        habanera figure down a semitone, Eb7 to D7
+;   A'' Gm Gm D7 D7 | D7 D7 Gm Gm       the hook, and a tango's "dun... da-DUN" ending
+; Tempo: a 16th is 8 ticks (quarter = 112 bpm); 2/4, a bar of 64 ticks, each bar the
+;   habanera: dotted 8th, 16th, 8th, 8th.
+; Repeats: 32 bars, 2048 ticks (34 s); the hook comes three times in that, with three
+;   endings, and the third time an inner line joins it. Size: 395 bytes (fits the 395).
+;
+; voice 0  the piano's left hand: the habanera bass (root, fifth below, root), and on the
+;          last 8th of each bar a soft rolled chord in place of the fourth bass note
+; voice 1  castanets: the habanera on noise, a roll into each bar's last 8th
+; voice 3  the tune: a plucked violin-ish square (v11, quick fade); its patterns set no
+;          volume, so voice 5 can share them
+; voice 4  the last A only: a soft inner line under the hook, a note a bar (D C A Bb),
+;          so the third time round sounds fuller than the first
+; voice 5  the tune's echo, a 16th late and soft
+(pattern in_tune "l1 v11 k3 r")
+(pattern in_echo "l9 v4 k3 r")
+(pattern lh_g "l24 v11 k3 g2 l8 d2 l16 g2 l2 v7 a#3 d4 g4 l10 r")
+(pattern lh_d "l24 v11 d2 l8 a1 l16 d2 l2 v7 a3 c4 f#4 l10 r")
+(pattern lh_c "l24 v11 c2 l8 g1 l16 c2 l2 v7 d#4 g4 c5 l10 r")
+(pattern lh_eb "l24 v11 d#2 l8 a#1 l16 d#2 l2 v7 g3 c#4 g4 l10 r")
+(pattern lh_g7 "l24 v11 g2 l8 d2 l16 g2 l2 v7 b3 d4 f4 l10 r")
+(pattern castanets "l8 m2 k1 v7 c4 r r v4 c4 v6 c4 r l4 v4 c4 c4 l8 v7 c4")
+(pattern hook
+    "l16 g5 l8 r f#5 l16 g5 a5 l32 a#5 l16 a5 g5 f#5 l8 r e5 l16 f#5 g5 l32 a5 l16 g5 f#5 l8 d5 e5 f#5 g5 a5 c6 l16 a5 l24 c6 l8 a#5 l16 a5 f#5")
+(pattern end_a "l24 g5 l8 d5 l16 f#5 a5 l32 g5 l16 r d5")
+(pattern end_a2 "l24 g5 l8 d5 l16 a#5 d6 f6 d6 b5 g5")
+(pattern middle
+    "l40 d#6 l8 d6 l16 c6 g5 l8 g#5 a5 l16 a#5 b5 l48 d6 l16 a#5 g5 l8 a5 a#5 l32 a5 l24 g5 l8 c#6 l16 a#5 g5 l24 f#5 l8 c6 l16 a5 f#5 l32 g5 l16 a#5 d6 c6 a5 f#5 d5")
+(pattern rest8 "l64 r r r r r r r r")
+(pattern counter "l64 v6 k10 d5 d5 c5 c5 c5 a4 a#4 a#4")
+(pattern end_a3 "l24 g5 l8 d5 l16 a#4 a4 g4 l8 r d4 l16 g4 r")
+(voice 0 lh_g lh_g lh_d lh_d lh_d lh_d lh_g lh_g lh_g lh_g lh_d lh_d lh_d lh_d lh_g lh_g7
+    lh_c lh_c lh_g lh_g lh_eb lh_d lh_g lh_d lh_g lh_g lh_d lh_d lh_d lh_d lh_g lh_g)
+(voice 1 castanets)
+(voice 3 in_tune loop hook end_a hook end_a2 middle hook end_a3)
+(voice 4 rest8 rest8 rest8 counter)
+(voice 5 in_echo loop hook end_a hook end_a2 middle hook end_a3)

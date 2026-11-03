@@ -1,0 +1,50 @@
+; c_elite: tense fight music for elites. One long build: a pulse that gets faster, an
+; ostinato that climbs, stabs that crowd in and a line that creeps up by semitones, then the
+; floor drops out and it starts to build again.
+; Key: E phrygian / E minor. 20 bars: E (8 bars) -> F, the flat second (8) -> B7b9, the
+;   dominant (4) -> back to E.
+;   bars  1-4   E  ostinato, the pulse in quarters, a low thump a bar
+;   bars  5-8   E  the pulse in 8ths, phrygian cluster stabs (E F B) pushing 3+3+2,
+;                  snare on 2 and 4, the line comes in on B
+;   bars  9-12  F  all up a semitone; the pulse stays on E (now F's major 7th), accented
+;   bars 13-16  F  the pulse in 16ths, the line at D# rubbing against it
+;   bars 17-20  B7 stabs on every beat, a snare roll getting louder, the line up to A,
+;                  the pulse falling to D# in the last bar, then bar 1: half the band gone
+; Tempo: an 8th is 12 ticks (quarter = 150 bpm), 4/4, a bar of 96 ticks (1.6 s).
+; Repeats: 20 bars, 1920 ticks (32 s); every 4 bars something new comes in.
+; Size: 488 bytes (over the 395: the build is five 4-bar sections, each changing three or
+;   four voices, and the order lists are most of the cost; dropping bars 13-16 saves about
+;   40). Loudness about now_battle's overall, rising from -35 to -30 dB over the build.
+;
+; voice 0  ostinato: 8ths, the root against its flat second and a falling tail, 2 bars,
+;          moved to F and to B; the backbone
+; voice 1  the pulse: one E, repeated in quarters, 8ths, accented 8ths, 16ths
+; voice 2  snare and hats (noise; lent to the hero's effects in a fight)
+; voice 3  stabs: three-note chords rolled fast (E F B, F B E, B D# A)
+; voice 4  the line: half notes, from B up a semitone every 2 bars (a tone E to F#), then G, A
+; voice 5  thump: a low tone-and-noise hit on each bar (lent to the enemies' effects)
+(pattern rest4 "l64 r r r r r r")
+(pattern os_e "l12 v11 k2 e2 e2 b2 e2 f2 e2 c3 b2 e2 e2 b2 e2 g2 f2 e2 d2")
+(pattern os_f "f2 f2 c3 f2 f#2 f2 c#3 c3 f2 f2 c3 f2 g#2 f#2 f2 d#2")
+(pattern os_b "b1 b1 f#2 b1 c2 b1 g2 f#2 b1 b1 f#2 b1 d#2 c2 b1 a1")
+(pattern pulse_q "l24 v6 k3 e5 e5 e5 e5")
+(pattern pulse_8 "l12 v7 k2 e5 e5 e5 e5 e5 e5 e5 e5")
+(pattern pulse_8a "v9 e5 v6 e5 e5 v9 e5 v6 e5 e5 v9 e5 v6 e5")
+(pattern pulse_16 "l6 v7 k1 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5 e5")
+(pattern pulse_16t "e5 e5 e5 e5 e5 e5 e5 e5 d#5 d#5 d#5 d#5 d#5 d#5 d#5 d#5")
+(pattern s_e "l2 v9 k3 e4 f4 b4 l30 r l2 e4 f4 b4 l30 r l2 e4 f4 b4 l18 r")
+(pattern s_f "l2 v10 f4 b4 e5 l30 r l2 f4 b4 e5 l30 r l2 f4 b4 e5 l18 r")
+(pattern s_b "l2 v11 b3 d#4 a4 l18 r l2 b3 d#4 a4 l18 r l2 b3 d#4 a4 l18 r l2 b3 d#4 a4 l18 r")
+(pattern line
+    "l48 v7 k5 b4 b4 b4 b4 c5 c5 c5 c5 c#5 c#5 c#5 c#5 d5 d5 d5 d5 d#5 d#5 d#5 d#5 e5 e5 e5 e5 f#5 f#5 f#5 f#5 g5 g5 a5 a5")
+(pattern back "l12 m2 k1 n1 v5 c4 v2 c4 n6 v10 c4 n1 v2 c4 v5 c4 v2 c4 n6 v10 c4 n1 v3 c4")
+(pattern roll_a "l6 n6 v7 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4")
+(pattern roll_b "v12 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4")
+(pattern thump "m3 n15 v11 k1 l12 e2 l64 r l20 r")
+(voice 0 os_e os_e os_e os_e os_f os_f os_f os_f os_b os_b)
+(voice 1 pulse_q pulse_q pulse_q pulse_q pulse_8 pulse_8 pulse_8 pulse_8 pulse_8a pulse_8a pulse_8a pulse_8a pulse_16 pulse_16 pulse_16 pulse_16 pulse_16 pulse_16 pulse_16 pulse_16t)
+(voice 2 rest4 back back back back back back back back back back back back
+    roll_a roll_a roll_b roll_b)
+(voice 3 rest4 s_e s_e s_e s_e s_f s_f s_f s_f s_f s_f s_f s_f s_b s_b s_b s_b)
+(voice 4 rest4 line)
+(voice 5 thump)

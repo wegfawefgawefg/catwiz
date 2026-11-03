@@ -1,0 +1,52 @@
+; c_woods: the woods at midnight, night garden's sibling, for zone 1's fights. Ambient,
+; E minor, dark and low: Em9 | Cmaj7#11 | Am9 | F#m7b5 -> B7b9, 8 s a chord.
+; Tempo: a pulse is 60 ticks (one a second), and nothing keeps a beat. Each chord comes in
+; waves like night garden's (bass, then the low pad, then the high pad), but a third lower,
+; every note left to fade over 2 s; the last chord turns dominant halfway (B under the
+; half-diminished F#), so the round leans back into Em.
+; Repeats: the chords every 32 s; the wind (18.8 s), the owl (36.8 s, a call every 16 or
+; 21 s) and the fireflies (30.2 s) drift against them, so the whole repeats exactly only
+; after hours. Size: 392 bytes (fits the 395). Loudness matches night garden's.
+;
+; voice 0  bass: the root, then the fifth (the B pedal in the last chord), slow to fade
+; voice 1  low pad: the chord's 3rd or 7th, a step on halfway, a second behind the bass
+; voice 2  wind: noise swelling up in steps and dying away, its period sweeping (brighter at
+;          the top of a gust); a small gust, a long one, a double one, quiet between (lent
+;          to the hero's effects in a fight)
+; voice 3  high pad: 5ths, 9ths and #11s, two seconds behind the bass
+; voice 4  the owl: two soft low hoots (E4 then D4, each swelling in and sagging a
+;          semitone at the end), now close, now farther apart, with long quiet between
+; voice 5  fireflies: a soft high blink or two (e b f#, in every chord) now and then (lent
+;          to the enemies' effects)
+(pattern in_bass "l60 r r")
+(pattern in_low "l60 r r r")
+(pattern in_high "l60 r r r r")
+(pattern wait4 "l64 r r r r")
+(pattern wait8 "l64 r r r r r r r r")
+(pattern bass_e "l60 v10 k15 e2 - - - b1 - - -")
+(pattern bass_c "c2 - - - g1 - - -")
+(pattern bass_a "a1 - - - e2 - - -")
+(pattern bass_f "f#2 - - - b1 - - -")
+(pattern low_e "l60 v8 k15 g3 - - - f#3 - - -")
+(pattern low_c "e3 - - - g3 - - -")
+(pattern low_a "g3 - - - - - e3 -")
+(pattern low_f "c4 - - - a3 - - -")
+(pattern high_e "l60 v7 k15 b3 - - - d4 - - -")
+(pattern high_c "b3 - - - - f#4 - -")
+(pattern high_a "c4 - - - b3 - - -")
+(pattern high_f "e4 - - - d#4 - - -")
+(pattern gusts
+    "m2 n17 l24 v3 c4 v5 c4 n14 v7 k10 l40 c4 l64 r r n18 l30 v3 k0 c4 v4 c4 v6 c4 n13 v7 c4 n11 v9 k15 c4 n13 - n16 - n19 - l64 r r r r n15 l20 v4 k0 c4 v7 k8 l40 c4 n18 l20 v3 k0 c4 n13 v6 c4 v8 k10 l30 c4 n16 - l64 r r r r")
+(pattern hoot_e "l2 v4 k0 e4 l3 v6 e4 l12 v8 k4 e4 l6 v3 k0 d#4")
+(pattern hoot_d "l2 v4 k0 d4 l3 v6 d4 l12 v8 k4 d4 l6 v3 k0 c#4")
+(pattern near "l20 r")
+(pattern far "l46 r")
+(pattern blink_e "l3 v4 k1 e6")
+(pattern blink_bf "l3 b5 l9 r l3 f#6")
+(pattern blink_b "l3 b5")
+(voice 0 in_bass loop bass_e bass_c bass_a bass_f)
+(voice 1 in_low loop low_e low_c low_a low_f)
+(voice 2 gusts)
+(voice 3 in_high loop high_e high_c high_a high_f)
+(voice 4 wait8 loop hoot_e near hoot_d wait8 wait4 hoot_e far hoot_d wait8 wait8 wait4)
+(voice 5 wait4 loop blink_e wait8 blink_bf wait8 wait4 blink_b wait8)

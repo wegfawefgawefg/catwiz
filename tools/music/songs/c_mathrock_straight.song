@@ -1,0 +1,55 @@
+; c_mathrock_straight: a_mathrock's direction (buzzy envelope bass, tapped riff over a pedal,
+; quartal stabs, a delay-pedal echo) in straight 4/4, for elite fights. The odd-meter bite now
+; comes from inside the bar: riff, bass and kick all push 3+3+2+3+3+2 sixteenths (the
+; tresillo twice), and every bar lands square on the next downbeat.
+; Key: E minor. A: E C A B | E C D B (the tapped riff, pedal B). B: C D Bm Em | C D B B (a
+;   higher riff, cascading 3-note groups over a pedal E, then a climb to D# into E).
+; Tempo: a 16th is 6 ticks (quarter = 150 bpm); a bar is 96 ticks (1.6 s).
+; Repeats: 16 bars, 1536 ticks (25.6 s); inside that the riff has six shapes and the drums
+;   fill every 4th bar, so no bar-for-bar loop is shorter than 8 bars. The riff plays 2 bars
+;   alone first (the last two of A, as a pickup). Size: 479 bytes (over the 395: the B
+;   section is what keeps it from looping every 12.8 s; cut it and it fits, about 360).
+;
+; voice 0 bass: the left chip's hardware envelope (shape 8, a saw, tone off), its period the
+;   pitch (97 E1, 61 C2, 72 A1, 65 B1, 54 D2, 48 E2, 43 F#2); 16ths chugging 3+3+2+3+3+2 with
+;   the kick, bars 8 and 16 climbing B D E F# into the next. The note names mean nothing (the
+;   tone is off), so one chug pattern serves every chord after a one-note pattern that sets
+;   the envelope's period
+; voice 1 the riff: tapped 16ths, the top line on the 3+3+2 accents over B and G (A) or a
+;   falling and rising line over E (B); its patterns set no volume, so voice 5 shares them
+; voice 2 hats: 16ths, accents on the beat (noise; lent to the hero's effects)
+; voice 3 kick (a low tone) and snare (noise): kick with the bass, snare on 2 and 4; a roll
+;   every 4th bar
+; voice 4 stabs: the quartal A D E chord rolled fast, on the 3+3+2 accents 6 and 14
+; voice 5 the riff's echo, a dotted 8th (18 ticks) late and soft, like a delay pedal (lent)
+; The envelope bass sounds at full level (the chip has no volume for it), so this plays
+;   about 10 dB louder than the battle song, as a_mathrock did
+(pattern in_riff "l1 v12 k1 r")
+(pattern in_echo "l19 v7 k1 r")
+(pattern in_band "l64 r r r")
+(pattern riff_a "l6 e5 b4 g4 g5 b4 g4 f#5 b4 d5 b4 g4 e5 b4 g4 a5 g5")
+(pattern riff_a3 "l6 e5 b4 g4 g5 b4 g4 f#5 b4 b5 b4 g4 a5 b4 g4 f#5 d5")
+(pattern riff_a2 "l6 e5 b4 f#4 g5 b4 f#4 f#5 b4 d5 b4 f#4 b5 a5 g5 f#5 d5")
+(pattern riff_b "l6 d6 b5 e5 b5 a5 e5 a5 g5 e5 g5 f#5 e5 f#5 d5 e5 g5")
+(pattern riff_b2 "l6 e5 g5 b5 e5 a5 d6 e5 b5 e6 e5 d6 b5 a5 g5 f#5 d5")
+(pattern riff_b3 "l6 b4 d5 f#5 d5 f#5 a5 f#5 a5 b5 a5 b5 d6 b5 d6 f#6 d#6")
+(pattern he "m0 l6 h8:97 e1")
+(pattern hc "h8:61 e1")
+(pattern ha "h8:72 e1")
+(pattern hd "h8:54 e1")
+(pattern hb "h8:65 e1")
+(pattern chug "- r e1 - r e1 r e1 - r e1 - r e1 e1")
+(pattern climb "- r e1 - r e1 r e1 - r h8:54 e1 - r h8:48 e1 h8:43 e1")
+(pattern hats "l6 m2 n2 k1 v10 c4 v5 c4 v7 c4 v5 c4")
+(pattern groove "n7 v14 k1 m1 l18 g1 l6 g1 m2 l24 c4 m1 l18 g1 l6 g1 m2 l12 c4 m1 g1")
+(pattern fill "m1 l18 g1 l6 g1 m2 l24 c4 m1 l12 g1 m2 l6 c4 c4 l3 c4 c4 c4 c4 l6 c4 c4")
+(pattern stabs "l36 v11 k2 r l1 a4 d5 e5 a4 d5 e5 l42 r l1 a4 d5 e5 a4 d5 e5 l6 r")
+(voice 0 in_band loop he chug hc chug ha chug hb chug he chug hc chug hd chug hb climb
+    hc chug hd chug hb chug he chug hc chug hd chug hb chug hb climb)
+(voice 1 in_riff riff_a riff_a2 loop riff_a riff_a riff_a riff_a2 riff_a riff_a3 riff_a riff_a2
+    riff_b riff_b2 riff_b riff_b2 riff_b riff_b2 riff_b riff_b3)
+(voice 2 in_band loop hats)
+(voice 3 in_band loop groove groove groove fill)
+(voice 4 in_band loop stabs)
+(voice 5 in_echo riff_a riff_a2 loop riff_a riff_a riff_a riff_a2 riff_a riff_a3 riff_a riff_a2
+    riff_b riff_b2 riff_b riff_b2 riff_b riff_b2 riff_b riff_b3)

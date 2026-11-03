@@ -1,0 +1,48 @@
+; c_battle_straight: now_battle played straight, to compare with it. Same chords, bass, pad,
+; shaker, voices and sounds; only the mallets change: instead of drifting (10 against 9
+; against 7 eighths), they line up with the bar and lock together.
+; Key: A dorian-ish, A minor pentatonic mallets over Am7 x4, D x4, Am7 x4, G G E E.
+; Tempo: an eighth is 9 ticks; 12/8, a bar of 12 eighths (108 ticks, 1.8 s), a beat of 27
+;   ticks (133 bpm dotted quarters), as in now_battle.
+; Repeats: everything goes round with the chords: 16 bars, 1728 ticks (28.8 s). Mallet A's
+;   figure turns every 2 bars, but the counter-line over it is a 16-bar tune (A B A' C) that
+;   follows the chords, so the whole only repeats with the round. Size: 387 bytes (fits).
+;
+; voice 0  bass: now_battle's, note for note (the volume set once, not in every pattern)
+; voice 1  mallet A: now_battle's figure (a e b . d c . e g) grown to the 12/8 bar, a 2-bar
+;          ostinato with a new ending the second time; off the beats, so the counter-line
+;          can take them. In from bar 3
+; voice 2  pad: now_battle's (lent to the hero's effects in a fight)
+; voice 3  mallet B: a counter-line on beats 2, 3 and 4, in the gaps mallet A leaves, so the
+;          two make one stream; its 16-bar tune follows the chords. In from bar 5 (the D)
+; voice 4  sparkle: now_battle's e b a, once every 2 bars. In from bar 2
+; voice 5  shaker: now_battle's (lent to the enemies' effects)
+(pattern in_mallet_a "l1 r l54 r r r r")
+(pattern in_mallet_b "l2 v9 k1 r l54 r r r r r r r r")
+(pattern in_sparkle "l3 r l54 r r")
+(pattern in_pad "l4 r")
+(pattern b_bass_a "l9 v12 k3 a2 - - r e2 r a2 - r g2 r r")
+(pattern b_bass_d "d2 - - r a1 r d2 - r c2 r r")
+(pattern b_bass_g "g1 - - r d2 r g1 - r f#1 r r")
+(pattern b_bass_e "e2 - - r b1 r e2 - r d2 r r")
+(pattern ma2
+    "l9 v10 k1 a4 e5 l18 b4 l9 d5 l18 c5 l9 e5 l18 g4 d5 l9 a4 e5 l18 b4 l9 d5 l18 c5 l9 g5 l18 e5 l9 c5 b4")
+(pattern mb_d
+    "l27 r f#5 a5 l18 b5 l9 a5 l27 r f#5 l54 r l27 r d6 c6 l18 a5 l9 b5 l27 r a5 f#5 l18 e5 l9 d5")
+(pattern mb_a2 "l27 r e5 a5 l18 c6 l9 b5 l27 r a5 g5 e5 r c6 d6 l18 e6 l9 d6 l27 r c6 b5 g5")
+(pattern mb_ge
+    "l27 r b5 d6 l18 b5 l9 a5 l27 r g5 l54 r l27 r e5 g5 l18 b5 l9 a5 l27 r b5 l18 g5 l9 a5 l27 b5")
+(pattern mb_a1 "l27 r e5 a5 l18 g5 l9 e5 l27 r a5 l54 r l27 r c6 b5 l18 g5 l9 a5 l27 r e5 l54 r")
+(pattern sparkle "l27 v6 k1 e6 l18 b5 l63 a5 l54 r r")
+(pattern b_pad_a "l54 v7 k12 c4 - e4 - c4 - g3 -")
+(pattern b_pad_d "f#3 - a3 - f#3 - c4 -")
+(pattern b_pad_g "b3 - f#3 -")
+(pattern b_pad_e "g3 - d4 -")
+(pattern shaker "l9 m2 k1 n1 v5 c4 v3 c4 c4")
+(voice 0 b_bass_a b_bass_a b_bass_a b_bass_a b_bass_d b_bass_d b_bass_d b_bass_d
+    b_bass_a b_bass_a b_bass_a b_bass_a b_bass_g b_bass_g b_bass_e b_bass_e)
+(voice 1 in_mallet_a loop ma2)
+(voice 2 in_pad loop b_pad_a b_pad_d b_pad_a b_pad_g b_pad_e)
+(voice 3 in_mallet_b loop mb_d mb_a2 mb_ge mb_a1)
+(voice 4 in_sparkle loop sparkle)
+(voice 5 shaker)

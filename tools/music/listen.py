@@ -55,6 +55,15 @@ def song_bytes(body):
     return size
 
 
+def uses_bends(body):
+    # whether a pattern's text has a w p s t command (the pattern texts only, not their names)
+    text = re.sub(r";[^\n]*", "", body)
+    for m in re.finditer(r'\(pattern\s+\S+\s+"([^"]*)"\s*\)', text, re.S):
+        if any(tok[0] in "wpst" for tok in m.group(1).split()):
+            return True
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("songs", nargs="+")
@@ -81,7 +90,7 @@ def main():
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis",
                             "-q:a", "5", ogg], check=True)
             fits = "fits" if size <= PLAYING else "over the game's %d" % PLAYING
-            if re.search(r'"[^"]*(^|\s)[wpst][+-]?\d', body):
+            if uses_bends(body):
                 fits += "; uses w p s t: the game plays those only with mb.service_bends, about 950 bytes it lacks"
             print("%-24s %5d bytes (%s)  %s" % (name, size, fits, ogg))
 
