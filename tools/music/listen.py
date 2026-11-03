@@ -7,7 +7,9 @@ text goes into game/sound/songs.tsp as it is.
     python3 tools/music/listen.py tools/music/songs/*.song           # 60 s each, to renders/
     python3 tools/music/listen.py --seconds 90 --out /tmp/x a.song
 
-Each song's size in bytes is printed: the game plays a song from a buffer of PLAYING bytes
+It plays with mb.service_bends, so the w p s t commands (vibrato, glide, slide, detune: Tisple's
+docs/mockingboard.md) sound; a song without them plays as the game plays it. Each song's size in
+bytes is printed: the game plays a song from a buffer of PLAYING bytes
 (game/sound/sound.tsp, 395 now), so one bigger than that needs the buffer to grow. Needs an
 Apple rom for the card's interrupt (~/.local/share/tisple/roms/Apple2e.rom; never committed).
 """
@@ -30,7 +32,7 @@ PROGRAM = """(import mockingboard mb)
 (tune.song music
 %s)
 (fn irq () void :interrupt
-    (mb.service))
+    (mb.service_bends))
 (fn main () void
     (mb.init)
     (mb.play (addr_of (at music 0)))
@@ -45,7 +47,7 @@ def song_bytes(body):
     size = 12
     for m in re.finditer(r'\(pattern\s+\S+\s+"([^"]*)"\s*\)', text, re.S):
         for tok in m.group(1).split():
-            size += {"n": 2, "h": 4}.get(tok[0], 1)
+            size += {"n": 2, "h": 4, "w": 4, "p": 2, "s": 2, "t": 3}.get(tok[0], 1)
         size += 1
     for m in re.finditer(r"\(voice\s+\d+([^()]*)\)", text):
         names = [w for w in m.group(1).split() if w != "loop"]
@@ -79,6 +81,8 @@ def main():
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis",
                             "-q:a", "5", ogg], check=True)
             fits = "fits" if size <= PLAYING else "over the game's %d" % PLAYING
+            if re.search(r'"[^"]*(^|\s)[wpst][+-]?\d', body):
+                fits += "; uses w p s t: the game plays those only with mb.service_bends, about 950 bytes it lacks"
             print("%-24s %5d bytes (%s)  %s" % (name, size, fits, ogg))
 
 

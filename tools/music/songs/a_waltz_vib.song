@@ -1,0 +1,43 @@
+; a_waltz_vib: a_waltz with lib/mockingboard_bends (Tisple's vibrato branch, played by
+;   mockingboard.service_bends): the tune doubled on both chips a period unit apart (t+1: the
+;   two squares beat against each other, 4-14 times a second over the tune's range), a late
+;   gentle vibrato on its long notes (w2:12:14, a wobble of 12 ticks from the 14th tick of each
+;   note), a little glide up into the tune's high D (p5)
+; voices as a_waltz but: voice 2 the tune's double on the left chip, detuned (in place of the
+;   upper pah); voice 4 the upper pah on the right (in place of the echo)
+; the tune rings a little longer (k5 for k3) so the vibrato is heard
+; a_waltz: a spooky-cute music-box waltz, a Halloween lullaby with a real tune on top
+; key: D minor (harmonic: C# in the A7, a diminished E-G-Bb-C# turn in the middle part)
+; tempo: a beat of 24 ticks (150 bpm, about 50 bars a minute), 3/4, a bar of 72 ticks
+; form: AABA, 32 bars; it repeats exactly after 38.4 s
+;   A: Dm Dm Gm A7 | Dm Gm A7 Dm          B: Bb Gm F C7 | Bb E°7 A7 A7
+; size: 322 bytes (fits the 395-byte buffer)
+;
+; voice 0 oom: the bass on each bar's first beat, short (k2)
+; voice 1 pah: the chord's lower tone on beats 2 and 3
+; voice 2 pah: the chord's upper tone on beats 2 and 3 (lent to effects)
+; voice 3 the tune, a plucked bell (v11, gone in half a second), right
+; voice 4 its echo, the same patterns 9 ticks late and quiet: the box's ring
+; voice 5 a clock out of step: tick, tock, two to a bar against the three beats (lent)
+; the tune's patterns set no volume or decay: each voice keeps its own, from its first pattern
+(pattern in_tune "l1 v10 k5 w2:12:14 r")
+(pattern in_double "l1 v10 k5 w2:12:14 t+1 r")
+(pattern in_pah "l2 r")
+(pattern in_clock "l3 r")
+(pattern tune_a
+    "l48 a5 l24 f5 l12 e5 f5 l24 e5 d5 l48 a#5 l24 g5 l48 a5 l24 - p5 l48 d6 p0 l24 a5 a#5 a5 g5 f5 e5 c#5 l48 d5 l24 -")
+(pattern tune_b
+    "l24 f5 a#5 d6 l48 d6 l24 a#5 l48 c6 l24 a5 l48 a#5 l24 g5 l48 a5 l24 f5 c#5 e5 g5 l48 a#5 l24 a5 e5 f5 g5")
+(pattern oom_a "l36 v12 k2 d2 r d2 r g2 r a2 r d2 r g2 r a2 r d2 r")
+(pattern oom_b "a#2 r g2 r f2 r c2 r a#2 r e2 r a2 r a2 r")
+(pattern lo_a "l24 v7 k3 r f4 f4 r f4 f4 r g4 g4 r g4 g4 r f4 f4 r g4 g4 r g4 g4 r f4 f4")
+(pattern lo_b "r f4 f4 r g4 g4 r a4 a4 r g4 g4 r f4 f4 r g4 g4 r g4 g4 r e4 e4")
+(pattern hi_a "l24 v6 k3 r a4 a4 r a4 a4 r a#4 a#4 r c#5 c#5 r a4 a4 r a#4 a#4 r c#5 c#5 r a4 a4")
+(pattern hi_b "r a#4 a#4 r a#4 a#4 r c5 c5 r c5 c5 r d5 d5 r a#4 a#4 r c#5 c#5 r c#5 c#5")
+(pattern clock "l36 m2 n3 v3 k1 c4 n9 c4")
+(voice 0 oom_a oom_a oom_b oom_a)
+(voice 1 in_pah loop lo_a lo_a lo_b lo_a)
+(voice 2 in_double loop tune_a tune_a tune_b tune_a)
+(voice 3 in_tune loop tune_a tune_a tune_b tune_a)
+(voice 4 in_pah loop hi_a hi_a hi_b hi_a)
+(voice 5 in_clock loop clock)
