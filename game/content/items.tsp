@@ -33,10 +33,9 @@
 (const OFFERS u8 5)
 (const OFFER_CHARM_ROW u8 16) ; the charms offered: rows 16-18
 (const OFFER_CHARMS u8 3)
-(const HAT_ROW u8 19) ; a face a hat trick plays (content/play), its record at HAT_AT
-; its record: aux memory's text page 1, the rules page's buffer, free in her turn (a let, not a
-; constant pointer: the layout checks a constant one against main memory's lets there)
-(let hat_at u16 0x0400)
+; a face a hat trick plays (content/play): its record in aux memory's text page 1
+; (state.aux_page1), free in her turn
+(const HAT_ROW u8 19)
 (const SCRATCH_BYTES u16 2304) ; the draws' pool (a sector) and the offer's 8 records
 (const NAME_AT u8 7)           ; a record's bytes (content/catalog)
 (const TEXT_AT u8 8)
@@ -63,7 +62,7 @@
 ; row's record, in aux memory
 (fn record ((row u8)) (ptr u8)
     (if (= row HAT_ROW)
-        (return (as (ptr u8) hat_at)))
+        (return (as (ptr u8) state.aux_page1)))
     (if (< row RESIDENT)
         (return (+ (addr_of (at records 0)) (<< (as u16 row) 8))))
     (+ (scratch) (<< (as u16 (- row (- OFFER_ROW 1))) 8)))

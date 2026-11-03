@@ -101,32 +101,31 @@
     :on disk2
     :in aux)
 
-; ---- the stingers: once, then quiet. A voice's last pattern is a long rest it loops on.
+; ---- the stingers: once, then quiet: each voice ends after its patterns (end), and the music
+; stops, so the song after starts at once (lib/mockingboard: a fade with no voice playing)
 ;
 ; won: A major, the battle's key brightened. Two arpeggios, 8 notes of 6 ticks against 12 of
 ; 4 (3 against 2), meet on the last chord over a IV V I in the bass; 1.6 s with the ring
 (tune.song WON
-    (pattern quiet "l64 r")
     (pattern w_bass "l12 v13 k2 a2 a2 d2 e2 l48 k3 a1")
     (pattern w_low "l6 v12 k1 a4 e5 a4 e5 c#5 a5 e5 c#6 l48 k3 a5")
     (pattern w_high "l1 r l4 v11 k1 c#5 e5 a5 c#5 e5 a5 e5 a5 c#6 e5 a5 c#6 l48 k3 e6")
     (pattern w_ring "l2 r l24 r r l48 v8 k4 c#5")
-    (voice 0 w_bass loop quiet)
-    (voice 1 w_low loop quiet)
-    (voice 3 w_high loop quiet)
-    (voice 4 w_ring loop quiet)
+    (voice 0 w_bass end)
+    (voice 1 w_low end)
+    (voice 3 w_high end)
+    (voice 4 w_ring end)
     :on disk2
     :in aux)
 
 ; lost: A minor, falling. Thirds that slide down at 8 and at 12 ticks a note (3 against 2)
 ; over a bass that sinks F E, onto a low A minor; 1.8 s with the ring
 (tune.song LOST
-    (pattern quiet "l64 r")
     (pattern l_bass "l16 v12 k2 a2 f2 e2 l48 k2 a1")
     (pattern l_fast "l8 v11 k1 e5 c5 b4 g4 e4 b3 l48 k3 a3")
     (pattern l_slow "l1 r l12 v10 k1 a4 g4 e4 d4 l48 k3 c4")
-    (voice 0 l_bass loop quiet)
-    (voice 1 l_fast loop quiet)
-    (voice 3 l_slow loop quiet)
+    (voice 0 l_bass end)
+    (voice 1 l_fast end)
+    (voice 3 l_slow end)
     :on disk2
     :in aux)

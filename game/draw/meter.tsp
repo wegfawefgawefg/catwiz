@@ -11,6 +11,7 @@
 (import dhgr)
 (import tables)
 (import draw/screen)
+(import sound/waiting)
 
 (const PAWS u8 16)
 (const FIRST_GROUP u8 2) ; 7-pixel groups 2-17: the 16 paws centred
@@ -89,9 +90,12 @@
         (paw drawn)
         (set drawn (+ drawn 1))))
 
-; one sector in: disk.read_with's step, and once after the read for its last
+; one sector in: disk.read_with's step, and once after the read for its last; and a song
+; waiting for the one before to fade out starts here once it has, so the next screen's song comes
+; in while its load goes on (sound.song)
 (fn sector () void
-    (add 1))
+    (add 1)
+    (waiting.start))
 
 ; a disk table into aux memory at dst, a sector at a time on the meter; disk.DONE or the error
 (fn read ((dst (ptr u8)) (table (ptr u8))) u8

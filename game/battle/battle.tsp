@@ -86,11 +86,10 @@
 ; and shown there (so it never shows half unpacked) while the screen's runs (the hero's, the small
 ; sprites', the enemies' figures) are read through the page (draw/blit) and unpacked; then copied
 ; onto the page, shown again. The spare page keeps the picture all fight (battle/page puts the
-; stage back from it). The music stops first: the card's half unpacks with interrupts off.
-; While the runs load, paw prints along the foot of the stage show how far it is (draw/meter),
-; cleared before the copy
+; stage back from it). The fight's song plays meanwhile (enter_fight starts it). While the runs
+; load, paw prints along the foot of the stage show how far it is (draw/meter), cleared before
+; the copy
 (fn load_art () void
-    (sound.quiet)
     (screen.wait_frame)
     (screen.wait_frame)
     (let n u8 state.fight)
@@ -113,6 +112,11 @@
 ; run's start (Phase.start): its code is read from the second disk when it comes (an overlay
 ; group: main memory is full)
 (fn enter_fight () void :overlay_disk2
+    ; the fight's song first (a run's first fight has it from the title's key): the one before
+    ; fades out while the load starts, and this one comes in as soon as it is silent, playing
+    ; through the rest of the load (sound.song)
+    (if (not new_run)
+        (sound.song sound.Song.battle))
     (if new_run
         (do
             (set new_run false)
@@ -152,7 +156,6 @@
     (set state.hud_dice 0)
     (set state.hud_rerolls true)
     (set state.hud_words true)
-    (sound.song sound.Song.battle)
     (turn.start_round)
     (if WIN_AT_ONCE
         (do

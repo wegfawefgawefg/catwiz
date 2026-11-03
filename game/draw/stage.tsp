@@ -63,11 +63,15 @@
     (with_aux true false
         (at RUNS n)))
 
+; fight row n's picture's table (a with_aux of its own: a function with one stays resident, and
+; backdrop, without, goes in the fight's start's overlay group)
+(fn picture_of ((n u8)) (ptr u8)
+    (with_aux true false
+        (at PICTURES n)))
+
 ; fight row n's picture onto page
 (fn backdrop ((page u8) (n u8)) void
-    (let table (ptr u8) (with_aux true false
-        (at PICTURES n)))
-    (picture page table (blit.picture_room)))
+    (picture page (picture_of n) (blit.picture_room)))
 
 ; fight row n's runs' load, for the meter: its table's sectors and its unpacks (its tables
 ; and its enemies' halves, about six), and the hero's when they are out

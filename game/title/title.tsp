@@ -37,7 +37,11 @@
     (if (not shown)
         (set card_due true))
     (set state.screen state.Screen.title)
-    (sound.quiet)
+    ; after a run, with the card: the title's song now, so it comes in while the title loads as
+    ; the run's last fades out (sound.song); the first time, and with no card, at the step
+    (let early bool (and shown mb.found))
+    (if early
+        (sound.song sound.Song.title))
     (screen.wait_frame)
     (screen.wait_frame)
     (stage.title dhgr.PAGE2)
@@ -53,8 +57,8 @@
     (set state.glow_time 0)
     ; a tap or key from the loading or the run before waits in the keyboard: not a start
     (io_read u8 a2.KBDSTRB)
-    ; the song starts at the step (the first time with the card set up)
-    (set song_due true))
+    ; the song starts at the step (the first time with the card set up) unless it has already
+    (set song_due (not early)))
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen :overlay
@@ -78,8 +82,12 @@
     (if (!= key 0)
         (do
             (sound.cue sound.Cue.confirm)
-            ; the second disk found (the first time: title/disk2), in the title's group
+            ; the title's song fades out from here, while the second disk is found (the first
+            ; time: title/disk2, in the title's group) and the fight's code and her kit load;
+            ; the fight's song is read from it at once and comes in as soon as that is silent
+            (sound.quiet)
             (disk2.find)
+            (sound.song sound.Song.battle)
             (return state.Screen.battle)))
     (set state.glow_time (+ state.glow_time 1))
     state.Screen.title)

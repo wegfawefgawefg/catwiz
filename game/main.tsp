@@ -10,6 +10,7 @@
 (import title/machine)
 (import battle/battle)
 (import sound/sound)
+(import sound/waiting)
 (import mockingboard mb)
 (import mouse)
 (import battle/boxes)
@@ -149,7 +150,7 @@
         (if state.mouse_on
             (poll_click))
         ; a song waiting for the one before to fade out starts once it has (sound.song)
-        (sound.start)
+        (waiting.start)
         ; read keys, only when the screen takes them: a key pressed during her own action or
         ; the dice landing waits in the line (so dice can be played one after another as fast
         ; as they are tapped), one in the enemies' turn is dropped (battle.wants_key)
