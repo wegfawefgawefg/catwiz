@@ -4,6 +4,8 @@
 ; colours (art KIND_GLOW: the rim's sprites), straight onto the page on screen.
 
 (import apple2 a2)
+(import auxmem)
+(import mouse)
 (import dhgr)
 (import random)
 (import state)
@@ -30,6 +32,22 @@
     (set state.screen state.Screen.title)
     (set state.glow_time 0)
     (set due true))
+
+(let set_up bool false) ; the guard and the mouse are in (setup)
+
+; once, in the first title's first pass, before its step: lib/auxmem's guard, before anything
+; runs a with_aux with interrupts on (the card's tick starts at the step, sound.setup; an overlay
+; group's copy from aux memory runs with them off), then the mouse card found and set up (main's
+; loop reads it from then on). An overlay group of its own, copied in from aux memory once: cold
+; code out of main memory, and out of the title's group, which loads at every title (in it, the
+; title after a run was ready half a frame later). Main's loop calls it only while set_up is
+; false and the title's step and draw only while it is true, which is what keeps them in two
+; groups (Tisple's dispatch facts)
+(fn setup () void :overlay
+    (auxmem.guard)
+    (mouse.init)
+    (set state.mouse_on mouse.found)
+    (set set_up true))
 
 (fn enter () void
     ; the first time: the sound card is set up at the title's first step (step, in the title's

@@ -178,13 +178,8 @@ From the listing's calls: resident functions whose every caller is in an overlay
   `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`: about 200 bytes of resident main memory
   and the same in the aux mirror. The 12-byte accessors are not worth it (the call costs as
   much as the accessor).
-- The set-up code in `main.main`: the mouse's set-up (271) and the guard's install (35) can go
-  to `title.enter` in the title's group (groups do not bar a call to an address; bank 1 does,
-  which is why the comment in `main.tsp` keeps them in main). The machine check (151) must stay
-  resident, since the title's group is read from aux memory a machine without it lacks. Two
-  things to check: `title.enter` runs at every title, so the mouse's set-up wants a once flag as
-  the guard has; and nothing may run a with_aux with interrupts on before it (the group's own
-  copy turns them off, and the card's tick starts in `title.enter`).
+- The set-up code in `main.main`: done in the memory pass (below), as a group of its own,
+  `title.setup`, not in the title's group.
 - Disk overlays for more code: the ending's group (763, in aux) could be read from disk 2 like
   the reward's, a short read at a fight's end. That frees aux, not main.
 
@@ -259,7 +254,7 @@ chance of breaking something and the work to verify it.
 
 | # | Change | Where | Frees | Risk |
 | --- | --- | --- | --- | --- |
-| 1 | Mouse set-up and the guard's install from `main.main` into `title.enter` (the title's group), the machine check left resident | Catwiz | about 306 main | low |
+| 1 | Mouse set-up and the guard's install from `main.main` into `title.enter` (the title's group), the machine check left resident (done: its own group, below) | Catwiz | about 306 main | low |
 | 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) | Catwiz | about 200 main, 200 aux | low |
 | 3 | Once-only data out of the card: `auxmem.GUARD` to aux, the zero-page image into the empty overlay region at boot | Tisple | 215 card | low |
 | 4 | Code shared only by the title's and the fight start's groups copied into both images instead of kept resident | Tisple | about 683 main, costs 683 aux | medium |
@@ -290,3 +285,30 @@ leave resident memory.
 - "Called only from a group" is from the listing's JSR and JMP operands, followed up through
   resident callers; a call through a function pointer would be missed (Catwiz has one dispatcher).
 - Record fill on disk 2: each `FACES` and `CHARMS` sector's last nonzero byte.
+
+## The memory pass (2026-11-03)
+
+Catwiz's side of the table above, on main at dcdc9b0 with Tisple 8100596. Bytes are from
+`build/memmap.txt` before and after each change; "free" counts what the layout left, and since
+main memory and the card are full of code at squeeze 10, room freed there mostly shows as
+functions that left bank 1 (fewer crossings) rather than as free bytes in main memory. Loads were
+measured headless with the card in slot 5: frames from the key until the screen takes keys
+(fight 1 from the title, fight 2 from the reward's S in a build that wins every fight at once,
+the title after a run's last key), and the boot's title.
+
+Before (dcdc9b0): main 68 free, the card 24, bank 1 550 (26 functions, 3,546 bytes, about
+242,840 cycles a run in crossings), aux 1,529. Fight 1 424 frames, fight 2 251, the title after a
+run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any load.
+
+1. The guard's install and the mouse's set-up left `main.main` (324 bytes) and lib/mouse's
+   helpers left bank 1 and the card (116). In `title.enter` (the title's group, with a once flag)
+   the title after a run was ready 0.46 frames later (127.21: the group's copy from aux memory,
+   423 bytes more, at every title), so they are a group of their own, `title.setup`, which main's
+   loop runs once in the first pass before the title's step (433 bytes, 0.4 frames to load, at
+   boot only). Tisple merges groups whose roots' dispatch facts do not contradict, so main calls
+   `title.setup` while `title.set_up` is false and the title's step and draw while it is true.
+   After: main 68 free, the card 31, bank 1 992 (19 functions, 3,104 bytes, about 191,860
+   cycles a run): 449 bytes more free in main memory, the card and bank 1 together, after the
+   sixth group's stubs. Aux 1,105 free (424 less: the group's image).
+   Fight 1 424, fight 2 251, the title after a run 127 (126.73), the boot's title 813 (812.49).
+

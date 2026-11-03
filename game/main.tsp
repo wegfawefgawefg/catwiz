@@ -4,7 +4,6 @@
 
 (import apple2 a2)
 (import keys)
-(import auxmem)
 (import state)
 (import title/title)
 (import title/machine)
@@ -134,16 +133,12 @@
     (as u8 steps))
 
 (fn main () void
+    ; the machine check stays here, resident: the title's code is copied in from aux memory,
+    ; which a machine without it lacks. The guard and the mouse are set up in the first pass
+    ; (title.setup)
     (if (not (machine.has_aux))
         (machine.refuse))
-    ; lib/auxmem's guard, before the card's tick starts (title.enter): aux copies run with
-    ; interrupts on. The mouse card found and set up, then the loop reads it. Here, not in
-    ; title.enter: a call to an address (the guard's, the mouse's firmware) keeps a function out
-    ; of the card's bank 1
-    (auxmem.guard)
     (set state.ticks 0)
-    (mouse.init)
-    (set state.mouse_on mouse.found)
     (title.begin)
     (while true
         (set state.ticks (+ state.ticks 1))
@@ -161,7 +156,13 @@
         ; step the screen we are on, and change screens when it asks
         (let steps u8 (steps_due))
         (let next state.Screen (match state.screen
-            (state.Screen.title (title.step key))
+            (state.Screen.title
+                (do
+                    (if (not title.set_up)
+                        (title.setup))
+                    (if title.set_up
+                        (title.step key)
+                        state.Screen.title)))
             (state.Screen.battle (battle.step key))))
         (while (and (and (> steps 1) (not (battle.will_change)))
                 (and (= state.screen state.Screen.battle) (= next state.screen)))
@@ -176,5 +177,7 @@
                 (state.Screen.battle (battle.enter))))
         ; draw frame, then show it at the next vertical blank
         (match state.screen
-            (state.Screen.title (title.draw))
+            (state.Screen.title
+                (if title.set_up
+                    (title.draw)))
             (state.Screen.battle (battle.draw)))))

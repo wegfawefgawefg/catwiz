@@ -12,9 +12,9 @@
 ; title jingle, and no other music.
 ;
 ; The songs live on the disks (songs.tsp); the one starting is read into aux memory and copied
-; into main memory (sound/waiting), with interrupts on: main puts in lib/auxmem's guard. A song
-; change fades the one before out and the new one in (song), and the game goes on meanwhile; a
-; screen's song starts as its load begins and plays through it.
+; into main memory (sound/waiting), with interrupts on: the first title puts in lib/auxmem's
+; guard. A song change fades the one before out and the new one in (song), and the game goes on
+; meanwhile; a screen's song starts as its load begins and plays through it.
 
 (import mockingboard mb)
 (import state)
@@ -85,9 +85,9 @@
 ; them
 (const FADE_FROM (array u8 4) (make (array u8 4) 10 9 0 0))
 
-; at the start: find the card, if there is one, and start its tick (main puts lib/auxmem's guard
-; in first, which lets aux copies run while it ticks), the music faded out, so the first song
-; starts at once and fades in
+; at the start: find the card, if there is one, and start its tick (title.enter puts
+; lib/auxmem's guard in first, which lets aux copies run while it ticks), the music faded out,
+; so the first song starts at once and fades in
 (fn setup () void
     (mb.init)
     (mb.fade_in 15)
