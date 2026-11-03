@@ -1,0 +1,10 @@
+; states_tour: every state in turn, no effects, so each change is heard plainly. 90 s.
+song tools/music/adaptive/battle.asong
+length 90s
+at 0s state calm        ; the fight opens; the player reads the enemy and thinks
+at 14s state fight      ; dice thrown: the drums come in
+at 28s state low        ; the enemy is low: the counter and the hats join
+at 42s state danger     ; the cat is low: half time, a heartbeat, only the twitch
+at 56s state windup     ; an elite winds up its big move: the King's motif, the lead goes out
+at 70s state victory    ; one more hit wins: the motif turns major and climbs
+at 86s fade

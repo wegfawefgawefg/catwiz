@@ -1,0 +1,38 @@
+; gen/drift_1: made by tools/music/gen (drifting loops), seed 1. Do not hand-edit; make again.
+; Key: A lydian: Amaj7 B Amaj7 F#m F#m E B B, 2 bars a chord. A pulse (an 8th) is 16 ticks (quarter = 112 bpm).
+; Loops: the chords 2048 ticks (34.2 s); the bell 229 pulses (3664 ticks); the crickets 887 ticks (a prime).
+; The whole repeats after 1928.4 hours.
+; The bell's notes, none a minor ninth over any chord tone: B C# D# F# G#.
+;
+; voice 0  bass: the root, then the fifth, left to ring (k15)
+; voice 1  pad: the chord's third and its seventh (or fifth), a pulse behind the bass
+; voice 2  crickets on their own loop (lent to the hero's effects)
+; voice 3  the hook: the Catwiz motif on the first two chords, a rest, the hook on the 5th and 6th, an answer (reply)
+; voice 4  a bell, 2 phrases with long gaps, drifting
+; voice 5  the bell's echo, 30 ticks later and soft (lent to the enemies' effects)
+; Size: 366 bytes.
+; hook: hook@0 hook@1024
+(pattern bs_a "v10 k15 l64 a1 e2 a1 e2")
+(pattern pd_a "v10 k15 l64 c#4 g#4 c#4 g#4")
+(pattern bs_b "v10 k15 l64 b1 f#2 b1 f#2")
+(pattern pd_b "v10 k15 l64 d#4 f#4 d#4 f#4")
+(pattern bs_fs "v10 k15 l64 f#2 c#3 f#2 c#3")
+(pattern pd_fs "v10 k15 l64 a3 c#4 a3 c#4")
+(pattern bs_e "v10 k15 l64 e2 b2 e2 b2")
+(pattern pd_e "v10 k15 l64 g#3 b3 g#3 b3")
+(pattern in_pad "l16 r")
+(pattern hook
+    "v13 k5 l16 c#5 l48 a5 l16 g#5 a5 l32 e5 l64 r r l16 d#5 l48 b4 l64 r r r r r r r r r r r l16 a4 l48 f#5 l16 f5 f#5 l32 c#5 l64 r r l16 b4 l48 e5 l64 r r r l32 r l16 f#5 f5 f#5 d#5 l32 b4 l64 r r l16 a5 l40 b4 - l32 r l64 r r")
+(pattern bell_a
+    "v10 k8 l16 b6 l32 d#6 l16 f#6 l48 c#6 l64 r r r r r r r r r r r r r r r r r r r r r r r r r r l32 r l16 c#6 f#6 c#6 l32 f#6 l64 r r r r r r r r r r r r r r r r r r r r r r r r r r r l48 r")
+(pattern in_bell "l48 r")
+(pattern in_echo "v5 k8 l39 r r")
+(pattern in_tex "l64 r l33 r")
+(pattern crickets
+    "m3 n1 v8 k0 l1 c8 r c8 r c8 r c8 r l29 r l1 c8 r c8 r c8 r c8 r l29 r l1 c8 r c8 r c8 r c8 r l64 r r r r r r r r r r r r l37 r")
+(voice 0 bs_a bs_b bs_a bs_fs bs_fs bs_e bs_b bs_b)
+(voice 1 in_pad loop pd_a pd_b pd_a pd_fs pd_fs pd_e pd_b pd_b)
+(voice 2 in_tex loop crickets)
+(voice 3 hook)
+(voice 4 in_bell loop bell_a)
+(voice 5 in_echo loop bell_a)

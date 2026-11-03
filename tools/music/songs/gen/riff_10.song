@@ -1,0 +1,38 @@
+; gen/riff_10: made by tools/music/gen (riffology), seed 10. Do not hand-edit; make again.
+; Key: C lydian. Tempo: an 8th is 13 ticks (quarter = 138 bpm), a bar 104 ticks.
+; Form: A A' B A', 16 bars, 1664 ticks (27.8 s) before it repeats.
+;   A  C D Am G   call (twitch_turn) | answer (tail) | call | cadence (open, then twitch_home)
+;   B  Am G D D   sweep | sync | sweep | turn (twitch_up)
+; Nothing made plainer to fit.
+;
+; Left (chip 1): bass, the echo, hats. Right (chip 2): the lead, drums, the pad.
+; voice 0  bass: half, k4
+; voice 1  the lead's echo, 1.5 8ths late and soft, on the other side
+; voice 2  hats, 8ths (noise, alone on the left chip; lent to the hero's effects)
+; voice 3  the lead, k3; its patterns set no volume, so the echo shares them
+; voice 4  drums: gallop, a fill every 8th bar (the snare's noise alone on the right chip)
+; voice 5  pad: guide (lent to the enemies' effects)
+; Size: 312 bytes.
+; hook: a1_1@0 a1_1@208
+(pattern a1_1
+    "k3 l26 g5 l13 f#5 g5 e5 g5 l26 c5 l13 b4 l39 d5 l26 r l13 a4 f#4 l26 e5 l13 d#5 e5 c5 e5 l26 a4")
+(pattern a1_4 "k3 l26 d5 b4 l52 d5")
+(pattern bs_c "v13 k4 l52 c2 g2")
+(pattern p_c "v7 k12 l52 e3 b3")
+(pattern groove "m1 v12 k1 l13 g1 g1 m2 n5 v11 l26 c4 m1 v12 l13 g1 g1 m2 v11 l26 c4")
+(pattern bs_d "v13 k4 l52 d2 a2")
+(pattern p_d "v7 k12 l52 f#3 c#4")
+(pattern bs_a "v13 k4 l52 a1 e2 g1 d2")
+(pattern p_a "v7 k12 l52 c4 g4 b3 f#4")
+(pattern a2_4 "k3 l13 d5 c#5 l26 d5 l52 g4")
+(pattern fill "m1 v12 k1 l26 g1 m2 n5 v11 c4 l13 c4 c4 c4 l6 c4 v9 l7 c4")
+(pattern b_1 "k3 l26 a5 g5 e5 c5 l39 d5 b4 l26 g4 d5 c#5 a4 f#4 d5 f#5 l13 a5 g#5 l26 a5")
+(pattern hats "m2 n1 v6 k1 l13 c4 v3 c4")
+(pattern in_echo "v5 l20 r")
+(voice 0 bs_c bs_d bs_a bs_c bs_d bs_a bs_a bs_d bs_d bs_c bs_d bs_a)
+(voice 1 in_echo loop a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 2 hats)
+(voice 3 a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 4 groove groove groove groove groove groove groove fill groove groove groove groove
+    groove groove groove fill)
+(voice 5 p_c p_d p_a p_c p_d p_a p_a p_d p_d p_c p_d p_a)

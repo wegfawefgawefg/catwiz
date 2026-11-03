@@ -1,0 +1,29 @@
+; elite_fight: an elite fight, with the game's effects on the lent voices (2 the hero's, 5 the
+; enemy's). The elite winds up twice; the cat gets low once. 90 s.
+song tools/music/adaptive/battle.asong
+length 90s
+at 0s state calm
+at 10s state fight
+at 11s cue rattle 2 1
+at 12s cue zap 2 1
+at 12.5s cue thump 5 1
+at 17s cue growl 5 1
+at 20s state windup     ; the elite's big move coming
+at 27s cue yelp 2 1
+at 32s state danger     ; it landed: the cat is low
+at 36s cue rattle 2 1
+at 37s cue chime 2 1
+at 45s state fight      ; healed up, back to it
+at 46s cue zap 2 1
+at 46.5s cue thump 5 1
+at 52s cue growl 5 1
+at 55s state windup     ; it winds up again
+at 63s cue zap 2 1
+at 63.5s cue thump 5 1
+at 66s state low        ; the move fizzled; the elite is low now
+at 70s cue zap 2 1
+at 70.5s cue thump 5 1
+at 76s state victory    ; one hit from winning
+at 82s cue zap 2 1
+at 82.5s cue squeak 5 1
+at 86s fade

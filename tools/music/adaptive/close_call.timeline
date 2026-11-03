@@ -1,0 +1,23 @@
+; close_call: a fight that nearly goes wrong. The cat drops low, the player stops to think
+; while low (calm), climbs back, and wins. 90 s.
+song tools/music/adaptive/battle.asong
+length 90s
+at 0s state fight
+at 5s cue zap 2 1
+at 5.5s cue thump 5 1
+at 12s state danger
+at 13s cue yelp 2 1
+at 26s state calm       ; the player thinks hard
+at 38s state danger     ; still low, playing on
+at 40s cue rattle 2 1
+at 41s cue chime 2 1
+at 50s state fight
+at 51s cue zap 2 1
+at 51.5s cue thump 5 1
+at 62s state low
+at 64s cue zap 2 1
+at 64.5s cue thump 5 1
+at 75s state victory
+at 84s cue zap 2 1
+at 84.5s cue squeak 5 1
+at 87s fade

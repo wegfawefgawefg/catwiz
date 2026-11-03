@@ -1,0 +1,90 @@
+; battle.asong: a fight song that follows the fight. The .song text, plus sections (each a
+; set of order lists the voices take at their next pattern's end) and states (a section and
+; each voice's layer, in steps down). Played by tools/music/adaptive/adaptive.py with a player
+; that has two small additions (README.md there: what they cost).
+;
+; Key: D minor (D major when the fight is nearly won). Tempo: an 8th is 12 ticks (quarter =
+; 150 bpm), a bar 96 ticks (1.6 s). Every pattern of the harmony's voices (lead, counter, bass)
+; is 2 bars (192 ticks), so every voice reaches a pattern's end on the same tick and a section
+; change lands on the next 2-bar line, 3.2 s at most after the game asks; the drums' patterns
+; are a bar, so they may change a bar sooner, which reads as a lead-in.
+;
+; Sections (the order lists; "start" is the song's header):
+;   start, main  Dm Bb | C A, 8 bars. The Catwiz motif (D A G# A F | E D), sequenced on C
+;                (C G F# G E), the twitch home on A (E D# E C# A); the 2nd time the motif on C
+;                leaps an octave and the bar falls to C#, into D again
+;   danger       the cat low: Dm pedal, half time. The bass a heartbeat (D D ... C# C#), the
+;                lead only the twitch (G# A) and a nervous turn, the counter creeping A Bb A G#
+;   king         an elite winding up: the King's motif (the cat's upside down, D G G# G Bb |
+;                C D) in the bass and doubled two octaves up on the counter, the drums
+;                pounding quarters, the lead's twitch as an alarm over it
+;   victory      the enemy nearly beaten: the motif turns major over the same bass and drums
+;                (D A G# A F#), climbs (F G A Bb), and ends each phrase on a high C# that
+;                pulls into the next
+; States (the game picks one; the section and each voice's layer, 0 full .. 15 silent):
+;   calm      the player thinking: main, the drums and hats out, the lead and bass softer
+;   fight     main, everything but the counter
+;   low       the enemy low: main with the counter in and the hats up: fuller
+;   danger    the cat low: the danger section, hats out
+;   windup    the elite winding up: the king section, all in
+;   victory   the victory section, all in
+;
+; Left (chip 1): the lead, the counter, the hats. Right (chip 2): the bass, the drums, the
+;   lead's echo. Voice 2 (hats) is lent to the hero's effects, voice 5 (the echo) to the
+;   enemies': the least missed parts.
+; voice 0  the lead (v12, the default; its patterns set no volume, so voice 5 shares them)
+; voice 1  the counter: two chord tones a bar; the King's motif in king
+; voice 2  hats, 8ths (noise on the left chip, alone there)
+; voice 3  bass: root, root, octave (3+3+2); the heartbeat in danger; the King's motif in king
+; voice 4  drums: kick and snare (noise on the right chip, alone there)
+; voice 5  the lead's echo, a dotted 8th (18 ticks) late and soft
+(pattern m1 "k3 l12 d5 l36 a5 l12 g#5 a5 l24 f5 l12 e5 l36 d5 l24 r l12 f5 g5")
+(pattern m2 "l12 c5 l36 g5 l12 f#5 g5 l24 e5 l12 e5 d#5 l24 e5 c#5 a4")
+(pattern m3 "l12 c5 l36 c6 l12 b5 c6 l24 g5 l12 a5 g5 l24 e5 l48 c#5")
+(pattern c1 "v9 k6 l48 f4 a4 d4 f4")
+(pattern c2 "e4 g4 c#4 e4")
+(pattern hats "m2 n1 v7 k1 l12 c4 v4 c4")
+(pattern b1 "v12 k4 l36 d2 d2 l24 d3 l36 a#1 a#1 l24 a#2")
+(pattern b2 "l36 c2 c2 l24 c3 l36 a1 a1 l24 a2")
+(pattern groove "k1 v12 m1 l24 g1 m2 n5 c4 m1 l12 g1 g1 m2 l24 c4")
+(pattern in_echo "v5 l18 r")
+(pattern d1 "k3 l12 g#4 a4 l36 r r l12 g#4 a4 c5 a4 l48 r")
+(pattern db "v12 k2 l12 d2 d2 l36 r r l12 c#2 c#2 l36 r r")
+(pattern half "k1 v12 m1 l48 g1 m2 n5 c4")
+(pattern kc "v13 k4 l12 d4 l36 g3 l12 g#3 g3 l24 a#3 l12 c4 l36 d4 l48 r")
+(pattern kb "v12 k4 l12 d2 l36 g1 l12 g#1 g1 l24 a#1 l12 c2 l36 d2 l12 d1 d1 d1 d1")
+(pattern pound "k1 v12 m1 l24 g1 g1 g1 m2 n5 c4")
+(pattern v1 "k3 l12 d5 l36 a5 l12 g#5 a5 l24 f#5 l12 e5 l36 d5 l12 a#4 c5 d5 e5")
+(voice 0 m1 m2 m1 m3)
+(voice 1 c1 c2)
+(voice 2 hats)
+(voice 3 b1 b2)
+(voice 4 groove)
+(voice 5 in_echo loop m1 m2 m1 m3)
+(section main
+    (voice 0 m1 m2 m1 m3)
+    (voice 1 c1 c2)
+    (voice 3 b1 b2)
+    (voice 4 groove)
+    (voice 5 m1 m2 m1 m3))
+(section danger
+    (voice 0 d1)
+    (voice 3 db)
+    (voice 4 half)
+    (voice 5 d1))
+(section king
+    (voice 1 kc)
+    (voice 3 kb)
+    (voice 4 pound))
+(section victory
+    (voice 0 v1 m3)
+    (voice 3 b1 b2)
+    (voice 4 groove)
+    (voice 5 v1 m3))
+;      name     section  layers: voice 0  1  2  3  4  5
+(state calm     main              3 15 15  3 15  2)
+(state fight    main              0 15 15  0  0  0)
+(state low      main              0  0  0  0  0  0)
+(state danger   danger            0 15 15  0  0  0)
+(state windup   king             15  0  0  0  0 15)
+(state victory  victory           0 15  0  0  0  0)

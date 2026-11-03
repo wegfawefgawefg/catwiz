@@ -1,0 +1,44 @@
+; gen/riff_8: made by tools/music/gen (riffology), seed 8. Do not hand-edit; make again.
+; Key: F minor. Tempo: an 8th is 13 ticks (quarter = 138 bpm), a bar 104 ticks.
+; Form: A A' B A', 16 bars, 1664 ticks (27.8 s) before it repeats.
+;   A  Fm Bbm Eb Ab   call (motif) | answer (run) | call grown an octave | cadence (lead_in, then home)
+;   B  Db Eb Fm Fm   climb | arp | climb | turn (fall)
+; Nothing made plainer to fit.
+;
+; Left (chip 1): bass, the echo, hats. Right (chip 2): the lead, drums, the pad.
+; voice 0  bass: octaves, k5
+; voice 1  the lead's echo, 1 8ths late and soft, on the other side
+; voice 2  hats, 8ths (noise, alone on the left chip; lent to the hero's effects)
+; voice 3  the lead, k4; its patterns set no volume, so the echo shares them
+; voice 4  drums: half, a fill every 8th bar (the snare's noise alone on the right chip)
+; voice 5  pad: guide (lent to the enemies' effects)
+; Size: 379 bytes.
+; hook: a1_1@0 a1_1@208
+(pattern a1_1
+    "k4 l13 f5 l39 c6 l13 b5 c6 l26 g#5 l13 f5 d#5 c#5 c5 l26 a#4 r l13 d#5 l39 d#6 l13 d6 d#6 l26 a#5")
+(pattern a1_4 "k4 l39 g#5 l13 r c6 d#6 d6 d#6")
+(pattern bs_f "v11 k5 l13 f2 f3 f2 f3 f2 f3 f2 f3")
+(pattern p_f "v7 k12 l52 g#3 d#4")
+(pattern groove "m1 v12 k1 l52 g1 m2 n5 v11 c4")
+(pattern bs_as "v11 k5 l13 a#1 a#2 a#1 a#2 a#1 a#2 a#1 a#2")
+(pattern p_as "v7 k12 l52 c#4 g#4")
+(pattern bs_ds "v11 k5 l13 d#2 d#3 d#2 d#3 d#2 d#3 d#2 d#3")
+(pattern p_ds "v7 k12 l52 g3 d4")
+(pattern bs_gs "v11 k5 l13 g#1 g#2 g#1 g#2 g#1 g#2 g#1 g#2")
+(pattern p_gs "v7 k12 l52 c4 g4")
+(pattern a2_4 "k4 l13 g#6 g#5 - - - - l26 r")
+(pattern fill "m1 v12 k1 l26 g1 m2 n5 v11 c4 l13 c4 c4 c4 l6 c4 v9 l7 c4")
+(pattern b_1
+    "k4 l13 c#5 f5 l26 g#5 a#5 g#5 l13 d#5 g5 a#5 l39 d#6 l26 r l13 f5 g#5 l26 c6 c#6 c6 l13 f6 c6 g#5 f5 l52 r")
+(pattern bs_cs "v11 k5 l13 c#2 c#3 c#2 c#3 c#2 c#3 c#2 c#3")
+(pattern p_cs "v7 k12 l52 f3 c4")
+(pattern hats "m2 n1 v6 k1 l13 c4 v3 c4")
+(pattern in_echo "v5 l13 r")
+(voice 0 bs_f bs_as bs_ds bs_gs bs_f bs_as bs_ds bs_gs bs_cs bs_ds bs_f bs_f bs_f bs_as bs_ds
+    bs_gs)
+(voice 1 in_echo loop a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 2 hats)
+(voice 3 a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 4 groove groove groove groove groove groove groove fill groove groove groove groove
+    groove groove groove fill)
+(voice 5 p_f p_as p_ds p_gs p_f p_as p_ds p_gs p_cs p_ds p_f p_f p_f p_as p_ds p_gs)
