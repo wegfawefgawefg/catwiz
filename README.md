@@ -10,6 +10,8 @@ elite at the end, then the Bulldog King), with about 100 faces and 35 charms to 
 
 **[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
 get the two disks from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
+In the browser it sends anonymous play stats (below, "Play stats"); the player's STATS button
+or `&telemetry=off` on the address turns them off.
 
 On a TV or composite monitor (NTSC), the look it is drawn for:
 
@@ -115,6 +117,24 @@ On a real enhanced IIe with 128 KB, write `build/catwiz.dsk` and `build/catwiz2.
 after the title. A Mockingboard in any slot plays the music; without one the speaker
 plays the effects. An AppleMouse in any slot takes clicks.
 
+## Play stats
+
+In the browser (the Pages site and the phone server) the player sends anonymous play records to
+the dev VPS, https://45.77.123.14/catwiz-telemetry: when a run, a fight and the title start,
+how each fight ends (the fight, its enemies, the turns, her hit points), what was offered and
+taken between fights, how a run ends, and where the page was when it closed. Each record has a
+random id made for the browser tab, the times, the build and whether it was the Pages site or the
+phone; nothing else (no address, no browser details, no third parties). The player's STATS button,
+or `?telemetry=off` on the player's address, turns it off (kept in the browser); Do Not Track
+and Global Privacy Control turn it off too. It is all config, `"telemetry"` in
+`tools/phone/catwiz.json` (Tisple's docs/phone.md, "Play stats"): no game code or memory.
+
+- `tools/telemetry/report.py`: fetches the records over ssh and prints tables (sessions, runs and
+  play time; runs by how far they got; deaths by fight and enemy; quits; fight lengths; picks
+  offered and taken). `--file`, `--save`, `--since`, `--via`, `--build`.
+- `tools/telemetry/receiver.py`, `catwiz-telemetry.service`, `nginx.conf`: the receiver on the
+  VPS (127.0.0.1:8795, records in `/var/lib/catwiz-telemetry/events.jsonl`) and how it is set up.
+
 ## The repo
 
 - `game/`: the game. `main.tsp` is the loop; `battle/`, `draw/`, `sound/`, `title/` the engine;
@@ -124,8 +144,9 @@ plays the effects. An AppleMouse in any slot takes clicks.
 - `tools/dhgr/`: the art, drawn at 140 x 192 in the double hi-res colours; `game.py` writes the
   game's tables. `tools/measure.py` measures frame costs. `tools/art/` and `tools/hgr.py`: the
   hi-res art the game had until 2026-10-30, kept for the record.
-- `tools/phone/catwiz.json`: the phone player's buttons (its portrait pad) and `"mouse": true`
-  (taps are the mouse card's clicks), for Tisple's web player and `--taps`.
+- `tools/phone/catwiz.json`: the phone player's buttons (its portrait pad), `"mouse": true`
+  (taps are the mouse card's clicks) and its play stats, for Tisple's web player and `--taps`.
+  `tools/telemetry/`: the play stats' receiver and report.
 - `tools/reference/`: scripts from the prototype; see its README.
 - `mockup/`: the hi-res mockups of the battle screen the look came from.
 - `shots/`: screenshots (NTSC and colour); `shots/dhgr/` the art's previews; `shots/art/` the
