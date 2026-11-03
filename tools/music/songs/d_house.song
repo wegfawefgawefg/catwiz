@@ -1,0 +1,55 @@
+; d_house: the fight song for zone 3, HOUSE, inside the witch's house. A sneaky oom-pah
+; march, mischievous rather than scary: staccato bass on 1 and 3, a two-note "pah" on 2 and
+; 4, the tune creeping about on top, a cauldron bubbling now and then.
+; Key: F minor (natural, the C7's E as its only raised note: no augmented seconds).
+;   A  Fm  Fm   Bbm  C7  | Fm  Db   Gb   C7        the motif, its tail, the motif a fourth up;
+;                                                  then up a scale to F and down a Gb chord
+;   B  Db  Db   Bbm  Bbm | Gb  Gb   C7   C7        a long falling tune, brighter, then back
+;   (Gb is the Neapolitan: the house's crooked, cosy colour)
+; Tempo: an 8th is 15 ticks (quarter = 120 bpm), 4/4, a bar of 120 ticks (2 s).
+; Repeats: A B is 16 bars, 1920 ticks (32 s).
+; Size: 377 bytes.
+;
+; Where the motif is:
+;   A bars 1 and 5: the motif in F minor, F C B C Ab. Its twitch note B is a tritone from F
+;     here: the witch's crooked version of the cat's tune
+;   A bar 3: the motif on Bbm, Bb F E F Db
+;   A bars 2 and 4: the tail, falling with a leading-tone twitch (G F E F)
+;   A bar 8 and B bar 16: the twitch both ways round C, C C# C B C, a cackle before each half
+;
+; Left (chip 1): bass, the pah's lower note, the tune's echo. Right (chip 2): the tune,
+;   the clock and cauldron, the pah's upper note.
+; voice 0  bass: staccato roots and fifths on 1 and 3 (k1: gone in a fifth of a second)
+; voice 1  pah: the chord's lower tone on 2 and 4
+; voice 2  the tune's echo, an 8th late and soft, on the other side (lent to the hero's effects)
+; voice 3  the tune; its patterns set no volume, so voice 2 shares them
+; voice 4  a ticking clock on the off-beats, and every 2 bars a cauldron's bubble (three
+;          quick rising blips, a low tone)
+; voice 5  pah: the chord's upper tone on 2 and 4 (lent to the enemies' effects)
+(pattern in_echo "v5 k3 l15 r")
+(pattern ta
+    "k3 l15 f4 l45 c5 l15 b4 c5 l30 g#4 l15 g4 f4 e4 f4 l30 c4 r l15 a#4 l45 f5 l15 e5 f5 l30 c#5 l15 c5 a#4 g4 e4 l30 c4 r")
+(pattern tb
+    "l15 f4 l45 c5 l15 b4 c5 l30 g#4 l15 g#4 a#4 c5 c#5 l60 f5 l30 f#5 l15 f5 c#5 l30 a#4 f#4")
+(pattern cackle "l15 c5 c#5 c5 b4 l30 c5 r")
+(pattern tc
+    "l60 f5 l30 d#5 c#5 l60 g#5 l30 - f5 l60 c#5 l30 c5 a#4 l60 f5 l30 - r l60 a#5 l30 g#5 f#5 l60 c#6 l30 a#5 f#5 c6 l15 a#5 g5 l30 e5 c5")
+(pattern b_f "l30 v13 k1 f2 r c2 r")
+(pattern b_bb "a#1 r f2 r")
+(pattern b_c "c2 r g1 r")
+(pattern b_db "c#2 r g#1 r")
+(pattern b_gb "f#1 r c#2 r")
+(pattern lo_f "l30 v10 k3 r g#3 r g#3")
+(pattern lo_bb "r a#3 r a#3")
+(pattern lo_db "r g#3 r g#3")
+(pattern hi_f "l30 v9 k3 r c4 r c4")
+(pattern hi_bb "r c#4 r c#4")
+(pattern hi_c "r e4 r e4")
+(pattern hi_db "r f4 r f4")
+(pattern clock "l15 m2 n1 k1 v5 r c4 r c4 r c4 r c4 m1 l1 v10 c3 e3 g3 l12 r l1 v9 d3 f#3 a3 l12 r l15 m2 v5 r c4 r c4 r c4")
+(voice 0 b_f b_f b_bb b_c b_f b_db b_gb b_c b_db b_db b_bb b_bb b_gb b_gb b_c b_c)
+(voice 1 lo_f lo_f lo_bb lo_bb lo_f lo_db lo_bb lo_bb lo_db lo_db lo_bb lo_bb lo_bb lo_bb lo_bb lo_bb)
+(voice 2 in_echo loop ta tb cackle tc cackle)
+(voice 3 ta tb cackle tc cackle)
+(voice 4 clock)
+(voice 5 hi_f hi_f hi_bb hi_c hi_f hi_db hi_bb hi_c hi_db hi_db hi_bb hi_bb hi_bb hi_bb hi_c hi_c)

@@ -1,0 +1,52 @@
+; d_rest_vib: d_rest with one garnish, for comparing: a vibrato (w2:10:90) on the last held
+; F only. It waits 90 ticks into a note, and every other note of the tune is 80 ticks or
+; less, so the setting can stay on: the closing F (160 ticks) is the one note that ever
+; wobbles, for its last 70. Needs the bends player (mb.service_bends); the game plays d_rest
+; as it is. Size: 393 bytes.
+;
+; d_rest: the rest after an elite (full heal, hearts rising). Warm and slow: a harp rising
+; through every chord like hearts floating up, bouncing left to right, a slow heartbeat, and
+; the Catwiz motif sung gently, lydian, as a lullaby.
+; Key: F major (lydian B in the motif).
+;   A  Fmaj7  Dm7  Bbmaj7  C   | Fmaj7  Am7  Bbmaj7 Gm7  C     the motif, low and gentle
+;   B  Dm7    Bbmaj7  F/A  C   | Dm     Bbmaj7  Gm7 C7   F     higher, the motif in D minor,
+;                                                              a climb to D6, home on F
+; Tempo: an 8th is 20 ticks (quarter = 90 bpm), 4/4, a bar of 160 ticks (2.7 s).
+; Repeats: A B is 16 bars, 2560 ticks (42.7 s).
+; Size: 393 bytes.
+;
+; Where the motif is:
+;   A bars 1 and 5: F C B C A, the motif in F with its lydian B (B natural is the twitch)
+;   A bar 3: on Bbmaj7, Bb F E F D (E the #11: lydian again)
+;   A bar 8: the twitch alone (B C) in the cadence
+;   B bar 13: the motif in D minor, D A G# A F, the one shadow before home
+;
+; Left (chip 1): bass, the harp. Right (chip 2): the tune, the heartbeat, the harp's echo.
+; voice 0  bass: root and fifth, two half notes a bar, soft
+; voice 1  harp: eight 8ths rising up each chord, plucked; its patterns set no volume, so
+;          voice 5 shares them
+; voice 3  the tune (v10), a soft decay; the last F held long
+; voice 4  a slow heartbeat, lub-dub once a bar (soft low noise)
+; voice 5  the harp's echo, an 8th late and softer, on the other side: the hearts bounce
+; Bar 15's harp is bar 7's (Bb D F A | G Bb D F), over Gm7 C7 it reads Gm9 then C11.
+(pattern in_harp "v9 k5 l1 r")
+(pattern in_echo "v6 k5 l21 r")
+(pattern ra
+    "v10 k6 l20 f4 l60 c5 l20 b4 c5 l40 a4 l20 g4 a4 l40 f4 - r l20 a#4 l60 f5 l20 e5 f5 l40 d5 l20 c5 d5 l40 e5 - r l20 f4 l60 c5 l20 b4 c5 l40 a4 l20 g4 a4 l40 c5 e5 g5 f5 d5 l20 d5 c5 a#4 g4 l40 g4 l20 b4 c5 l40 e5 r")
+(pattern rb
+    "l60 a5 l20 g5 l40 f5 e5 l60 d5 l20 f5 l40 a#5 a5 l60 c6 l20 a5 l40 f5 c5 d5 e5 g5 l20 a5 g5 d5 l60 a5 l20 g#5 a5 l40 f5 l20 e5 d5 l40 f5 a#5 d6 c6 a#5 l20 a5 g5 e5 c5 k12 w2:10:90 l40 f5 - - -")
+(pattern bass_a "l40 v9 k8 f2 - c3 - d2 - a2 - a#1 - f2 - c2 - g2 - f2 - c3 - a1 - e2 - a#1 - g1 - c2 - g2 -")
+(pattern bass_b "d2 - a2 - a#1 - f2 - a1 - c2 - c2 - g2 - d2 - a2 - a#1 - f2 - g1 - c2 - f2 - c3 -")
+(pattern h_f "l20 f4 a4 c5 e5 f5 a5 c6 e6")
+(pattern h_dm "d4 f4 a4 c5 d5 f5 a5 c6")
+(pattern h_bb "a#3 d4 f4 a4 a#4 d5 f5 a5")
+(pattern h_c "c4 g4 c5 d5 e5 g5 c6 d6")
+(pattern h_am "a3 c4 e4 g4 a4 c5 e5 g5")
+(pattern h_bg "a#3 d4 f4 a4 g4 a#4 d5 f5")
+(pattern h_fa "a3 c4 f4 a4 c5 f5 a5 c6")
+(pattern heart "l20 m2 n24 k2 v11 c4 v8 c4 l60 r l60 r")
+(voice 0 bass_a bass_b)
+(voice 1 in_harp loop h_f h_dm h_bb h_c h_f h_am h_bg h_c h_dm h_bb h_fa h_c h_dm h_bb h_bg h_f)
+(voice 3 ra rb)
+(voice 4 heart)
+(voice 5 in_echo loop h_f h_dm h_bb h_c h_f h_am h_bg h_c h_dm h_bb h_fa h_c h_dm h_bb h_bg h_f)

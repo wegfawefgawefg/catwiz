@@ -1,0 +1,43 @@
+; d_motif: the Catwiz motif, stated plainly so it can be heard alone, then the King's.
+;
+; THE CATWIZ MOTIF ("the twitch"), five notes and a two-note tail:
+;   degrees  1    5        #4   5    3      |  2    1
+;   in D     D5   A5       G#5  A5   F#5    |  E5   D5
+;   rhythm   8th  dotted q 8th  8th  quarter|  8th  dotted q (then rest)
+;   sung     da   DAAAA    di   da   DAA    |  da   DAAAA
+; A leap up a fifth (the cat jumps on the table), the chromatic lower neighbour flicking
+; back to the fifth (the tail twitches), then down to the third and home. The head (1 5 #4 5)
+; is the part to fragment: it makes a riff on its own, and the twitch (#4 5) alone is the
+; smallest piece. The #4 is chromatic in plain major and minor (sly, sneaky), diatonic in
+; lydian (night garden's mode: magic). In minor the third is the minor third: D A G# A F | E D.
+; It grew out of a_phase's catchy figure, whose head is 1 5 4 ... 3 (B F# E . D); the twitch
+; is that 4 raised and turned back to 5.
+;
+; THE KING'S MOTIF: the cat's turned upside down, every interval mirrored round the 1:
+;   degrees  1    4 (down a fifth)  #4   4    b6     |  b7   1
+;   in D     D4   G3                G#3  G3   A#3    |  C4   D4
+; The same rhythm. Its G# is the cat's twitch note, here a tritone from the King's D.
+;
+; Key: D major, then D minor, then the King's. Tempo: an 8th is 16 ticks (quarter = 112 bpm),
+; a bar 128 ticks. 12 bars: the motif alone (1-2), with bass and chord (3-4), in D minor
+; (5-6), silence, the King's motif low with the bass doubling it (9-10), silence; 25.6 s.
+; Size: 184 bytes.
+;
+; Left (chip 1): bass, the chord's third. Right (chip 2): the motif, the chord's fifth.
+; voice 0  bass: D under the motif, A1 into the tail; doubles the King's motif two octaves down
+; voice 1  a soft chord tone under bars 3-6, the third (F# in D, F in D minor)
+; voice 3  the motif, a plain lead
+; voice 4  the chord's fifth (A)
+(pattern rest2 "l64 r r r r")
+(pattern maj "l16 v12 k4 d5 l48 a5 l16 g#5 a5 l32 f#5 l16 e5 l48 d5 l64 r")
+(pattern min "l16 d5 l48 a5 l16 g#5 a5 l32 f5 l16 e5 l48 d5 l64 r")
+(pattern king "l16 v13 k5 d4 l48 g3 l16 g#3 g3 l32 a#3 l16 c4 l48 d4 l64 r")
+(pattern b_maj "l64 v12 k6 d2 l32 - a1 l64 d2 r")
+(pattern b_king "l16 v13 k5 d2 l48 g1 l16 g#1 g1 l32 a#1 l16 c2 l48 d2 l64 r")
+(pattern p_maj "l64 v7 k12 f#4 f#4 f#4 f#4")
+(pattern p_min "f4 f4 f4 f4")
+(pattern q "l64 v6 k12 a4 a4 a4 a4")
+(voice 0 rest2 b_maj b_maj rest2 b_king rest2)
+(voice 1 rest2 p_maj p_min rest2 rest2 rest2)
+(voice 3 maj maj min rest2 king rest2)
+(voice 4 rest2 q q rest2 rest2 rest2)

@@ -1,0 +1,45 @@
+; d_reward: the pick screen after a fight won. A sunny little calypso: the cat counting its
+; loot. The bass bounces 3+3+2, a clave knocks the son rhythm, the tune is a plucked marimba.
+; Key: G major.
+;   A  G  C  D7  G   | G  Em  Am7 D7  G     call and answer: the motif, then a bouncy reply
+;   B  C  G/B  Am7  D7 | C  G/B  A7  D7      a longer, higher tune, up to C6, turning back
+;                                             to D7 and into the motif again
+; Tempo: an 8th is 16 ticks (quarter = 112 bpm), 4/4, a bar of 128 ticks (2.1 s).
+; Repeats: A B is 16 bars, 2048 ticks (34.1 s).
+; Size: 353 bytes.
+;
+; Where the motif is:
+;   A bars 1 and 5: the motif in G, G D C# D B, the calypso's call
+;   A bar 3: the motif on D7, A E D# E C (the 7th at its end)
+;   A bar 4: its reply ends on the twitch, F# G
+;   B bar 16: the twitch C# D closing the tune, which falls straight into the motif's G
+;
+; Left (chip 1): bass, a soft two-note comp, the tune's echo. Right (chip 2): the tune, the
+;   clave, a shaker.
+; voice 0  bass: 3+3+2 (dotted quarter, dotted quarter, quarter), root, fifth, root
+; voice 1  comp: two soft guide tones a bar (the chords' 3rds and 7ths)
+; voice 2  the tune's echo, a dotted 8th (24 ticks) late and soft (lent in a fight)
+; voice 3  the tune, plucked (k2); its patterns set no volume, so voice 2 shares them
+; voice 4  clave: the 3-2 son rhythm on a high wooden knock, over two bars
+; voice 5  shaker: 8ths, the first of each pair louder (lent in a fight)
+(pattern in_echo "v6 l24 r")
+(pattern ta
+    "k2 l16 g4 l48 d5 l16 c#5 d5 l32 b4 l16 c5 e5 l32 g5 l16 e5 l32 c5 l16 r a4 l48 e5 l16 d#5 e5 l32 c5 l16 b4 d5 l32 g5 l16 f#5 l32 g5 l16 r")
+(pattern tb
+    "g4 l48 d5 l16 c#5 d5 l32 b4 l16 b4 e5 l32 g5 l16 e5 l32 b4 l16 r c5 e5 a5 g5 l32 f#5 l16 e5 d5 l32 g5 l16 d5 b4 l64 g4")
+(pattern tc
+    "l32 e5 l48 g5 l16 e5 l32 c5 d5 l48 g5 l16 d5 l32 b4 c5 l48 e5 l16 a5 l32 g5 l16 f#5 e5 d5 c5 l32 a4 l16 b4 c5 l32 e5 l48 g5 l16 e5 l32 c6 b5 l48 g5 l16 d5 l32 b4 l16 a4 c#5 e5 g5 l32 a5 l16 g5 e5 l32 c6 l16 a5 f#5 l32 d5 l16 c#5 d5")
+(pattern bass_a
+    "l48 v11 k4 g1 d2 l32 g2 l48 c2 g2 l32 c2 l48 d2 a1 l32 d2 l48 g1 d2 l32 g2 l48 g1 d2 l32 b1 l48 e2 b1 l32 e2 l48 a1 l16 e2 l64 d2 l48 g1 d2 l32 g2")
+(pattern bass_b
+    "l48 c2 g2 l32 c2 l48 b1 d2 l32 g2 l48 a1 e2 l32 a2 l48 d2 a1 l32 d2 l48 c2 g2 l32 c2 l48 b1 d2 l32 g2 l48 a1 e2 l32 c#2 l48 d2 a1 l32 f#1")
+(pattern comp
+    "l64 v9 k8 b3 d4 c4 e4 c4 f#4 b3 d4 d4 b3 e4 g4 g4 f#4 g4 d4 e4 g4 d4 g4 e4 g4 f#4 c5 e4 g4 d4 g4 c#4 g4 f#4 a4")
+(pattern clave "l48 m1 v12 k1 g6 g6 l32 g6 r g6 l64 g6")
+(pattern shaker "l16 m2 n1 k1 v5 c4 v3 c4")
+(voice 0 bass_a bass_b)
+(voice 1 comp)
+(voice 2 in_echo loop ta tb tc)
+(voice 3 ta tb tc)
+(voice 4 clave)
+(voice 5 shaker)
