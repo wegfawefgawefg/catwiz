@@ -25,6 +25,8 @@ typedef struct {
 } Play;
 #define MAX_OPTIONS 64
 int options(const Battle *b, Play *out);
+int face_random(int id);
+#define CHANCE 4 /* a play whose face takes a random number: its outcomes the search averages */
 /* how many dice a search may turn after a paw flip (the game: any number; the search: this
    many, and only in the turn's own plan, not in imagined re-rolls) */
 extern _Thread_local int FLIP_ROOM;

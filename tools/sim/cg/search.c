@@ -130,6 +130,29 @@ static Entry *search(const Battle *b) {
         Play opts[MAX_OPTIONS];
         int n = options(b, opts);
         for (int i = 0; i < n; i++) {
+            int flip = opts[i].t != NOTHING && (opts[i].t & FLIP);
+            if (!flip && face_random(row_id(b, b->hand[opts[i].s]))) {
+                /* a coin, a hat, a pick: the mean of CHANCE outcomes, and the plan ends there
+                   (she plans again once she sees it) */
+                double v = 0;
+                for (int j = 0; j < CHANCE; j++) {
+                    Battle c = *b;
+                    c.tell = NULL;
+                    c.rng = NULL;
+                    c.srng = b->srng * 2654435761u + 40503u * (uint32_t)j + 1u;
+                    b_play(&c, opts[i].s, opts[i].t);
+                    S.path[S.depth++] = opts[i];
+                    v += search(&c)->value;
+                    S.depth--;
+                }
+                v /= CHANCE;
+                if (v > best + 1e-9) {
+                    best = v;
+                    plan[0] = opts[i];
+                    nplan = 1;
+                }
+                continue;
+            }
             Battle c = *b;
             c.tell = NULL;
             c.rng = NULL; /* dice that come back wait (above) */
@@ -353,7 +376,13 @@ void search_turn(Player *p, Battle *b) {
                 stale = 1;
                 break;
             }
+            int chance = !(plan[j].t != NOTHING && (plan[j].t & FLIP)) &&
+                         face_random(row_id(b, b->hand[plan[j].s]));
             b_play(b, plan[j].s, plan[j].t);
+            if (chance) { /* she saw what the coin or the hat did: plan again */
+                stale = 1;
+                break;
+            }
         }
         if (!stale || b->result != R_NONE)
             break;

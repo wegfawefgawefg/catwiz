@@ -30,6 +30,23 @@ void pos_hash(const Battle *b, uint64_t *h1, uint64_t *h2) {
     *h2 = z;
 }
 
+/* whether face id's steps take a random number (a coin, a hat, a pick at random) */
+int face_random(int id) {
+    static _Thread_local int8_t known[FACE_COUNT];
+    if (known[id])
+        return known[id] > 0;
+    int r = 0;
+    for (int pc = ROW_AT[id];; pc += 2) {
+        int op = STEP_BYTES[pc], a = STEP_BYTES[pc + 1];
+        if (op == OP_COIN || op == OP_HAT || (op == OP_NEXT && a == 1))
+            r = 1;
+        if (op == OP_STOP)
+            break;
+    }
+    known[id] = r ? 1 : -1;
+    return r;
+}
+
 int blunder(Player *p, Battle *b) {
     if (BLUNDER_PLAY <= 0.0 || mt_random(p->rng) >= BLUNDER_PLAY)
         return 0;
