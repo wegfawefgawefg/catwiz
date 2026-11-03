@@ -7,15 +7,13 @@
 (import apple2 a2)
 (import auxmem)
 (import disk)
+(import state)
 (import draw/meter)
 (import draw/text)
 (import content/rules)
 (import sound/sound)
 
-; where the page is read: aux memory's text page 1, rules.PAGE_BYTES of it. A let, not a
-; constant pointer: the layout checks a constant one against main memory's lets there (the text
-; page's scratch, AGENTS.md Memory), which aux memory's bytes are not
-(let buffer u16 0x0400)
+; the page is read into aux memory's text page 1 (state.aux_page1), rules.PAGE_BYTES of it
 (const COLUMNS u8 35)
 
 ; the page's own lines, in aux memory (main memory is full)
@@ -39,12 +37,12 @@
 (fn fetch ((k u8)) void
     (text.start)
     (auxmem.read (addr_of (at text.line 0))
-        (as (ptr u8) (+ buffer (* (as u16 k) (as u16 COLUMNS))))
+        (as (ptr u8) (+ state.aux_page1 (* (as u16 k) (as u16 COLUMNS))))
         (as u16 COLUMNS)))
 
 ; page shown read and drawn: its lines down the stage, its title and how to go on in the text
 (fn show () void
-    (let status u8 (meter.read (as (ptr u8) buffer) (rules.page_table shown)))
+    (let status u8 (meter.read (as (ptr u8) state.aux_page1) (rules.page_table shown)))
     (if (!= status disk.DONE)
         (do
             (text.start)

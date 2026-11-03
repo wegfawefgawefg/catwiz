@@ -2,7 +2,10 @@
 ; half. Notes are half-periods in cycles and lengths in milliseconds; the half-periods are
 ; worked out while compiling from the pitches.
 
+(import auxmem)
+(import tables)
 (import sound/sfx)
+(import sound/waiting)
 
 ; the half-period in cycles of a note of freq Hz, on the IIe's 1.023 MHz clock
 (macro half_period (freq)
@@ -10,39 +13,35 @@
 
 (const NOTES u8 10)
 
-(const NOTE_HALF (array u16 10)
-    (make (array u16 10)
-        (half_period 659)  ; E5
-        (half_period 784)  ; G5
-        (half_period 988)  ; B5
-        (half_period 1319) ; E6
-        (half_period 1175) ; D6
-        (half_period 988)  ; B5
-        (half_period 1047) ; C6
-        (half_period 988)  ; B5
-        (half_period 831)  ; G#5
-        (half_period 659)) ; E5
-    :in aux)
-
 ; clicks for ms milliseconds of a note of freq Hz: ms * 1023 / (2 * half), as ms * 128 /
 ; (half / 4), worked out while compiling
 (macro clicks (freq ms)
     (/ (* ms 128) (>> (half_period freq) 2)))
 
-; the lengths: 90 90 90 200 90 90 160 90 90 250 milliseconds
-(const NOTE_CLICKS (array u16 10)
-    (make (array u16 10)
-        (clicks 659 90)   ; E5
-        (clicks 784 90)   ; G5
-        (clicks 988 90)   ; B5
-        (clicks 1319 200) ; E6
-        (clicks 1175 90)  ; D6
-        (clicks 988 90)   ; B5
-        (clicks 1047 160) ; C6
-        (clicks 988 90)   ; B5
-        (clicks 831 90)   ; G#5
-        (clicks 659 250)) ; E5
-    :in aux)
+; the notes, Hz and milliseconds: E5 G5 B5 E6 D6 B5 C6 B5 G#5 E5
+(macro tune ()
+    (list (list 659 90)
+        (list 784 90)
+        (list 988 90)
+        (list 1319 200)
+        (list 1175 90)
+        (list 988 90)
+        (list 1047 160)
+        (list 988 90)
+        (list 831 90)
+        (list 659 250)))
+
+; byte k of the notes' table: 4 a note, its half-period then its clicks, low bytes first
+(macro note_byte (k)
+    (let n (nth (tune) (/ k 4)))
+    (let word (if (< (% k 4) 2)
+        (half_period (nth n 0))
+        (clicks (nth n 0) (nth n 1))))
+    (if (= (% k 2) 0)
+        (& word 255)
+        (>> word 8)))
+
+(tables.table NOTE_BYTES u8 40 note_byte :in aux)
 
 ; a note: clicks clicks, half cycles apart
 (fn note ((half u16) (clicks u16)) void
@@ -54,14 +53,16 @@
         (sfx.tone half n)
         (set left (- left (as u16 n)))))
 
+; the notes' table, copied out of aux memory (main memory is full) into the song buffer
+; (sound/waiting), which is free with no card: the jingle plays only then (title.step). Read
+; with auxmem.read and not a with_aux here, so the jingle's code is in the title's overlay group
+(fn word_at ((k u8)) u16
+    (let p (ptr u8) (+ (addr_of (at waiting.playing 0)) k))
+    (| (as u16 (load p)) (<< (as u16 (load (+ p 1))) 8)))
+
 (fn jingle () void
+    (auxmem.read (addr_of (at waiting.playing 0)) (addr_of (at NOTE_BYTES 0)) 40)
     (for i u8 0 NOTES
-        ; the notes' tables are in aux memory (main memory is full)
-        (let half u16 0)
-        (let clicks u16 0)
-        (with_aux true false
-            (set half (at NOTE_HALF i))
-            (set clicks (at NOTE_CLICKS i)))
-        (note half clicks)
+        (note (word_at (<< i 2)) (word_at (+ (<< i 2) 2)))
         ; a breath between notes
         (wait_cycles 9000)))

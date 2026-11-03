@@ -7,6 +7,7 @@
 
 (import apple2 a2)
 (import disk)
+(import state)
 (import draw/meter)
 (import draw/text)
 
@@ -16,9 +17,7 @@
 (const LABEL (array u8 8) (make (array u8 8) 67 65 84 87 73 90 32 50) :on disk2 :in aux) ; CATWIZ 2
 (const WANT (array u8 8) (make (array u8 8) 67 65 84 87 73 90 32 50) :in aux)
 
-; where the label is read: aux memory's text page 1, the rules page's buffer, free now (a let:
-; main memory's text page has lets there)
-(let read_at u16 0x0400)
+; the label is read into aux memory's text page 1 (state.aux_page1), free now
 
 (const SAY (array (ptr u8) 3)
     (make (array (ptr u8) 3)
@@ -34,7 +33,7 @@
 (let status u8 0)
 
 (fn has_label () bool
-    (let at (ptr u8) (as (ptr u8) read_at))
+    (let at (ptr u8) (as (ptr u8) state.aux_page1))
     (set status (meter.read at (addr_of (at LABEL 0))))
     (if (!= status disk.DONE)
         (return false))

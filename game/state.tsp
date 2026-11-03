@@ -84,6 +84,12 @@
 
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 
+; aux memory's text page 1 ($0400-$062F), read into from the disk and taken in turn: the rules
+; page (battle/rules), a song waiting to start (sound/waiting), disk 2's label (title/disk2) and
+; a hat trick's face (content/items). A let, not a constant pointer: the layout checks a constant
+; one against main memory's lets there (the text page's scratch), which aux memory's bytes are not
+(let aux_page1 u16 0x0400)
+
 ; Some lets have an :address in memory the layout does not use: $0800-$0AFF (the boot loader's,
 ; free once the game runs) and the rows of text page 1 the mixed screen never shows. Those
 ; are not zeroed at the start, so the game sets them before it reads them (AGENTS.md, Memory).

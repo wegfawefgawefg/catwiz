@@ -325,20 +325,37 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
 - The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:on disk`
   (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
-  rules page's buffer) and copied into main (`sound.PLAYING` bytes: keep it at the largest
+  rules page's buffer) and copied into main (`waiting.PLAYING` bytes: keep it at the largest
   song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
 - Song changes fade (2026-11-03, the owner; Tisple's `mb.fade`, docs/mockingboard.md "Fades"):
-  `sound.quiet` (a screen's load, and every `sound.song`) fades the music out, a volume step
-  every 4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a
-  load slowed the disk reads: fight loads took about 20 frames longer). The new song is read
-  meanwhile and `sound.start` copies it in once the one before is silent, from `song` when it is
-  by then (a screen's song: the screen's load is longer than the fade) or from the main loop's
-  look each pass (the run's end, where the battle's song fades under the banner), and fades it in
-  from 13 steps down (`FADE_FROM`, the loudest any song has: 0.87 s); the stingers (won, lost)
-  start at full. Nothing waits for a fade: the first fight is ready 2 frames later than before
-  (the tick's work while the fade runs through the load's first second). While a song waits,
-  nothing else may read into aux text page 1 (sound.tsp says why none does).
-  `tools/music/renders/fade_demo.ogg` is the title to the first fight.
+  `sound.quiet` (the title's key, and every `sound.song`) fades the music out, a volume step every
+  4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a load
+  slowed the disk reads: fight loads took about 20 frames longer). The new song is read meanwhile
+  and `waiting.start` copies it in once the one before is silent: from `song` when it is by then,
+  between a load's sectors (`draw/meter.sector`), or from the main loop's look each pass (the
+  run's end, where the battle's song fades under the banner), and fades it in from 13 steps down
+  (`FADE_FROM`, the loudest any song has: 0.87 s); the stingers (won, lost) start at full. Nothing
+  waits for a fade. While a song waits, nothing else may read into aux text page 1
+  (`state.aux_page1`; sound.tsp says why none does). `tools/music/renders/fade_demo.ogg` is the
+  title to the first fight as it was before the music went through the loads.
+- Music through the loads (2026-11-03, the owner: "we should at least have the capability";
+  Tisple's `load-music` branch, docs/dhgr.md "Ticks through the card"): a screen's song starts as
+  its load begins and plays through it. The title's key fades the title's song out at once and
+  reads the battle's song (title.step); a fight from the reward reads it at enter_fight's start;
+  the title after a run reads its own at its enter. `sound/waiting.tsp` holds the song waiting
+  and `start`, which the main loop and every disk read's sector step call (`draw/meter.sector`),
+  so the song comes in within a sector's read of the fade's end. Tisple's card unpacks let the
+  tick in every page out and 32 matches, so no tick is lost in a load (686 of 686 from boot through the first
+  fight's load, the latest 12,884 cycles late; 35 lost before). Silence at a change (the old
+  song's inaudible tail, the wait for a sector's end, and the battle song's first bass note,
+  silent under the fade in from 13 steps: about 36 frames of it) is about 1.1 s, was about 3.3 s
+  (title to fight 1: 63 frames silent, was 174 + 22; reward to fight 2: 68, was 115 + 23; the
+  run's end to the title: the title's song 90 frames after the key, was 171). The cost is the
+  tick's work while a load reads: the battle song (about 1,100 cycles a tick) makes reads miss
+  sectors, so the fight from the reward is ready 294 frames after the key, was 251; the first
+  fight 436, was 452, and the title after a run 132, was 162 (both now play less music through
+  their reads than before); the boot's title 813, was 808. `tools/music/renders/load_music_demo.ogg` is the title to the first
+  fight and a reward to the next fight (a build that wins at once for the second part).
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
 - `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
@@ -383,7 +400,9 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
 
 - The game needs Tisple main with lib/dhgr's runs, lib/auxcard, lib/dhgr_pixels, `:strings
   aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged), and lib/mockingboard's fade
-  (`mb.fade`, `mb.fade_in`, `mb.faded`: Tisple's `song-fade` branch, 2026-11-03).
+  (`mb.fade`, `mb.fade_in`, `mb.faded`: Tisple's `song-fade` branch, 2026-11-03), and its card
+  unpacks that let the tick in (Tisple's `load-music` branch, 2026-11-03: lib/auxcard moved to
+  `$1DA6`, lib/dhgr's runs end at `$1F50`).
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
@@ -395,11 +414,17 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
 - The boot shows LOADING with Tisple's meter (a percent and a bar, Tisple d14df73 or later),
   then the title by frame 784 (13 s); a fight's art loads in about 3 s, the title still
   showing while its picture is read, then the picture while its runs are read and unpacked,
-  with paw prints along the foot of the stage (`draw/meter`; the music fades out and stops
-  first, while the picture and runs are read: the card's halves unpack with interrupts off). Every disk read goes through `meter.read`.
+  with paw prints along the foot of the stage (`draw/meter`; the fight's song plays meanwhile:
+  Sound, Music through the loads). Every disk read goes through `meter.read`.
 - 2026-11-01: main memory had about 15 bytes free; the meter's 377 bytes of code made the
   build put `battle/look.update` in bank 1 too (an action pass about 4% slower, still under
   a frame).
+- 2026-11-03 (music through the loads): Tisple's homes took 16 bytes more and zero page `$FF`,
+  and the build no longer fit. Two moves made room, no feature cut: the speaker's title jingle
+  reads its notes' table with `auxmem.read` instead of a `with_aux`, so its code (about 166
+  bytes) went into the title's overlay group; and the four lets that each held `$0400` (aux
+  text page 1 for the rules page, a song, disk 2's label, a hat trick's face) are one,
+  `state.aux_page1`. Bank 1 holds 25 functions (3,498 bytes), was 26 (3,675).
 
 - Never open windows on the owner's display; run the machine headless and look at
   screenshots (`shots/`).
@@ -430,8 +455,8 @@ rows 0-120, the hud to rows 121-191. Fighters whose boxes meet are drawn with li
 CUTOUT (their black not drawn); a lunge with another fighter in the way is a shot instead
 (`battle/act.tsp` blocked), so no one passes through anyone. Code and data fill `$8000-$BEFF`, `$6000-$7FFF`,
 then `$0BE0-$13FF`, then the language card (bank 2, and code in bank 1). Tisple's libraries keep
-`$1400-$1BFF` (lib/disk's reader, main), `$1C00-$1D89` (lib/unpack, both memories),
-`$1D8A-$1DDC` (lib/auxcard, main) and `$1E00-$1F32` (lib/dhgr's runs, both). The art (each
+`$1400-$1BFF` (lib/disk's reader, main), `$1C00-$1DA5` (lib/unpack, both memories, and zero
+page `$FF`), `$1DA6-$1DF2` (lib/auxcard, main) and `$1E00-$1F50` (lib/dhgr's runs, both). The art (each
 screen's picture and runs) and the rules' text are on the disk (`:on disk`); the songs, the
 card pictures and most text live in aux memory; a screen's sprites in the aux language card and
 `blit.sprite_aux`. The disk has 10 segments, the most a disk holds: a new `:address` let that

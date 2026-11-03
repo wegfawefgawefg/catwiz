@@ -12,15 +12,17 @@
 ; title jingle, and no other music.
 ;
 ; The songs live on the disks (songs.tsp); the one starting is read into aux memory and copied
-; into playing, with interrupts on: main puts in lib/auxmem's guard. A song change fades the one
-; before out and the new one in (song), and the game goes on meanwhile.
+; into main memory (sound/waiting), with interrupts on: main puts in lib/auxmem's guard. A song
+; change fades the one before out and the new one in (song), and the game goes on meanwhile; a
+; screen's song starts as its load begins and plays through it.
 
-(import auxmem)
 (import mockingboard mb)
+(import state)
 (import sound/sfx)
 (import sound/music)
 (import sound/card_fx fx)
 (import sound/songs)
+(import sound/waiting)
 (import draw/meter)
 (import title/disk2)
 
@@ -74,11 +76,6 @@
         false true true true true true true true true true true true true true false true false
         false true true true true true true true true true true true true true true true true true)
     :in aux)
-
-; the song the card plays, copied from aux memory: the largest song's size (the title's), and
-; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
-(const PLAYING u16 395)
-(let playing (array u8 395) :address 0x0800) ; scratch: see AGENTS.md, Memory
 
 ; where a song's fade in starts, in steps down: the loudest volume any song has (songs.tsp,
 ; v13), so none of its 52 ticks (0.87 s) is silent
@@ -183,28 +180,22 @@
         (addr_of (at songs.WON 0))
         (addr_of (at songs.LOST 0))))
 
-; no song for a moment: the music fades out and stops (lib/mockingboard's fade, 1 s) before a
-; screen's art unpacks into the aux language card with interrupts off, which would hold the
-; notes playing: the screen's picture and runs are read first, about half a second more than
-; the fade (fight 2 from the reward, the title after a run). With no card it does nothing
+; the music fades out and stops (lib/mockingboard's fade, 1 s): as a run starts (the title's
+; key), so the title's song is fading while the second disk is found and the fight's code read,
+; and in every song. With no card it does nothing
 (fn quiet () void
     (mb.fade 15))
 
 ; a song from its start. On the card: the song before fades out (quiet) while the new one is
 ; read from the disk into aux memory's text page 1 (the rules page's buffer, which reads its
-; page again when it opens), and start plays it once the one before is silent: here when it
-; is by then (a screen's song: the screen's load took longer than the fade), else from the main
-; loop, so the game goes on while it fades (the run's end: the battle's song under the banner).
-; A second song while one waits takes its place in the buffer. Nothing else reads into the
-; buffer in the second a song can wait (the rules page and a hat trick's face come in her turn,
-; disk 2's label at the first title, whose song never waits). On the speaker, the title's
-; jingle and the battle's ends
-; a let, not a constant pointer: the layout checks a constant one against main memory's lets
-; there, which aux memory's bytes are not
-(let song_buffer u16 0x0400)
-; the song in song_buffer waiting for the one before to be silent: its Song and 1, or 0 for none
-(let song_waits u8 0)
-
+; page again when it opens), and waiting.start plays it once the one before is silent: from the
+; main loop, or between the sectors of a load (a screen's song, called as its load begins: the
+; fight's at enter_fight's start, the title's at its enter), so the game goes on while it fades
+; (the run's end: the battle's song under the banner). A second song while one waits takes its
+; place in the buffer. Nothing else reads into the buffer in the second a song can wait (the
+; rules page and a hat trick's face come in her turn, disk 2's label before the first fight's
+; song, and at the first title, whose song never waits). On the speaker, the title's jingle and
+; the battle's ends
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
@@ -220,22 +211,12 @@
     (let table (ptr u8) (at SONG_BYTES (as u8 s)))
     (if (and (= s Song.title) disk2.found)
         (set table (addr_of (at songs.TITLE2 0))))
-    (meter.read (as (ptr u8) song_buffer) table)
-    (set song_waits (+ (as u8 s) 1))
-    (start))
-
-; the song waiting, once the one before is silent and stopped: copied into main memory with
-; interrupts off (about 6,500 cycles, so it delays a tick and loses none), played, faded in.
-; Every pass of the main loop looks, so it starts within a frame of the fade's end
-(fn start () void
-    (if (or (= song_waits 0) (not (mb.faded)))
-        (return))
-    (let s u8 song_waits)
-    (set song_waits 0)
-    (sei)
-    (auxmem.read (addr_of (at playing 0)) (as (ptr u8) song_buffer) PLAYING)
-    (mb.play (addr_of (at playing 0)))
-    ; a stinger (won, lost: s is its Song and 1) at full at once, a fade in would take most of it
-    (mb.fade_in (if (> s (as u8 Song.won))
-        0
-        FADE_FROM)))
+    (meter.read (as (ptr u8) state.aux_page1) table)
+    ; a stinger (won, lost) at full at once, a fade in would take most of it
+    (set waiting.waits
+        (+
+            (if (>= (as u8 s) (as u8 Song.won))
+                0
+                FADE_FROM)
+            1))
+    (waiting.start))
