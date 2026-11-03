@@ -248,6 +248,13 @@ F35 = {
     "}": ["#..", ".#.", "..#", ".#.", ".#.", "#.."], "~": ["", "", ".##", "##."],
 }
 
+# the font the game uses: the one tools/dhgr/fonts35.py picks from its candidates (this one
+# among them, as "now")
+F35_NOW = F35
+import fonts35  # noqa: E402
+
+F35 = fonts35.pick(F35_NOW)
+
 
 def text35(c, row0, s, col, inverse=(), back=None):
     # one 35-column line into a canvas at text row row0 (0-23), in colour pixels; inverse:

@@ -182,7 +182,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - The screen is all graphics (double hi-res, no mixed text window). The four text lines at the
   foot (rows 160-191) are drawn onto the page being drawn by `draw/text.tsp`, only the blocks of
   7 characters that changed, and copied onto the other page like any hud part. The font is the 35-column one in whole colour pixels (`FONT35`, a
-  4-pixel cell a character, white in every look, drawn with lib/dhgr_pixels' cells);
+  4-pixel cell a character, white in every look, drawn with lib/dhgr_pixels' cells). Its glyphs
+  are one of the candidates in `tools/dhgr/fonts35.py` (`PICK`; `CATWIZ_FONT=name make.py game`
+  tries another, `python3 tools/dhgr/fonts35.py out.png` draws them all): any of them is the same
+  760-byte table, so a font costs no memory;
   `FONT_35` in `draw/text.tsp` is the one place that switches to the 40-column dot font
   (`art/font40`, violet and green in the flat colour look). Strings are 35 characters at most
   either way. A line is drawn again only when it changed.
