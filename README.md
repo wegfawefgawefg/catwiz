@@ -10,8 +10,8 @@ elite at the end, then the Bulldog King), with about 100 faces and 35 charms to 
 
 **[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
 get the two disks from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
-In the browser it sends anonymous play stats (below, "Play stats"); the player's STATS button
-or `&telemetry=off` on the address turns them off.
+In the browser it sends anonymous play stats (below, "Play stats"); a tap on the line under
+"tap to start", or `&telemetry=off` on the address, turns them off.
 
 On a TV or composite monitor (NTSC), the look it is drawn for:
 
@@ -124,9 +124,10 @@ the dev VPS, https://45.77.123.14/catwiz-telemetry: when a run, a fight and the 
 how each fight ends (the fight, its enemies, the turns, her hit points), what was offered and
 taken between fights, how a run ends, and where the page was when it closed. Each record has a
 random id made for the browser tab, the times, the build and whether it was the Pages site or the
-phone; nothing else (no address, no browser details, no third parties). The player's STATS button,
-or `?telemetry=off` on the player's address, turns it off (kept in the browser); Do Not Track
-and Global Privacy Control turn it off too. It is all config, `"telemetry"` in
+phone; nothing else (no address, no browser details, no third parties). A tap on the line under
+"tap to start" (or the bar's STATS button, on a wide screen), or `?telemetry=off` on the player's
+address, turns it off (kept in the browser); Do Not Track and Global Privacy Control turn it off
+too. It is all config, `"telemetry"` in
 `tools/phone/catwiz.json` (Tisple's docs/phone.md, "Play stats"): no game code or memory.
 
 - `tools/telemetry/report.py`: fetches the records over ssh and prints tables (sessions, runs and
