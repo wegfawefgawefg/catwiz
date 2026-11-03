@@ -30,9 +30,9 @@
 ; step and the run's start, so its code is an overlay group of its own
 (enum Phase (rolling player acting enemies won lost reward start))
 
-; the steps between fights (battle/reward): one of three cards, one of three charms, the rest
-; after an elite (the nap or a bonus upgrade), the slot the upgrade levels, one of two doors
-(enum Pick (cards charms nap nap_slot door))
+; the steps between fights (battle/reward): one of five cards, one of three charms, the rest
+; after an elite (she heals to full; the slot a bonus +1 levels, or none), one of two doors
+(enum Pick (cards charms rest door))
 
 ; a page over the stage in her turn: none, her kit (battle/bag), the rules (battle/rules), the
 ; log's history (battle/history), the run won (battle/bag won)

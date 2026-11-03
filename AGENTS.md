@@ -35,7 +35,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 - Game rules content is hand-written Tisple in `content/`: plain tables of structs written out
   (`enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the run's fights (`FIGHTS`: zone,
-  elite, the other door), the charms' kinds and the nap's `NAP_HEAL_SHIFT`; `rules.tsp` the
+  elite, the other door), the charms' kinds and `NAP_HEAL_SHIFT` (the sim's: the rest heals all); `rules.tsp` the
   rules page's text), the faces and charms as rows of data (`faces.tsp` and a file a slot,
   `charm_rows.tsp`: the disk catalog, below), the shared steps (`cards.tsp`), the rules faces land by
   (`effects.tsp`: a face's number, the boosts, a book's mana, the threes' count, the kittens'
@@ -131,8 +131,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the same card to a draw as the slot's upgrade), in the tray's slots, a card's lines on the
   text rows when it is picked (`battle/card_words`: a new face on a slot with levels shows how
   they make its number, "Hits 10 (6, +4 from your levels)."); after an elite also one of three
-  charms drawn the same way (ones she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
-  choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
+  charms drawn the same way (ones she has not got), then the rest (2026-11-03, the owner: she
+  heals to full, her badge counting up, then she may put +1 on a face
+  of her choice, or skip it as every pick can be); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
   fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM has its own
   figure and screen (the clearing's scenery round its lanes, `screen_fight3`), and the
   nightflap is in no fight (no screen carries it).
@@ -263,8 +264,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (`tools/dhgr/icons.py`, 11 x 15, by name) are in the faces' and charms' records on disk 2
   (`game.py` writes them as a macro, `art/pictures`, which `content/catalog` reads while
   compiling): a row's picture is in its record in aux memory (`draw/paint`: a tile below
-  `icons.FIRST` is a row); the nap, the bonus upgrade (plus1), a door and a grabbed die stay in
-  aux memory packed (`art/icons`). Each tray slot copies its picture when it changes
+  `icons.FIRST` is a row); a door and a grabbed die stay in aux memory packed (`art/icons`). Each tray slot copies its picture when it changes
   (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
   cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
 - The charms' pictures (2026-11-02, `tools/dhgr/charm_icons.py`, by name, a charm's row names its

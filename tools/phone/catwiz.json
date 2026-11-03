@@ -238,6 +238,6 @@
   "turns": "battle && (state.page == state.Page.bag || state.page == state.Page.rules)",
   "foes": "state.actors.alive[1] + state.actors.alive[2] + state.actors.alive[3]",
   "over": "battle && (state.page == state.Page.won || (state.page == state.Page.none && state.phase == state.Phase.lost && state.timer > 56))",
-  "picking": "state.picked != 255 || state.pick == state.Pick.nap_slot"
+  "picking": "state.picked != 255 || state.pick == state.Pick.rest"
  }
 }

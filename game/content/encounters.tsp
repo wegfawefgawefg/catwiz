@@ -3,7 +3,7 @@
 ; the boss. A fight with an other is a choice of two doors (both shown: the vet or the big bath),
 ; the other listed after the run's fights. After each won fight: one of five faces drawn (by
 ; their weights: content/faces.tsp, battle/offer); after an elite, then one of three charms drawn
-; (content/charm_rows.tsp), then the nap (NAP_HEAL_SHIFT) or a bonus upgrade (a level on a slot of her choice). A spot is an enemy and
+; (content/charm_rows.tsp), then the rest (she heals to full, then may take a level on a slot of her choice). A spot is an enemy and
 ; the byte column of its sprite's left edge (even, so its colours hold); a fight's spots past its
 ; count are where its summons come in. backdrop: the scenery its screen is drawn with (0 the
 ; woods' clearing, 1 the woods' path, 2 the clearing again for the old shroom, 3 the garden, 4
@@ -26,8 +26,9 @@
 
 (struct Fight ((backdrop u8) (zone Zone) (count u8) (spots (array Spot 3)) (elite bool) (other u8)))
 
-; the nap after an elite: the hit points she is missing, shifted right this much (rounded up): 0
-; all of them, 1 half
+; the rest after an elite heals all the hit points she is missing (battle/reward rest). The game
+; reads no number for it; the balance sim reads this one (tools/sim/content.py: missing >> shift,
+; rounded up), so it stays 0, all of them
 (const NAP_HEAL_SHIFT u8 0)
 
 (const FIGHT_COUNT u8 10)

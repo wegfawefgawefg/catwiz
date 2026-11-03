@@ -289,8 +289,7 @@
     (if (or (or (!= state.hud_pills 0) (!= state.hud_intents 0))
             (or (!= state.hud_dice 0) (or state.hud_rerolls state.hud_words)))
         (return true))
-    (if (or (or log.unshown (!= drawn_phase state.phase))
-            (or (!= reward.due state.NOTHING) (!= reward.staged state.NOTHING)))
+    (if (or (or log.unshown (!= drawn_phase state.phase)) (!= reward.due state.NOTHING))
         (return true))
     (look.update (turn.picked_aim))
     (scene.differs))
@@ -309,7 +308,6 @@
     (if (not tray_drew)
         (do
             (words.refresh)
-            (log.flush)
-            (reward.refresh)))
+            (log.flush)))
     (look.update (turn.picked_aim))
     (scene.draw_frame))
