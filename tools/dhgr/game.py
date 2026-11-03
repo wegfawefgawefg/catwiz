@@ -22,7 +22,7 @@
 #                    PICTURE2 and RUNS2, the same on the second disk for the titles after a run
 #                    (a machine with one drive has the second disk in then)
 #   hud_data.tsp     the tray's card shapes, the hud font and its icons, the 35-column font
-#   icons.tsp        the cards memory keeps (nap, bonus, door, grabbed) as pixels and their TILEs
+#   icons.tsp        the cards memory keeps (door, grabbed) as pixels and their TILEs
 #   pictures.tsp     every face's and charm's picture by name, for the catalog on disk 2
 #   font40.tsp       the 40-column font, for when the text is switched to it
 #
@@ -379,11 +379,11 @@ def hud_module():
     return "\n".join(lines)
 
 
-# the pictures the game keeps in memory (art/icons, packed in aux memory): the cards between
-# fights that are no face or charm (the nap, the bonus upgrade, a door) and a die an enemy holds.
+# the pictures the game keeps in memory (art/icons, packed in aux memory): the card between
+# fights that is no face or charm (a door) and a die an enemy holds.
 # Their TILE numbers start at FIRST_TILE, past the rows of faces and charms in play (content/items:
 # a row's tile is the row, its picture in its catalog record)
-RESIDENT = ["nap", "plus1", "door", "grabbed"]
+RESIDENT = ["door", "grabbed"]
 FIRST_TILE = 32
 
 
@@ -414,7 +414,7 @@ def pictures_module():
     import charm_icons
     pics = {}
     for n in icons.ICONS:
-        if n not in ("nap", "door", "grabbed"):
+        if n not in RESIDENT:
             pics[n] = game_hud.icon_pixels(n)
     for n, rows in charm_icons.CHARMS.items():
         assert len(rows) == icons.ICON_H and all(len(r) == icons.ICON_W for r in rows), n

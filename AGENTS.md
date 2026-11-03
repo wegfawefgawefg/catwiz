@@ -35,7 +35,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 
 - Game rules content is hand-written Tisple in `content/`: plain tables of structs written out
   (`enemies.tsp` and `moves.tsp`, `encounters.tsp` the hero, the run's fights (`FIGHTS`: zone,
-  elite, the other door), the charms' kinds and the nap's `NAP_HEAL_SHIFT`; `rules.tsp` the
+  elite, the other door), the charms' kinds and `NAP_HEAL_SHIFT` (the sim's: the rest heals all); `rules.tsp` the
   rules page's text), the faces and charms as rows of data (`faces.tsp` and a file a slot,
   `charm_rows.tsp`: the disk catalog, below), the shared steps (`cards.tsp`), the rules faces land by
   (`effects.tsp`: a face's number, the boosts, a book's mana, the threes' count, the kittens'
@@ -131,8 +131,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the same card to a draw as the slot's upgrade), in the tray's slots, a card's lines on the
   text rows when it is picked (`battle/card_words`: a new face on a slot with levels shows how
   they make its number, "Hits 10 (6, +4 from your levels)."); after an elite also one of three
-  charms drawn the same way (ones she has not got), then the nap (hit points back) or a bonus upgrade (a level on a slot of her
-  choice); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
+  charms drawn the same way (ones she has not got), then the rest (2026-11-03, the owner: she
+  heals to full, her badge counting up with hearts rising by her, then she may put +1 on a face
+  of her choice, or skip it as every pick can be); before the 9th fight the doors. The stage shows her six slots (`battle/kit`). The
   fights are the sim's (docs/balance.md "The run"): the woods' elite THE OLD SHROOM has its own
   figure and screen (the clearing's scenery round its lanes, `screen_fight3`), and the
   nightflap is in no fight (no screen carries it).
@@ -263,8 +264,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (`tools/dhgr/icons.py`, 11 x 15, by name) are in the faces' and charms' records on disk 2
   (`game.py` writes them as a macro, `art/pictures`, which `content/catalog` reads while
   compiling): a row's picture is in its record in aux memory (`draw/paint`: a tile below
-  `icons.FIRST` is a row); the nap, the bonus upgrade (plus1), a door and a grabbed die stay in
-  aux memory packed (`art/icons`). Each tray slot copies its picture when it changes
+  `icons.FIRST` is a row); a door and a grabbed die stay in aux memory packed (`art/icons`). Each tray slot copies its picture when it changes
   (`battle/tray.tsp`), the stage's slots one at a time (`battle/kit.tsp`). The tray's
   cards are shapes slots share, moved sideways (`art/hud_data` CARD_SHAPE, CARD_SHIFT).
 - The charms' pictures (2026-11-02, `tools/dhgr/charm_icons.py`, by name, a charm's row names its
@@ -283,6 +283,15 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the bolt would), and an ON sprite stays inside its fighter's idle frame (a lane always). The
   scene draws the fighter's rows again where a small look left it, with no black fill first
   (`scene.restore_drawn`), so a show (or the bolt landing) never blinks a hole in a figure.
+- Her heal's look (2026-11-03, the owner: hearts float up on her): every heal of hers (a face,
+  a charm, a leech; `hit.heal`) puts a heart in each floater the heal's number leaves free, and
+  they rise like the numbers by her head on black (`hit.heart`, HEART_COL/ROW: left of her
+  hat's brim and right of it under the number, in her lanes, out of her happy frame so she is
+  not drawn again as they move; her happy face lasts as long, HEAL_FRAMES), each 4 frames
+  shorter than the last so all move on the same frames, the last 5 frames a glint (`look.update`,
+  the shine sprite). A number takes a heart's floater when none is free. No sprite of its own:
+  the faces round's heart. The rest's full heal (`reward.mend`) counts her badge up a hit point
+  every 4 frames with a heart every 8. The hearts' lanes are in `lanes.py` (HEARTS).
 - The chain cards have their own pictures (2026-11-01, `icons.py`): a glowing red dot, a cat
   mask on a stick (Mimic), two black paws swiping (Catfight), a fur-framed hand mirror, a lucky
   cat waving, a flea on a striped stand, a window's sunbeam, claw marks (Scratching Habit), a
@@ -621,6 +630,19 @@ splits a memory would not build.
   turn (SEED 5) ends at frame 1911 as before. A fight's art is up about 10 frames later (the
   fight's start group reads the run's set-up). `battle.enter` sets `state.hitstop` (scratch now:
   battle.step reads it first).
+- 2026-11-03, the rest and the heal's hearts (branch rest, on fixes 2dfc658): the nap's step and
+  its words gone; the picked card's stage preview drawn in the reward's step with its text (it was
+  battle.draw's a frame later: `reward.refresh`, `staged` and the `card_*` helpers left resident
+  code); the nap and plus1 pictures out of aux memory. Before: the boot 73,311 bytes, the card
+  12,278 of 12,282, bank 1 3,681 (25 functions, `blit.draw` among them), aux 6,142 at `$0800`
+  and 23,526 at `$6000`, the overlay region 3,160 (the reward's group sized it; the pages'
+  3,150). After, with the hearts: the boot 72,937 (374 less), the card 12,281 (the layout fills
+  it), bank 1 3,545 (25 functions; `blit.draw` back in bank 2, 11,566 crossings a run against
+  12,670), aux 6,144 and 23,283 (243 less: 1,293 left at `$6000`), the overlay region 3,232 (the
+  reward's group 3,223 now holds the preview's code; it is read from disk 2, 27.7 frames). The
+  sprite room is as it was (no new sprite). A pass waiting for a key, flat out, 5,920 cycles in
+  fight 1 (5,915). The hearts cost about 31,000 cycles over the 40 frames they rise (a heal of
+  hers, measured with `tools/measure.py` and a profile: the scene's boxes and fills).
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page

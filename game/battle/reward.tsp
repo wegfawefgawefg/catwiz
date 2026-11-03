@@ -1,10 +1,10 @@
 ; what comes between fights, after a won one: one of five cards drawn at random (battle/offer:
 ; a face for a slot, or a level on a slot); after an elite, one of three charms drawn too, then
-; the nap (hit points back) or a bonus upgrade (a level on a slot of her choice); and the two
-; doors before a fight that has another. The choices are cards in the tray's slots (1-5, the six
-; slots for a bonus upgrade), each card's lines on the text rows when it is picked; the stage
-; shows her six slots (battle/kit), the one a card changes picked out, so she always sees what she
-; is changing. As in battle, a number key (a tap) picks a card and shows its text, the same key
+; the rest (she heals to full, counted up on her badge with hearts rising by her, and may take a
+; level on a slot of her choice); and the two doors before a fight that has another. The choices
+; are cards in the tray's slots (1-5, the six slots at the rest), each card's lines on the text
+; rows when it is picked; the stage shows her six slots (battle/kit), the one a card changes
+; picked out, so she always sees what she is changing. As in battle, a number key (a tap) picks a card and shows its text, the same key
 ; again (or RETURN) takes it; ESC lets go.
 
 (import apple2 a2)
@@ -21,39 +21,33 @@
 (import content/encounters enc)
 (import content/enemies en)
 (import content/items)
+(import battle/hit)
+(import battle/look)
 (import sound/sound)
 
 (const UP u8 128) ; a card of 128 + a slot: a level on that slot (offer.UP)
 
-; the step's choices: cards (a face's id or UP + a slot, and its slot), charms' ids, sleep and
-; dream, slots, or fight rows (doors). A card's face is offer row items.OFFER_ROW + n, a charm's
+; the step's choices: cards (a face's id or UP + a slot, and its slot), charms' ids, slots (the
+; rest), or fight rows (doors). A card's face is offer row items.OFFER_ROW + n, a charm's
 ; items.OFFER_CHARM_ROW + n
 (let choice (array u8 6) :address 0x06DC)
 (let choice_slot (array u8 6))
 (let choices u8 0)
 
 ; the screen's words, in aux memory (text.add_aux): SAY_ and their words
-(const SAY (array (ptr u8) 21)
-    (make (array (ptr u8) 21)
+(const SAY (array (ptr u8) 13)
+    (make (array (ptr u8) 13)
         "A reward: pick a card, S to skip."
         "Five faces. Tap one to read it."
         "A charm: pick one, or S to skip."
-        "A rest: pick one, or S to skip."
-        "1 Nap: # hit points back"
-        "2 Bonus upgrade: +1 on a face"
-        "Upgrade: +1 on which face? (1-6)"
-        "ESC: back to the rest. S: skip."
+        "A rest: Catwiz heals to full."
+        "Pick a face for +1, or S to skip."
         "Two doors. Pick one (1-2)."
         " is at its most."
         "+1 on the face: "
         "You have it: +1 on "
         "Replaces: "
         "A charm works all run."
-        "NAP"
-        "# hit points back,"
-        "up to #."
-        "BONUS UPGRADE"
-        "+1 on a face of your choice."
         "# hit points"
         "Ward #")
     :strings aux)
@@ -62,23 +56,15 @@
 (const SAY_FIVE u8 1)
 (const SAY_CHARM u8 2)
 (const SAY_REST u8 3)
-(const SAY_NAP_BACK u8 4)
-(const SAY_BONUS u8 5)
-(const SAY_WHICH_SLOT u8 6)
-(const SAY_BACK_REST u8 7)
-(const SAY_DOORS u8 8)
-(const SAY_AT_MOST u8 9)
-(const SAY_ON_SLOT u8 10)
-(const SAY_HAVE_IT u8 11)
-(const SAY_REPLACES u8 12)
-(const SAY_ALL_RUN u8 13)
-(const SAY_NAP u8 14)
-(const SAY_HP_BACK u8 15)
-(const SAY_UP_TO u8 16)
-(const SAY_BONUS_UPGRADE u8 17)
-(const SAY_YOUR_CHOICE u8 18)
-(const SAY_HP u8 19)
-(const SAY_WARD u8 20)
+(const SAY_WHICH_SLOT u8 4)
+(const SAY_DOORS u8 5)
+(const SAY_AT_MOST u8 6)
+(const SAY_ON_SLOT u8 7)
+(const SAY_HAVE_IT u8 8)
+(const SAY_REPLACES u8 9)
+(const SAY_ALL_RUN u8 10)
+(const SAY_HP u8 11)
+(const SAY_WARD u8 12)
 
 ; the keys of her six faces on the stage, clicked (battle/boxes): her kit's page opens on that
 ; face (battle.step), to read it before she picks
@@ -130,7 +116,6 @@
     (set state.pick pick)
     (set state.picked state.NOTHING)
     (set due state.NOTHING)
-    (set staged state.NOTHING)
     (set choices 0)
     (match pick
         (state.Pick.cards
@@ -139,10 +124,7 @@
         (state.Pick.charms
             (for k u8 0 offer.count
                 (add (at offer.drawn k) 0)))
-        (state.Pick.nap
-            (add 0 0)
-            (add 1 0))
-        (state.Pick.nap_slot
+        (state.Pick.rest
             (for k u8 0 state.SLOTS
                 (add (+ UP k) k)))
         (state.Pick.door
@@ -174,6 +156,9 @@
         (_))
     (set loaded (+ loaded 1))
     (draw_card (- loaded 1))
+    (if (and (= loaded choices)
+            (and (= state.pick state.Pick.charms) (= state.picked state.NOTHING)))
+        (prompt))
     (tray.flush))
 
 (fn add ((c u8) (slot u8)) void
@@ -181,7 +166,7 @@
     (set (at choice_slot choices) slot)
     (set choices (+ choices 1)))
 
-; card choice n (a card, or a slot's upgrade for the bonus): its slot, whether it is a level (else
+; card choice n (a card, or a slot's upgrade at the rest): its slot, whether it is a level (else
 ; a new face there), whether it can be taken, and the row whose face it shows: her slot's for a
 ; level, else its offer row
 (fn card_slot ((n u8)) u8
@@ -217,11 +202,7 @@
         (state.Pick.charms
             (set tile (+ items.OFFER_CHARM_ROW n))
             (set caption (charms.mark tile)))
-        (state.Pick.nap
-            (set tile (if (= c 0)
-                icons.TILE_NAP
-                icons.TILE_PLUS1)))
-        (state.Pick.nap_slot (set tile (card_slot n)))
+        (state.Pick.rest (set tile (card_slot n)))
         (state.Pick.door))
     (tray.slot n true tile caption picked))
 
@@ -244,19 +225,16 @@
         (state.Pick.charms
             (row 0 (at SAY SAY_CHARM) 0)
             (choice_rows))
-        (state.Pick.nap
+        (state.Pick.rest
             (row 0 (at SAY SAY_REST) 0)
-            (row 1 (at SAY SAY_NAP_BACK) (- (healed) state.hero_hp))
-            (row 2 (at SAY SAY_BONUS) 0))
-        (state.Pick.nap_slot
-            (row 0 (at SAY SAY_WHICH_SLOT) 0)
-            (row 1 (at SAY SAY_BACK_REST) 0))
+            (row 1 (at SAY SAY_WHICH_SLOT) 0))
         (state.Pick.door
             (row 0 (at SAY SAY_DOORS) 0)
             (choice_rows)))
     (cw.rest))
 
 ; rows 1 on: each choice's key and name (a charm; a door's first enemy): three at most
+; (a charm's name shows once its record is read: load_next draws the prompt again then)
 (fn choice_rows () void
     (for k u8 0 choices
         (text.start)
@@ -314,21 +292,19 @@
     (let c u8 (at choice n))
     (match state.pick
         (state.Pick.cards (describe_card n))
-        (state.Pick.nap_slot (describe_card n))
+        (state.Pick.rest (describe_card n))
         (state.Pick.charms
             (let r u8 (+ items.OFFER_CHARM_ROW n))
             (cw.title (items.name r) false)
-            (cw.item_row 1 (items.text r) (items.amount r))
-            (row 2 (at SAY SAY_ALL_RUN) 0))
-        (state.Pick.nap
-            (if (= c 0)
-                (do
-                    (cw.title (at SAY SAY_NAP) false)
-                    (row 1 (at SAY SAY_HP_BACK) (- (healed) state.hero_hp))
-                    (row 2 (at SAY SAY_UP_TO) (healed)))
-                (do
-                    (cw.title (at SAY SAY_BONUS_UPGRADE) false)
-                    (row 1 (at SAY SAY_YOUR_CHOICE) 0))))
+            ; its line a part a row (a charm's line has two), then that it works all run
+            (let part (ptr u8) (items.text r))
+            (let k u8 1)
+            (while (and (!= (as u16 part) 0) (< k text.ROWS))
+                (cw.item_row k part (items.amount r))
+                (set k (+ k 1))
+                (set part (text.next_part part)))
+            (if (< k text.ROWS)
+                (row k (at SAY SAY_ALL_RUN) 0)))
         (state.Pick.door
             (let kind u8 (enc.first_enemy c))
             (cw.title (en.name kind) false)
@@ -336,19 +312,12 @@
             (row 2 (at SAY SAY_WARD) (en.ward kind))))
     (cw.rest))
 
-; her hit points after a nap: the ones she is missing, shifted right enc.NAP_HEAL_SHIFT (rounded
-; up), back
-(fn healed () u8
-    (let missing u8 (- state.hero_max state.hero_hp))
-    (let part u8 (>> (+ missing (- (<< 1 enc.NAP_HEAL_SHIFT) 1)) enc.NAP_HEAL_SHIFT))
-    (+ state.hero_hp part))
-
 ; the slot choice n changes, shown on the stage: the card's face in it, or its next level
 (fn show_change ((n u8)) void
     (match state.pick
         (state.Pick.cards
             (kit.preview (card_slot n) (card_row n) (and (card_levels n) (card_ok n))))
-        (state.Pick.nap_slot (kit.preview (card_slot n) (card_slot n) (card_ok n)))
+        (state.Pick.rest (kit.preview (card_slot n) (card_slot n) (card_ok n)))
         (_ (kit.preview state.NOTHING state.NOTHING false))))
 
 ; ---- taking
@@ -366,11 +335,39 @@
 (fn after_charms () bool
     (if (enc.elite state.fight)
         (do
-            (go state.Pick.nap)
+            (rest)
             (return false)))
-    (after_nap))
+    (after_rest))
 
-(fn after_nap () bool
+; the rest after an elite: she is back to full hit points at once (state.hero_hp), and her
+; badge counts up to it with hearts rising by her (mend), her happy face meanwhile; and a face
+; of her choice may take +1, or none (S)
+(fn rest () void
+    (set state.hero_hp state.hero_max)
+    (set state.timer 0)
+    (if (< (at state.actors state.HERO hp) state.hero_max)
+        (look.show_mood state.HERO state.Mood.happy MEND_MOOD))
+    (go state.Pick.rest))
+
+(const MEND_MOOD u8 96) ; frames of her happy face at the rest: the count and the last heart
+(const MEND_STEP u8 3)  ; frames a hit point counts up in, less one (a mask): 4
+
+; a frame of the rest's heal: a hit point more on her badge every 4 frames, and a heart rising
+; by her every other one (battle/hit heart, its four places in turn), up to her most (the badge
+; is her actor's: the next fight's start sets it from state.hero_hp)
+(fn mend () void
+    (let hp u8 (at state.actors state.HERO hp))
+    (if (or (!= state.pick state.Pick.rest) (>= hp state.hero_max))
+        (return))
+    (set state.timer (+ state.timer 1))
+    (if (!= (& state.timer MEND_STEP) 0)
+        (return))
+    (set (at state.actors state.HERO hp) (+ hp 1))
+    (set state.hud_pills (| state.hud_pills 1))
+    (if (!= (& state.timer 4) 0)
+        (hit.heart (& (>> state.timer 3) 3))))
+
+(fn after_rest () bool
     (if (and (< state.next_fight enc.FIGHT_COUNT) (!= (enc.other state.next_fight) state.NOTHING))
         (do
             (go state.Pick.door)
@@ -387,7 +384,6 @@
     (let c u8 (at choice n))
     ; a pick not drawn yet is not drawn: the step changes or ends
     (set due state.NOTHING)
-    (set staged state.NOTHING)
     (match state.pick
         (state.Pick.cards
             (if (not (card_ok n))
@@ -405,23 +401,14 @@
         (state.Pick.charms
             (charms.take c)
             (after_charms))
-        (state.Pick.nap
-            (if (= c 1)
-                (do
-                    (go state.Pick.nap_slot)
-                    (return false)))
-            (set state.hero_hp (healed))
-            (set (at state.actors state.HERO hp) state.hero_hp)
-            (set state.hud_pills (| state.hud_pills 1))
-            (after_nap))
-        (state.Pick.nap_slot
+        (state.Pick.rest
             (if (not (card_ok n))
                 (do
                     (sound.cue sound.Cue.nope)
                     (return false)))
             (level_up (card_slot n))
             (kit.show)
-            (after_nap))
+            (after_rest))
         (state.Pick.door
             (set state.next_fight c)
             true)))
@@ -446,23 +433,16 @@
     false)
 
 ; the text and the stage of the choice picked, drawn after its card lifts, so the pick shows at
-; once: its text at the next step (here: code only these steps reach loads with them, an overlay
-; group, out of main memory), the slot it changes on the stage in that frame's drawing (refresh)
+; once: its text and the slot it changes on the stage at the next step (here: code only these
+; steps reach loads with them, an overlay group, out of main memory)
 (let due u8 255)
-(let staged u8 255)
 
 (fn describe_due () void
     (if (= due state.NOTHING)
         (return))
     (describe due)
-    (set staged due)
+    (show_change due)
     (set due state.NOTHING))
-
-(fn refresh () void
-    (if (= staged state.NOTHING)
-        (return))
-    (show_change staged)
-    (set staged state.NOTHING))
 
 ; one frame of what comes between fights; true when it is done and the next fight can start
 (fn step ((key u8)) bool :overlay_disk2
@@ -478,6 +458,7 @@
         (show_again))
     (describe_due)
     (load_next)
+    (mend)
     (if (and (>= key '1') (< key (+ '1' choices)))
         (return (pick (- key '1'))))
     (if (= (& key 0xDF) 'S')
@@ -504,15 +485,12 @@
             (return false)))
     (sound.cue sound.Cue.confirm)
     (set due state.NOTHING)
-    (set staged state.NOTHING)
     (match state.pick
         (state.Pick.cards (after_cards))
         (state.Pick.charms (after_charms))
-        (_ (after_nap))))
+        (_ (after_rest))))
 
-; ESC: back to the rest from its slots, else the step again with nothing picked
+; ESC: the step again with nothing picked
 (fn back () bool
-    (go (if (= state.pick state.Pick.nap_slot)
-        state.Pick.nap
-        state.pick))
+    (go state.pick)
     false)

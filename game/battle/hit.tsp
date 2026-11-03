@@ -46,9 +46,16 @@
 (const HITSTOP_FRAMES u8 3)
 (const KNOCK_FRAMES u8 4)
 (const HURT_FRAMES u8 24)
+; a heal's happy face: as long as her hearts rise (heart), so they stay out of her frame (her
+; happy one is narrower than her idle one) and she is not drawn again as they move
+(const HEAL_FRAMES u8 28)
 (const HURT_HELD u8 255) ; until the enemies' turn ends (turn.end_enemies)
 (const FLOAT_FRAMES u8 26)
 (const FLOAT_LOWEST u8 32) ; an enemy's number starts here at the highest: 20 rows of rise end at 12
+; where her heal's hearts start (heart): byte columns (in her lanes: the attack frame's on the
+; left, the idle frame's and the number's on the right; tools/dhgr/lanes.py) and rows
+(const HEART_COL (array u8 4) (make (array u8 4) 2 16 2 14))
+(const HEART_ROW (array u8 4) (make (array u8 4) 60 58 74 70))
 (const DEATH_FRAMES u8 48) ; 32 of blinking, then two puffs of 8
 
 ; by hits target for amount: a wand of hers sets off the hooks of target's statuses for it; by's
@@ -220,7 +227,7 @@
     (set (at state.actors who hp) (+ hp n))
     (log.who who (at SAY SAY_HEALS) n)
     (set (at state.actors who mood) state.Mood.happy)
-    (set (at state.actors who mood_time) HURT_FRAMES)
+    (set (at state.actors who mood_time) HEAL_FRAMES)
     (set state.hud_pills (| state.hud_pills (<< 1 who)))
     (float_number who n true))
 
@@ -233,9 +240,10 @@
 (fn float_number ((who u8) (n u8) (plus bool)) void
     (if (> n 99)
         (set n 99))
+    ; a free floater, or a heart's (her heal's: a number matters more)
     (let slot u8 state.NOTHING)
     (for i u8 0 state.FLOATERS
-        (if (= (at state.floaters i time) 0)
+        (if (or (= (at state.floaters i time) 0) (= (at state.floaters i sprite) art.HEART))
             (set slot i)))
     (if (= slot state.NOTHING)
         (return))
@@ -268,4 +276,23 @@
                     0xFE))
             (set top 44)))
     (set (at state.floaters slot)
-        (make state.Floater :sprite first :second second :col col :top top :time FLOAT_FRAMES)))
+        (make state.Floater :sprite first :second second :col col :top top :time FLOAT_FRAMES))
+    ; her heal: a heart rising by her in every floater free (heart)
+    (if (and plus (= who state.HERO))
+        (for i u8 0 state.FLOATERS
+            (if (= (at state.floaters i time) 0)
+                (heart i)))))
+
+; heart k (0-3) of her heal, in floater k: it starts by her head on black (HEART_COL, HEART_ROW:
+; left of her hat's brim, or right of it under the heal's number, out of her happy frame so she is
+; not drawn again as it moves: HEAL_FRAMES), rises as the numbers do (look.tick: 20 rows) and goes with a glint
+; (look.update), each 4 frames before the last, so all of them move on the same frames. The
+; rest's heal (battle/reward mend) lays its hearts out the same way
+(fn heart ((k u8)) void
+    (set (at state.floaters k)
+        (make state.Floater
+            :sprite art.HEART
+            :second state.NOTHING
+            :col (at HEART_COL k)
+            :top (at HEART_ROW k)
+            :time (- FLOAT_FRAMES (<< k 2)))))

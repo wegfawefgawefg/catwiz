@@ -3,7 +3,7 @@
 ; what the screen shows then, with the numbers its drawing uses, so a box is always where its
 ; picture is. In a fight: the buttons by the tray, the dice cards, the cat and each enemy
 ; where it stands, the log's rows. On a page: its cards and buttons. Between fights: the cards
-; in the tray, BAG, SKIP, and her six faces on the stage (to read, or for a bonus upgrade to pick). The first box that holds
+; in the tray, BAG, SKIP, and her six faces on the stage (to read, or at the rest to pick). The first box that holds
 ; the click gives its key; a click on nothing gives '.', a tap on the stage. Keys are the
 ; keyboard's, so a click does just what its key does.
 
@@ -80,7 +80,7 @@
         (actor (- 3 i)))
     (box 0 LOG_TOP 140 (- 192 LOG_TOP) 'H'))
 
-; ---- between fights: the cards to pick, BAG, and her faces for a bonus upgrade
+; ---- between fights: the cards to pick, BAG, and her faces (the rest's choices)
 
 (fn between () void
     (box tray.SMALL_X tray.BAG_TOP tray.SMALL_W tray.SMALL_H 'B')
@@ -89,8 +89,8 @@
     ; SKIP where END TURN is (not for the doors)
     (if (!= state.pick state.Pick.door)
         (box tray.SIDE_X tray.END_TOP tray.SIDE_W (- tray.SIDE_END tray.END_TOP) 'S'))
-    ; her faces on the stage: the choices for a bonus upgrade, else read (reward.FACE_KEY)
-    (let first u8 (if (= state.pick state.Pick.nap_slot)
+    ; her faces on the stage: the choices at the rest, else read (reward.FACE_KEY)
+    (let first u8 (if (= state.pick state.Pick.rest)
         '1'
         reward.FACE_KEY))
     (for k u8 0 state.SLOTS

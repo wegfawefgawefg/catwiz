@@ -13,7 +13,8 @@
 #               front shoots it instead (place.tsp hand_y: from 14 rows over its head); the
 #               cards' shows (content/shows.tsp): ARC sprites no bigger than the bolt, ON ones
 #               inside the idle frame of whoever they are for (no lane of their own)
-#   hit.tsp     float_number (where a number starts, and its rise: 20 rows over 26 frames)
+#   hit.tsp     float_number (where a number starts, and its rise: 20 rows over 26 frames), and
+#               heart (her heal's hearts: where each starts, the same rise)
 #   hud.tsp     the badges (HP_TOP 112, or the feet + 2 for a flyer; intents 12 over the top)
 #   badge.tsp   9 rows; a badge's box is the 7-pixel groups its pill covers
 # Conservative where tracing it exactly is not worth it, by hand:
@@ -47,6 +48,7 @@ HOP_MOST = 6                     # act.tsp HOP
 LIFT_MOST = 6
 ARC = [0, 7, 11, 13, 14, 13, 11, 7, 0]
 FLOAT_RISE = 20                  # hit.tsp FLOAT_FRAMES 26: up a row while time > 12, then every other
+HEARTS = [(2, 60), (16, 58), (2, 74), (14, 70)]  # hit.tsp HEART_COL, HEART_ROW (screen columns, rows)
 HP_TOP = 112
 BADGE_ROWS = 9
 BADGE_MOST = 8
@@ -205,6 +207,13 @@ def boxes(n):
         for col, top in starts:
             # the second digit 2 columns on (draw/scene.tsp box_of)
             out.append((col, top - FLOAT_RISE, w + 2, h + FLOAT_RISE, "number"))
+        # her heal's hearts (hit.tsp heart: HEART_COL, HEART_ROW), rising as the numbers do,
+        # the last frames a glint (look.tsp update)
+        if i == 0:
+            hw = max(misc["heart"][0], misc["shine"][0])
+            hh = max(misc["heart"][1], misc["shine"][1])
+            for col, top in HEARTS:
+                out.append((col, top - FLOAT_RISE, hw, hh + FLOAT_RISE, "number"))
         # the badges (hud.tsp pill, intent)
         ptop = HP_TOP if K.feet >= 100 else K.feet + 2
         out.append(badge_box(centre_x(K, home), ptop, BADGE_MOST) + ("badge",))
