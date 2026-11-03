@@ -1,0 +1,40 @@
+; gen/riff_4: made by tools/music/gen (riffology), seed 4. Do not hand-edit; make again.
+; Key: E minor. Tempo: an 8th is 10 ticks (quarter = 180 bpm), a bar 80 ticks.
+; Form: A A' B A', 16 bars, 1280 ticks (21.4 s) before it repeats.
+;   A  Em D C B   call (motif) | answer (twitch_echo) | call grown an octave | cadence (open, then home)
+;   B  Am Bm C B   twitch_hold | reply | twitch_hold | turn (fall)
+; Nothing made plainer to fit.
+;
+; Left (chip 1): bass, the echo, hats. Right (chip 2): the lead, drums, the pad.
+; voice 0  bass: bounce, k3
+; voice 1  the lead's echo, 1 8ths late and soft, on the other side
+; voice 2  hats, 8ths (noise, alone on the left chip; lent to the hero's effects)
+; voice 3  the lead, k3; its patterns set no volume, so the echo shares them
+; voice 4  drums: backbeat, a fill every 8th bar (the snare's noise alone on the right chip)
+; voice 5  pad: long (lent to the enemies' effects)
+; Size: 323 bytes.
+; hook: a1_1@0 a1_1@160
+(pattern a1_1
+    "k3 l10 e5 l30 b5 l10 a#5 b5 l20 g5 l10 a5 g#5 l20 a5 f#5 d5 l10 c5 l30 c6 l10 b5 c6 l20 g5")
+(pattern a1_4 "k3 l20 f#5 d#5 l40 f#5")
+(pattern bs_e "v13 k3 l30 e2 b2 l20 e2 l30 d2 a2 l20 d2")
+(pattern p_e "v7 k15 l40 g3 - f#3 -")
+(pattern groove "m1 v12 k1 l20 a1 m2 n5 v11 c4 m1 v12 a1 m2 v11 c4")
+(pattern bs_c "v13 k3 l30 c2 g2 l20 c2")
+(pattern p_c "v7 k15 l40 e3 - d#4 -")
+(pattern bs_b "v13 k3 l30 b1 f#2 l20 b1")
+(pattern a2_4 "k3 l10 f#5 l50 b4 l20 r")
+(pattern fill "m1 v12 k1 l20 a1 m2 n5 v11 c4 l10 c4 c4 c4 l5 c4 v9 c4")
+(pattern b_1
+    "k3 l10 e5 d#5 l60 e5 l20 r l10 f#5 f5 f#5 d5 l20 b4 l10 g5 f#5 l60 g5 l10 b5 f#5 d#5 b4 l40 r")
+(pattern bs_a "v13 k3 l30 a1 e2 l20 a1")
+(pattern p_a "v7 k15 l40 c4 - d4 -")
+(pattern hats "m2 n1 v6 k1 l10 c4 v3 c4")
+(pattern in_echo "v5 l10 r")
+(voice 0 bs_e bs_c bs_b bs_e bs_c bs_b bs_a bs_b bs_c bs_b bs_e bs_c bs_b)
+(voice 1 in_echo loop a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 2 hats)
+(voice 3 a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 4 groove groove groove groove groove groove groove fill groove groove groove groove
+    groove groove groove fill)
+(voice 5 p_e p_c p_e p_c p_a p_c p_e p_c)

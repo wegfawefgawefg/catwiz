@@ -1,0 +1,40 @@
+; gen/drift_16: made by tools/music/gen (drifting loops), seed 16. Do not hand-edit; make again.
+; Key: G dorian: Gm7 Bb C Gm F C Edim Gm, 1 bar a chord. A pulse (an 8th) is 22 ticks (quarter = 82 bpm).
+; Loops: the chords 1408 ticks (23.5 s); the bell 97 pulses (2134 ticks); the crickets 859 ticks (a prime).
+; The whole repeats after 543.8 hours.
+; The bell's notes, none a minor ninth over any chord tone: G A C D E.
+;
+; voice 0  bass: the root, then the fifth, left to ring (k15)
+; voice 1  pad: the chord's third and its seventh (or fifth), a pulse behind the bass
+; voice 2  crickets on their own loop (lent to the hero's effects)
+; voice 3  the hook: the Catwiz motif on the first two chords, a rest, the hook on the 5th and 6th, an answer (reply)
+; voice 4  a bell, 3 phrases with long gaps, drifting
+; voice 5  the bell's echo, 30 ticks later and soft (lent to the enemies' effects)
+; Size: 356 bytes.
+; hook: hook@0 hook@704
+(pattern bs_g "v12 k15 l44 g1 - d2 -")
+(pattern pd_g "v10 k15 l44 a#3 - f4 - d4 - f4 -")
+(pattern bs_as "v12 k15 l44 a#1 - f2 -")
+(pattern bs_c "v12 k15 l44 c2 - g2 -")
+(pattern pd_c "v10 k15 l44 e4 - g4 -")
+(pattern pd_g2 "v10 k15 l44 a#3 - d4 -")
+(pattern bs_f "v12 k15 l44 f2 - c3 -")
+(pattern pd_f "v10 k15 l44 a3 - c4 -")
+(pattern bs_e "v12 k15 l44 e2 - b2 -")
+(pattern pd_e "v10 k15 l44 g3 - a#3 -")
+(pattern in_pad "l22 r")
+(pattern hook
+    "v13 k6 l22 g4 l33 d5 - l22 c#5 d5 l44 a#4 l22 a4 l33 a#4 - l44 r r r r r r r r r r l22 f4 l33 c5 - l22 b4 c5 l44 a4 l22 g4 l33 c5 - l44 r r r l22 a#4 a4 a#4 g4 l44 e4 l22 d5 l55 g4 - l44 r")
+(pattern bell_a
+    "v10 k8 l22 a6 a6 d6 l44 e6 l56 r r r r r r r r r r r l22 e6 a5 g5 l33 a5 - l55 r r r r r r r r r r l44 a6 l22 a6 l33 g6 - l54 r r r r r r r r r r r")
+(pattern in_bell "l33 r r")
+(pattern in_echo "v5 k8 l48 r r")
+(pattern in_tex "l64 r l63 r")
+(pattern crickets
+    "m3 n1 v8 k0 l1 c8 r c8 r c8 r c8 r l29 r l1 c8 r c8 r c8 r c8 r l29 r l1 c8 r c8 r c8 r c8 r l64 r r r r r r r r r r r r l9 r")
+(voice 0 bs_g bs_as bs_c bs_g bs_f bs_c bs_e bs_g)
+(voice 1 in_pad loop pd_g pd_c pd_g2 pd_f pd_c pd_e pd_g2)
+(voice 2 in_tex loop crickets)
+(voice 3 hook)
+(voice 4 in_bell loop bell_a)
+(voice 5 in_echo loop bell_a)

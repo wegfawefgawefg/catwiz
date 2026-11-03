@@ -1,0 +1,37 @@
+; gen/drift_5: made by tools/music/gen (drifting loops), seed 5. Do not hand-edit; make again.
+; Key: E minor: Em C G D Am Bm C B, 1 bar a chord. A pulse (an 8th) is 20 ticks (quarter = 90 bpm).
+; Loops: the chords 1280 ticks (21.4 s); the bell 121 pulses (2420 ticks); the drops 827 ticks (a prime).
+; The whole repeats after 593.8 hours.
+; The bell's notes, none a minor ninth over any chord tone: F# A B D.
+;
+; voice 0  bass: the root, then the fifth, left to ring (k15)
+; voice 1  pad: the chord's third and its seventh (or fifth), a pulse behind the bass
+; voice 2  drops on their own loop (lent to the hero's effects)
+; voice 3  the hook: a hook made by rules on the first two chords, a rest, the hook on the 5th and 6th, an answer (twitch_echo)
+; voice 4  a bell, 3 phrases with long gaps, drifting
+; voice 5  the bell's echo, 45 ticks later and soft (lent to the enemies' effects)
+; Size: 313 bytes.
+; hook: hook@0 hook@640
+(pattern bs_e "v10 k15 l40 e2 - b2 -")
+(pattern pd_e "v10 k15 l40 g3 - b3 -")
+(pattern bs_c "v10 k15 l40 c2 - g2 -")
+(pattern pd_c "v10 k15 l40 e4 - g4 -")
+(pattern bs_g "v10 k15 l40 g1 - d2 - d2 - a2 - a1 - e2 -")
+(pattern pd_g "v10 k15 l40 b3 - d4 - f#3 - a3 - c4 - e4 - d4 - f#4 -")
+(pattern bs_b "v10 k15 l40 b1 - f#2 -")
+(pattern pd_b2 "v10 k15 l40 d#4 - f#4 -")
+(pattern in_pad "l20 r")
+(pattern hook
+    "v12 k4 l40 e5 b5 l20 a#5 b5 l40 e5 l20 f#5 d5 l40 c5 r r l64 r r r r r l40 a5 e6 l20 d#6 e6 l40 a5 l20 b5 g5 l40 b5 r r l20 g5 f#5 l40 g5 e5 c5 l20 b5 l50 b4 - l40 r")
+(pattern bell_a
+    "v10 k8 l40 d6 f#6 l60 r r r r r r r r r r r l40 b6 l20 a6 l60 b6 r r r r r r r r r r r r r l20 d6 l40 b6 l60 f#6 r r r r r r r r r r r")
+(pattern in_bell "l60 r")
+(pattern in_echo "v5 k8 l35 r r r")
+(pattern in_tex "l39 r r r")
+(pattern drops "m1 v8 k1 l3 f#7 l40 r l3 b7 l35 r r l3 f#7 l40 r l64 r r r r r r r r r r l28 r")
+(voice 0 bs_e bs_c bs_g bs_b bs_c bs_b)
+(voice 1 in_pad loop pd_e pd_c pd_g pd_c pd_b2)
+(voice 2 in_tex loop drops)
+(voice 3 hook)
+(voice 4 in_bell loop bell_a)
+(voice 5 in_echo loop bell_a)

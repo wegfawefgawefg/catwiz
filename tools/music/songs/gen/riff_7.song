@@ -1,0 +1,38 @@
+; gen/riff_7: made by tools/music/gen (riffology), seed 7. Do not hand-edit; make again.
+; Key: D dorian. Tempo: an 8th is 13 ticks (quarter = 138 bpm), a bar 104 ticks.
+; Form: A A' B A', 16 bars, 1664 ticks (27.8 s) before it repeats.
+;   A  Dm F G C   call (a made hook) | answer (the hook's tail) | call | cadence (lead_in, then twitch_home)
+;   B  F G C Am   long | twitch_hold | long | turn (twitch_up)
+; Nothing made plainer to fit.
+;
+; Left (chip 1): bass, the echo, hats. Right (chip 2): the lead, drums, the pad.
+; voice 0  bass: octaves, k3
+; voice 1  the lead's echo, 1 8ths late and soft, on the other side
+; voice 2  hats, 8ths (noise, alone on the left chip; lent to the hero's effects)
+; voice 3  the lead, k5; its patterns set no volume, so the echo shares them
+; voice 4  drums: rock, a fill every 8th bar (the snare's noise alone on the right chip)
+; voice 5  pad: stabs (lent to the enemies' effects)
+; Size: 355 bytes.
+; hook: a1_1@0 a1_1@208
+(pattern a1_1 "k5 l13 d5 l26 a5 l13 g5 l26 a5 f5 e5 d5 l52 f5 l13 g5 l26 d6 l13 c6 l26 d6 b5")
+(pattern a1_4 "k5 l39 c5 l13 r e5 g5 f#5 g5")
+(pattern bs_d "v12 k3 l13 d2 d3 d2 d3 d2 d3 d2 d3")
+(pattern p_d "l13 r v7 k2 f3 r a3 r f3 r a3")
+(pattern groove "m1 v12 k1 l26 a1 m2 n5 v11 c4 m1 v12 l13 a1 a1 m2 v11 l26 c4")
+(pattern bs_f
+    "v12 k3 l13 f2 f3 f2 f3 f2 f3 f2 f3 g1 g2 g1 g2 g1 g2 g1 g2 c2 c3 c2 c3 c2 c3 c2 c3")
+(pattern p_f "l13 r v7 k2 a3 r c4 r a3 r c4 r b3 r d4 r b3 r d4 r e3 r g3 r e3 r g3")
+(pattern a2_4 "k5 l13 g5 f#5 l26 g5 l52 c5")
+(pattern fill "m1 v12 k1 l26 a1 m2 n5 v11 c4 l13 c4 c4 c4 l6 c4 v9 l7 c4")
+(pattern b_1 "k5 l52 a5 c6 l13 d6 c#6 l39 d6 - l52 e5 g5 l26 a5 c6 l13 e6 d#6 l26 e6")
+(pattern bs_a "v12 k3 l13 a1 a2 a1 a2 a1 a2 a1 a2")
+(pattern p_a "l13 r v7 k2 c4 r e3 r c4 r e3")
+(pattern hats "m2 n1 v6 k1 l13 c4 v3 c4")
+(pattern in_echo "v5 l13 r")
+(voice 0 bs_d bs_f bs_d bs_f bs_f bs_a bs_d bs_f)
+(voice 1 in_echo loop a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 2 hats)
+(voice 3 a1_1 a1_4 a1_1 a2_4 b_1 a1_1 a2_4)
+(voice 4 groove groove groove groove groove groove groove fill groove groove groove groove
+    groove groove groove fill)
+(voice 5 p_d p_f p_d p_f p_f p_a p_d p_f)
