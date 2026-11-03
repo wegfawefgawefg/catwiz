@@ -77,9 +77,13 @@
         false true true true true true true true true true true true true true true true true true)
     :in aux)
 
-; where a song's fade in starts, in steps down: the loudest volume any song has (songs.tsp,
-; v13), so none of its 52 ticks (0.87 s) is silent
-(const FADE_FROM u8 13)
+; where each song's fade in starts, in steps down (3 dB a step), in Song's order: 3 steps below
+; its first notes' volume (songs.tsp: the title's bass v13, the battle's v12), so the first note
+; is heard from its first tick and rises from there (from 13, the loudest volume, both songs'
+; first notes decayed faster than the fade rose and were never heard: the battle's first 36
+; ticks were silent). The stingers (won, lost) at full at once: a fade in would take most of
+; them
+(const FADE_FROM (array u8 4) (make (array u8 4) 10 9 0 0))
 
 ; at the start: find the card, if there is one, and start its tick (main puts lib/auxmem's guard
 ; in first, which lets aux copies run while it ticks), the music faded out, so the first song
@@ -212,11 +216,5 @@
     (if (and (= s Song.title) disk2.found)
         (set table (addr_of (at songs.TITLE2 0))))
     (meter.read (as (ptr u8) state.aux_page1) table)
-    ; a stinger (won, lost) at full at once, a fade in would take most of it
-    (set waiting.waits
-        (+
-            (if (>= (as u8 s) (as u8 Song.won))
-                0
-                FADE_FROM)
-            1))
+    (set waiting.waits (+ (at FADE_FROM (as u8 s)) 1))
     (waiting.start))

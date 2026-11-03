@@ -330,32 +330,35 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
 - Song changes fade (2026-11-03, the owner; Tisple's `mb.fade`, docs/mockingboard.md "Fades"):
   `sound.quiet` (the title's key, and every `sound.song`) fades the music out, a volume step every
   4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a load
-  slowed the disk reads: fight loads took about 20 frames longer). The new song is read meanwhile
-  and `waiting.start` copies it in once the one before is silent: from `song` when it is by then,
+  slowed the disk reads: fight loads took about 20 frames longer); with no voice playing (a
+  stinger that has ended) the fade is done at once. The new song is read meanwhile and
+  `waiting.start` copies it in once the one before is silent: from `song` when it is by then,
   between a load's sectors (`draw/meter.sector`), or from the main loop's look each pass (the
-  run's end, where the battle's song fades under the banner), and fades it in from 13 steps down
-  (`FADE_FROM`, the loudest any song has: 0.87 s); the stingers (won, lost) start at full. Nothing
-  waits for a fade. While a song waits, nothing else may read into aux text page 1
+  run's end, where the battle's song fades under the banner), and fades it in from `FADE_FROM`
+  steps down, by song: 3 below its first notes' volume (the title 10, the battle 9), so its first
+  note is heard from its first tick (from 13, the battle's first 36 ticks were silent: its first
+  bass note decayed faster than the fade rose). The stingers (won, lost) start at full, and each
+  voice ends after its patterns (`end` in songs.tsp: the music stops, so the song after starts at
+  once). Nothing waits for a fade. While a song waits, nothing else may read into aux text page 1
   (`state.aux_page1`; sound.tsp says why none does). `tools/music/renders/fade_demo.ogg` is the
   title to the first fight as it was before the music went through the loads.
 - Music through the loads (2026-11-03, the owner: "we should at least have the capability";
-  Tisple's `load-music` branch, docs/dhgr.md "Ticks through the card"): a screen's song starts as
-  its load begins and plays through it. The title's key fades the title's song out at once and
-  reads the battle's song (title.step); a fight from the reward reads it at enter_fight's start;
-  the title after a run reads its own at its enter. `sound/waiting.tsp` holds the song waiting
-  and `start`, which the main loop and every disk read's sector step call (`draw/meter.sector`),
-  so the song comes in within a sector's read of the fade's end. Tisple's card unpacks let the
-  tick in every page out and 32 matches, so no tick is lost in a load (686 of 686 from boot through the first
-  fight's load, the latest 12,884 cycles late; 35 lost before). Silence at a change (the old
-  song's inaudible tail, the wait for a sector's end, and the battle song's first bass note,
-  silent under the fade in from 13 steps: about 36 frames of it) is about 1.1 s, was about 3.3 s
-  (title to fight 1: 63 frames silent, was 174 + 22; reward to fight 2: 68, was 115 + 23; the
-  run's end to the title: the title's song 90 frames after the key, was 171). The cost is the
-  tick's work while a load reads: the battle song (about 1,100 cycles a tick) makes reads miss
-  sectors, so the fight from the reward is ready 294 frames after the key, was 251; the first
-  fight 436, was 452, and the title after a run 132, was 162 (both now play less music through
-  their reads than before); the boot's title 813, was 808. `tools/music/renders/load_music_demo.ogg` is the title to the first
-  fight and a reward to the next fight (a build that wins at once for the second part).
+  Tisple's `load-music` and `load-music-2` branches, docs/dhgr.md "Ticks through the card",
+  docs/disks.md "From a field's epilogue"): a screen's song starts as its load begins and plays
+  through it. The title's key fades the title's song out at once and reads the battle's song
+  (title.step); a fight from the reward reads it at enter_fight's start; the title after a run
+  reads its own at its enter. `sound/waiting.tsp` holds the song waiting and `start`, which the
+  main loop and every disk read's sector step call (`draw/meter.sector`), so the song comes in
+  within a sector's read of the fade's end. Tisple's card unpacks let the tick in every page out
+  and 32 matches, so no tick is lost in a load (686 of 686 from boot through the first fight's
+  load, the latest 14,151 cycles late; 35 lost before), and its reader turns interrupts off from a
+  field's epilogue, so the song's tick (about 1,100 cycles) no longer makes it miss sectors (it
+  cost the fight from the reward 43 frames). Silence at a change: title to fight 1 30 frames (was
+  174 + 22), reward to fight 2 40 in play (was 133 + 23; 30 in a build that wins at once), the
+  run's end to the title's song 13 frames after the key (was 171). Ready: fight 1 424 frames after
+  the key (was 452), fight 2 from the reward 251 (251), the title after a run 127 (162), the
+  boot's title 813 (808). `tools/music/renders/load_music_demo.ogg` is the title to the first
+  fight and a reward to the next fight, from a played run.
 - `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
   Mockingboard's handler runs with main memory in even when a tick lands in a copy.
 - `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
@@ -402,7 +405,8 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
   aux` and lib/disk (the `catwiz-dhgr-lib` branch is merged), and lib/mockingboard's fade
   (`mb.fade`, `mb.fade_in`, `mb.faded`: Tisple's `song-fade` branch, 2026-11-03), and its card
   unpacks that let the tick in (Tisple's `load-music` branch, 2026-11-03: lib/auxcard moved to
-  `$1DA6`, lib/dhgr's runs end at `$1F50`).
+  `$1DA6`, lib/dhgr's runs end at `$1F50`), and voices that end, the fade at once with nothing
+  playing and the reader's epilogue (Tisple's `load-music-2` branch).
 
 - `tisple.project` makes a bare `tisple build` (anywhere in the repo) `tisple build
   game/main.tsp --origin 0x8000 --disk build/catwiz.dsk`, and `tisple run` that plus booting it
@@ -424,7 +428,10 @@ python3 $TISPLE_SRC/web/publish.py catwiz build/catwiz.dsk tools/phone/catwiz.js
   reads its notes' table with `auxmem.read` instead of a `with_aux`, so its code (about 166
   bytes) went into the title's overlay group; and the four lets that each held `$0400` (aux
   text page 1 for the rules page, a song, disk 2's label, a hat trick's face) are one,
-  `state.aux_page1`. Bank 1 holds 25 functions (3,498 bytes), was 26 (3,675).
+  `state.aux_page1`. Then for the faster reader, the voices' end and the songs' fade in's: the
+  fight's picture's table is read in a function of its own (`stage.picture_of`), so `backdrop`
+  has no `with_aux` and went into the fight's start's overlay group. Bank 1 holds 26 functions
+  (3,546 bytes), was 26 (3,675).
 
 - Never open windows on the owner's display; run the machine headless and look at
   screenshots (`shots/`).
