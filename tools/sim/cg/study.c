@@ -6,8 +6,8 @@
               each third (after fights 1, 4, 7; the value stands for the third), a charm or a
               skip, the nap's heal and levels after each elite, both doors. --out F writes the
               learned values (the draft's --learned), --table F a line an option.
-     cards    natural runs: each face's and charm's offers, picks, and the runs that held it
-              against those that did not, and how often it is played when it shows.
+     cards    natural runs: each face's and charm's offers and picks; of the runs offered it,
+              those that took it against those that passed; how often it is played when it shows.
      luck     how much the offers decide a run: the runs by the learned worth of what their
               first offers brought; and the same seeds with other draws (--salts K).
      kits     random starting kits (--kits K, --runs a kit): the spread of win rates.
@@ -148,16 +148,6 @@ static int study_picks(void) {
 
 /* ---- cards: natural runs */
 
-static int held_ever(const RunResult *r, int id, int charm) {
-    for (int f = 0; f < r->nfights; f++) {
-        const Kit *k = &r->kit_at[f];
-        if (charm ? kit_holds(k, id) : memchr(k->items, id, 6) != NULL)
-            return 1;
-    }
-    const Kit *k = &r->kit;
-    return charm ? kit_holds(k, id) : memchr(k->items, id, 6) != NULL;
-}
-
 static int study_cards(void) {
     double secs;
     RunResult *r = run_batch(PLAYER, RUNS, SEED, JOBS, 0, &secs);
@@ -166,7 +156,7 @@ static int study_cards(void) {
     printf("cards: %s, %d runs, won %.1f%% (%.0f s)\n", PLAYER_NAME[PLAYER], RUNS, 100 * s.win,
            secs);
     printf("face\tid\tslot\tweight\toffered_runs\toffers\tpicked\tpick_rate\theld_runs\t"
-           "won_held\twon_not\tdelta\tplayed_share\n");
+           "won_took\twon_passed\tdelta\tplayed_share\n");
     for (int id = 0; id < FACE_COUNT; id++) {
         long offers = 0, picked = 0, offered_runs = 0, held = 0, held_won = 0, not_won = 0;
         long seen = 0, played = 0;
@@ -179,18 +169,26 @@ static int study_cards(void) {
                         any = 1;
                     }
             offered_runs += any;
+            int took = 0;
             for (int j = 0; j < r[i].npicks; j++)
-                picked += r[i].picks[j].card == id && r[i].picks[j].what == PK_ITEM;
-            int h = held_ever(&r[i], id, 0);
-            held += h;
-            if (h)
-                held_won += r[i].won;
-            else
-                not_won += r[i].won;
+                if (r[i].picks[j].card == id && r[i].picks[j].what == PK_ITEM) {
+                    picked++;
+                    took = 1;
+                }
+            /* of the runs offered it: the ones that took it against the ones that passed (the
+               same point of the run reached, unlike held against not held) */
+            if (any) {
+                held += took;
+                if (took)
+                    held_won += r[i].won;
+                else
+                    not_won += r[i].won;
+            }
             seen += r[i].seen[id];
             played += r[i].played[id];
         }
-        double wh = held ? (double)held_won / held : NAN, wn = (double)not_won / (RUNS - held);
+        double wh = held ? (double)held_won / held : NAN;
+        double wn = offered_runs > held ? (double)not_won / (offered_runs - held) : NAN;
         printf("%s\t%d\t%s\t%d\t%ld\t%ld\t%ld\t%.3f\t%ld\t%.3f\t%.3f\t%.3f\t%.3f\n",
                FACES[id].name, id, FACES[id].slot < 6 ? SLOTS6[FACES[id].slot] : "junk",
                FACES[id].weight, offered_runs, offers, picked,
@@ -198,7 +196,7 @@ static int study_cards(void) {
                seen ? (double)played / seen : NAN);
     }
     printf("charm\tid\tkind\tweight\toffered_runs\toffers\tpicked\tpick_rate\theld_runs\t"
-           "won_held\twon_not\tdelta\n");
+           "won_took\twon_passed\tdelta\n");
     for (int c = 0; c < CHARM_COUNT; c++) {
         long offers = 0, picked = 0, offered_runs = 0, held = 0, held_won = 0, not_won = 0;
         for (int i = 0; i < RUNS; i++) {
@@ -210,16 +208,22 @@ static int study_cards(void) {
                         any = 1;
                     }
             offered_runs += any;
+            int took = 0;
             for (int j = 0; j < r[i].npicks; j++)
-                picked += r[i].picks[j].what == PK_CHARM && r[i].picks[j].a == c;
-            int h = held_ever(&r[i], c, 1);
-            held += h;
-            if (h)
-                held_won += r[i].won;
-            else
-                not_won += r[i].won;
+                if (r[i].picks[j].what == PK_CHARM && r[i].picks[j].a == c) {
+                    picked++;
+                    took = 1;
+                }
+            if (any) {
+                held += took;
+                if (took)
+                    held_won += r[i].won;
+                else
+                    not_won += r[i].won;
+            }
         }
-        double wh = held ? (double)held_won / held : NAN, wn = (double)not_won / (RUNS - held);
+        double wh = held ? (double)held_won / held : NAN;
+        double wn = offered_runs > held ? (double)not_won / (offered_runs - held) : NAN;
         printf("%s\t%d\t%s\t%d\t%ld\t%ld\t%ld\t%.3f\t%ld\t%.3f\t%.3f\t%.3f\n", CHARMS[c].name, c,
                CHARMKIND_NAME[CHARMS[c].kind], CHARMS[c].weight, offered_runs, offers, picked,
                offers ? (double)picked / offers : NAN, held, wh, wn, wh - wn);

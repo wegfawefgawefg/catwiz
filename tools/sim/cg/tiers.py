@@ -105,7 +105,7 @@ def main():
     out.sort(reverse=True)
     fc = cards[0]
     print("\n| card | slot | forced after 1, 4, 7 | vs unforced | vs a skip | vs a blank | "
-          "offered runs | taken when offered | held: won (not held) |")
+          "offered runs | taken when offered | offered: won if taken (if passed) |")
     print("|---|---|---|---|---|---|---|---|---|")
     for mean, name, slot, w, vb, below, vs_skip in out:
         c = fc.get(name)
