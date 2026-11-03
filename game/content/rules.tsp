@@ -211,8 +211,8 @@
     "SPIKY N: who hits her takes N.")
 
 (page RULES_REWARDS "REWARDS AND CHARMS"
-    "After each fight, pick one of three"
-    "rewards: a new item or a level."
+    "After each fight, pick one of five"
+    "cards: a new face or a level."
     "Tap a card or press its number."
     "S or SKIP takes nothing."
     ""
