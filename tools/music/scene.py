@@ -35,7 +35,9 @@ or higher, and is left out otherwise. Times are ticks (1/60 s) or seconds with a
 
 The two chips are rendered apart (the left chip's voices, then the right's: their noise and
 envelope are their own, so nothing between them is lost) and joined as stereo, with a little
-of each side in the other as two speakers in a room give (--hard for none).
+of each side in the other as two speakers in a room give (--hard for none). Each chip's render
+is mono (--mono-sound), since tisple's --wav is stereo by default and would put the chip on its
+own side with silence on the other.
 """
 
 import argparse
@@ -554,7 +556,7 @@ def render_chip(sc, only, work, tag, use_tape):
         f.write(prog)
     wav = os.path.join(work, tag + ".wav")
     r = subprocess.run([TISPLE, "run", src, "--mockingboard", "4", "--rom", ROM,
-                        "--frames", str(sc["length"] + 30), "--wav", wav],
+                        "--frames", str(sc["length"] + 30), "--wav", wav, "--mono-sound"],
                        capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(wav):
         raise SystemExit("%s:\n%s%s" % (src, r.stdout, r.stderr))
