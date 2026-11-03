@@ -1,0 +1,120 @@
+; the same fight as it sounds today: the battle song (now_battle.song) and the game's
+; effects (card_fx.tsp) as sound.tsp plays them, on voice 2 for hers and 5 for the enemies',
+; one at a time, in line
+song tools/music/songs/now_battle.song
+length 56s
+effects game/sound/card_fx.tsp
+rich tools/music/sfx/rich.fx
+rich tools/music/sfx/stingers.fx
+; her turn: the dice roll
+at 30 cue rattle 2
+at 38 cue rattle 2
+at 46 cue rattle 2
+at 54 cue rattle 2
+at 62 cue rattle 2
+; a wand at the squirrel
+at 150 cue tok 2
+at 150 cue zap 2
+at 150 cue thump 5
+; fluff: a shield
+at 240 cue tok 2
+at 240 cue ping 5
+; a star: mana
+at 330 cue tok 2
+at 330 cue sparkle 2
+; a book, its spell
+at 420 cue tok 2
+at 420 cue zap 2
+; the spell lands
+at 492 cue thump 5
+; her turn over
+at 576 cue turn_off 2
+; the squirrel bites her
+at 624 cue growl 5
+at 624 cue yelp 2
+; the mushroom's blow, on her shield
+at 720 cue growl 5
+at 720 cue ping 5
+; her turn
+at 804 cue turn_on 2
+; the dice roll
+at 834 cue rattle 2
+at 842 cue rattle 2
+at 850 cue rattle 2
+at 858 cue rattle 2
+at 866 cue rattle 2
+; three wands: three of a kind
+; (no sound today)
+; fleas on the mushroom
+at 1020 cue tok 2
+at 1020 cue buzz 5
+at 1020 cue hiss 5
+; a wand at the squirrel
+at 1116 cue tok 2
+at 1116 cue zap 2
+at 1116 cue thump 5
+; a crit on the squirrel
+at 1200 cue tok 2
+at 1200 cue zap 2
+at 1200 cue thump 5
+; the squirrel falls
+at 1278 cue squeak 5
+; a heal
+at 1398 cue tok 2
+at 1398 cue chime 2
+; her turn over
+at 1500 cue turn_off 2
+; the fleas bite the mushroom
+at 1548 cue buzz 5
+; the mushroom's blow
+at 1644 cue growl 5
+at 1644 cue yelp 2
+; her turn
+at 1740 cue turn_on 2
+; the dice roll
+at 1770 cue rattle 2
+at 1778 cue rattle 2
+at 1786 cue rattle 2
+at 1794 cue rattle 2
+at 1802 cue rattle 2
+; wet on the mushroom
+at 1878 cue tok 2
+at 1878 cue splash 5
+at 1878 cue hiss 5
+; lightning: wet makes it worse
+at 1968 cue tok 2
+at 1968 cue thunder 5
+; a star: mana
+at 2100 cue tok 2
+at 2100 cue sparkle 2
+; a wand
+at 2190 cue tok 2
+at 2190 cue zap 2
+at 2190 cue thump 5
+; her turn over
+at 2280 cue turn_off 2
+; the fleas bite
+at 2328 cue buzz 5
+; the mushroom's blow
+at 2424 cue growl 5
+at 2424 cue yelp 2
+; her turn
+at 2520 cue turn_on 2
+; the dice roll
+at 2550 cue rattle 2
+at 2558 cue rattle 2
+at 2566 cue rattle 2
+at 2574 cue rattle 2
+at 2582 cue rattle 2
+; fluff: a shield
+at 2658 cue tok 2
+at 2658 cue ping 5
+; a book
+at 2748 cue tok 2
+at 2748 cue zap 2
+; its spell lands for 255
+at 2820 cue thump 5
+; the mushroom falls
+at 2904 cue squeak 5
+; the fight won
+; (no sound today: the reward screen comes)

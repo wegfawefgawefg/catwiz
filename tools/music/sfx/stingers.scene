@@ -1,0 +1,18 @@
+; the stingers (stingers.fx) one after another, then today's for comparing: the reward
+; screen's confirm blip (on a card taken today) and the run's WON and LOST songs
+length 37s
+rich tools/music/sfx/stingers.fx
+effects game/sound/card_fx.tsp
+at 30 rich fight_won
+at +120 rich elite
+at +200 rich card
+at +90 rich upgrade
+at +120 rich charm
+at +100 rich door
+at +120 rich king
+at +210 rich king_form
+at +150 rich run_won
+; today's
+at +330 cue confirm 2
+at +90 tune game/sound/songs.tsp:WON
+at +150 tune game/sound/songs.tsp:LOST

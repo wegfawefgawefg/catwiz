@@ -1,0 +1,53 @@
+; the game's effects today (game/sound/card_fx.tsp) for the same moments as fx_rich.scene,
+; on the voices the game gives them (sound.tsp CUE_VOICE: 2 the hero's, 5 the enemies'), the
+; ones a moment chains played at once and waiting in line as the game's do
+length 50s
+effects game/sound/card_fx.tsp
+; the roll: a rattle a die, as the dice land
+at 30 cue rattle 2
+at +8 cue rattle 2
+at +8 cue rattle 2
+at +8 cue rattle 2
+at +8 cue rattle 2
+; a wand's zap: the die played, the bolt, the blow
+at +88 cue tok 2
+at +0 cue zap 2
+at +0 cue thump 5
+; a big hit: the same today
+at +120 cue tok 2
+at +0 cue zap 2
+at +0 cue thump 5
+; a shield up
+at +180 cue tok 2
+at +0 cue ping 5
+; a shield taking a blow
+at +120 cue ping 5
+; mana
+at +120 cue tok 2
+at +0 cue sparkle 2
+; a book: the die, its bolt
+at +120 cue tok 2
+at +0 cue zap 2
+; fleas, the curse's hiss after
+at +150 cue buzz 5
+at +0 cue hiss 5
+; wet
+at +120 cue splash 5
+at +0 cue hiss 5
+; lightning
+at +120 cue thunder 5
+; a heal
+at +180 cue chime 2
+; an enemy's blow: its growl, her yelp
+at +150 cue growl 5
+at +0 cue yelp 2
+; an enemy beaten: the blow, the squeak
+at +120 cue thump 5
+at +0 cue squeak 5
+; three of a kind: no sound of its own (the third fluff's heal chimes)
+at +150 cue chime 2
+; victory and defeat: the run's won and lost songs (the only ones)
+at +150 tune game/sound/songs.tsp:WON
+at +150 tune game/sound/songs.tsp:LOST
+; the Bulldog King: an enemy's growl
+at +180 cue growl 5

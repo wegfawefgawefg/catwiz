@@ -1,0 +1,95 @@
+; the same fight as scene_sfx_only with b_nightgarden underneath at its own level. Lanes
+; L1 and R1 are the voices it lends (2, the crickets; 5, the bell's echo); bigger effects
+; take its other voices for a moment (L2 the low pad, R2 the bell, L3 the bass, R3 the
+; high pad), which come back mid-note, faded as they would have
+song tools/music/songs/b_nightgarden.song
+length 56s
+effects game/sound/card_fx.tsp
+rich tools/music/sfx/rich.fx
+rich tools/music/sfx/stingers.fx
+; her turn: the dice roll
+at 30 rich roll
+; a wand at the squirrel
+at 150 cue tok 2
+at 156 rich zap 2
+; fluff: a shield
+at 240 cue tok 2
+at 246 rich shield 2
+; a star: mana
+at 330 cue tok 2
+at 336 rich mana 2
+; a book, its spell
+at 420 cue tok 2
+at 426 rich book 2
+; the spell lands
+at 492 rich zap
+; her turn over
+at 576 cue turn_off 2
+; the squirrel bites her
+at 624 rich thud 2
+; the mushroom's blow, on her shield
+at 720 rich block 2
+; her turn
+at 804 cue turn_on 2
+; the dice roll
+at 834 rich roll
+; three wands: three of a kind
+at 936 rich three 2
+; fleas on the mushroom
+at 1020 cue tok 2
+at 1026 rich fleas 2
+; a wand at the squirrel
+at 1116 cue tok 2
+at 1122 rich zap 2
+; a crit on the squirrel
+at 1200 cue tok 2
+at 1206 rich crit 3
+; the squirrel falls
+at 1278 rich fall 2
+; a heal
+at 1398 cue tok 2
+at 1404 rich heal 2
+; her turn over
+at 1500 cue turn_off 2
+; the fleas bite the mushroom
+at 1548 rich fleas
+; the mushroom's blow
+at 1644 rich thud 2
+; her turn
+at 1740 cue turn_on 2
+; the dice roll
+at 1770 rich roll
+; wet on the mushroom
+at 1878 cue tok 2
+at 1884 rich wet 2
+; lightning: wet makes it worse
+at 1968 cue tok 2
+at 1974 rich lightning 2
+; a star: mana
+at 2100 cue tok 2
+at 2106 rich mana 2
+; a wand
+at 2190 cue tok 2
+at 2196 rich zap 2
+; her turn over
+at 2280 cue turn_off 2
+; the fleas bite
+at 2328 rich fleas
+; the mushroom's blow
+at 2424 rich thud 2
+; her turn
+at 2520 cue turn_on 2
+; the dice roll
+at 2550 rich roll
+; fluff: a shield
+at 2658 cue tok 2
+at 2664 rich shield 2
+; a book
+at 2748 cue tok 2
+at 2754 rich book 2
+; its spell lands for 255
+at 2820 rich crit 3
+; the mushroom falls
+at 2904 rich fall 2
+; the fight won
+at 3000 rich fight_won 3

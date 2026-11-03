@@ -1,0 +1,21 @@
+; the rich effects (rich.fx) one after another, in the order of fx_current.scene
+length 50s
+rich tools/music/sfx/rich.fx
+rich tools/music/sfx/stingers.fx
+at 30 rich roll
+at +120 rich zap
+at +120 rich crit
+at +180 rich shield
+at +120 rich block
+at +120 rich mana
+at +120 rich book
+at +150 rich fleas
+at +120 rich wet
+at +120 rich lightning
+at +180 rich heal
+at +150 rich thud
+at +120 rich fall
+at +150 rich three
+at +150 rich fight_won
+at +150 rich defeat
+at +180 rich roar

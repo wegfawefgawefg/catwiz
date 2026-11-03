@@ -1,0 +1,16 @@
+; a bed of pure sound for scene_sfx_only: the garden at night with no music in it. No
+; harmony, no beat: wind swelling and falling away (noise, the left chip), a near cricket
+; (tone and noise, right) and a far one (tone only, left, softer), on loops of different
+; lengths so they drift. Effects take these voices when they need them.
+(pattern wind
+    "m2 n26 l20 v3 c4 v4 c4 n24 v5 c4 v6 c4 n22 v7 c4 v6 c4 n24 v5 c4 v4 c4 n26 v3 c4 l64 v2 c4 c4")
+(pattern wind2
+    "m2 n28 l24 v3 c4 v4 c4 n25 v5 c4 n23 v6 c4 v5 c4 n27 v4 c4 v3 c4 l64 v2 c4 c4 c4")
+(pattern cricket
+    "m3 n1 v9 k0 l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l64 r r r l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l64 r r r r")
+(pattern far
+    "m1 v6 k0 l1 a#7 r a#7 r a#7 l37 r l1 a#7 r a#7 r a#7 l64 r r l1 a#7 r a#7 r a#7 l37 r l1 a#7 r a#7 r a#7 l37 r l1 a#7 r a#7 r a#7 l64 r r r")
+(pattern in_far "l64 r r l11 r")
+(voice 0 wind wind2)
+(voice 3 cricket)
+(voice 1 in_far loop far)
