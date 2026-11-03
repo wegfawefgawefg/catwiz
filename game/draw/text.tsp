@@ -4,7 +4,8 @@
 ; pixels of a 4-pixel cell); FONT_35 false draws the 40-column dot font instead (white in NTSC,
 ; violet and green in the flat colour look), with strings of 35 at most either way.
 ;
-; strings are plain ASCII; inverse (set while adding) draws them dark on a light block. A # in a
+; strings are plain ASCII; inverse (set while adding) marks them: drawn in MARK, yellow (dark on a
+; light block was hard to read: the owner, 2026-11-03; the 40-column font still flips). A # in a
 ; string stands for the number given to add_n.
 
 (import auxmem)
@@ -47,6 +48,7 @@
 (const LBLUE u8 7)
 (const ORANGE u8 9)
 (const AQUA u8 14)
+(const MARK u8 13) ; marked (inverse) text: yellow
 (const RUNS u8 3)
 (let colour u8 15)
 (let runs (array u8 6) :address 0x0A03) ; scratch, right after line: see AGENTS.md, Memory
@@ -179,21 +181,15 @@
         (set col c)))
 
 ; row r of the line in the 35-column font onto row y of the backdrop: a 4-pixel cell a
-; character, the glyph's 3 pixels then a gap (lib/dhgr_pixels' cells), inverse the cell's bits
-; flipped; glyph_at and flip are the line's, worked out once
+; character, the glyph's 3 pixels then a gap (lib/dhgr_pixels' cells), a marked one in MARK
+; (line_masks); glyph_at is the line's, worked out once
 (let glyph_at (array u16 35) :address 0x0600) ; scratch: see AGENTS.md, Memory
-(let flip (array u8 35) :address 0x0646)
 (let cells (array u8 35) :address 0x0424)
 
 (fn glyphs35 ((b0 u8) (n u8)) void
     (let i0 u8 (* b0 7))
     (for i u8 i0 (+ i0 (* n 7))
-        (let c u8 (at line i))
-        (set (at flip i) 0)
-        (if (>= c INVERSE)
-            (do
-                (set (at flip i) 15)
-                (set c (& c 0x7F))))
+        (let c u8 (& (at line i) 0x7F))
         (set (at glyph_at i) (<< (as u16 (- c 32)) 3)))
     (line_masks b0 n))
 
@@ -223,7 +219,11 @@
 ; block in colour's 4 masks: a 7-pixel group of one colour (its characters alike) from
 ; COLOUR_MASK, else from its 7 pixels' colours (dhgr_pixels.colour_mask, at pix.px 40 on)
 (fn line_masks ((b0 u8) (n u8)) void
-    (if (= run_n 0)
+    (let marked bool false)
+    (for i u8 0 COLUMNS
+        (if (>= (at line i) INVERSE)
+            (set marked true)))
+    (if (and (= run_n 0) (not marked))
         (do
             ; a white line: one stretch, no masks
             (set (at seg_first 0) b0)
@@ -243,6 +243,10 @@
         (set from to))
     (for i u8 from COLUMNS
         (set (at pix.px i) c))
+    (if marked
+        (for i u8 0 COLUMNS
+            (if (>= (at line i) INVERSE)
+                (set (at pix.px i) MARK))))
     (set seg_n 0)
     (for b u8 b0 (+ b0 n)
         (let i0 u8 (* b 7))
@@ -287,7 +291,7 @@
         (let i0 u8 (* b 7))
         (for i u8 i0 (+ i0 (* count 7))
             (let bits u8 (at hud.FONT35 (+ (at glyph_at i) (as u16 r))))
-            (set (at cells i) (^ bits (at flip i))))
+            (set (at cells i) bits))
         (if (at seg_white s)
             (dhgr_pixels.cells_white screen.PAGE (<< b 3) y count (addr_of (at cells i0)))
             (dhgr_pixels.cells screen.PAGE
