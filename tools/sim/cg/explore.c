@@ -101,11 +101,15 @@ int study_luck(void) {
         }
         within /= n;
         between /= n;
-        printf("  %d seeds, %d draws each (the dice the same stream): won %.1f%%\n", n, S_SALTS,
+        between -= within / S_SALTS; /* a seed's mean of S_SALTS draws is itself that noisy */
+        if (between < 0)
+            between = 0;
+        printf("  %d seeds, %d draws each (a seed's dice start the same, then drift as the kits "
+               "differ): won %.1f%%\n", n, S_SALTS,
                100 * mean);
         printf("    seeds won every time %.1f%%, never %.1f%%\n", 100.0 * all / n, 100.0 * none / n);
         printf("    the variance of a run's result: %.3f within a seed (the draws), %.3f between "
-               "seeds (the dice): the draws %.0f%% of it\n", within, between,
+               "seeds (the start and the dice): the draws %.0f%% of it\n", within, between,
                100 * within / (within + between));
         free(p);
     }

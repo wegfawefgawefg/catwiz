@@ -26,7 +26,7 @@ int study_broken(int player, int runs, uint64_t seed) {
     long ch_all[CHARM_COUNT] = {0}, ch_255[CHARM_COUNT] = {0};
     long seen_kind[KIND_COUNT] = {0}, one_turn[KIND_COUNT] = {0}, first_turn[FIGHT_ROWS] = {0},
          at_row[FIGHT_ROWS] = {0};
-    int max_steps = 0;
+    int max_steps = 0, turn_hp_max = 0;
     uint64_t ex255[EXAMPLES], exkill[KIND_COUNT][EXAMPLES], exback[EXAMPLES], exhat[EXAMPLES],
         exrun[EXAMPLES];
     int n255 = 0, nkill[KIND_COUNT] = {0}, nback = 0, nhat = 0, nrun = 0;
@@ -47,10 +47,11 @@ int study_broken(int player, int runs, uint64_t seed) {
                 held_all[k->items[s]]++;
             for (int h = 0; h < k->ncharms; h++)
                 ch_all[k->charms[h]]++;
-            int t = p->turn_dmg_max;
+            int t = p->turn_hit_max;
             turn_hist[t < 20 ? 0 : t < 50 ? 1 : t < 100 ? 2 : t < 200 ? 3 : t < 300 ? 4
                       : t < 500 ? 5 : 6]++;
             turn_big += t >= 255;
+            turn_hp_max = p->turn_dmg_max > turn_hp_max ? p->turn_dmg_max : turn_hp_max;
             if (p->hits255) {
                 f255++;
                 any255 = 1;
@@ -100,9 +101,9 @@ int study_broken(int player, int runs, uint64_t seed) {
            100.0 * f255 / fights, 100.0 * runs255 / runs);
     for (int j = 0; j < n255; j++)
         printf("    seed %llu fight %d\n", (unsigned long long)ex255[j], ex255_f[j]);
-    printf("  fights with a turn of 255 damage or more: %ld (%.2f%%)\n", turn_big,
-           100.0 * turn_big / fights);
-    printf("  the biggest turn of each fight: under 20 %.1f%%, 20-49 %.1f%%, 50-99 %.1f%%, "
+    printf("  fights with a turn whose hits add up to 255 or more: %ld (%.2f%%); the most hit "
+           "points one turn took: %d\n", turn_big, 100.0 * turn_big / fights, turn_hp_max);
+    printf("  the biggest turn of each fight (her hits added up): under 20 %.1f%%, 20-49 %.1f%%, 50-99 %.1f%%, "
            "100-199 %.1f%%, 200-299 %.1f%%, 300-499 %.1f%%, 500+ %.1f%%\n",
            100.0 * turn_hist[0] / fights, 100.0 * turn_hist[1] / fights,
            100.0 * turn_hist[2] / fights, 100.0 * turn_hist[3] / fights,

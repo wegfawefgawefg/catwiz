@@ -68,6 +68,7 @@ COMPARE = ["hp", "max_hp", "alive", "kind", "move", "moves_made", "stacks", "fac
            "played", "held", "clogged", "rerolls", "rerolled", "combo", "last_face", "last_on",
            "booked", "refreshes", "kept", "spent", "seed_lo", "seed_hi", "target"]
 STATUS = None
+KIND_INDEX = None
 
 
 def statuses():
@@ -245,6 +246,22 @@ def play_keys(d, t, aim, hat, selected):
     return pick + ["RETURN"]
 
 
+def step_wait(mc, action, over, t0, r0, f0):
+    """the machine's state once the step is done"""
+    if action.startswith("flip"):
+        return mc.read(8)
+    if action == "end":
+        return mc.wait(lambda x: x["phase"][0] in over or
+                       (x["phase"][0] == PHASE["player"] and x["turn"][0] != t0), most=4000)
+    if action == "reroll":
+        return mc.wait(lambda x: x["phase"][0] in over or
+                       (x["phase"][0] == PHASE["player"] and x["rerolls"][0] != r0), most=600)
+    d = int(action.split()[1])
+    return mc.wait(lambda x: x["phase"][0] in over or
+                   (x["phase"][0] == PHASE["player"] and x["last_played"][0] == d and
+                    mc.frame - f0 >= 24), most=600)
+
+
 def run_check(kit, charm, stage, seed, steps, rng, keep, verbose, tested):
     faces = catalog.faces()
     by_const = {f["const"]: f for f in faces}
@@ -277,7 +294,12 @@ def run_check(kit, charm, stage, seed, steps, rng, keep, verbose, tested):
                 continue
             f = faces[kit_ids[r]]
             mana = m["stacks"][STATUS.index("mana")]
-            if f["slot"] == "book" and "hp" not in f["tags"] and mana < f["cost"]:
+            cost = f["cost"]
+            if f["slot"] == "book":  # effects.cost: bad milk's more, a cheap trick's less
+                cost += m["kind_count"][KIND_INDEX["badmilk"]]
+                if not m["booked"][0]:
+                    cost = max(0, cost - m["kind_amount"][KIND_INDEX["cheap"]])
+            if f["slot"] == "book" and "hp" not in f["tags"] and mana < cost:
                 continue
             if "hp" in f["tags"] and m["hp"][0] <= f["cost"]:
                 continue
@@ -307,19 +329,15 @@ def run_check(kit, charm, stage, seed, steps, rng, keep, verbose, tested):
         if keys:
             mc.run(1, keys)
         over = (PHASE["won"], PHASE["lost"], PHASE["reward"])
-        if action.startswith("flip"):
-            m2 = mc.read(8)
-        elif action == "end":
-            m2 = mc.wait(lambda x: x["phase"][0] in over or
-                         (x["phase"][0] == PHASE["player"] and x["turn"][0] != t0), most=4000)
-        elif action == "reroll":
-            m2 = mc.wait(lambda x: x["phase"][0] in over or
-                         (x["phase"][0] == PHASE["player"] and x["rerolls"][0] != r0))
-        else:
-            d = int(action.split()[1])
-            m2 = mc.wait(lambda x: x["phase"][0] in over or
-                         (x["phase"][0] == PHASE["player"] and x["last_played"][0] == d and
-                          mc.frame - f0 >= 24))
+        try:
+            m2 = step_wait(mc, action, over, t0, r0, f0)
+        except RuntimeError:
+            m2 = None
+        if m2 is None:
+            print("  step %d: the game did not take %s (keys %s): stopped" % (
+                result["steps"] + 1, action, keys))
+            result["notes"].append("refused " + action)
+            break
         result["steps"] += 1
         mm = machine_as_check(m2)
         diffs = differences(s, mm, dice_n)
@@ -407,8 +425,11 @@ SUITE2 = [
 
 
 def main():
-    global STATUS
+    global STATUS, KIND_INDEX
     STATUS = statuses()
+    text = re.sub(r";[^\n]*", "", open(os.path.join(REPO, "game", "content", "encounters.tsp")).read())
+    body = text[text.index("(enum CharmKind (") + len("(enum CharmKind ("):]
+    KIND_INDEX = {k: i for i, k in enumerate(body[: body.index(")")].split())}
     ap = argparse.ArgumentParser()
     ap.add_argument("--kit", help="six faces' names, comma-separated, wand to trick")
     ap.add_argument("--charm")

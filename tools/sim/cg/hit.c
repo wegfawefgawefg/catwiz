@@ -113,6 +113,11 @@ static void note_hit(Battle *b, int damage) {
         b->peak.max_hit = (uint8_t)damage;
     if (damage >= 255 && b->peak.hits255 < 65535)
         b->peak.hits255++;
+    if (b->in_turn) {
+        b->t_hit += damage;
+        if (b->t_hit > b->peak.turn_hit_max)
+            b->peak.turn_hit_max = (uint16_t)(b->t_hit < 65535 ? b->t_hit : 65535);
+    }
 }
 
 /* hit.strike */

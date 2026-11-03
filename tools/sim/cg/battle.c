@@ -134,6 +134,7 @@ void b_start_round(Battle *b) {
     b->last_played = NOTHING;
     memset(b->combo, 0, sizeof b->combo);
     b->t_dmg = 0;
+    b->t_hit = 0;
     b->t_played = 0;
     for (int i = 0; i < ACTORS; i++) {
         b->full_at_start[i] = i > 0 && b->alive[i] && b->hp[i] == b->maxhp[i];

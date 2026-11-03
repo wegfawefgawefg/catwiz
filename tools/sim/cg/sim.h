@@ -57,6 +57,7 @@ struct Tell;
 typedef struct {
     uint8_t max_hit;
     uint16_t hits255, turn_dmg_max, max_steps;
+    uint16_t turn_hit_max; /* the most her hits added up to in one turn, before hit points */
     uint8_t back_cap_turns, hat_deep, runaway;
     uint8_t one_turn_kind[8]; /* kinds killed from full in one of her turns */
     uint8_t n_one_turn;
@@ -86,6 +87,7 @@ typedef struct Battle {
     /* ---- not the position */
     int turn, hero_lost, hero_healed, self_hits;
     int t_dmg;          /* damage to enemies this hero turn */
+    int t_hit;          /* her hits on enemies this turn, as dealt (before their hit points) */
     uint8_t in_turn;    /* her turn is on (not the enemies') */
     uint8_t full_at_start[ACTORS]; /* at full hit points as her turn started (one-turn kills) */
     uint8_t kind_at_start[ACTORS];
