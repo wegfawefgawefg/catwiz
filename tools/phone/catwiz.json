@@ -238,6 +238,138 @@
   "turns": "battle && (state.page == state.Page.bag || state.page == state.Page.rules)",
   "foes": "state.actors.alive[1] + state.actors.alive[2] + state.actors.alive[3]",
   "over": "battle && (state.page == state.Page.won || (state.page == state.Page.none && state.phase == state.Phase.lost && state.timer > 56))",
-  "picking": "state.picked != 255 || state.pick == state.Pick.nap_slot"
+  "picking": "state.picked != 255 || state.pick == state.Pick.nap_slot",
+  "in_fight": "battle && (state.phase == state.Phase.rolling || state.phase == state.Phase.player || state.phase == state.Phase.acting || state.phase == state.Phase.enemies)",
+  "fight_over": "battle && (state.phase == state.Phase.won || state.phase == state.Phase.lost)",
+  "run_over": "battle && (state.page == state.Page.won || state.phase == state.Phase.lost)",
+  "choosing": "battle && state.phase == state.Phase.reward && !battle/reward.fresh"
+ },
+ "telemetry": {
+  "endpoint": "https://45.77.123.14/catwiz-telemetry",
+  "fields": {
+   "screen": "state.screen",
+   "phase": "state.phase",
+   "page": "state.page",
+   "stage": "state.stage",
+   "fight": "state.fight",
+   "next_fight": "state.next_fight",
+   "turn": "state.turn",
+   "hp": "state.actors.hp[0]",
+   "hp_kept": "state.hero_hp",
+   "hp_most": "state.hero_max",
+   "kinds": "state.actors.kind",
+   "alive": "state.actors.alive",
+   "hps": "state.actors.hp",
+   "won": "state.phase == state.Phase.won",
+   "run_won": "state.page == state.Page.won",
+   "items": "state.items",
+   "levels": "state.levels",
+   "charms": "state.charms",
+   "step": "state.pick",
+   "picked": "state.picked",
+   "choices": "battle/reward.choices",
+   "offer": "battle/reward.choice",
+   "offer_slot": "battle/reward.choice_slot"
+  },
+  "events": [
+   {
+    "name": "title",
+    "when": "state.screen == state.Screen.title"
+   },
+   {
+    "name": "run_start",
+    "when": "battle"
+   },
+   {
+    "name": "fight_start",
+    "when": "in_fight",
+    "fields": [
+     "stage",
+     "fight",
+     "turn",
+     "hp",
+     "hp_most",
+     "kinds",
+     "alive",
+     "hps"
+    ]
+   },
+   {
+    "name": "fight_end",
+    "when": "fight_over",
+    "fields": [
+     "won",
+     "stage",
+     "fight",
+     "turn",
+     "hp",
+     "hp_most",
+     "kinds",
+     "alive",
+     "hps"
+    ]
+   },
+   {
+    "name": "pick",
+    "change": [
+     "choosing",
+     "state.pick"
+    ],
+    "was": "choosing",
+    "entry": [
+     "hp_kept",
+     "hp_most",
+     "items",
+     "levels",
+     "charms"
+    ],
+    "before": [
+     "step",
+     "picked",
+     "choices",
+     "offer",
+     "offer_slot"
+    ],
+    "fields": [
+     "step",
+     "stage",
+     "fight",
+     "next_fight",
+     "hp_kept",
+     "hp_most",
+     "items",
+     "levels",
+     "charms"
+    ]
+   },
+   {
+    "name": "run_end",
+    "when": "run_over",
+    "fields": [
+     "run_won",
+     "stage",
+     "fight",
+     "turn",
+     "hp",
+     "hp_most",
+     "kinds",
+     "alive",
+     "hps",
+     "items",
+     "levels",
+     "charms"
+    ]
+   }
+  ],
+  "quit": [
+   "screen",
+   "phase",
+   "page",
+   "step",
+   "stage",
+   "fight",
+   "turn",
+   "hp"
+  ]
  }
 }
