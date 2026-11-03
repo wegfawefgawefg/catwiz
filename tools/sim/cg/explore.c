@@ -171,7 +171,7 @@ int study_domains(void) {
     RunResult *r = run_batch(S_PLAYER, S_RUNS, S_SEED, JOBS, 0, NULL);
     long got[D_COUNT] = {0}, won[D_COUNT] = {0}, any = 0, any_won = 0, none_won = 0, wins = 0;
     long by_fight[FIGHT_COUNT] = {0}, reach[FIGHT_COUNT] = {0};
-    long faces_of[D_COUNT] = {0}, charms_of[D_COUNT] = {0};
+    long faces_of[D_COUNT] = {0}, charms_of[D_COUNT] = {0}, with_charms = 0;
     for (int id = 0; id < FACE_COUNT; id++)
         for (int d = 0; d < D_COUNT; d++)
             faces_of[d] += FACES[id].weight && (FACES[id].domains >> d & 1);
@@ -205,6 +205,18 @@ int study_domains(void) {
                 has = 1;
             }
         }
+        /* faces and charms together (docs/faces.md counted both) */
+        for (int d = 0; d < D_COUNT; d++) {
+            int n = 0;
+            for (int s = 0; s < 6; s++)
+                n += FACES[k->items[s]].domains >> d & 1;
+            for (int h = 0; h < k->ncharms; h++)
+                n += CHARMS[k->charms[h]].domains >> d & 1;
+            if (n >= 3) {
+                with_charms++;
+                break;
+            }
+        }
         any += has;
         if (has)
             any_won += r[i].won;
@@ -218,6 +230,8 @@ int study_domains(void) {
     printf("\n  at the last fight a run reached: %.1f%% of runs (won %.1f%%); the others won "
            "%.1f%%\n", 100.0 * any / S_RUNS, any ? 100.0 * any_won / any : 0,
            S_RUNS - any ? 100.0 * none_won / (S_RUNS - any) : 0);
+    printf("  3+ of one domain counting her charms too: %.1f%% of runs\n",
+           100.0 * with_charms / S_RUNS);
     printf("  domain\tfaces\tcharms\truns with 3+\twon\n");
     for (int d = 0; d < D_COUNT; d++)
         printf("  %s\t%ld\t%ld\t%.1f%%\t%s%.1f%%\n", DOMAIN_NAME[d], faces_of[d], charms_of[d],
