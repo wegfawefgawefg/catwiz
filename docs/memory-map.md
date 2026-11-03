@@ -177,14 +177,9 @@ From the listing's calls: resident functions whose every caller is in an overlay
   instead lets them join their group, as `load-music` did with the jingle. `disk2.has_label`,
   `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`: about 200 bytes of resident main memory
   and the same in the aux mirror. The 12-byte accessors are not worth it (the call costs as
-  much as the accessor).
-- The set-up code in `main.main`: the mouse's set-up (271) and the guard's install (35) can go
-  to `title.enter` in the title's group (groups do not bar a call to an address; bank 1 does,
-  which is why the comment in `main.tsp` keeps them in main). The machine check (151) must stay
-  resident, since the title's group is read from aux memory a machine without it lacks. Two
-  things to check: `title.enter` runs at every title, so the mouse's set-up wants a once flag as
-  the guard has; and nothing may run a with_aux with interrupts on before it (the group's own
-  copy turns them off, and the card's tick starts in `title.enter`).
+  much as the accessor). Tried in the memory pass (below) and left as it was: each cost speed.
+- The set-up code in `main.main`: done in the memory pass (below), as a group of its own,
+  `title.setup`, not in the title's group.
 - Disk overlays for more code: the ending's group (763, in aux) could be read from disk 2 like
   the reward's, a short read at a fight's end. That frees aux, not main.
 
@@ -194,8 +189,8 @@ From the listing's calls: resident functions whose every caller is in an overlay
   and `scratch`, 17, at `$BFEF`): the handler reads the
   playing effect, so all of them stay resident. lib/mockingboard plays one at a time; the one
   playing could be copied from aux into a buffer of the longest effect's size (17 bytes, `scratch`) when it
-  starts, freeing about 360 bytes of main memory. `load-music` is rewriting `sound.tsp` now, so
-  this waits for it.
+  starts, freeing about 360 bytes of main memory. Done in the memory pass (below), on Catwiz's
+  side: copied as each is cued, into one of five buffers.
 - `auxmem.GUARD` (108, the card) to aux memory or the title's image: it is read once.
 - The zero-page image (107, the card): startup reads it before anything else runs, when the
   overlay region is still empty; Tisple could put it there.
@@ -259,11 +254,11 @@ chance of breaking something and the work to verify it.
 
 | # | Change | Where | Frees | Risk |
 | --- | --- | --- | --- | --- |
-| 1 | Mouse set-up and the guard's install from `main.main` into `title.enter` (the title's group), the machine check left resident | Catwiz | about 306 main | low |
-| 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) | Catwiz | about 200 main, 200 aux | low |
+| 1 | Mouse set-up and the guard's install from `main.main` into `title.enter` (the title's group), the machine check left resident (done: its own group, below) | Catwiz | about 306 main | low |
+| 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) (tried, left: each cost speed, below) | Catwiz | about 200 main, 200 aux | low |
 | 3 | Once-only data out of the card: `auxmem.GUARD` to aux, the zero-page image into the empty overlay region at boot | Tisple | 215 card | low |
 | 4 | Code shared only by the title's and the fight start's groups copied into both images instead of kept resident | Tisple | about 683 main, costs 683 aux | medium |
-| 5 | Card effects in aux, the playing one copied into a 17-byte buffer (after `load-music` merges) | Catwiz, lib/mockingboard | about 360 main | medium |
+| 5 | Card effects in aux, the playing one copied into a 17-byte buffer (after `load-music` merges) (done, five buffers: below) | Catwiz, lib/mockingboard | about 360 main | medium |
 | 6 | One shared `ov.enter` for all groups instead of five (about 75 bytes each now) | Tisple | about 230 main | low-medium |
 | 7 | Boot disk: merge contiguous main segments (`$0B00-$1FFF`), put no-value aux lets past what loads | Tisple | 0 bytes; boot 4 tracks shorter, 3 segments free | low-medium |
 | 8 | Scratch lets the layout places (never zeroed, in memory free after boot) instead of 118 hand addresses | Tisple, then Catwiz | the 69 bytes of holes, and the hand work | medium |
@@ -290,3 +285,74 @@ leave resident memory.
 - "Called only from a group" is from the listing's JSR and JMP operands, followed up through
   resident callers; a call through a function pointer would be missed (Catwiz has one dispatcher).
 - Record fill on disk 2: each `FACES` and `CHARMS` sector's last nonzero byte.
+
+## The memory pass (2026-11-03)
+
+Catwiz's side of the table above, on main at dcdc9b0 with Tisple 8100596. Bytes are from
+`build/memmap.txt` before and after each change; "free" counts what the layout left, and since
+main memory and the card are full of code at squeeze 10, room freed there mostly shows as
+functions that left bank 1 (fewer crossings) rather than as free bytes in main memory. Loads were
+measured headless with the card in slot 5: frames from the key until the screen takes keys
+(fight 1 from the title, fight 2 from the reward's S in a build that wins every fight at once,
+the title after a run's last key), and the boot's title.
+
+Before (dcdc9b0): main 68 free, the card 24, bank 1 550 (26 functions, 3,546 bytes, about
+242,840 cycles a run in crossings), aux 1,529. Fight 1 424 frames, fight 2 251, the title after a
+run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any load.
+
+1. The guard's install and the mouse's set-up left `main.main` (324 bytes) and lib/mouse's
+   helpers left bank 1 and the card (116). In `title.enter` (the title's group, with a once flag)
+   the title after a run was ready 0.46 frames later (127.21: the group's copy from aux memory,
+   423 bytes more, at every title), so they are a group of their own, `title.setup`, which main's
+   loop runs once in the first pass before the title's step (433 bytes, 0.4 frames to load, at
+   boot only). Tisple merges groups whose roots' dispatch facts do not contradict, so main calls
+   `title.setup` while `title.set_up` is false and the title's step and draw while it is true.
+   After: main 68 free, the card 31, bank 1 992 (19 functions, 3,104 bytes, about 191,860
+   cycles a run): 449 bytes more free in main memory, the card and bank 1 together, after the
+   sixth group's stubs. Aux 1,105 free (424 less: the group's image).
+   Fight 1 424, fight 2 251, the title after a run 127 (126.73), the boot's title 813 (812.49).
+2. Not done: every one cost speed. `stage.backdrop` had already joined the fight's start's group
+   on `load-music` (its table read in `stage.picture_of`, 23 bytes, resident).
+   - `disk2.has_label` (69 bytes, resident and in the mirror) with `auxmem.read` into the text
+     line's buffer and `WANT` in main memory (8 bytes): 86 bytes in the title's group (1,918).
+     121 bytes more free in main memory, the card and bank 1, aux 9 less, but the title after a
+     run was ready at 138 frames (was 127): the group's copy took 0.08 frames longer, and the
+     disk read after it missed its sector and waited a turn of the disk. The title's loads are
+     that close to a sector; anything that makes the title's group bigger risks the same.
+   - `stage.runs_of` and `picture_of` (23 each) with `auxmem.read`: 86 bytes more in the fight's
+     start's group, which is read from disk 2 (16.3 frames a load to 16.8), for 46 resident
+     bytes; and `addr_of` on an element packs `RUNS` and `PICTURES` (the build warns).
+   - `offer.pool_byte` (24): the draws call it for every byte of the pool they look at (the
+     faces' pool is 94 rows, about 2,000 calls for a draw of five), and `auxmem.read` costs
+     about 100 cycles a call more than the with_aux: by that count (not measured) about 12 frames
+     more on every reward. The pool would need a main-memory buffer of a sector to be read once,
+     and there is none.
+3. (Table item 5.) The card effects (`sound/card_fx`, 379 bytes) are in aux memory, `:in aux`
+   through card_fx's own `effect` macro, which fails the build for an effect longer than the
+   buffers (17 bytes, `card_fx.MOST`) or with an end byte before its end. lib/mockingboard's
+   handler reads the playing effect from main memory and keeps up to four waiting by pointer,
+   so without changing Tisple one buffer is not enough: `sound.cue_byte` copies each cued effect
+   (up to its end byte, inside the with_aux it already had) into the next of five 17-byte
+   buffers (`sound.fx_buffers`, 85 bytes). Every cue goes in at one priority, so the card plays
+   them in the order they come, and at most five are playing or waiting: the buffer a cue takes
+   is the one of the cue five before, which is over. A cue the full line would drop takes none.
+   Interrupts are off from the check through the copy until `mb.effect` has it in line, so the
+   tick that starts it is never a later one: the title's confirm started 3.05 frames after the
+   key before and 3.04 after, a die's tok 2.05 and 2.04; a fight's first turn started 30 effects
+   in both. A tick is held up to about 230 cycles more (the latest 14,379 cycles late in the loads,
+   was 14,153; none lost). After: main 68 free, the card 213, bank 1 1,107 (17 functions,
+   2,962 bytes, about 177,460 cycles a run): 297 bytes more free in main memory, the card and
+   bank 1 together. Aux 649 free (456 less: the effects, and `cue_byte` grew 77 bytes in the
+   mirror). Fight 1 424, fight 2 251, the title after a run 127 (126.94), the boot's title 813
+   (812.49).
+4. (Table item 10.) Not done. The ending's group read from disk 2 would cost every fight's end
+   about 11 frames (Tisple's estimate for a disk group: 115 cycles a byte and 100,000 more, 763
+   bytes) against 0.7 from aux memory, and a disk read there risks a turn of the disk as the
+   title's did. Small aux tables in aux page 2 or `$0300-$033F` would be `:address` consts, which
+   the boot disk loads: a new segment (all 10 are used) or the aux `$0800` segment grown down
+   over aux text page 1. Aux memory is 880 bytes shorter after 1 and 5 (649 free, 339 of it at
+   `$BEAD-$BFFF`); that is where the next aux room has to come from.
+
+The pictures (`memory-map.png`, `memory-map-low.png`) are still the audit's; `memmap.py`
+redraws them for a build.
+

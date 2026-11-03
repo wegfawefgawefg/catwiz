@@ -12,11 +12,13 @@
 ; title jingle, and no other music.
 ;
 ; The songs live on the disks (songs.tsp); the one starting is read into aux memory and copied
-; into main memory (sound/waiting), with interrupts on: main puts in lib/auxmem's guard. A song
-; change fades the one before out and the new one in (song), and the game goes on meanwhile; a
-; screen's song starts as its load begins and plays through it.
+; into main memory (sound/waiting), with interrupts on: the first title puts in lib/auxmem's
+; guard. A song change fades the one before out and the new one in (song), and the game goes on
+; meanwhile; a screen's song starts as its load begins and plays through it.
 
 (import mockingboard mb)
+(import mockingboard_player player)
+(import mockingboard_song tune)
 (import state)
 (import sound/sfx)
 (import sound/music)
@@ -85,9 +87,9 @@
 ; them
 (const FADE_FROM (array u8 4) (make (array u8 4) 10 9 0 0))
 
-; at the start: find the card, if there is one, and start its tick (main puts lib/auxmem's guard
-; in first, which lets aux copies run while it ticks), the music faded out, so the first song
-; starts at once and fades in
+; at the start: find the card, if there is one, and start its tick (title.enter puts
+; lib/auxmem's guard in first, which lets aux copies run while it ticks), the music faded out,
+; so the first song starts at once and fades in
 (fn setup () void
     (mb.init)
     (mb.fade_in 15)
@@ -150,6 +152,15 @@
     (make (array u8 35) 3 0 1 2 2 2 1 4 1 2 1 0 0 0 0 0 1 2 0 1 0 2 2 0 2 1 2 0 1 2 2 1 0 1 3)
     :in aux)
 
+; the card's effects are in aux memory (card_fx), and the card's handler plays them from main
+; memory: each is copied into one of these buffers as it is cued, the next in turn. Every cue
+; goes in at one priority, so lib/mockingboard plays them in the order they come, one playing and
+; at most LINE waiting: the buffer a cue takes was the one of the cue LINE + 1 before it, over by
+; then. A cue the full line would drop takes none (cue_byte)
+(const FX_BUFFERS u8 5)        ; player.LINE + 1
+(let fx_buffers (array u8 85)) ; FX_BUFFERS of fx.MOST
+(let fx_at u8 0)               ; the next cue's buffer, its first byte in fx_buffers
+
 ; cue number c: on the card, its effect on its voice (dropped while another plays if it does
 ; not wait); without one, its speaker parts. The cues' tables are in aux memory (main memory is
 ; full), read here with one with_aux; a card's steps name their sounds by number (content/play)
@@ -171,7 +182,26 @@
             (return)))
     (if (and (not waits) (mb.effect_playing))
         (return))
-    (mb.effect effect voice 1))
+    ; the tick held off from here until the effect is in line: the copy never makes it start a
+    ; tick later (the tick due meanwhile comes as mb.effect is done, and starts it)
+    (sei)
+    (if (= player.line_count player.LINE)
+        (do
+            (cli)
+            (return)))
+    (let to (ptr u8) (+ (addr_of (at fx_buffers 0)) (as u16 fx_at)))
+    (with_aux true false
+        (let i u8 0)
+        (while true
+            (let b u8 (load (+ effect i)))
+            (store (+ to i) b)
+            (if (= b tune.END)
+                (break))
+            (set i (+ i 1))))
+    (set fx_at (+ fx_at fx.MOST))
+    (if (= fx_at (* FX_BUFFERS fx.MOST))
+        (set fx_at 0))
+    (mb.effect to voice 1))
 
 (fn cue ((c Cue)) void
     (cue_byte (as u8 c)))

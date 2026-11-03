@@ -147,7 +147,7 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   fight waits under one; closing puts the stage back from the spare page, which keeps the
   fight's picture all fight.
 - Clicks (2026-11-01, the owner: exact boxes for everything clickable): the game reads an
-  AppleMouse (lib/mouse, set up in `title.enter`) once a pass of the main loop (`main.poll_click`;
+  AppleMouse (lib/mouse, set up in `title.setup`) once a pass of the main loop (`main.poll_click`;
   not in the handler: a call into the card's firmware may change anything for all the compiler
   knows, which would slow the whole game). A press goes in the key line as CLICK with where it
   was, and `main.next_key` gives the key of the box it hits on the screen as it is then
@@ -313,8 +313,10 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   effect, `(sound.song sound.Song.battle)` for music. With a Mockingboard (any slot, found at
   start) the card plays them; without one the speaker effects of `sfx.tsp` and the title jingle
   of `music.tsp` play, and there is no other music.
-- Card effects are `tune.effect`s in `game/sound/card_fx.tsp`. lib/mockingboard plays one at
-  a time and keeps the ones that come while another plays in its own short line; cues marked
+- Card effects are in `game/sound/card_fx.tsp` (its `effect` macro: `tune.effect` `:in aux`,
+  17 bytes at most). `sound.cue_byte` copies each as it is cued into the next of five buffers in
+  main memory, where the card's handler reads it (2026-11-03, the memory pass:
+  docs/memory-map.md). lib/mockingboard plays one at a time and keeps the ones that come while another plays in its own short line; cues marked
   not to wait are dropped while an effect plays or waits (`mb.effect_playing`). Each borrows a
   music voice: 2 (left, the hero's side) or 5 (right, the enemies'), so the songs keep their
   least-missed parts there (the pad and the shaker).
@@ -359,8 +361,9 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   the key (was 452), fight 2 from the reward 251 (251), the title after a run 127 (162), the
   boot's title 813 (808). `tools/music/renders/load_music_demo.ogg` is the title to the first
   fight and a reward to the next fight, from a played run.
-- `sound.setup` installs lib/auxmem's guard, so aux copies run with interrupts on: the
-  Mockingboard's handler runs with main memory in even when a tick lands in a copy.
+- `title.setup` installs lib/auxmem's guard before `sound.setup` starts the tick, so aux copies
+  run with interrupts on: the Mockingboard's handler runs with main memory in even when a tick
+  lands in a copy.
 - `tisple machine ... --mockingboard 5 --wav x.wav` plays and saves it; `MB=5` makes
   `tools/measure.py` measure with the card in. Slot 5: the emulator's mouse card is in slot 4
   (`tisple.project`, `tools/phone/catwiz.json`; the game finds either card in any slot).
@@ -465,7 +468,7 @@ then `$0BE0-$13FF`, then the language card (bank 2, and code in bank 1). Tisple'
 `$1400-$1BFF` (lib/disk's reader, main), `$1C00-$1DA5` (lib/unpack, both memories, and zero
 page `$FF`), `$1DA6-$1DF2` (lib/auxcard, main) and `$1E00-$1F50` (lib/dhgr's runs, both). The art (each
 screen's picture and runs) and the rules' text are on the disk (`:on disk`); the songs, the
-card pictures and most text live in aux memory; a screen's sprites in the aux language card and
+card pictures, the card effects and most text live in aux memory; a screen's sprites in the aux language card and
 `blit.sprite_aux`. The disk has 10 segments, the most a disk holds: a new `:address` let that
 splits a memory would not build.
 
@@ -473,12 +476,19 @@ splits a memory would not build.
   says why one is dropped): the pages (`page.step`: kit, rules, log, the won page; from aux
   memory, a page opens fast), the reward (`reward.step`, from disk 2), the fight's start
   (`battle.enter_fight` with the art's loading, from disk 2: its own step, `Phase.start`, from
-  the reward and the run's start) and the ending (`battle.ending` with `reward.start`, which
-  makes the reward's draws, from aux). They take turns in one region the size of the biggest
+  the reward and the run's start), the ending (`battle.ending` with `reward.start`, which
+  makes the reward's draws, from aux), the title (`title.step` and `draw`, from aux) and the
+  set-up (`title.setup`: the guard and the mouse, once, in the first pass, from aux). They take
+  turns in one region the size of the biggest
   (the pages', about 3.1 KB, in the language card): keep the reward's group under it. A group is
   dropped (its code all resident, about 3 KB more) when resident code names one of its labels:
   a `with_aux` in a group's function keeps that function resident, so read aux tables in a
-  group through functions outside it or keep their tables `:strings aux`.
+  group through functions outside it (`auxmem.read`) or keep their tables `:strings aux`.
+  Roots whose dispatch facts do not contradict (Tisple: a `match` or `if` on a global) are
+  merged into one group: `title.setup` is apart from the title's group only because main's
+  loop calls it while `title.set_up` is false and the title's step and draw while it is true.
+  With the set-up's code in the title's group (which loads at every title), the title after a
+  run was ready half a frame later (127 frames to 128).
 - Every disk table's record is in aux memory (`:on disk2 :in aux`, the packs macro and the
   rules' page macro add it); `meter.read` and `meter.sectors` copy it to main memory for
   lib/disk. Read a disk table only through them.
