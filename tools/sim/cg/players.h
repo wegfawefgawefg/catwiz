@@ -25,6 +25,10 @@ typedef struct {
 } Play;
 #define MAX_OPTIONS 64
 int options(const Battle *b, Play *out);
+/* how many dice a search may turn after a paw flip (the game: any number; the search: this
+   many, and only in the turn's own plan, not in imagined re-rolls) */
+extern _Thread_local int FLIP_ROOM;
+#define FLIP_MOST 2
 
 /* the skill ladder: the searching player's chance at each play of a random legal play, and
    at each pick between fights of a random option */

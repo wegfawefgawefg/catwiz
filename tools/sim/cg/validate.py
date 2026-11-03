@@ -303,15 +303,23 @@ def run_check(kit, charm, stage, seed, steps, rng, keep, verbose, tested):
             action, keys = "end", ["E"]
         s = sim_step(m, action)
         before_phase = m["phase"][0]
+        t0, r0, f0 = m["turn"][0], m["rerolls"][0], mc.frame
         if keys:
             mc.run(1, keys)
+        over = (PHASE["won"], PHASE["lost"], PHASE["reward"])
         if action.startswith("flip"):
             m2 = mc.read(8)
+        elif action == "end":
+            m2 = mc.wait(lambda x: x["phase"][0] in over or
+                         (x["phase"][0] == PHASE["player"] and x["turn"][0] != t0), most=4000)
+        elif action == "reroll":
+            m2 = mc.wait(lambda x: x["phase"][0] in over or
+                         (x["phase"][0] == PHASE["player"] and x["rerolls"][0] != r0))
         else:
-            if action == "end" and not keys:
-                mc.wait(lambda x: x["phase"][0] != PHASE["player"], step=2, most=400)
-            m2 = mc.wait(lambda x: x["phase"][0] in (PHASE["player"], PHASE["won"], PHASE["lost"],
-                                                     PHASE["reward"]), step=4, most=3000)
+            d = int(action.split()[1])
+            m2 = mc.wait(lambda x: x["phase"][0] in over or
+                         (x["phase"][0] == PHASE["player"] and x["last_played"][0] == d and
+                          mc.frame - f0 >= 24))
         result["steps"] += 1
         mm = machine_as_check(m2)
         diffs = differences(s, mm, dice_n)
@@ -332,6 +340,11 @@ def run_check(kit, charm, stage, seed, steps, rng, keep, verbose, tested):
         if verbose or diffs:
             print("  step %d (turn %d): %s %s" % (result["steps"], m["turn"][0], action,
                                                    "ok" if not diffs else "MISMATCH"))
+            if diffs and os.environ.get("VALIDATE_DEBUG"):
+                print("     before: phase %d end_wait %d selected %d keys %s; after: phase %d "
+                      "turn %d end_wait %d" % (m["phase"][0], m["end_wait"][0], m["selected"][0],
+                                               keys, m2["phase"][0], m2["turn"][0],
+                                               m2["end_wait"][0]))
         if diffs:
             result["mismatch"] += 1
             for x in diffs[:12]:
@@ -369,6 +382,30 @@ SUITE = [
 ]
 
 
+# the charms and the hooks: a kit each charm plays with, from fight 1 or 2
+BASE = ["BIG STICK", "THICK FUR", "BRIGHT STAR", "HAIRBALL BLAST", "GLARE", "PLUS ONE"]
+SUITE2 = [
+    (["COIN FLIP", "MIRROR FUR", "BRIGHT STAR", "HAIRBALL BLAST", "GLARE", "HAT TRICK"],
+     "PORCUPINE", 1, ["COIN FLIP", "MIRROR FUR", "HAT TRICK"]),
+    (["COIN FLIP", "HAIRBALL WALL", "STAR", "MEOWCRONOMICON", "LEECH", "HAT TRICK"],
+     "MOTHER CAT", 1, ["COIN FLIP", "HAIRBALL WALL", "LEECH", "HAT TRICK", "MEOWCRONOMICON"]),
+    (["FEATHER TOY", "FLEA COLLAR", "LITTER STAR", "IF IT FITS", "FLEAS", "CATNIP"],
+     "KITTEN MITTENS", 1, ["FEATHER TOY", "FLEA COLLAR", "IF IT FITS", "CATNIP"]),
+] + [(BASE, c, 1, ["BIG STICK", "THICK FUR", "HAIRBALL BLAST", "GLARE"]) for c in [
+    "SCRATCH POST", "SIXTH TOE", "STILL WATER", "FLUFFY TAIL", "GRUMPY FACE", "RUBBER DUCK",
+    "BAD MILK", "NINE LIVES", "ITCHY", "FLEA FARM", "MONSOON", "THICK COAT", "HUNGER",
+    "CHEAP TRICK", "MANA BATTERY", "NAP SPOT", "LUCKY SEVEN", "CURSED COIN", "JACKPOT",
+    "RAIN BOOTS", "STORM CLOUD", "TROUBLEMAKER", "PIED PIPER", "MOMENTUM", "THICK SKIN",
+    "SPARE YARN", "HEAD START"]] + [
+    (["TWIG WAND", "STATIC FUR", "STAR CLUSTER", "ZOOMIES", "TRIPLE HEX", "KNEAD"],
+     "PURRFECT TRIO", 1, ["TWIG WAND", "STATIC FUR", "STAR CLUSTER", "TRIPLE HEX"]),
+    (["CLAW SWIPE", "BELL COLLAR", "SUNBEAM", "LASER POINTER", "CATFIGHT", "TIMES TWO"],
+     "ECHO", 1, ["CLAW SWIPE", "BELL COLLAR", "LASER POINTER", "CATFIGHT", "TIMES TWO"]),
+    (["KITTEN CANNON", "CARDBOARD BOX", "LITTER STAR", "MEOWCRONOMICON", "MARK TERRITORY",
+      "SPELL ECHO"], "LITTER BOX", 2, ["KITTEN CANNON", "MEOWCRONOMICON", "SPELL ECHO"]),
+]
+
+
 def main():
     global STATUS
     STATUS = statuses()
@@ -379,11 +416,13 @@ def main():
     ap.add_argument("--seed", type=int, default=4242)
     ap.add_argument("--steps", type=int, default=60)
     ap.add_argument("--suite", action="store_true")
+    ap.add_argument("--suite2", action="store_true", help="the charms and the hooks")
     ap.add_argument("--seeds", type=int, default=1, help="runs a kit, seeds seed, seed+1, ...")
     ap.add_argument("--keep", action="store_true")
     ap.add_argument("--verbose", action="store_true")
     a = ap.parse_args()
-    cases = SUITE if a.suite else [(a.kit.split(","), a.charm, a.stage, a.kit.split(","))]
+    cases = SUITE if a.suite else SUITE2 if a.suite2 else [
+        (a.kit.split(","), a.charm, a.stage, a.kit.split(","))]
     total = {"steps": 0, "mismatch": 0}
     plays = {}
     for kit, charm, stage, tested in cases:

@@ -15,6 +15,7 @@
 const char *const PLAYER_NAME[P_COUNT] = {"random", "greedy", "strong", "search"};
 
 double BLUNDER_PLAY = 0.0, BLUNDER_PICK = 0.0;
+_Thread_local int FLIP_ROOM = 0;
 
 void pos_hash(const Battle *b, uint64_t *h1, uint64_t *h2) {
     const uint8_t *p = (const uint8_t *)b + POS_BEGIN;
@@ -75,7 +76,7 @@ int options(const Battle *b, Play *out) {
             n++;
         }
     }
-    if (her(b, ST_flip) > 0) {
+    if (her(b, ST_flip) > 0 && b->flips_used < FLIP_ROOM) {
         uint8_t face_seen[6] = {0};
         for (int d = 0; d < DICE_MOST; d++) {
             if (d < b->flip_next || b->played[d] || (b->back >> d & 1) || face_seen[b->face_of[d]])
@@ -226,7 +227,9 @@ static Entry *strong_search(const Battle *b) {
 
 static double strong_best(const Battle *b, Play *plan, int *nplan) {
     memo_clear();
+    FLIP_ROOM = plan ? FLIP_MOST : 0;
     Entry *e = strong_search(b);
+    FLIP_ROOM = 0;
     if (plan) {
         memcpy(plan, e->plan, e->nplan * sizeof(Play));
         *nplan = e->nplan;

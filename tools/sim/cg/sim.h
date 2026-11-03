@@ -76,7 +76,7 @@ typedef struct Battle {
     uint8_t rerolls, rerolled, combo[6];
     uint8_t last_face, last_on, last_played, wand_on, back_due, booked, lucky, nap_die;
     uint8_t refreshes, risen, target, three, counts, blocked, lost, echo_next;
-    uint8_t mim_v, fight_extra, hat_id, spent, kept, result, flip_next;
+    uint8_t mim_v, fight_extra, hat_id, spent, kept, result, flip_next, flips_used;
     uint16_t mim_row;
     uint16_t q_fx[4];
     uint8_t q_on[4], q_val[4], q_head, q_count;

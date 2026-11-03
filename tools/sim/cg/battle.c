@@ -245,11 +245,13 @@ void b_play(Battle *b, int d, int target) {
     if (target != NOTHING && (target & FLIP)) {
         b_roll_die(b, d, target & 7);
         b->flip_next = (uint8_t)(d + 1); /* the search turns each die once, left to right */
+        b->flips_used++;
         return;
     }
     int row = b->hand[d];
     set_stk(b, HERO, ST_flip, 0);
     b->flip_next = 0;
+    b->flips_used = 0;
     b->played[d] = 1;
     b->last_played = (uint8_t)d;
     int id = row_id(b, row);

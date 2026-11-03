@@ -26,9 +26,15 @@ typedef struct {
     RunResult *out;
 } Batch;
 
+static double now(void);
+
 static void one(int i, void *ctx) {
     Batch *b = ctx;
+    double t0 = now();
     run_one(b->player, b->seed * 100000 + (uint64_t)i, &b->out[i], b->want_log && i < b->want_log);
+    if (getenv("CATWIZ_SLOW") && now() - t0 > atof(getenv("CATWIZ_SLOW")))
+        fprintf(stderr, "slow run: seed %llu %.1f s\n",
+                (unsigned long long)(b->seed * 100000 + (uint64_t)i), now() - t0);
 }
 
 static double now(void) {

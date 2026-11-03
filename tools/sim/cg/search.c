@@ -166,7 +166,9 @@ static double best_plan(const Battle *b, Play *plan, int *nplan, int collect) {
         memset(S.cand, 0, sizeof S.cand);
         memset(S.back, 0, sizeof S.back);
     }
+    FLIP_ROOM = collect ? FLIP_MOST : 0;
     Entry *e = search(b);
+    FLIP_ROOM = 0;
     S.collect = 0;
     if (plan) {
         memcpy(plan, e->plan, e->nplan * sizeof(Play));
