@@ -177,7 +177,7 @@ From the listing's calls: resident functions whose every caller is in an overlay
   instead lets them join their group, as `load-music` did with the jingle. `disk2.has_label`,
   `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`: about 200 bytes of resident main memory
   and the same in the aux mirror. The 12-byte accessors are not worth it (the call costs as
-  much as the accessor).
+  much as the accessor). Tried in the memory pass (below) and left as it was: each cost speed.
 - The set-up code in `main.main`: done in the memory pass (below), as a group of its own,
   `title.setup`, not in the title's group.
 - Disk overlays for more code: the ending's group (763, in aux) could be read from disk 2 like
@@ -255,7 +255,7 @@ chance of breaking something and the work to verify it.
 | # | Change | Where | Frees | Risk |
 | --- | --- | --- | --- | --- |
 | 1 | Mouse set-up and the guard's install from `main.main` into `title.enter` (the title's group), the machine check left resident (done: its own group, below) | Catwiz | about 306 main | low |
-| 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) | Catwiz | about 200 main, 200 aux | low |
+| 2 | With_aux functions only one group calls read through `auxmem.read` and join their group (`disk2.has_label`, `stage.backdrop`, `stage.runs_of`, `offer.pool_byte`) (tried, left: each cost speed, below) | Catwiz | about 200 main, 200 aux | low |
 | 3 | Once-only data out of the card: `auxmem.GUARD` to aux, the zero-page image into the empty overlay region at boot | Tisple | 215 card | low |
 | 4 | Code shared only by the title's and the fight start's groups copied into both images instead of kept resident | Tisple | about 683 main, costs 683 aux | medium |
 | 5 | Card effects in aux, the playing one copied into a 17-byte buffer (after `load-music` merges) | Catwiz, lib/mockingboard | about 360 main | medium |
@@ -311,4 +311,20 @@ run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any loa
    cycles a run): 449 bytes more free in main memory, the card and bank 1 together, after the
    sixth group's stubs. Aux 1,105 free (424 less: the group's image).
    Fight 1 424, fight 2 251, the title after a run 127 (126.73), the boot's title 813 (812.49).
+2. Not done: every one cost speed. `stage.backdrop` had already joined the fight's start's group
+   on `load-music` (its table read in `stage.picture_of`, 23 bytes, resident).
+   - `disk2.has_label` (69 bytes, resident and in the mirror) with `auxmem.read` into the text
+     line's buffer and `WANT` in main memory (8 bytes): 86 bytes in the title's group (1,918).
+     121 bytes more free in main memory, the card and bank 1, aux 9 less, but the title after a
+     run was ready at 138 frames (was 127): the group's copy took 0.08 frames longer, and the
+     disk read after it missed its sector and waited a turn of the disk. The title's loads are
+     that close to a sector; anything that makes the title's group bigger risks the same.
+   - `stage.runs_of` and `picture_of` (23 each) with `auxmem.read`: 86 bytes more in the fight's
+     start's group, which is read from disk 2 (16.3 frames a load to 16.8), for 46 resident
+     bytes; and `addr_of` on an element packs `RUNS` and `PICTURES` (the build warns).
+   - `offer.pool_byte` (24): the draws call it for every byte of the pool they look at (the
+     faces' pool is 94 rows, about 2,000 calls for a draw of five), and `auxmem.read` costs
+     about 100 cycles a call more than the with_aux: by that count (not measured) about 12 frames
+     more on every reward. The
+     pool would need a main-memory buffer of a sector to be read once, and there is none.
 
