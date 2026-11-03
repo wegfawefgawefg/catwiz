@@ -1,16 +1,15 @@
 # Catwiz
 
 A dice roguelike for the 128K Apple IIe, in double hi-res graphics. You are a cat wizard rolling
-five dice of her own items against the spooky-cute things of the woods, the garden and the yard,
+five dice of her own items against the spooky-cute things of the woods, the garden and the house,
 on the way to a big bad dog: the Bulldog King. Written in
 [Tisple](https://github.com/wegfawefgawefg/tisple), a typed Lisp that compiles to 6502.
 
-The whole run plays: ten fights (the woods, the garden and the yard, three fights each with an
-elite at the end, then the Bulldog King), the later ones on stand-in figures till their art
-comes.
+The whole run plays: ten fights (the woods, the garden and the house, three fights each with an
+elite at the end, then the Bulldog King), with about 100 faces and 35 charms to find on the way.
 
 **[Play it in your browser](https://wegfawefgawefg.github.io/tisple/play.html?game=catwiz)** (phone or desktop), or
-get the disk from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
+get the two disks from the [releases](https://github.com/wegfawefgawefg/catwiz/releases).
 
 On a TV or composite monitor (NTSC), the look it is drawn for:
 
@@ -111,8 +110,9 @@ re-roll, BAG, ? and END buttons, the log's rows, the cards between fights, the p
 buttons). A real Apple with a mouse card plays the same. On the phone the pad has BAG, RULES,
 MEOW, LET GO and LOG, and < > for the pages.
 
-On a real enhanced IIe with 128 KB, write `build/catwiz.dsk` to a floppy (ADTPro) or put it on
-a FloppyEmu, and boot it. A Mockingboard in any slot plays the music; without one the speaker
+On a real enhanced IIe with 128 KB, write `build/catwiz.dsk` and `build/catwiz2.dsk` to floppies
+(ADTPro) or put them on a FloppyEmu, and boot the first. With one drive, it asks for the second
+after the title. A Mockingboard in any slot plays the music; without one the speaker
 plays the effects. An AppleMouse in any slot takes clicks.
 
 ## The repo
