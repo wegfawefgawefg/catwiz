@@ -1,0 +1,11 @@
+; the motif stingers (stingers_motif.fx), each followed by stingers.fx's own for comparing:
+; fight won, elite beaten, upgrade
+length 18s
+rich tools/music/sfx/stingers_motif.fx
+rich tools/music/sfx/stingers.fx
+at 30 rich motif_won
+at +100 rich fight_won
+at +150 rich motif_elite
+at +190 rich elite
+at +220 rich motif_upgrade
+at +110 rich upgrade

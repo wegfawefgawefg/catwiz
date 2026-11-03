@@ -1,0 +1,50 @@
+; d_woods: the fight song for zone 1, WOODS. A night jig through the trees, quick and light.
+; The hook is a_phase's figure, recovered and played straight (no phasing): the owner found
+; its tune catchy, and it is one 12/8 bar, so here it is the jig's tune.
+; Key: B minor (a_phase's). 12/8, four dotted-quarter beats a bar.
+;   A  Bm  G   Em  A   | Bm  G   Em  F#       the figure on Bm and G, a fourth up on Em, a
+;                                              cascade down on A, an arpeggio up on F#
+;   B  G   A   Bm  Bm  | G   A   F#sus4 F#    the Catwiz motif, sung over the figure, which
+;                                              moves down into the accompaniment
+; Tempo: an 8th (a pulse) is 8 ticks; a beat 24 (dotted quarter = 150 bpm); a bar 96 (1.6 s).
+; Repeats: A B is 16 bars, 1536 ticks (25.6 s).
+; Size: 369 bytes.
+;
+; Where the motif is:
+;   B bars 9 and 11: the motif in B minor, swung to 12/8: B F# E# F# D, then B F# E# F# B,
+;     ending high the second time (rhythm 2 4 1 1 4 pulses: da-a DAAAA di da DAAA)
+;   B bar 10: its answer in the same rhythm, E C# B C# A (the twitch turned round)
+;   B bars 13-14: the motif falling from the top in the same rhythm, D B A# B G and
+;     C# A G# A E: the twitch on each chord
+;   a_phase's figure (B F# E . D A F# B E . A D): A bars 1 2 5 6, a fourth up in 3 and 7;
+;     in B it plays an octave down under the motif (bars 9-14)
+;
+; Left (chip 1): bass, counter-line, the tune's echo. Right (chip 2): the tune, drums, hats.
+; voice 0  bass: dotted quarters, root fifth octave fifth
+; voice 1  counter-line: two soft long notes a bar in A; in B the figure, low, then the
+;          cadence's notes
+; voice 2  the tune's echo, a beat (24 ticks) late and soft (lent to the hero's effects)
+; voice 3  the tune: the figure in A, the motif in B; its patterns set no volume, so voice 2
+;          shares them
+; voice 4  drums: kick on 1 and 3 with the jig's skip before 4, snare on 2 and 4
+; voice 5  hats, three to a beat, the first loud (noise; lent to the enemies' effects)
+(pattern in_echo "v5 k2 l24 r")
+(pattern figs
+    "k2 l8 b4 f#5 e5 r d5 a4 f#5 b4 e5 r a5 d5 b4 f#5 e5 r d5 a4 f#5 b4 e5 r a5 d5 e5 b5 a5 r g5 d5 b5 e5 a5 r d6 g5")
+(pattern down "e6 c#6 b5 l24 a5 l8 e5 c#5 b4 l24 a4")
+(pattern up "l8 f#5 a#5 c#6 l24 f#6 l8 e6 c#6 a#5 l24 c#5")
+(pattern t_b
+    "k3 l16 b4 l32 f#5 l8 f5 f#5 l32 d5 l16 e5 l32 c#5 l8 b4 c#5 l32 a4 l16 b4 l32 f#5 l8 f5 f#5 l32 b5 l16 a5 l8 b5 l16 a5 l8 f#5 l24 d5 e5 l16 d6 l32 b5 l8 a#5 b5 l32 g5 l16 c#6 l32 a5 l8 g#5 a5 l32 e5 l16 c#6 l8 b5 l16 c#6 l8 e6 l48 c#6 a#5 l24 f#5 c#5")
+(pattern bass
+    "l24 v12 k3 b1 f#2 b2 f#2 g1 d2 g2 d2 e2 b2 e2 b1 a1 e2 a2 e2 b1 f#2 b2 f#2 g1 d2 g2 d2 e2 b2 e2 b1 f#1 c#2 f#2 c#2 g1 d2 g2 d2 a1 e2 a2 e2 b1 f#2 b2 f#2 b1 f#2 b2 a1 g1 d2 g2 d2 a1 e2 a2 e2 f#1 c#2 b1 c#2 f#1 c#2 a#1 c#2")
+(pattern ct_a "l48 v8 k6 d4 f#4 d4 b3 e4 g4 e4 c#4 d4 f#4 d4 b3 g4 e4 c#4 a#3")
+(pattern fig_lo "l8 v9 k2 b3 f#4 e4 r d4 a3 f#4 b3 e4 r a4 d4")
+(pattern ct_end "l48 v8 k6 c#4 b3 a#3 c#4")
+(pattern drums "n7 v12 k1 m1 l24 g1 m2 n5 c4 m1 n7 l16 g1 l8 g1 m2 n5 l24 c4")
+(pattern hats "l8 m2 n1 k1 v7 c4 v3 c4 v4 c4")
+(voice 0 bass)
+(voice 1 ct_a fig_lo fig_lo fig_lo fig_lo fig_lo fig_lo ct_end)
+(voice 2 in_echo loop figs down figs up t_b)
+(voice 3 figs down figs up t_b)
+(voice 4 drums)
+(voice 5 hats)

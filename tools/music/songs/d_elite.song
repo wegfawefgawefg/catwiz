@@ -1,0 +1,62 @@
+; d_elite: an elite fight. 8 bars of build on the King's motif (the enemy's tune), then the
+; cat answers: the Catwiz motif lands as a real melody over a pumping bass and gets 16 bars,
+; climbing to the top and resolving home, before the build comes round again.
+; Key: A minor.
+;   build  bars 1-4  A pedal: the King's motif in the bass, twice; a low pulse on A pumping
+;                    in 8ths; hats
+;          bars 5-6  the King's motif again; the pulse doubles to 16ths; a backbeat comes in;
+;                    the lead hints the cat's twitch (E D# E), twice
+;          bars 7-8  the motif on E, the dominant; the lead climbs and tumbles; a snare roll
+;   payoff bars 9-16  Am F C G | Am F Dm E     the motif, its leap growing each bar (a fifth,
+;                                              a sixth, an octave), then the motif an octave
+;                                              up, the peak; a half cadence on a held B
+;          bars 17-24 the same, then Dm E | Am  closing on a long high A
+; Tempo: an 8th is 12 ticks (quarter = 150 bpm), 4/4, a bar of 96 ticks (1.6 s).
+; Repeats: 24 bars, 2304 ticks (38.4 s): 12.8 s of build, 25.6 s of payoff. A 90 s render
+;   hears it twice and a third build.
+; Size: 395 bytes (fits exactly: the echo and a Bb step in the build were cut to make room).
+;
+; Where the motifs are:
+;   the King's motif (the cat's, upside down: A D D# D F | G A): the bass of the build, on
+;     A (bars 1-6) and E (7-8)
+;   the twitch (E D# E): the lead's hint over the build, bars 5-6
+;   the Catwiz motif in A minor, A E D# E C: payoff bar 9; then the same rhythm on F (A F E F
+;     C, a sixth), C (G G F# G E, an octave) and at the top on Am (A E D# E C, an octave up)
+;
+; Left (chip 1): bass, the pulse then a counter-line. Right (chip 2): the lead, kick and
+;   snare, hats. Voice 2 is left free (the hero's effects have it to themselves).
+; voice 0  bass: the King's motif in the build; then the left chip's hardware envelope, a
+;          falling saw every 6 ticks (h8:399), pumping each held root in 16ths: louder, as in
+;          b_adventure's choruses
+; voice 1  the build's pulse: one low A held on the same envelope, pumping 8ths (h8:798),
+;          then 16ths (h8:399), at full level; in the payoff a soft counter-line, two notes a
+;          bar
+; voice 3  the lead (v12, the default)
+; voice 4  kick and snare: silent 4 bars, then a backbeat, a roll (the right chip's envelope,
+;          a saw at 22 Hz), the groove
+; voice 5  hats, 8ths (noise; lent to the enemies' effects)
+(pattern em_a "l12 v12 k3 a2 l36 d2 l12 d#2 d2 l24 f2 l12 g2 l36 a2 l12 a1 a1 a1 a1")
+(pattern em_e "e2 l36 a1 l12 a#1 a1 l24 c2 l12 d2 l36 e2 l48 e1")
+(pattern pump "h8:399 l48 a1 a2 f1 f2 c2 c3 g1 g2 a1 a2 f1 f2")
+(pattern pump1 "d2 d3 e2 e1")
+(pattern pump2 "d2 e2 a1 a1")
+(pattern pulse "h8:798 l64 a3 - - - - - h8:399 a3 - - - - -")
+(pattern ct "l48 v8 k6 a4 c5 a4 c5 g4 c5 g4 b4 a4 c5 a4 f4")
+(pattern ct1 "f4 a4 g#4 b4")
+(pattern ct2 "a4 g#4 a4 e4")
+(pattern lb "l64 r r r r r r k3 l24 e5 d#5 e5 r e5 d#5 e5 f5 g#5 a5 g#5 a5 l12 b5 c6 b5 a5 g#5 f5 e5 d#5")
+(pattern ph
+    "k5 l12 a4 l36 e5 l12 d#5 e5 l24 c5 l12 a4 l36 f5 l12 e5 f5 l24 c5 l12 g4 l36 g5 l12 f#5 g5 l24 e5 l12 d5 e5 f5 f#5 l48 g5 l12 a5 l36 e6 l12 d#6 e6 l24 c6 l12 c6 l36 a5 l12 g5 a5 l24 f5")
+(pattern e1 "l12 f5 e5 d5 e5 l24 f5 a5 l36 g#5 l12 a5 l48 b5")
+(pattern e2 "l24 f5 a5 g#5 b5 l48 a5 -")
+(pattern dbuild
+    "l64 r r r r r r l24 v13 k1 m1 g1 m2 c4 m1 g1 m2 c4 m1 g1 m2 c4 m1 g1 m2 c4 m1 g1 m2 c4 m1 g1 m2 c4 m2 h8:180 l64 c4 l32 - m1")
+(pattern groove
+    "v14 l18 g1 l6 g1 m2 l24 c4 m1 l12 g1 g1 m2 l24 c4 m1")
+(pattern hats "l12 m2 n3 k1 v4 c4")
+(voice 0 em_a em_a em_a em_e pump pump1 pump pump2)
+(voice 1 pulse ct ct1 ct ct2)
+(voice 3 lb ph e1 ph e2)
+(voice 4 dbuild groove groove groove groove groove groove groove groove
+    groove groove groove groove groove groove groove groove)
+(voice 5 hats)

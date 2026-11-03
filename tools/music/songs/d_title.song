@@ -1,0 +1,45 @@
+; d_title: the title screen, the Catwiz motif as the main theme. Warm and a little magic.
+; Key: D major with lydian G# (the motif's twitch note, and E/D's colour, as in night garden).
+;   A  D  E/D  Bm7  G A | D  E/D  G Gm  Asus4 A      the motif, sequenced up a tone, climbing
+;   B  Bm G  Em  A      | Bm G    Em7 A7  A          a broad tune; the motif walks in the bass
+; Tempo: an 8th is 18 ticks (quarter = 100 bpm), 4/4, a bar of 144 ticks (2.4 s).
+; Repeats: A B is 16 bars, 2304 ticks (38.4 s). It starts on the motif, no intro.
+; Size: 371 bytes.
+;
+; Where the motif is:
+;   A bars 1 and 5: the motif itself, D A G# A F# (the lead)
+;   A bars 2 and 6: the motif a tone up over E/D, E B A# B G#; bar 6 ends up on D, higher
+;   A bar 8 and B bar 16: the twitch (G# A) closing each half, leading back into the motif
+;   B: the bass plays the motif in minor on each chord's root (B F# E# F# D, G D C# D B,
+;     E B A# B G, A E D# E C#) under the long tune: the motif as a bass line
+;   the bell: the twitch and a fifth (G# A E) every 4th bar, answering the lead's cadences
+;
+; Left (chip 1): bass, pad, the lead's echo. Right (chip 2): the lead, shaker, bell.
+; voice 0  bass: A a lilting dotted-quarter bounce; B the motif, a bar on each chord
+; voice 1  pad: two soft chord tones a bar
+; voice 2  the lead's echo, a dotted 8th (27 ticks) late and soft, on the other side
+; voice 3  the lead (v12, the default); its patterns set no volume, so voice 2 shares them
+; voice 4  a shaker, soft 8ths
+; voice 5  a high bell
+(pattern in_echo "v5 l27 r")
+(pattern ta
+    "k4 l18 d5 l54 a5 l18 g#5 a5 l36 f#5 l18 e5 l54 b5 l18 a#5 b5 l36 g#5 l18 f#5 a5 l54 d6 l18 c#6 l36 b5 a5 l18 g5 f#5 l36 e5 -")
+(pattern tb
+    "l18 d5 l54 a5 l18 g#5 a5 l36 f#5 l18 e5 l54 b5 l18 a#5 b5 l36 d6 e6 l18 d6 b5 l36 d6 a#5 l54 a5 l18 g#5 a5 e5 l36 c#5")
+(pattern tc
+    "l54 b5 - l18 c#6 d6 l36 e6 - b5 d6 l54 b5 - l18 a5 g5 l36 a5 - l18 c#6 b5 a5 g5 l36 f#5 b5 c#6 d6 l54 e6 - l18 f#6 e6 l36 d6 l18 b5 a5 l36 g5 e5 l54 a5 - l18 g#5 a5")
+(pattern ba_x "l54 v11 k5 d2 l18 a2 l36 d3 a2 l54 d2 l18 b2 l36 d3 e3")
+(pattern ba_y "l54 b1 l18 f#2 l36 b2 f#2 g1 d2 a1 e2")
+(pattern ba_z "g1 d2 g1 a#1 l54 a1 l18 e2 l36 a2 e2")
+(pattern bb
+    "l18 b1 l54 f#2 l18 f2 f#2 l36 d2 l18 g1 l54 d2 l18 c#2 d2 l36 b1 l18 e2 l54 b2 l18 a#2 b2 l36 g2 l18 a1 l54 e2 l18 d#2 e2 l36 c#2")
+(pattern pad
+    "l36 v8 k10 f#4 - a4 - g#4 - b4 - a4 - f#4 - b4 - c#5 - f#4 - a4 - g#4 - b4 - b4 - a#4 - d5 - c#5 - d4 - f#4 - d4 - b3 - e4 - g4 - e4 - c#4 - d4 - f#4 - d4 - b3 - d4 - c#4 - c#4 - e4 -")
+(pattern bell "l64 v10 k4 r r r r r r r l56 r l18 g#6 a6 l36 e7")
+(pattern shaker "l18 m2 n1 k1 v5 c4 v3 c4 v4 c4 v6 c4")
+(voice 0 ba_x ba_y ba_x ba_z bb bb)
+(voice 1 pad)
+(voice 2 in_echo loop ta tb tc)
+(voice 3 ta tb tc)
+(voice 4 shaker)
+(voice 5 bell)
