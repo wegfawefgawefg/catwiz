@@ -1,0 +1,40 @@
+; b_lounge: a cat burglar tiptoeing through a jazz club. Swing, D minor: a minor-key
+; ii-V-I round, Gm9 C13 Fmaj9 Bbmaj9 | Em7b5 A7b9 Dm9 D7b9, one chord a bar.
+; Tempo: a beat is 30 ticks (120 bpm), swung on a triplet grid of 10 ticks (8ths l20 l10).
+; Repeats: the changes go round every 8 bars (16 s); the tune is 16 bars, A B A C, so the
+; song repeats exactly after 1920 ticks (32 s). Size: 395 bytes (fits the game's 395).
+;
+; voice 0  walking bass, quarter notes, chromatic steps into each next root
+; voice 1  the chords, rootless 9th/13th/b9 voicings rolled up (l2) and left to ring, each
+;          on the swung "and" of 4, anticipating the next bar by a triplet
+; voice 2  brushes: a soft sweep on 1 and 3, a tap on 2 and 4 with a ghost before it, a
+;          triplet drag every 4th bar (noise; lent to the hero's effects in a fight)
+; voice 3  the tune: tiptoe pickups (f#-g, c#-d) on the swung offbeats, a diminished climb
+;          over A7b9, a triplet run down D7b9; its patterns set no volume, so voice 5 can
+;          share them
+; voice 4  guide tones, one soft note a bar: the 7ths and 3rds falling f e e d d c# c c
+; voice 5  the tune again, a swung 8th (20 ticks) later and soft: an echo (lent to the
+;          enemies' effects)
+(pattern in_comp "l52 r r")
+(pattern in_brush "l1 r")
+(pattern in_tune "v11 k3 l2 r l10")
+(pattern in_echo "v5 k2 l22 r l10")
+(pattern walk
+    "l30 v12 k3 g2 a#2 d3 c#3 c3 a#2 g2 e2 f2 a2 c3 b2 a#2 a2 g2 f2 e2 g2 a#2 g#2 a2 g2 e2 c#2 d2 e2 f2 a2 d3 c3 a2 f#2")
+(pattern comp
+    "v10 k6 l2 a#3 d4 e4 l57 a4 - l2 a3 c4 e4 l57 g4 - l2 a3 c4 d4 l57 f4 - l2 a#3 d4 e4 l57 g4 - l2 a#3 c#4 e4 l57 g4 - l2 a3 c4 e4 l57 f4 - l2 a3 c4 d#4 l57 f#4 - l2 a#3 d4 f4 l57 a4 -")
+(pattern brush "l30 m2 n3 v6 k4 c4 l20 v10 k2 c4 l10 v5 k1 c4")
+(pattern brush_drag "l30 m2 n3 v6 k4 c4 l10 v8 k1 c4 v6 c4 v10 c4")
+(pattern guide "l60 v6 k12 f4 - e4 - e4 - d4 - d4 - c#4 - c4 - c4 -")
+(pattern tune_a
+    "r r f#4 g4 r a#4 d5 r c#5 d5 - f5 e5 - - r r d5 a#4 - g4 a4 - - r r e4 f4 r g#4 a4 r b4 c5 - e5 d5 - - r r c5 a4 - f4 - r r")
+(pattern tune_b
+    "g5 - e5 d5 - a#4 r r g4 a#4 - c#5 e5 - g5 a#5 - - r r g5 e5 c#5 a#4 a4 - - r r e5 f5 - r d5 - - r r c5 a4 f#4 r a4 r r r r r")
+(pattern tune_c
+    "e5 - - r g5 - r a#5 - r a5 g5 f5 - - e5 - - r r c#5 a#4 g4 e4 f4 - - r r a4 c5 - e5 - d5 - r r r f#5 d#5 c5 a4 r r r r r")
+(voice 0 walk)
+(voice 1 in_comp loop comp)
+(voice 2 in_brush loop brush brush brush brush brush brush brush brush_drag)
+(voice 3 in_tune loop tune_a tune_b tune_a tune_c)
+(voice 4 guide)
+(voice 5 in_echo loop tune_a tune_b tune_a tune_c)

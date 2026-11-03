@@ -1,0 +1,47 @@
+; b_gamelan: a witch's gamelan. Balinese-style kotekan in pelog selisir, here E F G B C
+; (ding dong deng dung dang), home on E.
+; Tempo: a pulse is 8 ticks, 7.5 a second; a beat is 4 pulses with the core tone on its
+; last; a gong cycle (gongan) is 8 beats, 256 ticks.
+; Repeats: three core melodies, A B A C, under two kinds of kotekan; the song repeats
+; exactly after 8 gongan, 2048 ticks (34 s). Size: 343 bytes.
+;
+; voice 0  polos (left): the kotekan's on-beat half, every other pulse, landing on each
+;          core tone
+; voice 1  calung: the core melody (pokok), one tone a beat, an octave below
+; voice 2  kempli and ceng-ceng: two soft noise ticks, then a muted tok (tone and noise) on
+;          the beat (lent to the hero's effects in a fight)
+; voice 3  sangsih (right): the off-beat half, filling the pulses between the polos's;
+;          first time round neighbour-tone ostinatos, second time its own upper line
+; voice 4  gong: kempur (B2) halfway through each gongan, the gong (E2) on its last tone,
+;          each a slow 3 s fade
+; voice 5  jegogan: every other core tone, low and long (lent to the enemies' effects)
+(pattern in_polos "v11 k2 l9 r l16")
+(pattern in_sangsih "v10 k2 l1 r l16")
+(pattern in_calung "l26 r")
+(pattern in_kempli "l2 r")
+(pattern in_gong "v12 k14 l2 r")
+(pattern in_jegogan "l59 r")
+(pattern polos_a "g5 b5 b5 c6 c6 b5 b5 g5 e5 f5 f5 g5 g5 f5 g5 e5")
+(pattern polos_b "f5 g5 g5 b5 b5 c6 f6 e6 b5 c6 g5 b5 e5 f5 g5 e5")
+(pattern polos_c "f6 e6 e6 f6 c6 e6 b5 c6 g5 b5 e6 c6 f5 g5 g5 e5")
+(pattern sangsih_a1 "c6 c6 e6 e6 g5 g5 f5 f5 g5 g5 b5 b5 e5 e5 f5 f5")
+(pattern sangsih_b1 "b5 b5 c6 c6 e6 e6 c6 c6 e6 e6 c6 c6 g5 g5 f5 f5")
+(pattern sangsih_c1 "c6 c6 g6 g6 f6 f6 e6 e6 c6 c6 b5 b5 b5 b5 f5 f5")
+(pattern sangsih_a2 "e6 c6 g5 e6 e6 g5 c6 f5 b5 g5 c6 b5 b5 e5 c6 f5")
+(pattern sangsih_b2 "c6 b5 e6 c6 f6 e6 c6 g6 g6 e6 e6 c6 b5 g5 b5 f5")
+(pattern sangsih_c2 "c6 g6 g6 c6 f6 g6 e6 g5 e6 c6 b5 f6 c6 b5 b5 f5")
+(pattern calung_a "l32 v10 k4 b4 c5 b4 g4 f4 g4 f4 e4")
+(pattern calung_b "g4 b4 c5 e5 c5 b4 f4 e4")
+(pattern calung_c "e5 f5 e5 c5 b4 c5 g4 e4")
+(pattern kempli "l8 m2 n1 v4 k1 c4 v6 c4 r m3 v10 k2 g3")
+(pattern gong "l60 - - l64 b2 - l8 e2")
+(pattern jegogan_a "l64 v11 k8 c4 g3 g3 e3")
+(pattern jegogan_b "b3 e4 b3 e3")
+(pattern jegogan_c "f3 c4 c4 e3")
+(voice 0 in_polos loop polos_a polos_b polos_a polos_c)
+(voice 1 in_calung loop calung_a calung_b calung_a calung_c)
+(voice 2 in_kempli loop kempli)
+(voice 3 in_sangsih loop sangsih_a1 sangsih_b1 sangsih_a1 sangsih_c1
+    sangsih_a2 sangsih_b2 sangsih_a2 sangsih_c2)
+(voice 4 in_gong loop gong)
+(voice 5 in_jegogan loop jegogan_a jegogan_b jegogan_a jegogan_c)

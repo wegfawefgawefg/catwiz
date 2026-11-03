@@ -1,0 +1,43 @@
+; a_mathrock: a math-rock / Animals as Leaders-ish fight groove in 7/8
+; key: E minor; the tapped riff keeps to E F# G A B D over a pedal B, so it rings over every
+;   root: Em, Cmaj7#11 (lydian), Am9, Bm7, D6/9; chords E C A B | E C D B, a bar each
+; tempo: a 16th of 6 ticks (quarter = 150 bpm); a 7/8 bar is 14 16ths (84 ticks), grouped
+;   4+4+6 (2+2+3 in eighths)
+; repeats: the chords every 8 bars (11.2 s), the riff every 5, the drums every 4, the hats
+;   every 3 16ths; the whole repeats exactly after 168 s
+; size: 346 bytes (fits the 395-byte buffer)
+;
+; voice 0 bass: the hardware envelope's saw (shape 8, tone off), chugging 16ths; its period
+;   sets the pitch (97 E1, 61 C2, 72 A1, 65 B1, 54 D2, 48 E2), the note names are only labels
+; voice 1 the riff, tapped 16ths: a moving top line over a pedal B; every 5th bar ends on a
+;   run down instead
+; voice 2 hats, 16ths accented in threes, so the accent rolls across the 7/8 bar (lent)
+; voice 3 kick (a low tone) and snare (noise): boom . chak . boom boom chak
+; voice 4 stabs on the off-16ths 3, 7 and 11: an A D E chord as a fast arpeggio
+; voice 5 the riff's echo, 16 ticks late (near a dotted eighth, off the grid) and quiet, like a delay pedal (lent)
+; the riff's patterns set no volume: voice 1 and voice 5 each keep their own. The envelope
+;   bass sounds at full level (the chip has no volume for it), so this plays about 10 dB
+;   louder than the battle song
+(pattern in_riff "l1 v12 k1 r")
+(pattern in_echo "l17 v7 k1 r")
+(pattern in_bass "l64 r r l40 r")
+(pattern in_drums "l64 r r l42 r")
+(pattern in_stabs "l64 r r l43 r")
+(pattern in_hats "l64 r r l44 r")
+(pattern riff_a "l6 e5 b4 g5 b4 f#5 b4 d5 b4 e5 b4 a5 g5 f#5 d5")
+(pattern riff_b "l6 e5 b4 g5 b4 f#5 b4 d5 b4 b5 a5 g5 f#5 e5 d5")
+(pattern bs_e "m0 l6 h8:97 e1 - r e1 e1 r e1 - e1 e1 r e1 e1 r")
+(pattern bs_c "h8:61 c2 - r c2 c2 r c2 - c2 c2 r c2 c2 r")
+(pattern bs_a "h8:72 a1 - r a1 a1 r a1 - a1 a1 r a1 a1 r")
+(pattern bs_d "h8:54 d2 - r d2 d2 r d2 - d2 d2 r d2 d2 r")
+(pattern bs_b "h8:65 b1 - r b1 b1 r b1 - b1 b1 r h8:48 e2 h8:54 d2 r")
+(pattern hats "l6 m2 n2 k1 v10 c4 v6 c4 c4")
+(pattern drums "n7 l24 v14 k1 m1 g1 m2 c4 l12 m1 g1 g1 m2 c4")
+(pattern drums_fill "n7 l24 m1 g1 m2 c4 l12 m1 g1 l6 m2 c4 c4 l3 c4 c4 c4 c4")
+(pattern stabs "l18 v11 k2 r l1 a4 d5 e5 a4 d5 e5 l18 r l1 a4 d5 e5 a4 d5 e5 l18 r l1 a4 d5 e5 a4 d5 e5 l12 r")
+(voice 0 in_bass loop bs_e bs_c bs_a bs_b bs_e bs_c bs_d bs_b)
+(voice 1 in_riff loop riff_a riff_a riff_a riff_a riff_b)
+(voice 2 in_hats loop hats)
+(voice 3 in_drums loop drums drums drums drums_fill)
+(voice 4 in_stabs loop stabs)
+(voice 5 in_echo loop riff_a riff_a riff_a riff_a riff_b)

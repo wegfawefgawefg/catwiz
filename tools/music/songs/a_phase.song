@@ -1,0 +1,42 @@
+; a_phase: Steve Reich-style phasing, after Piano Phase and Music for 18 Musicians
+; key: B minor; the figure keeps to B minor pentatonic (B D E F# A), so it sits well against
+;   itself at every offset and over every chord: Bm G D A Bm Em G A, two bars each
+; tempo: a pulse of 8 ticks (16ths at about 112 bpm); a bar is the figure, 12 pulses (96 ticks)
+; repeats: the chords every 16 bars (25.6 s); the phasing voice comes back into unison after
+;   12 of its rounds (2 min 35 s); the whole repeats exactly after about 2 hours (446976 ticks)
+; size: 304 bytes (fits the 395-byte buffer)
+;
+; voice 0 bass: slow, one root for two bars, struck on pulses 1, 7 and 9 (6+2+4)
+; voice 1 marimba A, left: the 12-pulse figure, always in time with the bass
+; voice 2 organ, two chord tones in turn, a soft long note each bar (lent to effects)
+; voice 3 marimba B, right: the same figure, joins in unison at bar 3; it holds a lock for 4
+;   bars, then plays 4 bars each 2 ticks longer, so it slides a whole pulse behind A through
+;   blurred flams and echoes, locks again a pulse further on, and so on round the figure
+; voice 4 chime: three high notes 3 pulses apart over 9 pulses, so which one falls on the
+;   bar turns round every bar (from bar 9)
+; voice 5 claps, Reich's Clapping Music rhythm, soft (from bar 5; lent to effects)
+(pattern in_a "l1 v12 k1 r")
+(pattern in_organ "l2 r")
+(pattern in_b "l2 v11 k1 r l64 r r r")
+(pattern in_clap "l4 r l64 r r r r r r")
+(pattern in_chime "l3 r l64 r r r r r r r r r r r r")
+(pattern fig "l8 b4 f#5 e5 r d5 a4 f#5 b4 e5 r a5 d5")
+(pattern slip "l2 r")
+(pattern bs_b "l16 v11 k4 b1 - - b1 b1 - b1 - - b1 b1 -")
+(pattern bs_g "l16 g1 - - g1 g1 - g1 - - g1 g1 -")
+(pattern bs_d "l16 d2 - - d2 d2 - d2 - - d2 d2 -")
+(pattern bs_a "l16 a1 - - a1 a1 - a1 - - a1 a1 -")
+(pattern bs_e "l16 e2 - - e2 e2 - e2 - - e2 e2 -")
+(pattern og_b "l48 v6 k15 d4 - f#4 -")
+(pattern og_g "l48 d4 - b3 -")
+(pattern og_d "l48 f#4 - a3 -")
+(pattern og_a "l48 e4 - a3 -")
+(pattern og_e "l48 g4 - e4 -")
+(pattern chime "l8 v6 k2 a5 r r f#5 r r b5 r r")
+(pattern clap "l8 m2 n4 v4 k1 c4 c4 c4 r c4 c4 r c4 r c4 c4 r")
+(voice 0 bs_b bs_g bs_d bs_a bs_b bs_e bs_g bs_a)
+(voice 1 in_a loop fig)
+(voice 2 in_organ loop og_b og_g og_d og_a og_b og_e og_g og_a)
+(voice 3 in_b loop fig fig fig fig slip fig slip fig slip fig slip fig)
+(voice 4 in_chime loop chime)
+(voice 5 in_clap loop clap)

@@ -1,0 +1,44 @@
+; b_nightgarden: the garden at midnight, for long fights where you think. Ambient,
+; D lydian: Dmaj9 | E/D | Bm9 | Gmaj9#11, 8 s a chord.
+; Tempo: a pulse is 60 ticks (one a second), and nothing keeps a beat. Each chord comes in
+; waves: the bass, the low pad a second later, the high pad a second after that, every note
+; left to fade (v8 k15, about 2 s), then near silence.
+; Repeats: the chords go round every 32 s; the bell and crickets drift against them (23 s
+; and 15 s cycles), so the whole repeats exactly only after hours. Size: 345 bytes.
+;
+; voice 0  bass: the root, then the fifth (or the pedal) halfway, slow to fade
+; voice 1  low pad: the chord's 3rd or 7th, then a step on, a second behind the bass
+; voice 2  crickets: tone and noise together, high (c8), chirps of 4 one-tick pulses, two or
+;          three chirps, then a long quiet (lent to the hero's effects in a fight)
+; voice 3  high pad: the 7th, 9th and #11 colours, two seconds behind the bass
+; voice 4  a high bell now and then, only b c# e f#, which sit in every chord; its three
+;          phrases (592, 794 and 696 ticks) land somewhere new each time round
+; voice 5  the bell's echo, 40 ticks later and soft (lent to the enemies' effects)
+(pattern in_low "l60 r")
+(pattern in_high "l60 r r")
+(pattern in_bell "v9 k8 l64 r r r")
+(pattern in_echo "v4 k8 l64 r r r l40 r")
+(pattern in_crickets "l64 r r l9 r")
+(pattern bass_d "l60 v10 k15 d2 - - - a1 - - -")
+(pattern bass_e "d2 - - - b1 - - -")
+(pattern bass_b "b1 - - - f#2 - - -")
+(pattern bass_g "g1 - - - d2 - - -")
+(pattern low_d "l60 v8 k15 f#3 - - - a3 - - -")
+(pattern low_e "g#3 - - - b3 - - -")
+(pattern low_b "a3 - - - - - f#3 -")
+(pattern low_g "f#3 - - - a3 - - -")
+(pattern high_d "l60 v7 k15 c#4 - - - e4 - - -")
+(pattern high_e "e4 - - - - f#4 - -")
+(pattern high_b "d4 - - c#4 - - - -")
+(pattern high_g "b3 - - - c#4 - - -")
+(pattern bell_a "l20 f#6 b5 l40 c#6 l64 r r r r r r r r")
+(pattern bell_b "l30 e6 l60 c#6 l64 r r r r r r r r r r r")
+(pattern bell_c "l20 b5 c#6 e6 l60 f#6 l64 r r r r r r r r r")
+(pattern crickets
+    "m3 n1 v8 k0 l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l64 r r r r r l1 c8 r c8 r c8 r c8 l29 r l1 c8 r c8 r c8 r c8 l64 r r r r r r r")
+(voice 0 bass_d bass_e bass_b bass_g)
+(voice 1 in_low loop low_d low_e low_b low_g)
+(voice 2 in_crickets loop crickets)
+(voice 3 in_high loop high_d high_e high_b high_g)
+(voice 4 in_bell loop bell_a bell_b bell_c)
+(voice 5 in_echo loop bell_a bell_b bell_c)

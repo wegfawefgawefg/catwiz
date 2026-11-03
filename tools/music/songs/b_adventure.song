@@ -1,0 +1,76 @@
+; b_adventure: a main theme. Bouncy chiptune, G major.
+; Tempo: a 16th is 6 ticks (150 bpm), a bar 96.
+; Repeats: four 8-bar sections, 32 bars, then exactly again: 3072 ticks (51 s).
+; Size: 821 bytes (the big one: over the game's 395, under 900).
+;   A   G  D/F#  Em  C  | G   D  C  D     the hook, ending open on D
+;   A'  G  D/F#  Em  C  | Am  D  G  G     the hook again, closing on G; the arps come in
+;   B   C  D     Bm  Em | C   D  G  G     the chorus, high and long; the bass starts to pump
+;   B'  C  D     Bm  Em | Am  C  F  D     the same, turning through F (bVII) back to D, to A
+;
+; voice 0  bass. Verses: square 8ths bouncing root, octave, fifth. Choruses: the left
+;          chip's hardware envelope, a falling saw (h8:399) that repeats every 6 ticks, so
+;          each held note pumps in 16ths by itself: two notes a bar
+; voice 1  the lead: the hook (d g a b - a g a) and the chorus tune; its patterns set no
+;          volume, so voice 5 can share them
+; voice 2  fast arps (3 ticks a note) up each chord, from the second verse on (lent to the
+;          hero's effects in a fight)
+; voice 3  counter-line: soft half notes under the lead, mostly in contrary motion
+; voice 4  drums: kick (a low tone), snare and hat (noise), a snare roll every 8th bar
+; voice 5  the lead's echo, a dotted 8th (18 ticks) later and soft, on the other chip
+;          (lent to the enemies' effects)
+(pattern in_lead "v13 k3 l1 r")
+(pattern in_arps "v8 k1 l4 r")
+(pattern in_counter "l3 r")
+(pattern in_drums "l2 r")
+(pattern in_echo "v7 k3 l19 r")
+(pattern ba_g "l12 v12 k3 g2 g3 d3 g3 g2 g3 d3 g3")
+(pattern ba_fs "f#2 f#3 d3 f#3 f#2 f#3 d3 f#3")
+(pattern ba_em "e2 e3 b2 e3 e2 e3 b2 e3")
+(pattern ba_c "c2 c3 g2 c3 c2 c3 g2 c3")
+(pattern ba_d "d2 d3 a2 d3 d2 d3 a2 d3")
+(pattern ba_am "a1 a2 e2 a2 a1 a2 e2 a2")
+(pattern bb_1 "h8:399 l48 c2 g2 d2 a2 b1 f#2 e2 b2")
+(pattern bb_2 "c2 g2 d2 a2 g2 d2 g1 d2")
+(pattern bb_3 "a1 e2 c2 g2 f2 c2 d2 a1")
+(pattern lead_a1
+    "l12 d5 g5 a5 l24 b5 l12 a5 g5 a5 l36 f#5 l12 e5 l24 d5 r l12 b4 e5 f#5 l24 g5 l12 f#5 e5 f#5 l36 e5 l12 d5 l24 e5 g5")
+(pattern lead_a2
+    "l12 d5 g5 a5 l24 b5 l12 a5 b5 d6 l36 d6 l12 c6 b5 l36 a5 l12 g5 e5 g5 l24 c6 l12 b5 a5 g5 l36 a5 l12 f#5 l24 d5 r")
+(pattern lead_a3
+    "l12 c6 b5 a5 l24 e5 l12 a5 b5 c6 l36 d6 l12 c6 b5 a5 l24 f#5 l48 g5 l24 r l12 d5 e5 l24 g5 l12 a5 b5 l24 c6 d6")
+(pattern lead_b1
+    "l36 e6 l12 d6 c6 d6 l24 e6 l36 d6 l12 c6 b5 c6 l24 d6 l36 b5 l12 a5 f#5 a5 l24 b5 l60 g5 l12 r e5 g5")
+(pattern lead_b2
+    "l36 e6 l12 d6 c6 d6 l24 e6 l36 f#6 l12 e6 d6 e6 l24 f#6 l36 g6 - l24 r l12 d6 b5 l24 g5 l12 a5 b5 l24 d6")
+(pattern lead_b3
+    "l36 e6 l12 d6 c6 b5 l24 a5 l36 g5 l12 a5 c6 d6 l24 e6 l36 f6 l12 e6 c6 a5 l24 c6 l48 d6 l12 c6 a5 l24 f#5")
+(pattern rest8 "l64 r r r r r r r r r r r r")
+(pattern ar_g "l3 d5 g5 b5 d6 d5 g5 b5 d6 d5 g5 b5 d6 d5 g5 b5 d6")
+(pattern ar_d "d5 f#5 a5 d6 d5 f#5 a5 d6 d5 f#5 a5 d6 d5 f#5 a5 d6")
+(pattern ar_em "e5 g5 b5 e6 e5 g5 b5 e6 e5 g5 b5 e6 e5 g5 b5 e6")
+(pattern ar_c "c5 e5 g5 c6 c5 e5 g5 c6 c5 e5 g5 c6 c5 e5 g5 c6")
+(pattern ar_am "c5 e5 a5 c6 c5 e5 a5 c6 c5 e5 a5 c6 c5 e5 a5 c6")
+(pattern ar_bm "d5 f#5 b5 d6 d5 f#5 b5 d6 d5 f#5 b5 d6 d5 f#5 b5 d6")
+(pattern ar_f "c5 f5 a5 c6 c5 f5 a5 c6 c5 f5 a5 c6 c5 f5 a5 c6")
+(pattern counter_a1 "l48 v9 k6 b4 d5 a4 f#4 g4 b4 c5 g4")
+(pattern counter_a2 "b4 d5 a4 d5 e5 c5 a4 c5")
+(pattern counter_a3 "c5 e5 d5 c5 b4 d5 b4 g4")
+(pattern counter_b1 "e5 c5 f#5 d5 d5 b4 b4 g4")
+(pattern counter_b2 "e5 c5 f#5 a5 b5 g5 b4 d5")
+(pattern counter_b3 "c5 e5 e5 g5 c5 f5 d5 c5")
+(pattern groove
+    "l6 n4 m1 v13 k1 c2 r m2 v5 c4 r v12 k2 c4 r v5 k1 c4 m1 v13 c2 r c2 m2 v5 c4 r v12 k2 c4 r v5 k1 c4 v3 c4")
+(pattern fill
+    "m1 v13 c2 r m2 v5 c4 r v12 k2 c4 r v5 k1 c4 m1 v13 c2 m2 v8 k2 c4 r v9 c4 c4 v10 c4 v11 c4 v12 c4 v14 c4")
+(voice 0 ba_g ba_fs ba_em ba_c ba_g ba_d ba_c ba_d
+    ba_g ba_fs ba_em ba_c ba_am ba_d ba_g ba_g
+    bb_1 bb_2 bb_1 bb_3)
+(voice 1 in_lead loop lead_a1 lead_a2 lead_a1 lead_a3 lead_b1 lead_b2 lead_b1 lead_b3)
+(voice 2 in_arps loop rest8
+    ar_g ar_g ar_d ar_d ar_em ar_em ar_c ar_c ar_am ar_am ar_d ar_d ar_g ar_g ar_g ar_g
+    ar_c ar_c ar_d ar_d ar_bm ar_bm ar_em ar_em ar_c ar_c ar_d ar_d ar_g ar_g ar_g ar_g
+    ar_c ar_c ar_d ar_d ar_bm ar_bm ar_em ar_em ar_am ar_am ar_c ar_c ar_f ar_f ar_d ar_d)
+(voice 3 in_counter loop counter_a1 counter_a2 counter_a1 counter_a3
+    counter_b1 counter_b2 counter_b1 counter_b3)
+(voice 4 in_drums loop groove groove groove groove groove groove groove fill)
+(voice 5 in_echo loop lead_a1 lead_a2 lead_a1 lead_a3 lead_b1 lead_b2 lead_b1 lead_b3)
