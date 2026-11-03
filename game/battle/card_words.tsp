@@ -22,7 +22,7 @@
 
 (const SAY (array (ptr u8) 6)
     (make (array (ptr u8) 6)
-        "+1 " "Again: take" " (+#)" "Your levels stay: +# in its number." " (#,"
+        "+1 " "Again to take" " (+#)" "Your levels stay: +# in its number." " (#,"
         " +# from your levels)")
     :strings aux)
 
@@ -67,7 +67,7 @@
         (text.add_aux (at SAY SAY_PLUS1)))
     (text.add_aux name)
     (set text.inverse false)
-    (text.tab 24)
+    (text.tab 22)
     (text.add_aux (at SAY SAY_AGAIN))
     (show 0))
 

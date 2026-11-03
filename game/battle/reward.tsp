@@ -174,6 +174,8 @@
         (_))
     (set loaded (+ loaded 1))
     (draw_card (- loaded 1))
+    (if (and (= loaded choices) (and (= state.pick state.Pick.charms) (= state.picked state.NOTHING)))
+        (prompt))
     (tray.flush))
 
 (fn add ((c u8) (slot u8)) void
@@ -257,6 +259,7 @@
     (cw.rest))
 
 ; rows 1 on: each choice's key and name (a charm; a door's first enemy): three at most
+; (a charm's name shows once its record is read: load_next draws the prompt again then)
 (fn choice_rows () void
     (for k u8 0 choices
         (text.start)
@@ -318,8 +321,15 @@
         (state.Pick.charms
             (let r u8 (+ items.OFFER_CHARM_ROW n))
             (cw.title (items.name r) false)
-            (cw.item_row 1 (items.text r) (items.amount r))
-            (row 2 (at SAY SAY_ALL_RUN) 0))
+            ; its line a part a row (a charm's line has two), then that it works all run
+            (let part (ptr u8) (items.text r))
+            (let k u8 1)
+            (while (and (!= (as u16 part) 0) (< k text.ROWS))
+                (cw.item_row k part (items.amount r))
+                (set k (+ k 1))
+                (set part (text.next_part part)))
+            (if (< k text.ROWS)
+                (row k (at SAY SAY_ALL_RUN) 0)))
         (state.Pick.nap
             (if (= c 0)
                 (do

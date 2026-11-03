@@ -255,14 +255,30 @@
     (let r u8 (charms.row k))
     (title (items.name r))
     (text.show 0)
-    (text.start)
-    (text.add_item (items.text r) (items.amount r))
-    (text.show 1)
-    (row 2 (at SAY SAY_ALL_RUN))
-    (text.start)
-    (if (> (at state.charms k) 1)
-        (text.add_aux_n (at SAY SAY_HAS) (at state.charms k)))
-    (text.show 3))
+    ; its line a part a row (a charm's line has two), then how many she has (more than one),
+    ; then that it works all run, as rows are free
+    (let part (ptr u8) (items.text r))
+    (let rw u8 1)
+    (while (and (!= (as u16 part) 0) (< rw text.ROWS))
+        (text.start)
+        (text.add_item part (items.amount r))
+        (text.show rw)
+        (set rw (+ rw 1))
+        (set part (text.next_part part)))
+    (if (and (> (at state.charms k) 1) (< rw text.ROWS))
+        (do
+            (text.start)
+            (text.add_aux_n (at SAY SAY_HAS) (at state.charms k))
+            (text.show rw)
+            (set rw (+ rw 1))))
+    (if (< rw text.ROWS)
+        (do
+            (row rw (at SAY SAY_ALL_RUN))
+            (set rw (+ rw 1))))
+    (while (< rw text.ROWS)
+        (text.start)
+        (text.show rw)
+        (set rw (+ rw 1))))
 
 ; entry e picked: its card framed (the one before not), its text
 (fn pick ((e u8)) void
