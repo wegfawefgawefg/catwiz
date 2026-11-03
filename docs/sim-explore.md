@@ -7,23 +7,25 @@ marked as suggestions and were not applied.
 ## The short list
 
 Broken, or nearly (the expert wins 88% unforced; "alone" is the face given from fight 1 in its
-slot and kept there, 128 runs, against 87.5% with nothing given):
+slot and kept there, 128 runs, against 91.4% with nothing given):
 
-1. Paw Flip. Alone 97.7%; every pair with it but Kitten Cannon 98-100%; forced +3 (the most a card can add near
-   the ceiling). The sim lets the search turn only two dice; the game lets her turn every
-   unplayed die to any face before her next play, so in the game it is stronger still.
-2. Fresh Roll. The best forced card in every third (96%, 93%, 91%); alone 96%; seven of its
-   pairs won every run. One mana brings every played die back, up to the five-a-turn cap it
-   shares with Red Dot; with Cheap Trick it is free.
-3. Red Dot (alone 97.7%), Copycat, Love Bite, Scratching Habit (alone 96%): strong single
-   cards. Red Dot and Fresh Roll together won every run.
+1. Paw Flip. Alone 98.4%; every pair with it but Kitten Cannon 97.7-100%; forced +3 (the
+   most a card can add near the ceiling). The sim lets the search turn only two dice; the
+   game lets her turn every unplayed die to any face before her next play (validate.py
+   checked that it does), so in the game it is stronger still.
+2. Fresh Roll. The best forced card in every third (96%, 93%, 91%); alone 97.7%; several of
+   its pairs won every run. One mana brings every played die back, up to the five-a-turn cap
+   it shares with Red Dot; with Cheap Trick it is free.
+3. Red Dot (alone 99.2%), Catfight (97.7%), Scratching Habit (96.1%): strong single cards.
+   Red Dot and Fresh Roll together won every run.
 4. Scratching Habit grows by its whole number, habit included, so each use doubles it (2, 4,
    8, 16 ... 255 by its eighth use). It is in 99% of the fights where a hit reached 255 (1.3%
    of fights, 9% of runs). It is not a win-rate lock (forced -0.7), because damage is rarely
    what kills the expert, but the 255s are all its.
 5. Mana Burn with Plus One (or Times Two, Double or Nothing, Stone Cat): the plus and times go
    on its number before the mana multiplies it, so a level-1 Mana Burn after two Plus Ones hit
-   the King for 50 (seed 6300018). Mana Burn's pairs have the biggest lifts (+5 to +7).
+   the King for 50 (seed 6300018). Times Two with Mana Burn has the biggest lift of any pair
+   (+7).
 
 Unusably bad (forced at or under a blank face of its slot, or far under a skip):
 
@@ -427,32 +429,34 @@ Loops: none run away. Her dice came back the most a turn (5) in 2.3% of fights (
 Fresh Roll, Red Dot, Spell Echo, Cheap Trick) brought the dice back to the cap in 19% of its
 fights and won 94% of 256 runs; still no loop.
 
-Pairs (`--study lift`, 25 suspects given from fight 1, 128 runs a cell, the first pass's
-learned values; nothing given 87.5%):
+Pairs (`--study lift`, 25 suspects given from fight 1 in their slots and kept there, 128 runs
+a cell, seed 67, the final learned values; nothing given 91.4%; a cell's noise about 2.5
+points):
 
 | alone | won | | alone | won |
 |---|---|---|---|---|
-| Paw Flip | 97.7% | | Mimic | 91.4% |
-| Red Dot | 97.7% | | Snowball | 89.8% |
-| Fresh Roll | 96.1% | | Times Two | 89.8% |
-| Copycat | 96.1% | | Double or Nothing | 89.1% |
-| Love Bite | 96.1% | | Mana Burn | 88.3% |
-| Scratching Habit | 96.1% | | Stone Cat | 87.5% |
-| Catfight | 95.3% | | Mana Battery (charm) | 87.5% |
-| Catnap | 94.5% | | Thunder Purr | 85.9% |
-| Drenched | 94.5% | | Meowcronomicon | 85.9% |
-| All In | 93.8% | | Box Slam | 83.6% |
-| Spell Echo | 92.2% | | Sharpen Claws | 82.8% |
-| | | | Hat Trick | 77.3% |
-| | | | Hiss | 71.1% |
-| | | | Kitten Cannon | 67.2% |
+| Red Dot | 99.2% | | Double or Nothing | 89.1% |
+| Paw Flip | 98.4% | | Mimic | 88.3% |
+| Fresh Roll | 97.7% | | Mana Burn | 88.3% |
+| Catfight | 97.7% | | Stone Cat | 87.5% |
+| Scratching Habit | 96.1% | | Snowball | 87.5% |
+| Catnap | 94.5% | | Box Slam | 85.9% |
+| Love Bite | 93.8% | | Thunder Purr | 82.8% |
+| Drenched | 93.8% | | Meowcronomicon | 82.8% |
+| All In | 93.8% | | Sharpen Claws | 82.0% |
+| Copycat | 93.0% | | Hat Trick | 75.0% |
+| Mana Battery (charm) | 91.4% | | Hiss | 65.6% |
+| Times Two | 89.1% | | Kitten Cannon | 62.5% |
+| Spell Echo | 89.1% | |  |  |
 
-15 of the 231 pairs won all 128 runs; 13 of them have Paw Flip or Fresh Roll. The biggest lifts
-(the pair against the better of its two alone): Mana Burn with Box Slam, Double or Nothing or
-Stone Cat (+6 to +7), Times Two with Meowcronomicon (+7), Times Two with Mana Burn (+5). Paw
-Flip's pairs add at most +2: it is at the ceiling alone. Kitten Cannon with Paw Flip lost 12
-points against Paw Flip alone (both take a slot from a better face). No triple was run: the
-pairs are at the ceiling already.
+12 of the 231 pairs won all 128 runs; 10 of them have Paw Flip or Fresh Roll (Red Dot with
+Fresh Roll among them). Every Paw Flip pair but Kitten Cannon's won 97.7% or more. The biggest
+lifts (the pair against the better of its two alone) are the multipliers on a number that
+scales: Times Two with Mana Burn (+7.0), Drenched or Meowcronomicon (+6.2), Double or Nothing
+with Mana Burn, Spell Echo with Snowball, Copycat with Love Bite (+5.5). Paw Flip's pairs add
+little: it is at the ceiling alone. The same study with the first pass's values (base 87.5%)
+had the same order at the top (Paw Flip and Red Dot 97.7%, Fresh Roll, Copycat, Love Bite and
+Scratching Habit 96.1%). No triple was run: the pairs are at the ceiling already.
 
 ## Domains
 
