@@ -42,6 +42,13 @@ void learned_load(const char *path) {
     learned_on = 1;
 }
 
+/* a learned value: the run's win rate when the option was forced (NAN when not measured) */
+double learned_value(int kind, int after, int what) {
+    if (!learned_on || kind < 0 || kind > 3 || after < 0 || after > FIGHT_COUNT)
+        return NAN;
+    return LEARNED[kind][after][what & 255];
+}
+
 /* the learned bonus of each option (0 when not measured) */
 static void bonus(int kind, int after, const int *what, int n, double *out) {
     double sum = 0;

@@ -35,6 +35,7 @@ typedef struct {
     uint8_t charm_offer[FIGHT_COUNT][CHARMS_DRAWN];
     uint32_t seen[FACE_COUNT], played[FACE_COUNT]; /* faces shown at a turn's end, played */
     int blunders;
+    uint64_t seed_of_run;
     char *log;
 } RunResult;
 
@@ -77,6 +78,9 @@ const char *kit_words(const Kit *kit, char *buf);
 const char *card_name(int c, char *buf);
 
 /* draft.c */
+double learned_value(int kind, int after, int what);
+extern uint64_t OFFER_SALT; /* not 0: the draws take their own random numbers (luck study) */
+#define BLANK_CARD 200 /* a forced card BLANK_CARD + slot: that slot's face made a blank */
 int search_choose(Player *p, const Kit *kit, int hp, int f, const Pick *opts, int n);
 int search_nap(Player *p, const Kit *kit, int hp, int heal, const Pick *ups, int n, int f);
 int search_door(Player *p, const Kit *kit, int hp, int f, int other);

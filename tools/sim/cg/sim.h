@@ -60,6 +60,7 @@ typedef struct {
     uint8_t back_cap_turns, hat_deep, runaway;
     uint8_t one_turn_kind[8]; /* kinds killed from full in one of her turns */
     uint8_t n_one_turn;
+    uint32_t seen_kinds; /* a bit a kind that stood in the fight */
 } Peak;
 
 typedef struct Battle {
@@ -80,6 +81,8 @@ typedef struct Battle {
     uint16_t q_fx[4];
     uint8_t q_on[4], q_val[4], q_head, q_count;
     uint32_t srng; /* a search's copy's own random numbers (coins, picks, hats) */
+    uint16_t xs;   /* the game's own random numbers (lib/random's xorshift), for check.c */
+    uint8_t xs_on;
     /* ---- not the position */
     int turn, hero_lost, hero_healed, self_hits;
     int t_dmg;          /* damage to enemies this hero turn */

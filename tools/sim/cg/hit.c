@@ -5,6 +5,14 @@
 #include "tell.h"
 
 int rnd_byte(Battle *b) {
+    if (b->xs_on) { /* lib/random.tsp: 16-bit xorshift 7, 9, 8 */
+        uint16_t x = b->xs;
+        x ^= (uint16_t)(x << 7);
+        x ^= x >> 9;
+        x ^= (uint16_t)(x << 8);
+        b->xs = x;
+        return x & 0xFF;
+    }
     if (b->rng)
         return (int)mt_bits(b->rng, 8);
     uint32_t x = b->srng ? b->srng : 0x9E3779B9u; /* xorshift32 */
@@ -26,6 +34,7 @@ void spawn_enemy(Battle *b, int i, int kind, int fresh) {
     st_start(b, i, kind);
     if (fresh)
         set_stk(b, i, ST_fresh, 1);
+    b->peak.seen_kinds |= 1u << kind;
 }
 
 /* statuses.start: no stacks, and the ward its kind has (the hero: NOTHING) */

@@ -17,6 +17,7 @@
 
 const Kit *START_KIT = NULL;
 int BLANK_SLOT = NOTHING;
+uint64_t OFFER_SALT = 0;
 
 void kit_start(Kit *kit) {
     memset(kit, 0, sizeof *kit);
@@ -151,8 +152,8 @@ static int draw(Mt *rng, const Kit *kit, int charms, uint8_t *out) {
 /* a forced pick slipped into the offer when it can come and is not in it */
 static int slip_in(const Kit *kit, int kind, int f, uint8_t *drawn, int n, int most) {
     const Force *fo = forced_at(kind, f);
-    if (!fo)
-        return n;
+    if (!fo || fo->a >= BLANK_CARD)
+        return n; /* a skip or a blank is not a card */
     if (kind == FORCE_CARD && !card_ok(kit, fo->a))
         return n;
     if (kind == FORCE_CHARM && kit_holds(kit, fo->a))
@@ -177,7 +178,8 @@ static void grow_hp(Kit *kit, int *hp, int n) {
 void pick_apply(Kit *kit, int *hp, const Pick *o) {
     switch (o->what) {
     case PK_ITEM:
-        kit->items[FACES[o->a].slot] = o->a;
+        if (o->a != BLANK_ID)
+            kit->items[FACES[o->a].slot] = o->a;
         break;
     case PK_CHARM:
         if (kit->ncharms < HELD_CHARMS) {
@@ -328,6 +330,14 @@ static void nap(Player *p, Kit *kit, int *hp, int f, RunResult *out) {
 void reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out, Mt *rng) {
     const FightRow *fight = &FIGHTS[fought];
     uint8_t cards[FACES_DRAWN], charms[CHARMS_DRAWN];
+    Mt own;
+    if (OFFER_SALT && out) { /* the luck study: the draws apart from the dice */
+        uint64_t s = OFFER_SALT * 1000003u + (uint64_t)f * 7919u;
+        for (int i = 0; i < out->npicks; i++)
+            s = s * 31u + out->picks[i].card;
+        mt_seed(&own, s ^ out->seed_of_run);
+        rng = &own;
+    }
     int nc = draw(rng, kit, 0, cards), nh = 0;
     if (fight->elite) {
         for (int h = 0; h < kit->ncharms; h++)
@@ -358,6 +368,14 @@ void reward_pick(Player *p, Kit *kit, int *hp, int f, int fought, RunResult *out
         opts[n].a = (uint8_t)(lv ? card_slot(c) : c);
         opts[n].card = (uint8_t)c;
         n++;
+    }
+    const Force *fb = out ? forced_at(FORCE_CARD, f) : NULL;
+    if (fb && fb->a >= BLANK_CARD && fb->a < BLANK_CARD + 6) {
+        /* the studies' baseline: the slot's face made a blank, as if the card did nothing */
+        kit->items[fb->a - BLANK_CARD] = BLANK_ID;
+        Pick bl = {PK_ITEM, BLANK_ID, 0, (uint8_t)fb->a};
+        add_pick(out, &bl, f);
+        n = 0;
     }
     if (n) {
         opts[n].what = PK_SKIP;
@@ -420,6 +438,8 @@ static const char *const SLOT_UP[6] = {"WAND", "FLUFF", "STAR", "BOOK", "CURSE",
 const char *card_name(int c, char *buf) {
     if (c == SKIP_CARD)
         sprintf(buf, "skip");
+    else if (c >= BLANK_CARD && c < BLANK_CARD + 6)
+        sprintf(buf, "blank %s", SLOT_UP[c - BLANK_CARD]);
     else if (c >= UP_CARD)
         sprintf(buf, "+1 %s", SLOT_UP[c - UP_CARD]);
     else
@@ -429,7 +449,7 @@ const char *card_name(int c, char *buf) {
 
 const char *pick_words(const Pick *pk, char *buf) {
     switch (pk->what) {
-    case PK_ITEM: sprintf(buf, "%s", FACES[pk->a].name); break;
+    case PK_ITEM: sprintf(buf, "%s", pk->a == BLANK_ID ? "(a blank face)" : FACES[pk->a].name); break;
     case PK_LEVEL: sprintf(buf, "+1 %s", SLOT_UP[pk->a]); break;
     case PK_CHARM: sprintf(buf, "charm %s", CHARMS[pk->a].name); break;
     case PK_NAP_HEAL: sprintf(buf, "rest: heal"); break;

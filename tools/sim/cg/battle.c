@@ -205,7 +205,7 @@ static void dice_back(Battle *b) {
         }
     }
     cough(b);
-    if (!b->rng) {
+    if (!b->rng && !b->xs_on) {
         b->back = mask;
         return;
     }
@@ -255,7 +255,9 @@ void b_play(Battle *b, int d, int target) {
     int id = row_id(b, row);
     if (id < 64)
         b->t_played |= 1ull << id;
-    if (target != NOTHING && target < ACTORS && target > 0 && b->alive[target])
+    /* a die for an enemy goes to the one picked (a hat trick's target is picked before it) */
+    if ((FACES[id].aim == A_foe || id == ID_HAT_TRICK) && target != NOTHING && target < ACTORS &&
+        target > 0 && b->alive[target])
         b->target = (uint8_t)target;
     int t = FACES[id].aim == A_self ? HERO : b->target;
     if (b->tell)
