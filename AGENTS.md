@@ -630,6 +630,19 @@ splits a memory would not build.
   turn (SEED 5) ends at frame 1911 as before. A fight's art is up about 10 frames later (the
   fight's start group reads the run's set-up). `battle.enter` sets `state.hitstop` (scratch now:
   battle.step reads it first).
+- 2026-11-03, the rest and the heal's hearts (branch rest, on fixes 2dfc658): the nap's step and
+  its words gone; the picked card's stage preview drawn in the reward's step with its text (it was
+  battle.draw's a frame later: `reward.refresh`, `staged` and the `card_*` helpers left resident
+  code); the nap and plus1 pictures out of aux memory. Before: the boot 73,311 bytes, the card
+  12,278 of 12,282, bank 1 3,681 (25 functions, `blit.draw` among them), aux 6,142 at `$0800`
+  and 23,526 at `$6000`, the overlay region 3,160 (the reward's group sized it; the pages'
+  3,150). After, with the hearts: the boot 72,937 (374 less), the card 12,281 (the layout fills
+  it), bank 1 3,545 (25 functions; `blit.draw` back in bank 2, 11,566 crossings a run against
+  12,670), aux 6,144 and 23,283 (243 less: 1,293 left at `$6000`), the overlay region 3,232 (the
+  reward's group 3,223 now holds the preview's code; it is read from disk 2, 27.7 frames). The
+  sprite room is as it was (no new sprite). A pass waiting for a key, flat out, 5,920 cycles in
+  fight 1 (5,915). The hearts cost about 31,000 cycles over the 40 frames they rise (a heal of
+  hers, measured with `tools/measure.py` and a profile: the scene's boxes and fills).
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page
