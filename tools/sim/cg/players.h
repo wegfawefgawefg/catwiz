@@ -14,6 +14,7 @@ typedef struct {
 
 extern double KIND_THREAT[KIND_COUNT];
 extern int KIND_CHAIN[KIND_COUNT];
+extern double CHAIN_THREAT[KIND_COUNT];
 void judge_init(void);
 double judge_value(const Battle *b);
 double judge_after_turn(const Battle *b);

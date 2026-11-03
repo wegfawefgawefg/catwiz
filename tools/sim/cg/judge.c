@@ -8,6 +8,7 @@
 
 double KIND_THREAT[KIND_COUNT];
 int KIND_CHAIN[KIND_COUNT]; /* hit points still to come after it is beaten (its next forms) */
+double CHAIN_THREAT[KIND_COUNT]; /* its next forms' average moves, added up */
 
 void judge_init(void) {
     for (int k = 0; k < KIND_COUNT; k++) {
@@ -31,6 +32,11 @@ void judge_init(void) {
         for (int t = KINDS[k].then; t != NOTHING; t = KINDS[t].then)
             chain += KINDS[t].hp;
         KIND_CHAIN[k] = chain;
+    }
+    for (int k = 0; k < KIND_COUNT; k++) {
+        CHAIN_THREAT[k] = 0;
+        for (int t = KINDS[k].then; t != NOTHING; t = KINDS[t].then)
+            CHAIN_THREAT[k] += KIND_THREAT[t];
     }
 }
 

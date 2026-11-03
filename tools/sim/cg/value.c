@@ -150,12 +150,15 @@ double value_of(const Battle *b) {
         int k = b->kind[i];
         v -= W->foe_hp * (b->hp[i] + KIND_CHAIN[k]);
         v -= W->foe_shield * stk(b, i, ST_shield) + W->foe_ward * stk(b, i, ST_ward);
-        /* a status is worth what it can still pay out, not its stack: marks and wet piled on
-           an enemy the search does not finish would be worth more than beating it */
+        /* a status is worth what it can still pay out, not its stack, and never more than the
+           hit points it stands on: marks and wet piled on an enemy at 1 hp would be worth more
+           than beating it. Its next forms' moves count while it stands (they come when it is
+           beaten), so beating a weakened form does not look like a loss */
+        int hp = b->hp[i], cap = hp < 4 ? hp : 4;
         int brand = stk(b, i, ST_brand), wet = stk(b, i, ST_wet), leech = stk(b, i, ST_leech);
-        v += W->brand * (brand < 4 ? brand : 4) + W->wet * (wet < 3 ? wet : 3);
-        v += W->dot * (stk(b, i, ST_dot) > 0) + W->leech * (leech < 3 ? leech : 3);
-        v -= W->threat * threat(b, i);
+        v += W->brand * (brand < cap ? brand : cap) + W->wet * (wet < 3 ? wet : 3) * (hp > 4);
+        v += W->dot * (stk(b, i, ST_dot) > 0) + W->leech * (leech < 3 ? leech : 3) * (hp > 4);
+        v -= W->threat * (threat(b, i) + CHAIN_THREAT[k] * (1 + W->decay + W->decay * W->decay));
         if (stk(b, i, ST_flea_turns)) {
             int f = stk(b, i, ST_poison) * stk(b, i, ST_flea_turns);
             v += W->fleas * (f < b->hp[i] ? f : b->hp[i]);
