@@ -149,6 +149,29 @@ Smaller:
 - The balance doc's next tunings (docs/balance.md: the kitten axis, the cards that lose to a
   clear favourite, steadier elites) are content changes in `game/content`.
 
+## Later (planned, the owner 2026-11-04: the game feels right as it is; tag postnicemusic)
+
+The owner's difficulty check at postnicemusic: lost 5-10 runs, won one, "about right". Keep
+the numbers as the baseline.
+
+1. The rests' waltz with vibrato (`a_waltz_vib`, after each elite only; ordinary rewards keep
+   the zone's song). It needs glide, vibrato and detune. Tisple branch `rich-sound` (fe83135)
+   has `lib/mockingboard_bends_small.tsp`: 1,513 bytes of handler code, about 830 more than
+   Catwiz has free. Not merged.
+2. The rich multi-voice sound effects (`tools/music/sfx/rich.fx`, `stingers.fx`,
+   `stingers_motif.fx`), on top of every current sound: keep each sound distinct and the
+   punchy impacts (smack, tackle), plus a fight-win sting over the zone song.
+3. Attack effects from the a2fx combat kit (`~/Coding/Graphics/a2fx`, renders/combat.mp4):
+   the owner picks two or three. No slower fights.
+4. What unblocks all three is room. The biggest lever is a 65C02-only build (954 bytes
+   smaller; loses only the unenhanced IIe). It needs a CPU check at boot, a Tisple way to put
+   a library's variables in a program's free scratch, and a load pass (the 65C02 test build
+   lost a disk turn at the run's end). The other option is a Tisple feature for handler code
+   loaded only while a screen is up.
+5. Tisple placement by constraints: the reader recovering from a missed sector first, then
+   constraint-placed scratch (retiring the hand `:address` lets), then a solver weighted by
+   call counts that keeps the layout stable.
+
 ## Art rules
 
 Double hi-res, `tools/dhgr/` (AGENTS.md, Art). Midnight (2026-10-31): the whole game is night,
