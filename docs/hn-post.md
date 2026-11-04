@@ -1,11 +1,10 @@
 # Show HN post: draft
 
-Draft, 2026-11-04. Read docs/release.md first: be upfront about the AI's part. Check HN's
-current mood on AI-built projects right before posting. Before posting:
+Draft, 2026-11-04. No AI disclaimer (the owner, 2026-11-04: building with AI is assumed
+now). Before posting:
 
 - Cut release v0.3, so the disks match the web build.
 - Refresh the README's screenshots (they predate the text pass).
-- Add the AI paragraph to both READMEs.
 
 ## Title (80 characters at most)
 
@@ -49,10 +48,5 @@ Some of the tricks it took to fit:
   cost no memory.
 - The browser player is a cycle-exact IIe in WebAssembly with its own boot ROM, so no Apple ROMs
   are shipped. Its drive sounds are synthesized from the emulated drive's own events.
-
-How it was made: I built this with heavy help from AI (Claude agents wrote much of the compiler,
-the game code, the balance sims and the art tools). I designed the game and the language,
-directed the work, reviewed it and playtested it. [Owner: edit this paragraph to say it your
-way.]
 
 Source: https://github.com/wegfawefgawefg/catwiz and https://github.com/wegfawefgawefg/tisple

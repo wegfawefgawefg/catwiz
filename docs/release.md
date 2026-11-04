@@ -1,10 +1,9 @@
 # Release: where to show Catwiz
 
 Written 2026-11-01 for the first public release (a Show HN post first). Catwiz and Tisple were
-built with heavy AI help (Claude agents wrote much of the code, the sims and the art tools), and
-some communities ban or dislike AI-made projects. Check each place's current rules and mood
-right before posting, and say how it was made up front: getting caught hiding it is worse than
-any rule.
+built with heavy AI help. The owner (2026-11-04): no disclaimer, building with AI is assumed
+now. Where a place has a rule about it (itch.io's AI tags, the subreddits below that ban
+AI-built projects), follow the rule or skip the place.
 
 ## What to have ready
 
@@ -12,7 +11,6 @@ any rule.
   run web/rom_check.py over anything before it goes public).
 - The .dsk for AppleWin, MAME and real hardware (a Floppy Emu, or a real 5.25" disk).
 - A README with screenshots and a GIF of a big combo turn, how to play, and how it was made.
-- One honest paragraph on the AI's part, reused everywhere.
 
 ## Places
 
