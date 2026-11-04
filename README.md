@@ -158,3 +158,10 @@ too. It is all config, `"telemetry"` in
 It started as Witchdog, with a dog witch for a hero, and became Catwiz when the cat took over.
 
 Inspired by Dog Witch and Slay the Spire. The names, art, music and rules here are our own.
+
+## License
+
+GPL-3.0-or-later (`LICENSE`), the code and the content alike: the art, the music, the cards'
+and enemies' text. Copyright 2026 wegfawefgawefg. Built with
+[Tisple](https://github.com/wegfawefgawefg/tisple), whose runtime exception covers the code it
+compiles in.
