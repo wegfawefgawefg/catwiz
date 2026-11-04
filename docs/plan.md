@@ -167,7 +167,9 @@ the numbers as the baseline.
    smaller; loses only the unenhanced IIe). It needs a CPU check at boot, a Tisple way to put
    a library's variables in a program's free scratch, and a load pass (the 65C02 test build
    lost a disk turn at the run's end). The other option is a Tisple feature for handler code
-   loaded only while a screen is up.
+   loaded only while a screen is up. The owner leans to staying plain 6502 (2026-11-04): the
+   double hi-res games of the day needed 128K but not a 65C02, and running on an original 1983
+   IIe is part of the point.
 5. Tisple placement by constraints: the reader recovering from a missed sector first, then
    constraint-placed scratch (retiring the hand `:address` lets), then a solver weighted by
    call counts that keeps the layout stable.
