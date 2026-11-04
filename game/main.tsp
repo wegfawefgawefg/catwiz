@@ -27,12 +27,10 @@
 ; no card, the keyboard is read once a pass
 (const KEY_LINE u8 8) ; a power of 2
 (let key_line (array u8 8) :address 0x06E4)
-(let key_head u8 0)
-(let key_tail u8 0)
 
 (fn take_key () void
-    (let next u8 (& (+ key_tail 1) (- KEY_LINE 1)))
-    (if (= next key_head)
+    (let next u8 (& (+ state.key_tail 1) (- KEY_LINE 1)))
+    (if (= next state.key_head)
         (return))
     ; the keyboard read here, not with keys.read: the loop calls that too, and the tick may
     ; stop it halfway
@@ -40,8 +38,8 @@
     (if (< k 0x80)
         (return))
     (io_read u8 a2.KBDSTRB)
-    (set (at key_line key_tail) (& k 0x7F))
-    (set key_tail next))
+    (set (at key_line state.key_tail) (& k 0x7F))
+    (set state.key_tail next))
 
 ; a click: the mouse's button going down (a tap on the phone player or a click in the window
 ; puts the mouse there and presses it; a mouse on a real Apple works the same), a CLICK in the
@@ -65,33 +63,33 @@
         (return))
     ; the handler puts keys in the line too: not while this one goes in
     (sei)
-    (let next u8 (& (+ key_tail 1) (- KEY_LINE 1)))
-    (if (= next key_head)
+    (let next u8 (& (+ state.key_tail 1) (- KEY_LINE 1)))
+    (if (= next state.key_head)
         (do
             (cli)
             (return)))
     ; x is 0-279 in two bytes: halved, in one
-    (set (at click_x key_tail)
+    (set (at click_x state.key_tail)
         (| (>> (at mouse.x_low mouse.slot) 1) (<< (at mouse.x_high mouse.slot) 7)))
-    (set (at click_y key_tail) (at mouse.y_low mouse.slot))
-    (set (at key_line key_tail) CLICK)
-    (set key_tail next)
+    (set (at click_y state.key_tail) (at mouse.y_low mouse.slot))
+    (set (at key_line state.key_tail) CLICK)
+    (set state.key_tail next)
     (cli))
 
 ; whether a key waits: in the line (keys with a card, clicks), or on the keyboard with no card
 ; (a look, no call: the loop asks every pass)
 (macro key_waiting ()
-    `(or (!= key_head key_tail) (and (not mb.found) (>= (io_read u8 a2.KBD) 0x80))))
+    `(or (!= state.key_head state.key_tail) (and (not mb.found) (>= (io_read u8 a2.KBD) 0x80))))
 
 ; the next key: from the line (a click there the key of what it hit), else with no card the
 ; keyboard's
 (fn next_key () u8
-    (if (= key_head key_tail)
+    (if (= state.key_head state.key_tail)
         (return (if mb.found
             0
             (keys.read))))
-    (let at u8 key_head)
-    (set key_head (& (+ at 1) (- KEY_LINE 1)))
+    (let at u8 state.key_head)
+    (set state.key_head (& (+ at 1) (- KEY_LINE 1)))
     (let k u8 (at key_line at))
     (if (= k CLICK)
         (return (boxes.key_at (at click_x at) (at click_y at))))

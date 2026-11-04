@@ -106,6 +106,10 @@
 ; the Mockingboard's ticks, one a frame (main.irq): the frames that really went by, however
 ; long drawing one took
 (let clock u8)
+; main's key line (main.tsp take_key): its first key and its end; the title empties it as it
+; loads
+(let key_head u8 0)
+(let key_tail u8 0)
 (let mouse_on bool false) ; a mouse card, set up (title.enter): main's handler reads it then
 (let frame u8) ; counts up every frame but in hit-stop
 (let idle u8) ; counts up while the hero's turn waits for a key: idle bobs and wing flaps
