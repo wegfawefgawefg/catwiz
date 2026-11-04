@@ -110,7 +110,7 @@
             ; the fight's song is read from it at once and comes in as soon as that is silent
             (sound.quiet)
             (disk2.find)
-            (sound.song sound.Song.battle)
+            (sound.song sound.Song.woods) ; the first fight's (battle.fight_song)
             (return state.Screen.battle)))
     (set state.glow_time (+ state.glow_time 1))
     state.Screen.title)

@@ -329,6 +329,20 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
   rules page's buffer) and copied into main (`waiting.PLAYING` bytes: keep it at the largest
   song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
+- Which song where (2026-11-04, the owner's picks, auditions in `tools/music/songs`): the title
+  TITLE; a fight its zone's (`battle.fight_song`): the woods BATTLE (`now_battle.song`), the
+  garden GARDEN (`b_nightgarden`, the crickets' noise set at each chirp), the house HOUSE
+  (`b_lounge`); the run won WON, lost LOST. A fight after one of its zone keeps the song playing
+  (`sound.now`: no fade, no restart). The run lost cuts the fight's song (`sound.lose`: LOST is
+  read while it plays, then replaces it at the next tick; no fade). Picked but not in: the
+  elites' `c_mathrock_straight` (479 bytes), the King's `a_king` (887), the won run's
+  `b_adventure` (821), all bigger than the 395-byte song buffer in a full main memory, and the
+  rewards' `a_waltz_vib`, which needs lib/mockingboard_bends' player (`mb.service_bends`: 918
+  bytes more code, bank 1 from 15 functions to 24, about 92,000 cycles a run in crossings to
+  273,000). Until there is room the elites and the King play their zone's, a reward the fight's.
+  `songs.DISK_ROOM` (12 sectors, never read) keeps the tables after the songs one whole track on
+  (4 sectors alone put the fight's start group across a track: fight 1 ready 24 frames later);
+  the next songs take its sectors.
 - Song changes fade (2026-11-03, the owner; Tisple's `mb.fade`, docs/mockingboard.md "Fades"):
   `sound.quiet` (the title's key, and every `sound.song`) fades the music out, a volume step every
   4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a load
