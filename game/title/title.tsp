@@ -80,10 +80,15 @@
 
 ; one frame of the title; gives the screen to show next
 (fn step ((key u8)) state.Screen :overlay
+    ; a key or click from before the title was up (read before the load, or put in the key
+    ; line by the tick while it ran) is not a start: this pass ignores its key and empties the
+    ; line
     (if due
         (do
             (set due false)
-            (enter)))
+            (enter)
+            (set state.key_head state.key_tail)
+            (set key 0)))
     (if card_due
         (do
             (set card_due false)
