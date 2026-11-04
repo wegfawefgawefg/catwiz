@@ -165,3 +165,10 @@ GPL-3.0-or-later (`LICENSE`), the code and the content alike: the art, the music
 and enemies' text. Copyright 2026 wegfawefgawefg. Built with
 [Tisple](https://github.com/wegfawefgawefg/tisple), whose runtime exception covers the code it
 compiles in.
+
+## Contributing
+
+Not taking pull requests; bug reports and ideas in issues are welcome. If a contribution is ever
+accepted, by sending it you agree that it is under this project's license, and you also grant
+wegfawefgawefg a perpetual, worldwide, irrevocable, royalty-free license to use, change,
+relicense and sell it under any terms, without asking you again.
