@@ -108,10 +108,13 @@
     (text.forget)
     (hud.forget))
 
-; fight f's song: its zone's. (The owner's picks for the elites, c_mathrock_straight, 479 bytes,
-; and the King, a_king, 887, are bigger than the song buffer, sound/waiting PLAYING, 395 bytes:
-; they play their zone's until there is room)
+; fight f's song: the King's for the run's last fight (the boss), the elites' for an elite's,
+; else its zone's
 (fn fight_song ((f u8)) sound.Song
+    (if (= (+ f 1) enc.FIGHT_COUNT)
+        (return sound.Song.king))
+    (if (enc.elite f)
+        (return sound.Song.elite))
     (match (enc.zone f)
         (enc.Zone.woods sound.Song.woods)
         (enc.Zone.garden sound.Song.garden)

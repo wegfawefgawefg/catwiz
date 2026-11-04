@@ -11,12 +11,13 @@
 ; With no card: the speaker effects of sfx.tsp, which hold the processor while they play, the
 ; title jingle, and no other music.
 ;
-; The songs live on the disks (songs.tsp); the one starting is read into aux memory and copied
-; into main memory (sound/waiting), with interrupts on: the first title puts in lib/auxmem's
-; guard. A song change fades the one before out and the new one in (song), and the game goes on
+; The songs live on the disks (songs.tsp); the one starting is read into the language card's
+; bank 1 (sound/waiting), where the card's handler plays it. A song change fades the one before
+; out and the new one in (song), and the game goes on
 ; meanwhile; a screen's song starts as its load begins and plays through it. The song already
 ; playing asked for again plays on; the run lost cuts the fight's song off for LOST.
 
+(import disk)
 (import mockingboard mb)
 (import mockingboard_player player)
 (import mockingboard_song tune)
@@ -65,8 +66,9 @@
         whoosh    ; her shield flung
         sparkle)) ; mana
 
-;   the title; a fight's, by its zone (battle.fight_song); the run won or lost (lose)
-(enum Song (title woods garden house won lost))
+;   the title; a fight's, by its zone (battle.fight_song); the run won or lost (lose); an
+;   elite's fight and the King's (battle.fight_song)
+(enum Song (title woods garden house won lost elite king))
 
 ; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
@@ -83,11 +85,11 @@
 
 ; where each song's fade in starts, in steps down (3 dB a step, 4 ticks each), in Song's order:
 ; 3 steps below its first notes' volume (songs.tsp: the title's bass v13, the woods' v12, the
-; garden's v10, the house's v12), so the first note is heard from its first tick and rises from
-; there (from 13, the loudest volume, both first songs' first notes decayed faster than the fade
-; rose and were never heard: the battle's first 36 ticks were silent). The stingers (won, lost)
-; at full at once: a fade in would take most of them. (Lost has none here: lose)
-(const FADE_FROM (array u8 5) (make (array u8 5) 10 9 7 9 0))
+; garden's v10, the house's v12, the run won's bass v12, the elite's riff v12, the King's
+; trumpet v13), so the first note is heard from its first tick and rises from there (from 13,
+; the loudest volume, both first songs' first notes decayed faster than the fade rose and were
+; never heard: the battle's first 36 ticks were silent). Lost, a stinger, has none: lose
+(const FADE_FROM (array u8 8) (make (array u8 8) 10 9 7 9 9 0 9 10))
 
 ; at the start: find the card, if there is one, and start its tick (title.enter puts
 ; lib/auxmem's guard in first, which lets aux copies run while it ticks), the music faded out,
@@ -159,9 +161,9 @@
 ; goes in at one priority, so lib/mockingboard plays them in the order they come, one playing and
 ; at most LINE waiting: the buffer a cue takes was the one of the cue LINE + 1 before it, over by
 ; then. A cue the full line would drop takes none (cue_byte)
-(const FX_BUFFERS u8 5)        ; player.LINE + 1
-(let fx_buffers (array u8 85)) ; FX_BUFFERS of fx.MOST
-(let fx_at u8 0)               ; the next cue's buffer, its first byte in fx_buffers
+(const FX_BUFFERS u8 5)                        ; player.LINE + 1
+(let fx_buffers (array u8 85) :address 0x0828) ; FX_BUFFERS of fx.MOST; scratch: AGENTS.md, Memory
+(let fx_at u8 0)                               ; the next cue's buffer, its first byte in fx_buffers
 
 ; cue number c: on the card, its effect on its voice (dropped while another plays if it does
 ; not wait); without one, its speaker parts. The cues' tables are in aux memory (main memory is
@@ -208,14 +210,17 @@
 (fn cue ((c Cue)) void
     (cue_byte (as u8 c)))
 
-; each song's table on the disk, in Song's order (aux memory is full); lost's: lose
-(const SONG_BYTES (array (ptr u8) 5)
-    (make (array (ptr u8) 5)
+; each song's table on the disk, in Song's order (aux memory is full)
+(const SONG_BYTES (array (ptr u8) 8)
+    (make (array (ptr u8) 8)
         (addr_of (at songs.TITLE 0))
         (addr_of (at songs.BATTLE 0))
         (addr_of (at songs.GARDEN 0))
         (addr_of (at songs.HOUSE 0))
-        (addr_of (at songs.WON 0))))
+        (addr_of (at songs.WON 0))
+        (addr_of (at songs.LOST 0))
+        (addr_of (at songs.ELITE 0))
+        (addr_of (at songs.KING 0))))
 
 ; the song playing or waiting to start (song), as Song; NONE before the first. A screen whose
 ; song may be the one playing asks first (battle.enter_fight: a fight after one of its zone),
@@ -229,16 +234,20 @@
 (fn quiet () void
     (mb.fade 15))
 
+; a song's table read from the disk into the songs' room's next half (sound/waiting), so
+; waiting.start plays it once the song before is silent (a song waiting there is not started
+; meanwhile: this one takes its place)
+(fn read_song ((table (ptr u8))) void
+    (set waiting.waits 0)
+    (meter.read waiting.next table))
+
 ; a song from its start. On the card: the song before fades out (quiet) while the new one is
-; read from the disk into aux memory's text page 1 (the rules page's buffer, which reads its
-; page again when it opens), and waiting.start plays it once the one before is silent: from the
-; main loop, or between the sectors of a load (a screen's song, called as its load begins: the
-; fight's at enter_fight's start, the title's at its enter), so the game goes on while it fades
-; (the run's end: the battle's song under the banner). A second song while one waits takes its
-; place in the buffer. Nothing else reads into the buffer in the second a song can wait (the
-; rules page and a hat trick's face come in her turn, disk 2's label before the first fight's
-; song, and at the first title, whose song never waits). On the speaker, the title's jingle and
-; the battle's ends
+; read from the disk into the songs' room (read_song), and waiting.start plays it once the one
+; before is silent: from the main loop, or between the sectors of a load (a screen's song,
+; called as its load begins: the fight's at enter_fight's start, the title's at its enter), so
+; the game goes on while it fades (the run's end: the fight's song under the banner). A second
+; song while one waits takes its place in the room. On the speaker, the title's jingle and the
+; battle's ends
 (fn song ((s Song)) void
     (if (not mb.found)
         (do
@@ -253,7 +262,7 @@
     (let table (ptr u8) (at SONG_BYTES (as u8 s)))
     (if (and (= s Song.title) disk2.found)
         (set table (addr_of (at songs.TITLE2 0))))
-    (meter.read (as (ptr u8) state.aux_page1) table)
+    (read_song table)
     (set waiting.waits (+ (at FADE_FROM (as u8 s)) 1))
     (waiting.start))
 
@@ -266,7 +275,7 @@
         (do
             (sfx.lose)
             (return)))
-    (meter.read (as (ptr u8) state.aux_page1) (addr_of (at songs.LOST 0)))
+    (read_song (addr_of (at songs.LOST 0)))
     (mb.fade_in 0)        ; the fight's song as loud as it is now: nothing to wait for
     (set waiting.waits 1) ; LOST at full
     (waiting.start))

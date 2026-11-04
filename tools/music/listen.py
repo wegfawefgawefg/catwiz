@@ -9,8 +9,8 @@ text goes into game/sound/songs.tsp as it is.
 
 It plays with mb.service_bends, so the w p s t commands (vibrato, glide, slide, detune: Tisple's
 docs/mockingboard.md) sound; a song without them plays as the game plays it. Each song's size in
-bytes is printed: the game plays a song from a buffer of PLAYING bytes
-(game/sound/sound.tsp, 395 now), so one bigger than that needs the buffer to grow. Needs an
+bytes is printed: the game plays a song from a half of its songs' room in the language card's
+bank 1 (game/sound/waiting.tsp HALF, 895 now), so one bigger than that needs the room to grow. Needs an
 Apple rom for the card's interrupt (~/.local/share/tisple/roms/Apple2e.rom; never committed).
 """
 
@@ -25,7 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 TISPLE = os.environ.get("TISPLE", os.path.expanduser("~/Coding/LangDev/tisple/build/tisple"))
 ROM = os.path.expanduser("~/.local/share/tisple/roms/Apple2e.rom")
-PLAYING = 395
+PLAYING = 895  # sound/waiting HALF
 
 PROGRAM = """(import mockingboard mb)
 (import mockingboard_song tune)
