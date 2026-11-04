@@ -19,7 +19,7 @@
 (fn irq () void :interrupt
     (set state.clock (+ state.clock 1))
     (take_key)
-    (mb.service))
+    (mb.service_bank1)) ; the songs play from the card's bank 1 (sound/waiting)
 
 ; keys go into a line as the card's tick finds them, 60 times a second, so a tap is never lost
 ; to the next one while a long frame draws (the keyboard holds one key); the loop takes them in

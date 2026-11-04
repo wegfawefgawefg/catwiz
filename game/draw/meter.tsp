@@ -101,9 +101,13 @@
 (fn read ((dst (ptr u8)) (table (ptr u8))) u8
     (read_as dst (fetch table)))
 
-; the read of a table's record r (in main memory)
+; the read of a table's record r (in main memory); a dst from $D000 is the songs' room, in the
+; card's bank 1 (sound/waiting), the rest aux memory
 (fn read_as ((dst (ptr u8)) (r (ptr u8))) u8
-    (let status u8 (disk.read_with dst r disk.AUX sector))
+    (let bank u8 (if (>= (as u16 dst) 0xD000)
+        disk.BANK1
+        disk.AUX))
+    (let status u8 (disk.read_card_with dst r bank sector))
     (sector)
     status)
 

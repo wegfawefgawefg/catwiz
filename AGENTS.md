@@ -326,21 +326,30 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   speaker each borrows the sound it replaced (the zap, the ping, the chime), and the curses'
   have none (the curse's hiss follows), so the speaker holds the processor no longer than before.
 - The music is `game/sound/songs.tsp` (lib/mockingboard_song's text), each song `:on disk`
-  (2026-11-01: aux memory was full), read when it starts into aux memory's text page 1 (the
-  rules page's buffer) and copied into main (`waiting.PLAYING` bytes: keep it at the largest
-  song's size, which `tisple expand` shows). A song starts with a screen or at the run's end.
+  (2026-11-01: aux memory was full), read when it starts into the language card's bank 1 and
+  played there (2026-11-04, Tisple's `:in bank1`, `disk.read_card_with`, `mb.play_bank1` and
+  `mb.service_bank1`: docs/mockingboard.md "Songs in bank 1"). `sound/waiting`'s `room` is two
+  halves of `HALF` bytes (895, the King's, the biggest: keep every song within it, `tisple build
+  --tables` gives each one's size); the song playing is in one and the next is read into the
+  other (`waiting.next`), so a song is read while the one before fades and nothing is copied
+  (the start went from about 8,000 cycles with interrupts off to about 1,000). A song starts
+  with a screen or at the run's end.
 - Which song where (2026-11-04, the owner's picks, auditions in `tools/music/songs`): the title
-  TITLE; a fight its zone's (`battle.fight_song`): the woods BATTLE (`now_battle.song`), the
-  garden GARDEN (`b_nightgarden`, the crickets' noise set at each chirp), the house HOUSE
-  (`b_lounge`); the run won WON, lost LOST. A fight after one of its zone keeps the song playing
-  (`sound.now`: no fade, no restart). The run lost cuts the fight's song (`sound.lose`: LOST is
-  read while it plays, then replaces it at the next tick; no fade). Picked but not in: the
-  elites' `c_mathrock_straight` (479 bytes), the King's `a_king` (887), the won run's
-  `b_adventure` (821), all bigger than the 395-byte song buffer in a full main memory, and the
-  rewards' `a_waltz_vib`, which needs lib/mockingboard_bends' player (`mb.service_bends`: 918
-  bytes more code, bank 1 from 15 functions to 24, about 92,000 cycles a run in crossings to
-  273,000). Until there is room the elites and the King play their zone's, a reward the fight's.
-  `songs.DISK_ROOM` (12 sectors, never read) keeps the tables after the songs one whole track on
+  TITLE; a fight its own (`battle.fight_song`): the King's (the run's last) KING (`a_king`), an
+  elite's ELITE (`c_mathrock_straight`), else its zone's: the woods BATTLE (`now_battle.song`),
+  the garden GARDEN (`b_nightgarden`, the crickets' noise set at each chirp), the house HOUSE
+  (`b_lounge`); the run won WON (`b_adventure`, a whole song now, it plays on the won page until
+  the title), lost LOST. The new songs set their noise again at every pattern that uses it (the
+  elite's and the won's fills, the King's snares). A fight after one of its zone keeps the song
+  playing (`sound.now`: no fade, no restart); a reward and the rest after an elite keep the
+  fight's song. The run lost cuts the fight's song (`sound.lose`: LOST is read while it plays,
+  then replaces it at the next tick; no fade). Picked but not in: the rests' `a_waltz_vib` (the
+  owner: at the rest after each elite only), which needs lib/mockingboard_bends' player
+  (`mb.service_bends_bank1`, about 918 bytes more resident code): with the songs' 1,790 bytes in
+  bank 1 no build fits (2026-11-04: 15 to 18 functions in bank 1 leave main memory short, more
+  leave bank 1 short; with the room cut to 900 bytes, 21 still left main memory short), and its
+  vibrato and detune (a quarter semitone, a period unit) are not notes the plain player has.
+  `songs.DISK_ROOM` (3 sectors, never read) keeps the tables after the songs one whole track on
   (4 sectors alone put the fight's start group across a track: fight 1 ready 24 frames later);
   the next songs take its sectors.
 - Song changes fade (2026-11-03, the owner; Tisple's `mb.fade`, docs/mockingboard.md "Fades"):
@@ -348,15 +357,16 @@ From ~/Coding/AGENTS.md and the Mans In My House rules, in Tisple terms:
   4 ticks, 1 s to silence, then the player stops it (a song playing on silently under a load
   slowed the disk reads: fight loads took about 20 frames longer); with no voice playing (a
   stinger that has ended) the fade is done at once. The new song is read meanwhile and
-  `waiting.start` copies it in once the one before is silent: from `song` when it is by then,
+  `waiting.start` plays it once the one before is silent: from `song` when it is by then,
   between a load's sectors (`draw/meter.sector`), or from the main loop's look each pass (the
   run's end, where the battle's song fades under the banner), and fades it in from `FADE_FROM`
   steps down, by song: 3 below its first notes' volume (the title 10, the battle 9), so its first
   note is heard from its first tick (from 13, the battle's first 36 ticks were silent: its first
-  bass note decayed faster than the fade rose). The stingers (won, lost) start at full, and each
-  voice ends after its patterns (`end` in songs.tsp: the music stops, so the song after starts at
-  once). Nothing waits for a fade. While a song waits, nothing else may read into aux text page 1
-  (`state.aux_page1`; sound.tsp says why none does). `tools/music/renders/fade_demo.ogg` is the
+  bass note decayed faster than the fade rose; the run won 9, the elites' 9, the King's 10). The
+  stinger LOST starts at full, and each of its voices ends after its patterns (`end` in songs.tsp:
+  the music stops, so the song after starts at once). Nothing waits for a fade. A read into the
+  next half sets `waiting.waits` to 0 first, so a song waiting there is never started half read
+  (`sound.read_song`). `tools/music/renders/fade_demo.ogg` is the
   title to the first fight as it was before the music went through the loads.
 - Music through the loads (2026-11-03, the owner: "we should at least have the capability";
   Tisple's `load-music` and `load-music-2` branches, docs/dhgr.md "Ticks through the card",
@@ -511,14 +521,15 @@ splits a memory would not build.
 
 - Scratch that is set before it is read lives at fixed addresses the layout does not use, and
   is not zeroed at the start: `$0200-$02E3` (state.drawn), `$0800-$0BDF` once the boot loader
-  is done (the song buffer, the log, the text line and what each line shows, the hud's pixel
-  row and its bytes), and text page 1 (`$0400-$07FF` but `$0478-$047F` and the
+  is done (the speaker jingle's notes `$0800`, the card effects' buffers `$0828`, the status
+  stacks `$087D`, the log, the text line and what each line shows, the hud's pixel row and its
+  bytes; `$08F7-$098A` free since the songs went to bank 1, 2026-11-04), and text page 1 (`$0400-$07FF` but `$0478-$047F` and the
   other screen holes: the rects, the scene's boxes, the looks, the stacks, the actors, the
   floaters, the dice, the badges, the counter; and since the kit round the text's glyph tables
   `$0424`, `$0600-$0668`, the log's waiting lines `$0447-$0476`, the hud's `was` `$0700`, the
   kit's picture `$0780`). Each such let says so. The screen shows no text page (`dhgr_text2` is
-  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer (and
-  where a song is read from the disk), `$0630-$07F6` the log's history (13 lines of 35:
+  not imported), so both are free; aux memory's `$0400-$062F` is the rules page's buffer,
+  `$0630-$07F6` the log's history (13 lines of 35:
   `battle/log` writes each line there, `battle/history`, H, shows them).
 - The tray's copies of its cards' pictures are on the spare page (rows 160-174, 6 bytes a slot
   each: `tray.picture_at`), which nothing reads once a fight's picture is shown: main memory is
@@ -712,6 +723,21 @@ splits a memory would not build.
   sprite room is as it was (no new sprite). A pass waiting for a key, flat out, 5,920 cycles in
   fight 1 (5,915). The hearts cost about 31,000 cycles over the 40 frames they rise (a heal of
   hers, measured with `tools/measure.py` and a profile: the scene's boxes and fills).
+- 2026-11-04, the songs in bank 1 (branch song-bank, Tisple song-bank): the songs' room (1,790
+  bytes, two halves) at the top of the card's bank 1, the 395-byte buffer at `$0800` gone; the
+  card effects' buffers (85) and the status stacks (120) moved to that scratch (set before they
+  are read), which freed what the new code took. Before (ddb3fdd, Tisple 87a29b3) and after, from
+  `tools/memmap`: main memory 68 free in the layout's holes, after 70 (and `$08F7-$098A`, 148,
+  free scratch); the card 14 free, after 53; bank 1 code 2,250 bytes and 1,846 free, after 2,250
+  and the room 1,790 (56 free); aux 372 free, after 373. Bank 1 functions as before: 15, 2,241
+  bytes, about 92,020 cycles a run. The handler in a fight's first 300 frames: 1,131 cycles a
+  tick, after 1,124 (Tisple's slot loop counts down; a music event in bank 1 costs 15 more).
+  Loads (the last agent's tool, frames): the boot's title 684.15 to 683.76, the title's key to
+  fight 1 448.40 to 448.30, a reward to fight 2 167.00 to 166.99, the run's end to the title
+  127.26 to 125.54. The first try was 24 frames slower to fight 1: the woods song's fade in
+  rewrote its six voices on the tick when the record read after it wanted a sector's address
+  field, two turns running; Tisple's fade in now rewrites them on the tick the level changes,
+  the first on the song's first tick.
 - Item lines may come in parts split by `|` (`text.next_part`): what the card always does, then
   each extra with its condition first. A picked die's other parts use the log's two rows while it
   is picked (`log.taken`, words.refresh puts the log back); between fights and on the kit page

@@ -5,7 +5,6 @@
 (import auxmem)
 (import tables)
 (import sound/sfx)
-(import sound/waiting)
 
 ; the half-period in cycles of a note of freq Hz, on the IIe's 1.023 MHz clock
 (macro half_period (freq)
@@ -53,15 +52,18 @@
         (sfx.tone half n)
         (set left (- left (as u16 n)))))
 
-; the notes' table, copied out of aux memory (main memory is full) into the song buffer
-; (sound/waiting), which is free with no card: the jingle plays only then (title.step). Read
-; with auxmem.read and not a with_aux here, so the jingle's code is in the title's overlay group
+; the notes' table, copied out of aux memory (main memory is full) into scratch the songs left
+; (they play from the card's bank 1 now: sound/waiting): the jingle plays only with no card
+; (title.step). Read with auxmem.read and not a with_aux here, so the jingle's code is in the
+; title's overlay group
+(let notes (array u8 40) :address 0x0800) ; scratch: see AGENTS.md, Memory
+
 (fn word_at ((k u8)) u16
-    (let p (ptr u8) (+ (addr_of (at waiting.playing 0)) k))
+    (let p (ptr u8) (+ (addr_of (at notes 0)) k))
     (| (as u16 (load p)) (<< (as u16 (load (+ p 1))) 8)))
 
 (fn jingle () void
-    (auxmem.read (addr_of (at waiting.playing 0)) (addr_of (at NOTE_BYTES 0)) 40)
+    (auxmem.read (addr_of (at notes 0)) (addr_of (at NOTE_BYTES 0)) 40)
     (for i u8 0 NOTES
         (note (word_at (<< i 2)) (word_at (+ (<< i 2) 2)))
         ; a breath between notes

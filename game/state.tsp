@@ -85,8 +85,8 @@
 (struct Rect ((col u8) (top u8) (cols u8) (rows u8)))
 
 ; aux memory's text page 1 ($0400-$062F), read into from the disk and taken in turn: the rules
-; page (battle/rules), a song waiting to start (sound/waiting), disk 2's label (title/disk2) and
-; a hat trick's face (content/items). A let, not a constant pointer: the layout checks a constant
+; page (battle/rules), disk 2's label (title/disk2) and a hat trick's face (content/items); the
+; songs are read into the card's bank 1 (sound/waiting). A let, not a constant pointer: the layout checks a constant
 ; one against main memory's lets there (the text page's scratch), which aux memory's bytes are not
 (let aux_page1 u16 0x0400)
 
@@ -117,8 +117,9 @@
 (let timer u8) ; frames into the phase
 (let actors (array Actor 4) :address 0x0680)
 ; status stacks: hers (STATUS_SLOTS), then each enemy's (FOE_SLOTS, the statuses an enemy can have:
-; content/statuses FOE_COUNT), at FIRST_STACK (cleared as a run starts)
-(let stacks (array u8 120))
+; content/statuses FOE_COUNT), at FIRST_STACK (cleared as a run starts, so scratch: nothing reads
+; them before; AGENTS.md, Memory)
+(let stacks (array u8 120) :address 0x087D)
 ; (the run's kit and the fight's dice are scratch at $0300-$033B and in text page 1's holes,
 ; set as a run, a fight and a turn start: AGENTS.md, Memory)
 ; the run: how far into it (stage), the fight being fought (a row of content/encounters: the

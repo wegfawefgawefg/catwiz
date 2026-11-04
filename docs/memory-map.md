@@ -356,3 +356,20 @@ run 127 (126.75 exactly), the boot's title 813 (812.50); no tick lost in any loa
 The pictures (`memory-map.png`, `memory-map-low.png`) are still the audit's; `memmap.py`
 redraws them for a build.
 
+
+## The songs in bank 1 (2026-11-04)
+
+Branch song-bank, Tisple song-bank. The songs play from `sound/waiting`'s `room`, a let `:in
+bank1` (1,790 bytes, two halves of 895: the King's song, the biggest) at `$D902-$DFFF`; the
+395-byte `$0800` buffer is gone, and `$0800-$098A` holds the speaker jingle's notes (40), the
+card effects' buffers (`sound.fx_buffers`, 85, were in the layout at `$126F`), the status stacks
+(`state.stacks`, 120, were at `$BF6C`) and `waiting.next` (2); `$08F7-$098A` (148) is free
+scratch. memmap.py does not know about lets `:in bank1` yet: it shows bank 1's 1,846 bytes past
+the code as free, of which the room takes 1,790.
+
+| Space | Before (ddb3fdd) | After |
+| --- | --- | --- |
+| Main, layout holes | 68 | 70 |
+| The card (bank 2 and `$E000`) | 14 | 53 |
+| Bank 1 | code 2,250, 1,846 free | code 2,250, songs 1,790, 56 free |
+| Aux | 372 | 373 |
