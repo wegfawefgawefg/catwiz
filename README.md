@@ -121,8 +121,10 @@ plays the effects. An AppleMouse in any slot takes clicks.
 
 In the browser (the Pages site and the phone server) the player sends anonymous play records to
 the dev VPS, https://45.77.123.14/catwiz-telemetry: when a run, a fight and the title start,
-how each fight ends (the fight, its enemies, the turns, her hit points), what was offered and
-taken between fights, how a run ends, and where the page was when it closed. Each record has a
+how each fight ends (the fight, its enemies, the turns, her hit points), each roll of the dice
+(the faces, the re-rolls left, the enemies' next moves), each action as it starts and ends (the
+face or move, who did it to whom, everyone's hit points), what was offered and taken between
+fights, how a run ends, and where the page was when it closed. Each record has a
 random id made for the browser tab, the times, the build and whether it was the Pages site or the
 phone; nothing else (no address, no browser details, no third parties). The player's STATS
 button (on a wide screen), or `?telemetry=off` on the player's
