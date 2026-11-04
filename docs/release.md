@@ -16,7 +16,7 @@ AI-built projects), follow the rule or skip the place.
 
 | place | audience | AI mood (check before posting) |
 |---|---|---|
-| Hacker News (Show HN) | programmers; loves "a game for a 40-year-old computer in a language I made" | AI-built projects are posted often; comments can be harsh about low effort; be upfront and show the engineering |
+| Hacker News (Show HN) | programmers; loves "a game for a 40-year-old computer in a language I made" | AI-built projects are posted often; comments can be harsh about low effort; show the engineering |
 | r/apple2 | Apple II owners and collectors | unknown: read the sidebar and recent posts |
 | Applefritter forums | long-time Apple II hackers | unknown: read their rules |
 | comp.sys.apple2 (Usenet) | the old guard | likely skeptical; check recent threads |
