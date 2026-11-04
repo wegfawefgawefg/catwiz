@@ -8,8 +8,9 @@
 (import mockingboard mb)
 (import state)
 
-; the song the card plays, copied from aux memory: the largest song's size (the title's), and
-; each song is copied whole at this size; the bytes after a smaller one in aux memory come too
+; the song the card plays, copied from aux memory: the largest song's size (the title's and the
+; house's, 395), and each song is copied whole at this size; the bytes after a smaller one in aux
+; memory come too. Main memory is full: a bigger song wants room found first (AGENTS.md, Sound)
 (const PLAYING u16 395)
 (let playing (array u8 395) :address 0x0800) ; scratch: see AGENTS.md, Memory
 

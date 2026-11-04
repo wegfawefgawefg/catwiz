@@ -108,15 +108,26 @@
     (text.forget)
     (hud.forget))
 
+; fight f's song: its zone's. (The owner's picks for the elites, c_mathrock_straight, 479 bytes,
+; and the King, a_king, 887, are bigger than the song buffer, sound/waiting PLAYING, 395 bytes:
+; they play their zone's until there is room)
+(fn fight_song ((f u8)) sound.Song
+    (match (enc.zone f)
+        (enc.Zone.woods sound.Song.woods)
+        (enc.Zone.garden sound.Song.garden)
+        (_ sound.Song.house)))
+
 ; the next fight (state.fight) set up and its art loaded, at the step after the reward or the
 ; run's start (Phase.start): its code is read from the second disk when it comes (an overlay
 ; group: main memory is full)
 (fn enter_fight () void :overlay_disk2
-    ; the fight's song first (a run's first fight has it from the title's key): the one before
-    ; fades out while the load starts, and this one comes in as soon as it is silent, playing
-    ; through the rest of the load (sound.song)
-    (if (not new_run)
-        (sound.song sound.Song.battle))
+    ; the fight's song first: the one before fades out while the load starts, and this one comes
+    ; in as soon as it is silent, playing through the rest of the load (sound.song). The song
+    ; playing plays on: a run's first fight has the woods' from the title's key, and a fight
+    ; after one of its zone keeps its zone's
+    (let song sound.Song (fight_song state.fight))
+    (if (!= (as u8 song) sound.now)
+        (sound.song song))
     (if new_run
         (do
             (set new_run false)
@@ -274,9 +285,9 @@
                     (set state.page state.Page.won)
                     (set page.fresh true))
                 (words.lost))
-            (sound.song (if won
-                sound.Song.won
-                sound.Song.lost))))
+            (if won
+                (sound.song sound.Song.won)
+                (sound.lose))))
     (if (and (> state.timer BANNER_AFTER) (!= key 0))
         (return state.Screen.title))
     state.Screen.battle)

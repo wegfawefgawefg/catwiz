@@ -1,5 +1,5 @@
 ; every sound the game makes goes through here, the one place that picks the Mockingboard or the
-; speaker: (sound.cue Cue.zap) for an effect, (sound.song Song.battle) for the music.
+; speaker: (sound.cue Cue.zap) for an effect, (sound.song Song.woods) for the music.
 ;
 ; With a card (found by setup, in any slot): the music plays from the card's timer interrupt
 ; (main's irq calls mb.service), and an effect borrows one music voice while it plays, the
@@ -14,7 +14,8 @@
 ; The songs live on the disks (songs.tsp); the one starting is read into aux memory and copied
 ; into main memory (sound/waiting), with interrupts on: the first title puts in lib/auxmem's
 ; guard. A song change fades the one before out and the new one in (song), and the game goes on
-; meanwhile; a screen's song starts as its load begins and plays through it.
+; meanwhile; a screen's song starts as its load begins and plays through it. The song already
+; playing asked for again plays on; the run lost cuts the fight's song off for LOST.
 
 (import mockingboard mb)
 (import mockingboard_player player)
@@ -64,7 +65,8 @@
         whoosh    ; her shield flung
         sparkle)) ; mana
 
-(enum Song (title battle won lost))
+;   the title; a fight's, by its zone (battle.fight_song); the run won or lost (lose)
+(enum Song (title woods garden house won lost))
 
 ; the voice each cue borrows: 2, the pad on the left chip, for the hero's side, and 5, the
 ; shaker on the right chip, for the enemies'. The hero stands on the left of the screen.
@@ -79,13 +81,13 @@
         false true true true true true true true true true true true true true true true true true)
     :in aux)
 
-; where each song's fade in starts, in steps down (3 dB a step), in Song's order: 3 steps below
-; its first notes' volume (songs.tsp: the title's bass v13, the battle's v12), so the first note
-; is heard from its first tick and rises from there (from 13, the loudest volume, both songs'
-; first notes decayed faster than the fade rose and were never heard: the battle's first 36
-; ticks were silent). The stingers (won, lost) at full at once: a fade in would take most of
-; them
-(const FADE_FROM (array u8 4) (make (array u8 4) 10 9 0 0))
+; where each song's fade in starts, in steps down (3 dB a step, 4 ticks each), in Song's order:
+; 3 steps below its first notes' volume (songs.tsp: the title's bass v13, the woods' v12, the
+; garden's v10, the house's v12), so the first note is heard from its first tick and rises from
+; there (from 13, the loudest volume, both first songs' first notes decayed faster than the fade
+; rose and were never heard: the battle's first 36 ticks were silent). The stingers (won, lost)
+; at full at once: a fade in would take most of them. (Lost has none here: lose)
+(const FADE_FROM (array u8 5) (make (array u8 5) 10 9 7 9 0))
 
 ; at the start: find the card, if there is one, and start its tick (title.enter puts
 ; lib/auxmem's guard in first, which lets aux copies run while it ticks), the music faded out,
@@ -206,13 +208,20 @@
 (fn cue ((c Cue)) void
     (cue_byte (as u8 c)))
 
-; each song's table on the disk, in Song's order (aux memory is full)
-(const SONG_BYTES (array (ptr u8) 4)
-    (make (array (ptr u8) 4)
+; each song's table on the disk, in Song's order (aux memory is full); lost's: lose
+(const SONG_BYTES (array (ptr u8) 5)
+    (make (array (ptr u8) 5)
         (addr_of (at songs.TITLE 0))
         (addr_of (at songs.BATTLE 0))
-        (addr_of (at songs.WON 0))
-        (addr_of (at songs.LOST 0))))
+        (addr_of (at songs.GARDEN 0))
+        (addr_of (at songs.HOUSE 0))
+        (addr_of (at songs.WON 0))))
+
+; the song playing or waiting to start (song), as Song; NONE before the first. A screen whose
+; song may be the one playing asks first (battle.enter_fight: a fight after one of its zone),
+; so that one plays on, neither faded nor started again
+(const NONE u8 255)
+(let now u8 NONE)
 
 ; the music fades out and stops (lib/mockingboard's fade, 1 s): as a run starts (the title's
 ; key), so the title's song is fading while the second disk is found and the fight's code read,
@@ -234,12 +243,11 @@
     (if (not mb.found)
         (do
             ; (the title's jingle: title.step)
-            (match s
-                (Song.won (sfx.win))
-                (Song.lost (sfx.lose))
-                (_))
+            (if (= s Song.won)
+                (sfx.win))
             (return)))
     (quiet)
+    (set now (as u8 s))
     ; the title's from the first disk until the second is found (a machine with one drive has
     ; the second in it then)
     (let table (ptr u8) (at SONG_BYTES (as u8 s)))
@@ -247,4 +255,18 @@
         (set table (addr_of (at songs.TITLE2 0))))
     (meter.read (as (ptr u8) state.aux_page1) table)
     (set waiting.waits (+ (at FADE_FROM (as u8 s)) 1))
+    (waiting.start))
+
+; the run lost, without a fade (the owner, 2026-11-04: the fades there were too much): the
+; fight's song plays on while LOST is read, then LOST takes its place at the next tick (play
+; starts every voice again, and LOST's three silent ones go quiet then). Only the run's end
+; calls it (battle.ending), so its code is in that overlay group, not resident
+(fn lose () void
+    (if (not mb.found)
+        (do
+            (sfx.lose)
+            (return)))
+    (meter.read (as (ptr u8) state.aux_page1) (addr_of (at songs.LOST 0)))
+    (mb.fade_in 0)        ; the fight's song as loud as it is now: nothing to wait for
+    (set waiting.waits 1) ; LOST at full
     (waiting.start))
