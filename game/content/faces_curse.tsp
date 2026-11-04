@@ -21,7 +21,7 @@
                 (say_it GETS_FLEAS_TURN)))
         (WET
             :name "WET"
-            :text "Enemy is wet for # of its turns.|Wet enemies hit for half."
+            :text "Wet enemy for # turns.|Wet enemies hit for half."
             :slot curse
             :amount 1
             :step 1
