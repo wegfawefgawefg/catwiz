@@ -5,7 +5,7 @@
 (macro rows ()
     '((TWIG_WAND
             :name "TWIG WAND"
-            :text "Hits #.|3rd wand this turn: it hits all."
+            :text "Hit enemy for #.|3rd wand in a turn also hits all|other enemies for #."
             :slot wand
             :amount 4
             :step 2
@@ -16,13 +16,13 @@
             :picture twig
             :weight 0
             :steps ((call ZAP_HIT) (three)
-                (say "Third in a turn: it hits all!")
+                (say "Your third wand hits every enemy!")
                 (others)
                 (hit)
                 (end)))
         (YARN_WAND
             :name "YARN WAND"
-            :text "Hits #.|If it stands: its hits are 1 less."
+            :text "Hit enemy for #.|Enemy hits 1 less next turn."
             :slot wand
             :amount 4
             :step 2
@@ -35,7 +35,7 @@
             :steps ((call ZAP_HIT) (if_up) (lit 1) (call TANGLE)))
         (SPRAY_BOTTLE
             :name "SPRAY BOTTLE"
-            :text "Hits #.|If it stands: it hits half, 1 turn."
+            :text "Hit enemy for #.|Enemy hits half next turn."
             :slot wand
             :amount 4
             :step 2
@@ -48,7 +48,7 @@
             :steps ((call ZAP_HIT) (if_up) (lit 1) (call WET)))
         (FEATHER_TOY
             :name "FEATHER TOY"
-            :text "Hits #, then kittens pounce on it."
+            :text "Hit enemy for #.|Your kittens pounce on enemy."
             :slot wand
             :amount 2
             :step 2
@@ -61,7 +61,7 @@
             :steps ((call ZAP_HIT) (pounce)))
         (FISHBONE_WAND
             :name "FISHBONE WAND"
-            :text "Hits #. Goes through any shield."
+            :text "Hit enemy for #, ignoring shield."
             :slot wand
             :amount 6
             :step 2
@@ -74,7 +74,7 @@
             :steps ((cue zap) (pierce)))
         (MOUSE_STRING
             :name "MOUSE ON STRING"
-            :text "Hits #, then # to the next enemy."
+            :text "Hit enemy for #.|Then hit the next enemy for #.|A lone enemy takes both hits."
             :slot wand
             :amount 4
             :step 2
@@ -87,7 +87,7 @@
             :steps ((call ZAP_HIT) (next) (hit)))
         (CANNON
             :name "KITTEN CANNON"
-            :text "Fires all your kittens: # each."
+            :text "Each kitten hits enemy for #.|All your kittens fire and are gone."
             :slot wand
             :amount 8
             :step 2
@@ -99,7 +99,7 @@
             :weight 3
             :steps ((cue zap) (get kittens)
                 (sub kittens)
-                (say "# kittens launched!")
+                (say "You fire # kittens!")
                 (rep)
                 (retarget)
                 (num)
@@ -107,7 +107,7 @@
                 (end)))
         (SCRATCHING_HABIT
             :name "SCRATCHING HABIT"
-            :text "Hits #. Each use adds # more|for the rest of the fight."
+            :text "Hit enemy for #.|Then this wand hits # more for|the rest of the fight."
             :slot wand
             :amount 2
             :step 1
@@ -121,7 +121,7 @@
         ; the faces round (docs/faces.md)
         (BIG_STICK
             :name "BIG STICK"
-            :text "Hits #."
+            :text "Hit enemy for #."
             :slot wand
             :amount 6
             :step 2
@@ -134,7 +134,7 @@
             :steps ((call ZAP_HIT)))
         (CLAW_SWIPE
             :name "CLAW SWIPE"
-            :text "Hits #.|3rd wand this turn: 3 more hits."
+            :text "Hit enemy for #.|3rd wand in a turn also hits|3 more times for # each."
             :slot wand
             :amount 3
             :step 2
@@ -146,7 +146,7 @@
             :weight 3
             :steps ((cue scratch) (hit)
                 (three)
-                (say "Third in a turn: three more!")
+                (say "Third wand! You hit 3 more times.")
                 (lit 3)
                 (rep)
                 (retarget)
@@ -155,7 +155,7 @@
                 (end)))
         (SCRATCH_ITCH
             :name "SCRATCH THE ITCH"
-            :text "Hits #, +1 for each flea on it."
+            :text "Hit enemy for #.|Each flea on enemy adds 1."
             :slot wand
             :amount 3
             :step 2
@@ -168,7 +168,7 @@
             :steps ((cue buzz) (num) (t_plus poison) (hit)))
         (PUDDLE_SPLASH
             :name "PUDDLE SPLASH"
-            :text "Hits #.|If it is wet: 4 more."
+            :text "Hit enemy for #.|Wet enemy takes 4 more."
             :slot wand
             :amount 4
             :step 2
@@ -181,7 +181,7 @@
             :steps ((cue splash) (num) (t_has wet) (more 4) (hit)))
         (BOX_SLAM
             :name "BOX SLAM"
-            :text "Hits as much as your shield, +#.|Your shield stays."
+            :text "Hit enemy for # plus your shield.|You keep your shield."
             :slot wand
             :amount 0
             :step 2
@@ -194,7 +194,7 @@
             :steps ((cue whoosh) (get shield) (more 0) (hit)))
         (LOVE_BITE
             :name "LOVE BITE"
-            :text "Hits #.|If it hurts it: you heal 2."
+            :text "Hit enemy for #.|If enemy loses hp, you heal 2."
             :slot wand
             :amount 3
             :step 2
@@ -207,7 +207,7 @@
             :steps ((cue slurp) (hit) (landed) (lit 2) (heal)))
         (MOONBEAM
             :name "MOONBEAM"
-            :text "Hits #.|If it beats it: +1 mana."
+            :text "Hit enemy for #.|If enemy falls, gain 1 mana."
             :slot wand
             :amount 4
             :step 2
@@ -220,7 +220,7 @@
             :steps ((cue sparkle) (hit) (fell) (lit 1) (mana)))
         (CALM_PAW
             :name "CALM PAW"
-            :text "Hits #.|No re-roll this turn: twice that."
+            :text "Hit enemy for #, or double if you|have not re-rolled this turn."
             :slot wand
             :amount 4
             :step 2
@@ -233,7 +233,7 @@
             :steps ((cue rattle) (num) (if_calm) (more 0) (hit)))
         (CHAIN_BOUNCE
             :name "CHAIN BOUNCE"
-            :text "Hits #, then half that to each|other enemy, halving each time."
+            :text "Hit enemy for #.|Each other enemy then takes half|the hit before, left to right."
             :slot wand
             :amount 4
             :step 2
@@ -246,7 +246,7 @@
             :steps ((cue zap) (hit) (others) (half) (hit) (end)))
         (GRUDGE
             :name "GRUDGE"
-            :text "Hits #, +2 for each time you were|hurt this fight."
+            :text "Hit enemy for #, +2 for each time|you were hurt this fight."
             :slot wand
             :amount 3
             :step 2
@@ -259,7 +259,7 @@
             :steps ((cue scratch) (num) (plus scars) (plus scars) (hit)))
         (COIN_FLIP
             :name "COIN FLIP"
-            :text "Heads: hits #.|Tails: it hits you half that."
+            :text "Heads: hit enemy for #.|Tails: you take half of #."
             :slot wand
             :amount 8
             :step 2

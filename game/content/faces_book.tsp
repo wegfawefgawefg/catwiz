@@ -5,7 +5,7 @@
 (macro rows ()
     '((ZOOMIES
             :name "ZOOMIES"
-            :text "2 mana: 5 hits of #, left to right"
+            :text "2 mana: hit 5 times for # each,|enemy after enemy, left to right."
             :slot book
             :amount 2
             :step 1
@@ -31,7 +31,7 @@
             :steps ((cue meow) (add kittens) (get kittens) (say KITTENS_JOIN_YOU)))
         (LASER
             :name "LASER POINTER"
-            :text "3 mana: # to every enemy.|Their next hit goes to a friend."
+            :text "3 mana: hit all enemies for #.|Each enemy's next hit lands on|another enemy."
             :slot book
             :amount 8
             :step 2
@@ -44,7 +44,7 @@
             :steps ((cue zap) (all) (num) (hit) (if_up) (lit 1) (t_set laser) (end)))
         (SCREAM
             :name "3 AM SCREAMING"
-            :text "3 mana: # to all foes, 1 to you."
+            :text "3 mana: hit all enemies for #.|You lose 1 hp."
             :slot book
             :amount 8
             :step 2
@@ -63,7 +63,7 @@
                 (say_me " \x0dtakes # from screaming.")))
         (KNOCK
             :name "KNOCK IT OFF"
-            :text "3 mana: hits #.|Its shield and boosts go first."
+            :text "3 mana: hit enemy for #.|Enemy's shield and boosts go first."
             :slot book
             :amount 12
             :step 2
@@ -78,12 +78,12 @@
                 (t_set cheer)
                 (t_set strength)
                 (t_set reflect)
-                (say_it " drops its shield and buffs.")
+                (say_it " loses shield and boosts.")
                 (num)
                 (hit)))
         (FITS
             :name "IF IT FITS"
-            :text "2 mana: shield 3, and # more|for each kitten you have."
+            :text "2 mana: gain 3 shield, and # more|for each kitten you have."
             :slot book
             :amount 1
             :step 1
@@ -96,7 +96,7 @@
             :steps ((lit 3) (kits 0) (call SHIELD)))
         (MIMIC
             :name "MIMIC"
-            :text "2 mana: use its next move # times."
+            :text "2 mana: copy enemy's move # times."
             :slot book
             :amount 1
             :step 1
@@ -110,7 +110,7 @@
         ; the faces round (docs/faces.md)
         (HAIRBALL_BLAST
             :name "HAIRBALL BLAST"
-            :text "2 mana: hits #."
+            :text "2 mana: hit enemy for #."
             :slot book
             :amount 9
             :step 2
@@ -123,7 +123,7 @@
             :steps ((call ZAP_HIT)))
         (PLAGUE
             :name "PLAGUE"
-            :text "2 mana: fleas # on every enemy."
+            :text "2 mana: all enemies get # fleas."
             :slot book
             :amount 3
             :step 1
@@ -136,7 +136,7 @@
             :steps ((cue buzz) (all) (call FLEAS) (end)))
         (RAIN_CLOUD
             :name "RAIN CLOUD"
-            :text "2 mana: wets every enemy, # turns."
+            :text "2 mana: wet all enemies # turns.|Wet enemies hit for half."
             :slot book
             :amount 2
             :step 1
@@ -149,7 +149,7 @@
             :steps ((cue splash) (all) (call WET) (end)))
         (THUNDER_PURR
             :name "THUNDER PURR"
-            :text "3 mana: # to every enemy,|twice that to a wet one."
+            :text "3 mana: hit all enemies for #.|Wet enemies take double."
             :slot book
             :amount 6
             :step 2
@@ -162,7 +162,7 @@
             :steps ((cue thunder) (all) (num) (t_has wet) (more 0) (hit) (end)))
         (SHIELD_BASH
             :name "SHIELD BASH"
-            :text "2 mana: every enemy takes half|your shield, +#."
+            :text "2 mana: hit all enemies for # plus|half your shield."
             :slot book
             :amount 0
             :step 2
@@ -175,7 +175,7 @@
             :steps ((cue whoosh) (get shield) (half) (more 0) (all) (hit) (end)))
         (BLOOD_MOON
             :name "BLOOD MOON"
-            :text "Costs 3 hp, no mana: hits #."
+            :text "3 hp, no mana: hit enemy for #."
             :slot book
             :amount 14
             :step 2
@@ -188,7 +188,7 @@
             :steps ((cue zap) (hit) (lit 3) (me) (hurt) (say_me " \x0bpays # hp.")))
         (MANA_BURN
             :name "MANA BURN"
-            :text "All your mana: hits # for each."
+            :text "Hit enemy for # per mana you have.|Spend all your mana, 1 at least."
             :slot book
             :amount 4
             :step 2
@@ -209,7 +209,7 @@
                 (set mana)))
         (FRESH_ROLL
             :name "FRESH ROLL"
-            :text "1 mana: your played dice come back."
+            :text "1 mana: all your dice come back,|even played ones, and roll again."
             :slot book
             :amount 0
             :step 0
@@ -219,10 +219,10 @@
             :show DIE_FLIP
             :picture freshroll
             :weight 3
-            :steps ((cue rattle) (back) (say "Fresh roll: the dice come back.")))
+            :steps ((cue rattle) (back) (say "Fresh roll! Your dice come back.")))
         (LULLABY
             :name "LULLABY"
-            :text "3 mana: it skips its next move.|The Bulldog King stays awake."
+            :text "3 mana: enemy sleeps 1 turn.|The Bulldog King stays awake."
             :slot book
             :amount 0
             :step 0
@@ -235,7 +235,7 @@
             :steps ((cue snore) (lit 1) (curse sleep) (say_it " \x09falls asleep.")))
         (LASER_SHOW
             :name "LASER SHOW"
-            :text "3 mana: each enemy's next hit|goes to the friend on its right."
+            :text "3 mana: each enemy's next hit|lands on the enemy to its right."
             :slot book
             :amount 0
             :step 0
@@ -249,10 +249,10 @@
                 (lit 1)
                 (t_set laser)
                 (end)
-                (say "Laser show! They turn on friends.")))
+                (say "Laser show! Enemies hit each other.")))
         (SNOWBALL
             :name "SNOWBALL"
-            :text "2 mana: hits #.|Each one after it this fight: +4."
+            :text "2 mana: hit enemy for #.|Each snowball this fight makes|later snowballs hit 4 more."
             :slot book
             :amount 6
             :step 2

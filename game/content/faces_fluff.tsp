@@ -5,7 +5,7 @@
 (macro rows ()
     '((FLUFF
             :name "FLUFF"
-            :text "Shield #.|3rd fluff this turn: shield stays."
+            :text "Gain # shield.|3rd fluff in a turn keeps your|shield into your next turn."
             :slot fluff
             :amount 4
             :step 2
@@ -18,10 +18,10 @@
             :steps ((call SHIELD) (three)
                 (lit 1)
                 (set keep)
-                (say "Third in a turn: shield stays on.")))
+                (say "Your shield stays for next turn.")))
         (SPIKY_FLUFF
             :name "SPIKY FLUFF"
-            :text "Shield #.|3rd fluff this turn: hitters take 4"
+            :text "Gain # shield.|3rd fluff in a turn makes enemies|that hit you take 4."
             :slot fluff
             :amount 4
             :step 2
@@ -34,10 +34,10 @@
             :steps ((call SHIELD) (three)
                 (lit 4)
                 (max thorns)
-                (say "Third in a turn: spiky! # back.")))
+                (say "Spiky! Enemies that hit you take #.")))
         (BOX
             :name "CARDBOARD BOX"
-            :text "Shield #.|3rd fluff this turn: +1 kitten,|and attacks on all miss you."
+            :text "Gain # shield. 3rd fluff in a turn|gives 1 kitten, and attacks that|hit everyone miss you."
             :slot fluff
             :amount 4
             :step 2
@@ -51,10 +51,10 @@
                 (lit 1)
                 (set box)
                 (add kittens)
-                (say "Third in a turn: a box, a kitten.")))
+                (say "You hide in a box with a kitten.")))
         (WARM_BLANKET
             :name "WARM BLANKET"
-            :text "Shield #.|3rd fluff this turn: heal 6."
+            :text "Gain # shield.|3rd fluff in a turn heals you 6."
             :slot fluff
             :amount 4
             :step 2
@@ -64,10 +64,10 @@
             :show NONE
             :picture blanket
             :weight 3
-            :steps ((call SHIELD) (three) (say "Third in a turn: warm, heal 6.") (lit 6) (heal)))
+            :steps ((call SHIELD) (three) (say "Third fluff! The blanket is warm.") (lit 6) (heal)))
         (STATIC_FUR
             :name "STATIC FUR"
-            :text "Shield #.|3rd fluff this turn: 6 to all,|or 12 to an enemy that is wet."
+            :text "Gain # shield.|3rd fluff in a turn hits every|enemy for 6, a wet enemy for 12."
             :slot fluff
             :amount 4
             :step 2
@@ -78,7 +78,7 @@
             :picture static
             :weight 3
             :steps ((call SHIELD) (three)
-                (say "Third in a turn: static!")
+                (say "Static! Your fur zaps every enemy.")
                 (all)
                 (lit 6)
                 (t_has wet)
@@ -87,7 +87,7 @@
                 (end)))
         (BELL_COLLAR
             :name "BELL COLLAR"
-            :text "Shield #.|3rd fluff this turn: block 2 curses"
+            :text "Gain # shield.|3rd fluff in a turn blocks the next|2 curses on you."
             :slot fluff
             :amount 4
             :step 2
@@ -100,10 +100,10 @@
             :steps ((call SHIELD) (three)
                 (lit 2)
                 (add ward)
-                (say "Third in a turn: a curse blocker.")))
+                (say "The bell blocks the next 2 curses.")))
         (MIRROR_FUR
             :name "MIRROR FUR"
-            :text "Shield #.|Blocked hits bounce back: # most."
+            :text "Gain # shield.|Damage your shield blocks goes back|to the attacker, # at most."
             :slot fluff
             :amount 4
             :step 2
@@ -116,7 +116,7 @@
             :steps ((cue shimmer) (add shield) (say_me SHIELDS) (add mirror)))
         (LUCKY_PAW
             :name "LUCKY PAW"
-            :text "Shield #. You get a free re-roll."
+            :text "Gain # shield and 1 re-roll."
             :slot fluff
             :amount 4
             :step 2
@@ -134,7 +134,7 @@
         ; the faces round (docs/faces.md)
         (THICK_FUR
             :name "THICK FUR"
-            :text "Shield #."
+            :text "Gain # shield."
             :slot fluff
             :amount 6
             :step 2
@@ -147,7 +147,7 @@
             :steps ((call SHIELD)))
         (FLEA_COLLAR
             :name "FLEA COLLAR"
-            :text "Shield #.|Who hits you gets fleas 2 a turn."
+            :text "Gain # shield.|Enemies that hit you get 2 fleas."
             :slot fluff
             :amount 4
             :step 2
@@ -160,7 +160,7 @@
             :steps ((call SHIELD) (lit 2) (max collar)))
         (PUFFED_UP
             :name "PUFFED UP"
-            :text "Doubles your shield, then +#."
+            :text "Double your shield, then add #."
             :slot fluff
             :amount 2
             :step 2
@@ -175,10 +175,10 @@
                 (num)
                 (add shield)
                 (get shield)
-                (say_me " \x0chas shield #.")))
+                (say_me " \x0cnow has # shield.")))
         (HAIRBALL_WALL
             :name "HAIRBALL WALL"
-            :text "Shield #.|Who hits you hits 1 less next turn."
+            :text "Gain # shield.|Enemies that hit you hit 1 less|the turn after."
             :slot fluff
             :amount 4
             :step 2
@@ -191,7 +191,7 @@
             :steps ((call SHIELD) (lit 1) (max wall)))
         (CATNAP
             :name "CATNAP"
-            :text "Shield #.|No re-roll this turn: you heal 3."
+            :text "Gain # shield.|Heal 3 if you have not re-rolled|this turn."
             :slot fluff
             :amount 4
             :step 2

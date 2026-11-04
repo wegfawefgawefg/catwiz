@@ -22,7 +22,7 @@
     (make (array (ptr u8) 8)
         " \x0dsends # back."
         " \x0dtakes #."
-        "'s shield \x0ctakes it all."
+        "'s shield \x0cblocks the hit."
         " gets up!"
         " is beaten."
         " is at full hp already."

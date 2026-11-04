@@ -26,8 +26,8 @@
     (make (array (ptr u8) 4)
         "The disk did not read (#)."
         "Page #/"
-        "Arrows, BACK, NEXT: turn the page."
-        "ESC, ? or CLOSE: back to the fight.")
+        "Arrows, BACK or NEXT turn the page."
+        "Press ESC, ? or CLOSE to go back.")
     :strings aux)
 
 (let shown u8 0) ; the page shown; the last one read comes up again next time

@@ -9,7 +9,9 @@
 (import battle/log)
 
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
-(const SAY (array (ptr u8) 1) (make (array (ptr u8) 1) "Hack! A hairball coughed up.") :strings aux)
+(const SAY (array (ptr u8) 1)
+    (make (array (ptr u8) 1) "Hack! You cough up the hairball.")
+    :strings aux)
 
 (const SAY_HACK_HAIRBALL_COUGHED u8 0)
 

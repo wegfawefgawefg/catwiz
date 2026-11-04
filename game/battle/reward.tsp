@@ -37,16 +37,16 @@
 ; the screen's words, in aux memory (text.add_aux): SAY_ and their words
 (const SAY (array (ptr u8) 13)
     (make (array (ptr u8) 13)
-        "A reward: pick a card, S to skip."
-        "Five faces. Tap one to read it."
-        "A charm: pick one, or S to skip."
-        "A rest: Catwiz heals to full."
+        "Pick a reward card, or S to skip."
+        "Tap a card once to read it."
+        "Pick a charm, or S to skip."
+        "Catwiz rests and heals to full."
         "Pick a face for +1, or S to skip."
-        "Two doors. Pick one (1-2)."
-        " is at its most."
-        "+1 on the face: "
-        "You have it: +1 on "
-        "Replaces: "
+        "Pick one of the two doors (1-2)."
+        " is at its highest level."
+        "You get +1 on "
+        "You have this. +1 on "
+        "This replaces "
         "A charm works all run."
         "# hit points"
         "Ward #")

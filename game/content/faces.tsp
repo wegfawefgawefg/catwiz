@@ -45,7 +45,7 @@
         (faces_trick.rows)
         '((HAIRBALL
                 :name "HAIRBALL"
-                :text "A dud. Re-roll it to cough it up."
+                :text "Hairball does nothing.|Re-roll to cough up the hairball."
                 :slot junk
                 :amount 0
                 :step 0

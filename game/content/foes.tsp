@@ -18,13 +18,13 @@
 ; the log's sentences, in aux memory (battle/log reads them there): SAY_ and their words
 (const SAY (array (ptr u8) 8)
     (make (array (ptr u8) 8)
-        "It misses the box."
-        " \x0cshields #."
+        "The attack misses the box."
+        " \x0cgets # shield."
         " \x0bwill hit # harder."
-        " \x0bgrabs a die: beat it back."
+        " \x0bgrabs one of your dice."
         " \x0bhits # harder for good."
         " \x09will send # back."
-        "\x0bA hairball clogs a face. Re-roll!"
+        "\x0bA hairball clogs one of your faces."
         " comes along.")
     :strings aux)
 
@@ -121,7 +121,7 @@
 ; what the bottom text says an enemy will do next: its move's text, or that it will skip it (in
 ; aux memory, as the moves' are: text.add_aux)
 (const QUIET (array (ptr u8) 3)
-    (make (array (ptr u8) 3) "Finds its feet" "Stalls" "Sleeps")
+    (make (array (ptr u8) 3) "Skips a turn" "Stalls" "Sleeps")
     :strings aux)
 
 (fn intent_text ((who u8) (row u8)) (ptr u8)

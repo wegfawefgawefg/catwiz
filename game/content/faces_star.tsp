@@ -5,7 +5,7 @@
 (macro rows ()
     '((STAR
             :name "STAR"
-            :text "Makes # mana."
+            :text "Gain # mana."
             :slot star
             :amount 2
             :step 1
@@ -18,7 +18,7 @@
             :steps ((cue chime) (mana) (get mana) (say MANA_NOW)))
         (SHOOTING_STAR
             :name "SHOOTING STAR"
-            :text "Makes 1 mana, and hits an enemy #."
+            :text "Hit enemy for # and gain 1 mana."
             :slot star
             :amount 4
             :step 2
@@ -31,7 +31,7 @@
             :steps ((cue zap) (lit 1) (mana) (num) (hit)))
         (MOON_BOWL
             :name "MOON BOWL"
-            :text "Makes 1 mana, and shield #."
+            :text "Gain # shield and 1 mana."
             :slot star
             :amount 2
             :step 1
@@ -45,10 +45,10 @@
                 (mana)
                 (num)
                 (add shield)
-                (say_me " \x0cshields #, +1 mana.")))
+                (say_me " \x0cgets # shield and 1 mana.")))
         (WISHING_STAR
             :name "WISHING STAR"
-            :text "Makes # mana; next wand hits x2."
+            :text "Gain # mana.|Your next wand hits double."
             :slot star
             :amount 1
             :step 1
@@ -58,10 +58,13 @@
             :show NONE
             :picture wishing
             :weight 3
-            :steps ((cue chime) (mana) (lit 1) (set wish) (say "A wish: the next wand x2.")))
+            :steps ((cue chime) (mana)
+                (lit 1)
+                (set wish)
+                (say "Wish! Your next wand hits double.")))
         (LITTER_STAR
             :name "LITTER STAR"
-            :text "Makes # mana.|Each kitten you have adds 1 more."
+            :text "Gain # mana, +1 for each kitten."
             :slot star
             :amount 1
             :step 1
@@ -74,7 +77,7 @@
             :steps ((kits 1) (cue chime) (mana) (get mana) (say MANA_NOW)))
         (SUNBEAM
             :name "SUNBEAM"
-            :text "Makes # mana.|Mana past 5: re-rolls, 2 at most."
+            :text "Gain # mana.|Mana past your most becomes|re-rolls, 2 at most."
             :slot star
             :amount 2
             :step 1
@@ -92,7 +95,7 @@
         ; the faces round (docs/faces.md)
         (BRIGHT_STAR
             :name "BRIGHT STAR"
-            :text "Makes # mana."
+            :text "Gain # mana."
             :slot star
             :amount 3
             :step 1
@@ -105,7 +108,7 @@
             :steps ((cue sparkle) (mana) (get mana) (say MANA_NOW)))
         (STAR_CLUSTER
             :name "STAR CLUSTER"
-            :text "Makes # mana.|3rd star this turn: +2 re-rolls."
+            :text "Gain # mana.|3rd star in a turn adds 2 re-rolls."
             :slot star
             :amount 2
             :step 1
@@ -121,10 +124,10 @@
                 (three)
                 (lit 2)
                 (rerolls)
-                (say "Third in a turn: +2 re-rolls.")))
+                (say "Third star! You get 2 re-rolls.")))
         (FLEA_MARKET
             :name "FLEA MARKET"
-            :text "Makes # mana.|1 more for each enemy with fleas."
+            :text "Gain # mana.|Each enemy with fleas adds 1."
             :slot star
             :amount 1
             :step 1
@@ -144,7 +147,7 @@
                 (say MANA_NOW)))
         (MOON_TIDE
             :name "MOON TIDE"
-            :text "Makes # mana.|1 more for each wet enemy."
+            :text "Gain # mana, +1 per wet enemy."
             :slot star
             :amount 2
             :step 1
@@ -164,7 +167,7 @@
                 (say MANA_NOW)))
         (FORTIFY
             :name "FORTIFY"
-            :text "Makes # mana, then shield as much|as your mana."
+            :text "Gain # mana, then 1 shield per|mana you have."
             :slot star
             :amount 1
             :step 1
@@ -177,7 +180,7 @@
             :steps ((cue sparkle) (mana) (get mana) (add shield) (say_me SHIELDS)))
         (PURR
             :name "PURR"
-            :text "Makes # mana, and you heal 1."
+            :text "Gain # mana and heal 1."
             :slot star
             :amount 1
             :step 1
@@ -190,7 +193,7 @@
             :steps ((cue chime) (mana) (lit 1) (heal)))
         (OVERFLOW
             :name "OVERFLOW"
-            :text "Makes # mana.|Past your most: 2 to a random enemy|for each."
+            :text "Gain # mana.|Each mana past your most hits a|random enemy for 2."
             :slot star
             :amount 3
             :step 1
@@ -211,7 +214,7 @@
                 (say MANA_NOW)))
         (RATTLE
             :name "RATTLE"
-            :text "Makes # mana, and +1 re-roll."
+            :text "Gain # mana and 1 re-roll."
             :slot star
             :amount 1
             :step 1

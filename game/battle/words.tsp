@@ -23,17 +23,17 @@
         "\x0d# damage"
         "\x0cShield #"
         "Re-roll it"
-        "\x0eNeeds more mana"
+        "\x0eNot enough mana"
         "Pick an enemy"
-        "Again: hits all"
-        "Again: on you"
+        "Tap again for all"
+        "Tap again for you"
         "Next: "
-        "Their turn"
+        "Enemies' turn"
         "Rolling"
         " is down. The run is over."
         "Press RETURN or tap."
         " has this die."
-        "Beat it and the die comes back.")
+        "Beat the enemy to get the die back.")
     :strings aux)
 
 (const SAY_QUIET u8 0)

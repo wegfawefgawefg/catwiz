@@ -17,7 +17,7 @@
 (macro rows ()
     '((SCRATCH_POST
             :name "SCRATCH POST"
-            :text "One more re-roll each turn."
+            :text "1 more re-roll each turn."
             :kind pocket
             :amount 1
             :when none
@@ -27,7 +27,7 @@
             :steps ())
         (SIXTH_TOE
             :name "SIXTH TOE"
-            :text "Roll 6 dice, but 1 re-roll less."
+            :text "Roll 6 dice, but 1 fewer re-roll|each turn."
             :kind toe
             :amount 1
             :when none
@@ -37,7 +37,7 @@
             :steps ())
         (STILL_WATER
             :name "STILL WATER"
-            :text "A turn with no re-roll: +2 mana."
+            :text "No re-roll in a turn gives 2 mana."
             :kind still
             :amount 2
             :when turn_end
@@ -47,7 +47,7 @@
             :steps ((calm) (mana)))
         (TRIO
             :name "PURRFECT TRIO"
-            :text "Each three of a kind: 2 to all."
+            :text "Each three of a kind hits all|enemies for 2."
             :kind trio
             :amount 2
             :when three
@@ -67,7 +67,7 @@
             :steps ())
         (MOTHER_CAT
             :name "MOTHER CAT"
-            :text "Each fight starts with a kitten."
+            :text "Start each fight with a kitten."
             :kind mother
             :amount 1
             :when fight_start
@@ -77,7 +77,7 @@
             :steps ((add kittens)))
         (FLUFFY_TAIL
             :name "FLUFFY TAIL"
-            :text "Shield halves each turn, not gone."
+            :text "Your shield halves each turn|instead of going away."
             :kind tail
             :amount 1
             :when none
@@ -87,7 +87,7 @@
             :steps ())
         (GRUMPY
             :name "GRUMPY FACE"
-            :text "A hit that hurts you: +1 mana."
+            :text "Losing hp gives you 1 mana."
             :kind grumpy
             :amount 1
             :when hurt
@@ -97,7 +97,7 @@
             :steps ((mana)))
         (RUBBER_DUCK
             :name "RUBBER DUCK"
-            :text "Your ward blocks a curse: shield 2."
+            :text "When any ward blocks a curse, gain|2 shield."
             :kind duck
             :amount 2
             :when warded
@@ -117,7 +117,7 @@
             :steps ())
         (LITTER_BOX
             :name "LITTER BOX"
-            :text "Half your kittens carry over."
+            :text "Half your kittens (rounded up) stay|for the next fight."
             :kind litterbox
             :amount 1
             :when fight_start
@@ -138,7 +138,7 @@
         ; the faces round (docs/faces.md)
         (ECHO
             :name "ECHO"
-            :text "Each three of a kind's extra|happens twice."
+            :text "Three of a kind extras work twice."
             :kind echo
             :amount 1
             :when none
@@ -158,7 +158,7 @@
             :steps ())
         (FLEA_FARM
             :name "FLEA FARM"
-            :text "Each fight starts with fleas #|on every enemy."
+            :text "Each fight, all enemies start with|# fleas."
             :kind plain
             :amount 2
             :when fight_start
@@ -178,7 +178,7 @@
             :steps ())
         (PORCUPINE
             :name "PORCUPINE"
-            :text "Your shield takes all of a hit:|the hitter takes #."
+            :text "When your shield takes a whole hit,|the attacker takes #."
             :kind porcupine
             :amount 2
             :when none
@@ -188,7 +188,7 @@
             :steps ())
         (THICK_COAT
             :name "THICK COAT"
-            :text "Every fluff shields # more."
+            :text "Your fluffs give # more shield."
             :kind coat
             :amount 1
             :when none
@@ -208,7 +208,7 @@
             :steps ((heal)))
         (NINTH_LIFE
             :name "NINTH LIFE"
-            :text "After each elite: +# max hp."
+            :text "Each elite you beat adds # max hp."
             :kind ninth
             :amount 1
             :when none
@@ -218,7 +218,7 @@
             :steps ())
         (CHEAP_TRICK
             :name "CHEAP TRICK"
-            :text "First book each turn: # less mana."
+            :text "Your first book each turn costs #|less mana."
             :kind cheap
             :amount 1
             :when none
@@ -248,7 +248,7 @@
             :steps ())
         (LUCKY_SEVEN
             :name "LUCKY SEVEN"
-            :text "Five different faces showing:|+2 re-rolls."
+            :text "If your dice show 5 different|faces, gain 2 re-rolls."
             :kind lucky7
             :amount 1
             :when none
@@ -278,7 +278,7 @@
             :steps ())
         (RAIN_BOOTS
             :name "RAIN BOOTS"
-            :text "Wet enemies take # more from every|hit."
+            :text "Wet enemies take # more per hit."
             :kind boots
             :amount 1
             :when none
@@ -288,7 +288,7 @@
             :steps ())
         (STORM_CLOUD
             :name "STORM CLOUD"
-            :text "Each fight starts with every enemy|wet for # turn."
+            :text "Each fight, all enemies start wet|for # turn."
             :kind plain
             :amount 1
             :when fight_start
@@ -298,7 +298,7 @@
             :steps ((all) (call WET) (end)))
         (TROUBLEMAKER
             :name "TROUBLEMAKER"
-            :text "An enemy's hit on its friend is|doubled."
+            :text "An enemy's hit on another enemy is|doubled."
             :kind trouble
             :amount 1
             :when none
@@ -308,7 +308,7 @@
             :steps ())
         (PIED_PIPER
             :name "PIED PIPER"
-            :text "Each fight starts with an enemy|hypnotized, picked at random."
+            :text "Each fight, a random enemy starts|hypnotized. That enemy's next|attack hits anyone at random."
             :kind plain
             :amount 1
             :when fight_start
@@ -328,7 +328,7 @@
             :steps ((get momentum) (add knead_wand) (lit 1) (add momentum)))
         (THICK_SKIN
             :name "THICK SKIN"
-            :text "Each turn: shield 1 for each time|you were hurt this fight."
+            :text "Each turn, gain 1 shield for each|time you were hurt this fight."
             :kind plain
             :amount 1
             :when turn_start
@@ -348,7 +348,7 @@
             :steps ())
         (SPARE_YARN
             :name "SPARE YARN"
-            :text "First turn of a fight: +# re-roll."
+            :text "# more re-roll on the first turn|of each fight."
             :kind plain
             :amount 1
             :when fight_start
@@ -358,7 +358,7 @@
             :steps ((add rolls)))
         (HEAD_START
             :name "HEAD START"
-            :text "Each fight starts with # mana."
+            :text "Start each fight with # mana."
             :kind plain
             :amount 2
             :when fight_start

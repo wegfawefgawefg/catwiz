@@ -5,7 +5,7 @@
 (macro rows ()
     '((FLEAS
             :name "FLEAS"
-            :text "Fleas bite it # a turn, 3 turns."
+            :text "Enemy gets # fleas for 3 turns.|Each flea bites 1 a turn."
             :slot curse
             :amount 2
             :step 1
@@ -21,7 +21,7 @@
                 (say_it GETS_FLEAS_TURN)))
         (WET
             :name "WET"
-            :text "Its hits are halved for # turns."
+            :text "Enemy is wet for # of its turns.|Wet enemies hit for half."
             :slot curse
             :amount 1
             :step 1
@@ -34,7 +34,7 @@
             :steps ((least 1) (curse wet) (t_get wet) (say_it WET_HALF_HITS)))
         (TANGLE
             :name "BALL OF YARN"
-            :text "Its next turn's hits are # less."
+            :text "Enemy hits # less next turn."
             :slot curse
             :amount 2
             :step 1
@@ -47,7 +47,7 @@
             :steps ((curse tangle) (t_get tangle) (say_it TANGLED_HITS)))
         (MARK
             :name "MARK TERRITORY"
-            :text "Every hit on it does # more.|Your kittens go for it first."
+            :text "Hits on enemy do # more.|Your kittens go for enemy first.|The mark lasts all fight."
             :slot curse
             :amount 1
             :step 1
@@ -57,10 +57,10 @@
             :show PUFF
             :picture mark
             :weight 3
-            :steps ((curse brand) (t_get brand) (say_it " \x09is marked: hits +#.")))
+            :steps ((curse brand) (t_get brand) (say_it " \x09is marked +#.")))
         (RED_DOT
             :name "RED DOT"
-            :text "Puts # red dots on it.|A wand hit on it brings dice back."
+            :text "Enemy gets # red dots.|A wand hit on enemy uses a dot and|brings all your dice back."
             :slot curse
             :amount 1
             :step 1
@@ -70,10 +70,10 @@
             :show RED_DOT
             :picture reddot
             :weight 1
-            :steps ((cue dart) (curse dot) (t_get dot) (say_it " \x09has a red dot: # times.")))
+            :steps ((cue dart) (curse dot) (t_get dot) (say_it " \x09has # red dots.")))
         (CATFIGHT
             :name "CATFIGHT"
-            :text "Its next hit goes to a friend, +#."
+            :text "Enemy's next hit is # harder and|lands on another enemy."
             :slot curse
             :amount 6
             :step 2
@@ -83,10 +83,12 @@
             :show CATFIGHT
             :picture catfight
             :weight 3
-            :steps ((cue yowl) (curse catfight) (t_get catfight) (say_it " wants a catfight: +#.")))
+            :steps ((cue yowl) (curse catfight)
+                (t_get catfight)
+                (say_it " will hit a friend # harder.")))
         (FLEA_CIRCUS
             :name "FLEA CIRCUS"
-            :text "Fleas # on it and a random other."
+            :text "Enemy gets # fleas, and so does a|random other enemy."
             :slot curse
             :amount 3
             :step 1
@@ -100,18 +102,18 @@
                 (lit cards.FLEA_TURNS)
                 (t_set flea_turns)
                 (t_get poison)
-                (say_it " \x09gets a flea circus: #.")
+                (say_it " \x09gets # circus fleas.")
                 (pick)
                 (num)
                 (curse poison)
                 (lit cards.FLEA_TURNS)
                 (t_set flea_turns)
                 (t_get poison)
-                (say_it " \x09gets a flea circus: #.")))
+                (say_it " \x09gets # circus fleas.")))
         ; the faces round (docs/faces.md)
         (GLARE
             :name "GLARE"
-            :text "Its next turn's hits are # less."
+            :text "Enemy hits # less next turn."
             :slot curse
             :amount 4
             :step 1
@@ -124,7 +126,7 @@
             :steps ((cue boing) (curse tangle) (t_get tangle) (say_it TANGLED_HITS)))
         (TRIPLE_HEX
             :name "TRIPLE HEX"
-            :text "Every hit on it does # more.|3rd curse this turn: all get +2."
+            :text "Hits on enemy do # more.|3rd curse in a turn also marks|all enemies, 2 more each."
             :slot curse
             :amount 1
             :step 1
@@ -135,16 +137,16 @@
             :picture triplehex
             :weight 3
             :steps ((curse brand) (t_get brand)
-                (say_it " \x09is marked: hits +#.")
+                (say_it " \x09is marked +#.")
                 (three)
-                (say "Third in a turn: all marked!")
+                (say "All enemies are marked!")
                 (all)
                 (lit 2)
                 (curse brand)
                 (end)))
         (FLEA_COMB
             :name "FLEA COMB"
-            :text "Its fleas bite x# as hard."
+            :text "Enemy's fleas multiply by #."
             :slot curse
             :amount 2
             :step 1
@@ -157,7 +159,7 @@
             :steps ((cue buzz) (t_times poison) (t_get poison) (say_it GETS_FLEAS_TURN)))
         (DRENCHED
             :name "DRENCHED"
-            :text "It is wet for # turns,|and marked: hits on it +1."
+            :text "Enemy is wet for # turns.|Wet enemies hit for half.|Hits on enemy do 1 more."
             :slot curse
             :amount 3
             :step 1
@@ -167,13 +169,10 @@
             :show SPRAY
             :picture drenched
             :weight 3
-            :steps ((cue splash) (call WET)
-                (lit 1)
-                (curse brand)
-                (say_it " \x09is marked: hits +#.")))
+            :steps ((cue splash) (call WET) (lit 1) (curse brand) (say_it " \x09is marked +#.")))
         (LEECH
             :name "LEECH"
-            :text "Each hit you land on it heals you|1, for # turns."
+            :text "For # turns, each hit you land on|enemy heals you 1."
             :slot curse
             :amount 3
             :step 1
@@ -183,10 +182,12 @@
             :show HEART
             :picture leech
             :weight 3
-            :steps ((cue slurp) (curse leech) (t_get leech) (say_it " \x09is leeched: # turns.")))
+            :steps ((cue slurp) (curse leech)
+                (t_get leech)
+                (say_it " \x09has a leech for # turns.")))
         (MANA_LEECH
             :name "MANA LEECH"
-            :text "Each hit on it this turn makes|# mana."
+            :text "Gain # mana for each hit you land|on enemy this turn."
             :slot curse
             :amount 1
             :step 1
@@ -198,10 +199,10 @@
             :weight 3
             :steps ((cue sparkle) (curse mleech)
                 (t_get mleech)
-                (say_it " \x09is a mana leech: # a hit.")))
+                (say_it " \x09gives you # mana a hit.")))
         (SPOOK
             :name "SPOOK"
-            :text "Its next attack is a shield of|its number instead."
+            :text "Enemy's next attack becomes a|shield of the same number."
             :slot curse
             :amount 1
             :step 0
@@ -211,10 +212,10 @@
             :show ALERT
             :picture spook
             :weight 3
-            :steps ((cue boing) (lit 1) (curse scared) (say_it " \x09is scared: it will hide.")))
+            :steps ((cue boing) (lit 1) (curse scared) (say_it " \x09is scared and will hide.")))
         (HYPNOTIZE
             :name "HYPNOTIZE"
-            :text "Its next attack hits a fighter at|random, its friends too."
+            :text "Enemy's next attack hits anyone at|random, you or another enemy."
             :slot curse
             :amount 1
             :step 0
@@ -227,7 +228,7 @@
             :steps ((cue shimmer) (lit 1) (curse hypno) (say_it " \x09is hypnotized.")))
         (CATNIP_BOMB
             :name "CATNIP BOMB"
-            :text "Its next attack hits everyone,|itself too."
+            :text "Enemy's next attack hits everyone,|the enemy too."
             :slot curse
             :amount 1
             :step 0
