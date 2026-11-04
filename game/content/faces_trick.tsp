@@ -5,7 +5,7 @@
 (macro rows ()
     '((PLUS
             :name "PLUS ONE"
-            :text "Your next die's number is +#."
+            :text "Your next die gets +#."
             :slot trick
             :amount 2
             :step 2
@@ -18,7 +18,7 @@
             :steps ((cue chime) (add plus) (lit 1) (set plus_left) (get plus) (say NEXT_DIE)))
         (TIMES
             :name "TIMES TWO"
-            :text "Your next die's number is x#."
+            :text "Your next die gets x#."
             :slot trick
             :amount 2
             :step 1
@@ -34,10 +34,10 @@
                 (num)
                 (times mult)
                 (get mult)
-                (say "Times: the next die x#.")))
+                (say "Your next die gets x#.")))
         (COPYCAT
             :name "COPYCAT"
-            :text "Plays your last die again, # more."
+            :text "Play your last die again, with +#."
             :slot trick
             :amount 0
             :step 2
@@ -50,7 +50,7 @@
             :steps ((cue chime) (copy)))
         (CATNIP
             :name "CATNIP"
-            :text "Next # dice +1.|Kittens pounce twice this turn."
+            :text "Your next # dice get +1.|Kittens pounce twice this turn."
             :slot trick
             :amount 4
             :step 1
@@ -64,10 +64,10 @@
                 (lit 1)
                 (set nipped)
                 (num)
-                (say "Catnip! The next # dice +1.")))
+                (say "Catnip! Your next # dice get +1.")))
         (KNEAD
             :name "KNEAD"
-            :text "Next fluff x2, and next wand +#."
+            :text "Your next wand gets +#, and your|next fluff gets x2."
             :slot trick
             :amount 4
             :step 2
@@ -83,10 +83,10 @@
                 (times knead_fluff)
                 (num)
                 (add knead_wand)
-                (say "Knead: next fluff x2, wand +#.")))
+                (say "Kneading! Your next wand gets +#.")))
         (DOUBLE_OR_NOTHING
             :name "DOUBLE OR NOTHING"
-            :text "Next die's number x#.|If no die uses it: you lose # hp."
+            :text "Your next die gets x#.|If no die uses the x# this turn,|you lose # hp."
             :slot trick
             :amount 2
             :step 1
@@ -107,7 +107,7 @@
         ; the faces round (docs/faces.md)
         (STONE_CAT
             :name "STONE CAT"
-            :text "Your next fluff is x#."
+            :text "Your next fluff gets x#."
             :slot trick
             :amount 3
             :step 1
@@ -122,10 +122,10 @@
                 (num)
                 (times knead_fluff)
                 (get knead_fluff)
-                (say "Stone cat: the next fluff x#.")))
+                (say "Your next fluff gets x#.")))
         (HISS
             :name "HISS"
-            :text "Costs 2 hp: your next die is x#."
+            :text "Lose 2 hp. Your next die gets x#."
             :slot trick
             :amount 2
             :step 1
@@ -144,10 +144,10 @@
                 (num)
                 (times mult)
                 (get mult)
-                (say "Hiss! The next die x#.")))
+                (say "Hiss! Your next die gets x#.")))
         (LAST_STAND
             :name "LAST STAND"
-            :text "Under 4 hp: your next die is x#."
+            :text "Your next die gets x# if you have|under 4 hp."
             :slot trick
             :amount 3
             :step 1
@@ -163,7 +163,7 @@
                 (num)
                 (times mult)
                 (get mult)
-                (say "Last stand: the next die x#.")))
+                (say "Last stand! Your next die gets x#.")))
         (SPELL_ECHO
             :name "SPELL ECHO"
             :text "Your next book is cast twice."
@@ -176,10 +176,10 @@
             :show MANA_SWIRL
             :picture spellecho
             :weight 1
-            :steps ((cue sparkle) (lit 1) (set echo) (say "Your next book goes twice.")))
+            :steps ((cue sparkle) (lit 1) (set echo) (say "Your next book will cast twice.")))
         (PAW_FLIP
             :name "PAW FLIP"
-            :text "Turns a die to the face you pick:|pick it, then again to turn it."
+            :text "Pick a die, then pick it again to|turn the die one face each time."
             :slot trick
             :amount 0
             :step 0
@@ -189,10 +189,10 @@
             :show DIE_FLIP
             :picture pawflip
             :weight 1
-            :steps ((cue rattle) (lit 1) (set flip) (say "Pick a die, again to turn it.")))
+            :steps ((cue rattle) (lit 1) (set flip) (say "Pick a die again to turn its face.")))
         (SHARPEN_CLAWS
             :name "SHARPEN CLAWS"
-            :text "Every wand +# for the rest of the|fight."
+            :text "Your wands hit # more this fight."
             :slot trick
             :amount 1
             :step 1
@@ -202,13 +202,10 @@
             :show CLAWS
             :picture sharpenclaws
             :weight 3
-            :steps ((cue scratch) (num)
-                (add sharp)
-                (get sharp)
-                (say "Sharp claws: wands +# this fight.")))
+            :steps ((cue scratch) (num) (add sharp) (get sharp) (say "Your wands now hit # more.")))
         (ALL_IN
             :name "ALL IN"
-            :text "Every die left this turn is x#,|but no more re-rolls."
+            :text "Your other dice get x# this turn,|but you lose all your re-rolls."
             :slot trick
             :amount 2
             :step 1
@@ -224,10 +221,10 @@
                 (times allin)
                 (no_rerolls)
                 (get allin)
-                (say "All in: every die x# this turn!")))
+                (say "All in! Your dice get x# this turn.")))
         (HAT_TRICK
             :name "HAT TRICK"
-            :text "Plays a face drawn from all the|faces there are, at your levels."
+            :text "Play a random face from all faces|in the game, at your levels."
             :slot trick
             :amount 0
             :step 0

@@ -37,16 +37,16 @@
 (const SAY (array (ptr u8) 11)
     (make (array (ptr u8) 11)
         "Pick a die 1-5, then who it is for."
-        "E ends turn. B kit, ? rules, H log."
-        "Your turn: pick a die (1-5)."
-        "R re-roll or E end turn."
-        "No playable dice."
+        "E ends the turn. ? shows the rules."
+        "Your turn. Pick a die (1-5)."
+        "R re-rolls. E ends the turn."
+        "No die can be played."
         ": meow!"
-        "A hairball: re-roll it to cough it up."
-        "Stars fill your mana; spells spend."
+        "Re-roll a hairball to cough it up."
+        "Stars make mana. Books spend it."
         "All your dice come back!"
-        "Jackpot! Five alike win the fight!"
-        "Lucky seven: +# re-rolls.")
+        "Jackpot! Five matching faces win!"
+        "Lucky seven! +# re-rolls.")
     :strings aux)
 
 (const SAY_PICK_DIE_1 u8 0)

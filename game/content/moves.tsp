@@ -35,7 +35,7 @@
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Cheer: friend +# next"
+            :text "Cheers a friend +#"
             :effect ac.Effect.cheer
             :amount 2
             :aim state.Aim.friend
@@ -65,7 +65,7 @@
             :icon '!')
         ; garden gnome
         (make ac.Move
-            :text "Guards a friend: #"
+            :text "Shields a friend #"
             :effect ac.Effect.shield
             :amount 6
             :aim state.Aim.friend
@@ -118,21 +118,21 @@
             :icon '!')
         ; roomba
         (make ac.Move
-            :text "Beep. Bumps in 2"
+            :text "Bumps in 2 turns"
             :effect ac.Effect.wait
             :amount 0
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '2')
         (make ac.Move
-            :text "Beep beep. In 1"
+            :text "Bumps next turn"
             :effect ac.Effect.wait
             :amount 0
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '1')
         (make ac.Move
-            :text "Bumps # twice"
+            :text "2 bumps of #"
             :effect ac.Effect.hit2
             :amount 5
             :aim state.Aim.foe
@@ -147,7 +147,7 @@
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Hairball: your fluff"
+            :text "Clogs your fluff face"
             :effect ac.Effect.junk
             :amount 1
             :aim state.Aim.foe
@@ -155,7 +155,7 @@
             :icon '-')
         ; cucumber
         (make ac.Move
-            :text "Spooks: dice -# next"
+            :text "Spooks your dice -#"
             :effect ac.Effect.spook
             :amount 1
             :aim state.Aim.foe
@@ -177,7 +177,7 @@
             :motion state.Motion.throw
             :icon ')')
         (make ac.Move
-            :text "Waters friends +#"
+            :text "Waters friends +# hp"
             :effect ac.Effect.mend
             :amount 4
             :aim state.Aim.self
@@ -192,14 +192,14 @@
             :motion state.Motion.hop
             :icon '+')
         (make ac.Move
-            :text "Sucks # twice"
+            :text "Sucks twice for #"
             :effect ac.Effect.hit2
             :amount 2
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Sucks # twice"
+            :text "Sucks twice for #"
             :effect ac.Effect.hit2
             :amount 2
             :aim state.Aim.foe
@@ -207,14 +207,14 @@
             :icon '!')
         ; lawnmower
         (make ac.Move
-            :text "Revs up: +# for good"
+            :text "Revs up, +# strength"
             :effect ac.Effect.grow
             :amount 2
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
         (make ac.Move
-            :text "Mows # twice"
+            :text "Mows twice for #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
@@ -222,7 +222,7 @@
             :icon '!')
         ; the mailman
         (make ac.Move
-            :text "Parcels # twice"
+            :text "2 parcels of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
@@ -236,14 +236,14 @@
             :motion state.Motion.hop
             :icon ':')
         (make ac.Move
-            :text "Heavy parcel # twice"
+            :text "2 heavy parcels of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
         (make ac.Move
-            :text "Grumpier: +# for good"
+            :text "Grumps, +# strength"
             :effect ac.Effect.grow
             :amount 2
             :aim state.Aim.self
@@ -251,35 +251,35 @@
             :icon '^')
         ; the vet
         (make ac.Move
-            :text "Needle: fleas #"
+            :text "Gives you # fleas"
             :effect ac.Effect.fleas
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon ',')
         (make ac.Move
-            :text "Thermometer # twice"
+            :text "2 thermometers of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Checkup # twice"
+            :text "2 checkups of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Snaps gloves: +# good"
+            :text "Gloves on, +# strength"
             :effect ac.Effect.grow
             :amount 2
             :aim state.Aim.self
             :motion state.Motion.hop
             :icon '^')
         (make ac.Move
-            :text "Injection # twice"
+            :text "2 injections of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
@@ -287,21 +287,21 @@
             :icon '!')
         ; the big bath
         (make ac.Move
-            :text "Rinse: you get wet"
+            :text "Rinse makes you wet"
             :effect ac.Effect.wet
             :amount 0
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '%')
         (make ac.Move
-            :text "Splash # twice"
+            :text "2 splashes of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
         (make ac.Move
-            :text "Scrub # twice"
+            :text "2 scrubs of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
@@ -309,14 +309,14 @@
             :icon '!')
         ; drain gremlin
         (make ac.Move
-            :text "Glug glug # twice"
+            :text "Glugs twice for #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Gurgles: +# for good"
+            :text "Gurgles, +# strength"
             :effect ac.Effect.grow
             :amount 2
             :aim state.Aim.self
@@ -324,21 +324,21 @@
             :icon '^')
         ; bulldog king
         (make ac.Move
-            :text "Royal bite # twice"
+            :text "2 royal bites of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Chomp # twice"
+            :text "2 chomps of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Royal swat # twice"
+            :text "2 royal swats of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
@@ -353,21 +353,21 @@
             :motion state.Motion.hop
             :icon '+')
         (make ac.Move
-            :text "Slobber # twice"
+            :text "2 slobbers of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
             :motion state.Motion.throw
             :icon '!')
         (make ac.Move
-            :text "Chomp # twice"
+            :text "2 chomps of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Decree: +# for good"
+            :text "Decrees +# strength"
             :effect ac.Effect.grow
             :amount 2
             :aim state.Aim.self
@@ -375,28 +375,28 @@
             :icon '^')
         ; bulldog king, furious
         (make ac.Move
-            :text "Paw swipe # twice"
+            :text "2 paw swipes of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Flails # twice"
+            :text "Flails twice for #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Belly flop # twice"
+            :text "2 belly flops of #"
             :effect ac.Effect.hit2
             :amount 4
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Growl: +# for good"
+            :text "Growls, +# strength"
             :effect ac.Effect.grow
             :amount 3
             :aim state.Aim.self
@@ -411,7 +411,7 @@
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Cheer: king +# next"
+            :text "Cheers the king +#"
             :effect ac.Effect.cheer
             :amount 2
             :aim state.Aim.friend
@@ -426,14 +426,14 @@
             :motion state.Motion.hop
             :icon '+')
         (make ac.Move
-            :text "Cap slam # twice"
+            :text "2 cap slams of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe
             :motion state.Motion.lunge
             :icon '!')
         (make ac.Move
-            :text "Spore storm # twice"
+            :text "2 spore storms of #"
             :effect ac.Effect.hit2
             :amount 3
             :aim state.Aim.foe

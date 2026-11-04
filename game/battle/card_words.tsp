@@ -13,7 +13,7 @@
 (const BASE (array (ptr u8) 6)
     (make (array (ptr u8) 6)
         "Wand: # damage" "Fluff: shield #" "Star: makes mana" "Book: a spell for mana"
-        "Curse: on an enemy" "Trick: for the next dice")
+        "Curse: goes on an enemy" "Trick: helps the next dice")
     :strings aux)
 
 (const SLOT_NAME (array (ptr u8) 6)
@@ -22,7 +22,7 @@
 
 (const SAY (array (ptr u8) 6)
     (make (array (ptr u8) 6)
-        "+1 " "Again to take" " (+#)" "Your levels stay: +# in its number." " (#,"
+        "+1 " "Tap again to take" " (+#)" "Your levels add +# to this face." " (#,"
         " +# from your levels)")
     :strings aux)
 
@@ -67,7 +67,7 @@
         (text.add_aux (at SAY SAY_PLUS1)))
     (text.add_aux name)
     (set text.inverse false)
-    (text.tab 22)
+    (text.tab 18)
     (text.add_aux (at SAY SAY_AGAIN))
     (show 0))
 
