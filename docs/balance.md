@@ -1,5 +1,10 @@
 # Balance
 
+Note (2026-11-06): this is the sims' record, and the game has moved on from parts of the
+proposal below. The game has Catwiz at 10 hit points, five cards after a fight, and a rest
+after each elite that heals her to full (then +1 on a face or skip); the fights are in
+`game/content/encounters.tsp`. The code is the truth; docs/plan.md says where the game stands.
+
 The balance sims (`tools/sim/`), the targets, and the proposal: the item-slot model in the
 owner's ten-fight run (the woods, the garden, the yard, each two fights and an elite, then the
 bulldog king), cards drawn at random from one pool after every fight, a charm and a nap after

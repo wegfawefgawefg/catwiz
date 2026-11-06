@@ -33,7 +33,7 @@ In flat colour (an RGB monitor, the web player's other look):
 [bonus upgrade](shots/dream_color.png), [doors](shots/doors_color.png), [six dice](shots/toe_color.png),
 [kit](shots/kit_color.png), [a charm in the kit](shots/kit_charm_color.png),
 [rules](shots/rules_color.png), [won](shots/win_color.png), [lost](shots/lose_color.png). The
-screens after fight 2 come from test builds (`battle/battle.tsp`'s constants).
+screenshots are from 2026-11-01 and are due a refresh: some screens have changed since.
 
 ## Playing
 
@@ -42,10 +42,10 @@ a fluff, a star, a book, a curse and a trick), and the item in a slot says what 
 wand hits, fluff shields you till your next turn, a star adds mana, a book casts a spell that
 costs mana (with too little it gives 1), a curse goes on an enemy, a trick boosts the next dice.
 Three faces of a slot in one turn set off its item's combo. The enemies show what they will do
-next. After a won fight you pick one of three cards, drawn at random: a new item for a slot (the
-old one goes) or a level on a slot. After each elite you also pick one of three charms, then a
-nap (hit points back) or a bonus upgrade (a level on a slot of your choice); before the ninth
-fight you pick one of two doors. Hit points and your kit carry over; losing ends the run. The
+next. After a won fight you pick one of five cards, drawn at random: a new item for a slot (the
+old one goes) or a level on a slot. After each elite you also pick one of three charms, then
+rest: you heal to full and may put +1 on a face of your choice. Before the ninth fight you pick
+one of two doors. Hit points and your kit carry over; losing ends the run. The
 map at the top of the stage shows the place, its fights and the king's crown.
 
 Everything is a tap or a click on the screen, or a key:
@@ -63,7 +63,7 @@ Everything is a tap or a click on the screen, or a key:
   its name and level, the slot's base, the item's line and what it has going this fight (a
   three building, a plus or a times waiting, mana, kittens, a hairball, a die an enemy holds).
   ESC, B, CLOSE or a tap on the empty stage goes back to the fight.
-- ? (the ? button): the rules, ten pages; the arrows, BACK and NEXT (or a tap on the page) turn
+- ? (the ? button): the rules, thirteen pages; the arrows, BACK and NEXT (or a tap on the page) turn
   them; ESC, ? or CLOSE goes back.
 - Between fights the choices are cards in the tray, 1-3 (or 1-6 for a slot): a card picked shows
   what it changes, on the slots over the tray and in the text; the same card again takes it;
