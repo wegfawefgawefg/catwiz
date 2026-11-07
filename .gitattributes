@@ -1,1 +1,2 @@
-*.tsp linguist-language=Common-Lisp
+# GitHub has no Tisple language. Hide the language chip rather than show a wrong one.
+* linguist-detectable=false
